@@ -1,0 +1,165 @@
+{% extends 'itens/base_gestao.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Adicionar Novo Item{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg rounded-3 border-0">
+    <div class="card-header bg-primary text-white d-flex align-items-center">
+        <i class="bi bi-plus-circle me-2"></i>
+        <h2 class="mb-0 fs-4">Adicionar Novo Item</h2>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <h4 class="section-title"><i class="bi bi-upc-scan me-2"></i> Identificação Principal</h4>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    {{ form.numero_identificacao.label_tag }}
+                    {{ form.numero_identificacao|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.numero_identificacao.errors }}</div>
+                </div>
+                <div class="col-md-8">
+                    {{ form.nome.label_tag }}
+                    {{ form.nome|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.nome.errors }}</div>
+                </div>
+                <div class="col-md-4">
+                    {{ form.categoria.label_tag }}
+                    {{ form.categoria|add_class:"form-select" }}
+                    <div class="text-danger small mt-1">{{ form.categoria.errors }}</div>
+                </div>
+                <div class="col-md-8" id="div_tipo_consumo" style="display: none;">
+                    {{ form.tipo_consumo.label_tag }}
+                    {{ form.tipo_consumo|add_class:"form-select" }}
+                    <div class="text-danger small mt-1">{{ form.tipo_consumo.errors }}</div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 section-title"><i class="bi bi-box-seam me-2"></i> Detalhes Físicos</h4>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    {{ form.bloco.label_tag }}
+                    {{ form.bloco|add_class:"form-select" }}
+                    <div class="text-danger small mt-1">{{ form.bloco.errors }}</div>
+                </div>
+                <div class="col-md-4">
+                    {{ form.localizacao.label_tag }}
+                    {{ form.localizacao|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.localizacao.errors }}</div>
+                </div>
+                <div class="col-md-4">
+                    {{ form.estado_de_conservacao.label_tag }}
+                    {{ form.estado_de_conservacao|add_class:"form-select" }}
+                    <div class="text-danger small mt-1">{{ form.estado_de_conservacao.errors }}</div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 section-title"><i class="bi bi-cash-coin me-2"></i> Dados de Aquisição e Financeiro</h4>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    {{ form.valor_unitario.label_tag }}
+                    {{ form.valor_unitario|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.valor_unitario.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.valor_aquisicao.label_tag }}
+                    {{ form.valor_aquisicao|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.valor_aquisicao.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.valor_atual_do_bem.label_tag }}
+                    {{ form.valor_atual_do_bem|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.valor_atual_do_bem.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.custo_unit.label_tag }}
+                    {{ form.custo_unit|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.custo_unit.errors }}</div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 section-title"><i class="bi bi-boxes me-2"></i> Controle de Estoque e Consumo</h4>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    {{ form.qtde.label_tag }}
+                    {{ form.qtde|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.qtde.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.qtd_estoque.label_tag }}
+                    {{ form.qtd_estoque|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.qtd_estoque.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.consumo_mensal.label_tag }}
+                    {{ form.consumo_mensal|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.consumo_mensal.errors }}</div>
+                </div>
+                 <div class="col-md-3">
+                    {{ form.cons_mes_hist.label_tag }}
+                    {{ form.cons_mes_hist|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.cons_mes_hist.errors }}</div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.duracao.label_tag }}
+                    {{ form.duracao|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.duracao.errors }}</div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 section-title"><i class="bi bi-card-text me-2"></i> Descrições e Mídia</h4>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ form.descricao.label_tag }}
+                    {{ form.descricao|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.descricao.errors }}</div>
+                </div>
+                <div class="col-md-6">
+                    {{ form.foto_do_bem.label_tag }}
+                    {{ form.foto_do_bem|add_class:"form-control" }}
+                    <div class="text-danger small mt-1">{{ form.foto_do_bem.errors }}</div>
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{% url 'painel_principal' %}" class="btn btn-outline-secondary me-2">Cancelar</a>
+                <button type="submit" name="action" value="cadastrar" class="btn btn-primary me-2">Apenas Cadastrar</button>
+                <button type="submit" name="action" value="cadastrar_gerar" class="btn btn-success">Cadastrar e Gerar Etiqueta</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const seletorCategoria = document.querySelector('#id_categoria');
+            const divTipoConsumo = document.querySelector('#div_tipo_consumo');
+
+            function toggleTipoConsumo() {
+                if (seletorCategoria && divTipoConsumo) {
+                    divTipoConsumo.style.display = seletorCategoria.value === 'CONSUMO' ? 'block' : 'none';
+                }
+            }
+
+            if (seletorCategoria) {
+                seletorCategoria.addEventListener('change', toggleTipoConsumo);
+                toggleTipoConsumo();
+            }
+        });
+    </script>
+{% endblock %}

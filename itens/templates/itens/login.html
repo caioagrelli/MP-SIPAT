@@ -1,0 +1,26 @@
+{% extends 'itens/base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Acesso ao Sistema de Gestão</h2>
+                    {% if form.errors %}<div class="alert alert-danger">Usuário ou senha incorretos.</div>{% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group"><label>Usuário</label>{{ form.username }}</div>
+                        <div class="form-group"><label>Senha</label>{{ form.password }}</div>
+                        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                    </form>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'password_reset' %}">Esqueceu a senha?</a>
+                        <br>
+                        <a href="#">Primeiro Acesso / Solicitar Cadastro</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

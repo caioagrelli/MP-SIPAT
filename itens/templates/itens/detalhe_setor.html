@@ -1,0 +1,234 @@
+{% extends 'itens/base_gestao.html' %}
+
+{% block title %}Setor: {{ setor.nome }}{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --cor-principal: #3d5a80;
+        --cor-principal-hover: #2e4666;
+        --cor-secundaria: #98c1d9;
+        --cor-fundo: #f8f9fb;
+        --cor-card: #ffffff;
+        --borda: #e0e0e0;
+    }
+
+    body {
+        background-color: var(--cor-fundo);
+        font-family: "Inter", "Segoe UI", sans-serif;
+    }
+
+    h1 {
+        color: var(--cor-principal);
+        font-weight: 600;
+    }
+
+    a.text-muted {
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    a.text-muted:hover {
+        color: var(--cor-principal);
+    }
+
+    .btn-primary {
+        background-color: var(--cor-principal);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--cor-principal-hover);
+    }
+
+    .btn-secondary {
+        background-color: var(--cor-secundaria);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 500;
+        color: #fff;
+        transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #7baecb;
+    }
+
+    .btn-danger {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 500;
+        color: #fff;
+    }
+
+    /* Grid de blocos */
+    .blocos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.2rem;
+        margin-top: 1rem;
+    }
+
+    /* Card clicável (não é <a> para permitir botões internos) */
+    .bloco-card {
+        background: var(--cor-card);
+        border: 1px solid var(--borda);
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+        padding: 1.4rem;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+    }
+
+    .bloco-card:hover, .bloco-card:focus {
+        transform: translateY(-4px);
+        border-color: var(--cor-principal);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .bloco-nome {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--cor-principal);
+        margin-bottom: 0.4rem;
+    }
+
+    .bloco-info {
+        font-size: 0.95rem;
+        color: #666;
+        flex-grow: 1;
+    }
+
+    .bloco-botoes {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        margin-top: 1rem;
+    }
+
+    .icone-bloco {
+        font-size: 2rem;
+        color: var(--cor-principal);
+        margin-bottom: 0.8rem;
+    }
+
+    /* Marca botões que não devem disparar o clique do card */
+    .card-action {
+        z-index: 2;
+    }
+
+    .alert-info {
+        background-color: #eaf4fb;
+        border: 1px solid #cfe4f5;
+        color: var(--cor-principal);
+        border-radius: 10px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'listar_setores' %}" class="text-muted small d-block mb-1">
+            &larr; Voltar para todos os setores
+        </a>
+        <h1 class="mb-0">{{ setor.nome }}</h1>
+    </div>
+    <a href="{% url 'adicionar_bloco' %}" class="btn btn-primary shadow-sm">
+        + Adicionar Novo Bloco
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body bg-light">
+        <form method="get">
+            <div class="input-group">
+                <input class="form-control" type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Pesquisar blocos por nome...">
+                <div class="input-group-append">
+                    <button class="btn btn-secondary" type="submit">Pesquisar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if blocos %}
+    <div class="blocos-grid">
+        {% for bloco in blocos %}
+            <!-- DIV clicável que redireciona para detalhe; contém botões internos -->
+            <div
+                class="bloco-card"
+                role="link"
+                tabindex="0"
+                data-href="{% url 'detalhe_bloco' bloco.id %}"
+                aria-label="Abrir bloco {{ bloco.nome }}"
+            >
+                <div>
+                    <div class="icone-bloco">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="bloco-nome">{{ bloco.nome }}</div>
+                    <div class="bloco-info">
+                        Contém {{ bloco.item_set.count }} item{{ bloco.item_set.count|pluralize }}.
+                    </div>
+                </div>
+
+                <div class="bloco-botoes">
+                    <!-- botões internos (não disparam o clique do card) -->
+                    <a href="{% url 'gerar_qr_bloco' bloco.id %}" class="btn btn-secondary btn-sm card-action" title="Gerar QR Code">QR Code</a>
+
+                    <a href="{% url 'apagar_bloco' bloco.id %}" class="btn btn-danger btn-sm card-action"
+                       onclick="return confirm('Tem certeza que deseja excluir este bloco?')"
+                       title="Apagar bloco">Excluir</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info text-center py-3 mt-4">
+        Nenhum bloco cadastrado para este setor.
+    </div>
+{% endif %}
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<script>
+    // Comportamento do card clicável (respeita clicks nos botões internos)
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.bloco-card').forEach(function(card) {
+            // clique com mouse
+            card.addEventListener('click', function(event) {
+                // se o clique aconteceu em um elemento com classe 'card-action' (botões), não navegar
+                if (event.target.closest('.card-action')) return;
+                const href = card.dataset.href;
+                if (href) window.location.href = href;
+            });
+
+            // ativação via teclado (Enter / Space)
+            card.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    if (event.target.closest('.card-action')) return;
+                    const href = card.dataset.href;
+                    if (href) window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

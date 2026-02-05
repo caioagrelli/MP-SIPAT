@@ -1,0 +1,279 @@
+{% extends 'itens/base_gestao.html' %}
+
+{% block title %}Bens de Consumo{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --vinho: #7b1e1e;
+        --vinho-claro: #a44d4d;
+        --cinza-fundo: #f9fafc;
+        --cinza-card: #ffffff;
+        --cinza-texto: #444;
+        --cinza-borda: #e2e6ea;
+        --azul-suave: #2f4f6f;
+        --azul-botao: #406080;
+        --verde-suave: #5cb85c;
+        --vermelho-suave: #d9534f;
+    }
+
+    body {
+        background-color: var(--cinza-fundo);
+        color: var(--cinza-texto);
+        font-family: "Inter", "Segoe UI", sans-serif;
+    }
+
+    h1, h4 {
+        color: var(--azul-suave);
+        font-weight: 600;
+    }
+
+    /* Botão principal */
+    .btn-primary {
+        background-color: var(--azul-botao);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 8px 18px;
+    }
+
+    .btn-primary:hover {
+        background-color: #324b66;
+    }
+
+    /* Cards */
+    .card {
+        background-color: var(--cinza-card);
+        border: 1px solid var(--cinza-borda);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--cinza-borda);
+        color: var(--azul-suave);
+        font-weight: 600;
+    }
+
+    /* Campo de busca */
+    .input-group {
+        border: 1px solid var(--cinza-borda);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .form-control {
+        border: none;
+        padding: 10px 14px;
+    }
+
+    .input-group-append .btn {
+        background-color: var(--azul-botao);
+        border: none;
+        color: #fff;
+        padding: 10px 18px;
+        transition: 0.2s;
+    }
+
+    .input-group-append .btn:hover {
+        background-color: #324b66;
+    }
+
+    /* Tabela */
+    table thead {
+        background-color: #f0f2f5;
+        color: var(--azul-suave);
+        font-weight: 600;
+    }
+
+    table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    /* Botões de ação */
+    .btn-action {
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-right: 6px;
+        transition: all 0.15s ease-in-out;
+    }
+
+    .btn-edit {
+        background-color: var(--verde-suave);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-edit:hover {
+        background-color: #4cae4c;
+    }
+
+    .btn-delete {
+        background-color: var(--vermelho-suave);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-delete:hover {
+        background-color: #c9302c;
+    }
+
+    /* Gráficos */
+    .card-body canvas {
+        width: 100% !important;
+        height: 260px !important;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Bens de Consumo</h1>
+        <p class="text-muted">Análise e acompanhamento dos itens de consumo cadastrados.</p>
+    </div>
+    <a href="{% url 'adicionar_item' %}" class="btn btn-primary shadow-sm">+ Adicionar Novo Item</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Quantidade por Tipo de Bem</div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="graficoTipoQtde"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Valor do Estoque (R$) por Tipo</div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="graficoTipoValor"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Visão Geral do Inventário</div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="graficoCategoriasGeral"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Todos os Bens de Consumo ({{ total_itens }})</h4>
+    </div>
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="input-group shadow-sm">
+                <input class="form-control" type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="🔍 Pesquisar por nome, marca ou localização...">
+                <div class="input-group-append">
+                    <button class="btn" type="submit">Pesquisar</button>
+                </div>
+            </div>
+        </form>
+
+        {% if itens %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tombo</th>
+                            <th>Nome do Item</th>
+                            <th>Localização</th>
+                            <th>Marca</th>
+                            <th style="width: 140px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td>{{ item.numero_identificacao }}</td>
+                            <td><a href="{% url 'detalhe_item' item.numero_identificacao %}" class="text-decoration-none text-dark fw-semibold">{{ item.nome }}</a></td>
+                            <td>{{ item.localizacao|default:"N/A" }}</td>
+                            <td>{{ item.marca|default:"N/A" }}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <a href="{% url 'editar_item' item.numero_identificacao %}" class="btn-action btn-edit">Editar</a>
+                                    <a href="{% url 'apagar_item' item.numero_identificacao %}" class="btn-action btn-delete">Apagar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center py-3">Nenhum bem de consumo encontrado.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function criarGrafico(ctx, tipo, labels, data, titulo) {
+        new Chart(ctx, {
+            type: tipo,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: titulo,
+                    data: data,
+                    backgroundColor: [
+                        '#7b1e1e', '#d35400', '#f4d03f',
+                        '#27ae60', '#3498db', '#884ea0',
+                        '#95a5a6', '#ffb347'
+                    ],
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#444',
+                            font: { size: 13 }
+                        }
+                    }
+                },
+                scales: tipo === 'bar' ? {
+                    y: { beginAtZero: true, grid: { color: '#eaeaea' } },
+                    x: { grid: { color: '#fff' } }
+                } : {}
+            }
+        });
+    }
+
+    const ctxTipoQtde = document.getElementById('graficoTipoQtde');
+    if (ctxTipoQtde && {{ data_tipo_qtde|length }} > 0) {
+        criarGrafico(ctxTipoQtde, 'doughnut', {{ labels_tipo_qtde|safe }}, {{ data_tipo_qtde|safe }}, 'Itens por Tipo');
+    }
+
+    const ctxTipoValor = document.getElementById('graficoTipoValor');
+    if (ctxTipoValor && {{ data_tipo_valor|length }} > 0) {
+        criarGrafico(ctxTipoValor, 'bar', {{ labels_tipo_valor|safe }}, {{ data_tipo_valor|safe }}, 'Valor Total (R$)');
+    }
+
+    const ctxCategoriasGeral = document.getElementById('graficoCategoriasGeral');
+    if (ctxCategoriasGeral && {{ data_categorias_geral|length }} > 0) {
+        criarGrafico(ctxCategoriasGeral, 'pie', {{ labels_categorias_geral|safe }}, {{ data_categorias_geral|safe }}, 'Itens por Categoria');
+    }
+</script>
+{% endblock %}

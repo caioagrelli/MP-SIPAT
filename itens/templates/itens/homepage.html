@@ -1,0 +1,31 @@
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Bens Permanentes</h5>
+                <p class="card-text">Itens de longa duração, como móveis e veículos.</p>
+                <a href="{% url 'painel_principal' %}?categoria=PERMANENTE" class="btn btn-primary">Ver Itens</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Bens de Consumo</h5>
+                <p class="card-text">Materiais de escritório, produtos de limpeza, etc.</p>
+                <a href="{% url 'painel_principal' %}?categoria=CONSUMO" class="btn btn-info">Ver Itens</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Bens de TI</h5>
+                <p class="card-text">Computadores, impressoras, teclados e outros equipamentos de tecnologia.</p>
+                <a href="{% url 'painel_principal' %}?categoria=TI" class="btn btn-warning">Ver Itens</a>
+            </div>
+        </div>
+    </div>
+</div>

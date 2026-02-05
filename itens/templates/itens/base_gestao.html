@@ -1,0 +1,104 @@
+{% extends 'itens/base.html' %}
+
+{% block styles %}
+<style>
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        padding: 20px;
+        background-color: #343a40; /* Cinza escuro */
+        color: #fff;
+        z-index: 100;
+    }
+    .sidebar h3 a {
+        color: #fff;
+        text-decoration: none;
+    }
+    .sidebar h3 a:hover {
+        color: #eee;
+    }
+    .sidebar-header {
+        border-bottom: 1px solid #495057;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .sidebar .nav-link {
+        color: #adb5bd;
+        font-size: 1.1em;
+        padding: 10px 15px;
+        border-radius: 5px;
+    }
+    .sidebar .nav-link:hover {
+        color: #fff;
+        background-color: #495057;
+    }
+    .sidebar .nav-link.active {
+        color: #fff;
+        background-color: #8B0000; /* Vermelho escuro MPPE */
+    }
+    .main-content {
+        margin-left: 280px; /* O mesmo valor da largura da sidebar */
+        padding: 30px;
+    }
+    .sidebar .user-info {
+        position: absolute;
+        bottom: 20px;
+        width: calc(100% - 40px);
+    
+    }
+
+</style>
+{% endblock %}
+
+
+{% block body_content %}
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><a href="{% url 'homepage' %}">DEMPAM | MPPE</a></h3>
+        </div>
+        
+        {% if user.is_authenticated %}
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2">
+                    <a class="nav-link" href="{% url 'homepage' %}">🏠  Painel Principal</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link" href="{% url 'listar_setores' %}">🏢  Setores e Blocos</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link" href="{% url 'adicionar_item' %}">➕  Adicionar Item</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link" href="{% url 'requisicoes' %}">📄 Requisições</a>
+                </li>
+            </ul>
+
+            <div class="user-info">
+                <hr style="background-color: #495057;">
+                <span class="small">Olá, {{ user.username }}!</span>
+                <form action="{% url 'logout' %}" method="post" class="d-inline float-right">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Sair</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}

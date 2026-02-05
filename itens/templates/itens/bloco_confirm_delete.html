@@ -1,0 +1,26 @@
+{% extends 'itens/base_gestao.html' %}
+
+{% block title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="max-width: 600px; margin: auto;">
+    <div class="card-header bg-danger text-white">
+        <h2 class="mb-0">Confirmar Exclusão</h2>
+    </div>
+    <div class="card-body">
+        <p class="lead">Você tem certeza que deseja apagar permanentemente o bloco/pallet?</p>
+        <h3 class="text-center my-4 p-3 bg-light rounded border">{{ bloco.nome }}</h3>
+        
+        <p class="text-muted"><strong>Atenção:</strong> Esta ação não pode ser desfeita. Os itens que estão neste bloco não serão apagados, mas ficarão sem um bloco associado.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <hr>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'detalhe_setor' bloco.setor.id %}" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Sim, quero apagar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

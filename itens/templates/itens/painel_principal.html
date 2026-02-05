@@ -1,0 +1,156 @@
+{% extends 'itens/base_gestao.html' %}
+
+{% block title %}Painel Principal - DEMPAM{% endblock %}
+
+{% block content %}
+<style>
+    /* === TEMA BORDÔ === */
+    .bg-bordo {
+        background-color: #800000 !important;
+        color: #fff !important;
+    }
+    .btn-bordo {
+        background-color: #800000;
+        color: #fff;
+        border: none;
+    }
+    .btn-bordo:hover {
+        background-color: #660000;
+        color: #fff;
+    }
+    .badge-bordo {
+        background-color: #800000;
+        color: #fff;
+        font-weight: 500;
+        border-radius: .25rem;
+        padding: .4em .6em;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <h1 class="mb-0 font-weight-bold" style="color: #202020ff;">
+        <i class="bi bi-speedometer2 mr-2"></i>Sistema Gerencial
+    </h1>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <h5 class="card-title">📦 Bens Permanentes</h5>
+                <p class="card-text text-muted flex-grow-1">
+                    Itens de longa duração, como móveis e veículos.
+                </p>
+                <a href="{% url 'pagina_bens_permanentes' %}" class="btn btn-bordo btn-lg mt-auto shadow-sm">
+                    <i class="bi bi-box-seam mr-1"></i>Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <h5 class="card-title">📝 Bens de Consumo</h5>
+                <p class="card-text text-muted flex-grow-1">
+                    Materiais de escritório, produtos de limpeza, etc.
+                </p>
+                <a href="{% url 'pagina_bens_consumo' %}" class="btn btn-bordo btn-lg mt-auto shadow-sm">
+                    <i class="bi bi-bag-check mr-1"></i>Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-bordo d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-list-check mr-2"></i>Itens cadastrados
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="input-group shadow-sm">
+                <input class="form-control" type="text" name="q" value="{{ query }}" placeholder="🔍 Pesquisar por nome, descrição ou número de tombo...">
+                <button class="btn btn-bordo" type="submit">
+                    <i class="bi bi-search"></i> Pesquisar
+                </button>
+            </div>
+        </form>
+
+        <form action="{% url 'apagar_lote' %}" method="post">
+            {% csrf_token %}
+            {% if itens_agrupados %}
+                {% for lote_id, lista_de_itens in itens_agrupados.items %}
+                    {% if lote_id != "Itens Cadastrados Individualmente" %}
+                        <!-- Lotes normais com título -->
+                        <div class="card mb-3 shadow-sm border-0">
+                            <div class="card-header bg-light p-2 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 text-dark">
+                                    <i class="bi bi-archive mr-2"></i>{{ lote_id }}
+                                </h5>
+                                <div>
+                                    <span class="badge badge-bordo mr-2">{{ lista_de_itens|length }} itens</span>
+                                    <a href="{% url 'apagar_lote_inteiro' lote_id %}" class="btn btn-bordo btn-sm shadow-sm">
+                                        <i class="bi bi-trash"></i> Apagar Lote Inteiro
+                                    </a>
+                                </div>
+                            </div>
+
+                            <ul class="list-group list-group-flush">
+                                {% for item in lista_de_itens %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <input type="checkbox" name="ids_para_apagar" value="{{ item.numero_identificacao }}" class="mr-3">
+                                            <a href="{% url 'detalhe_item' item.numero_identificacao %}" class="font-weight-bold text-dark">
+                                                {{ item.nome }} <span class="text-muted">(Tombo: {{ item.numero_identificacao }})</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'editar_item' item.numero_identificacao %}" class="btn btn-sm btn-outline-secondary mr-2 shadow-sm">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                            <a href="{% url 'apagar_item' item.numero_identificacao %}" class="btn btn-sm btn-outline-danger shadow-sm">
+                                                <i class="bi bi-x-circle"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                    {% else %}
+                        
+                        <ul class="list-group list-group-flush mb-3">
+                            {% for item in lista_de_itens %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <input type="checkbox" name="ids_para_apagar" value="{{ item.numero_identificacao }}" class="mr-3">
+                                        <a href="{% url 'detalhe_item' item.numero_identificacao %}" class="font-weight-bold text-dark">
+                                            {{ item.nome }} <span class="text-muted">(Tombo: {{ item.numero_identificacao }})</span>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'editar_item' item.numero_identificacao %}" class="btn btn-sm btn-outline-secondary mr-2 shadow-sm">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <a href="{% url 'apagar_item' item.numero_identificacao %}" class="btn btn-sm btn-outline-danger shadow-sm">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-danger mt-3 shadow-sm">
+                    <i class="bi bi-trash3"></i> Apagar Itens Selecionados
+                </button>
+            {% else %}
+                <div class="alert alert-info shadow-sm">Nenhum item encontrado.</div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

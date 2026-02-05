@@ -1,0 +1,71 @@
+{% extends 'itens/base_gestao.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Adicionar Itens em Lote{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header card-header-custom">
+        <h2 class="mb-0">Adicionar Itens em Lote</h2>
+    </div>
+    <div class="card-body">
+        <p class="card-text text-muted mb-4">
+            Preencha o intervalo numérico e as informações abaixo. Os dados comuns serão aplicados a todos os itens criados.
+        </p>
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Intervalo e Nome</h4>
+                    <hr>
+                    <div class="form-group mb-3">
+                        {{ form.inicio.label_tag }}
+                        {{ form.inicio }}
+                        <div class="text-danger small mt-1">{{ form.inicio.errors }}</div>
+                    </div>
+                    <div class="form-group mb-3">
+                        {{ form.fim.label_tag }}
+                        {{ form.fim }}
+                        <div class="text-danger small mt-1">{{ form.fim.errors }}</div>
+                    </div>
+                    <div class="form-group mb-3">
+                        {{ form.nome.label_tag }}
+                        {{ form.nome }}
+                        <small class="form-text text-muted">{{ form.nome.help_text }}</small>
+                        <div class="text-danger small mt-1">{{ form.nome.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <h4>Detalhes Comuns</h4>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12 form-group mb-3">
+                            {{ form.bloco.label_tag }}
+                            {{ form.bloco }}
+                            <div class="text-danger small mt-1">{{ form.bloco.errors }}</div>
+                        </div>
+
+                        <div class="col-md-6 form-group mb-3">
+                             {{ form.marca.label_tag }}
+                             {{ form.marca }}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                             {{ form.modelo.label_tag }}
+                             {{ form.modelo }}
+                        </div>
+                        </div>
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'painel_principal' %}" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" name="action" value="cadastrar" class="btn btn-primary me-2">Apenas Cadastrar</button>
+                <button type="submit" name="action" value="cadastrar_gerar" class="btn btn-success">Cadastrar e Gerar QR Codes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
