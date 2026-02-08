@@ -10,13 +10,13 @@ class Complementos():
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
 
 # --- Informações sobre as Uas ---
-class Local(models.Model):
+class Locais(models.Model):
     id = models.AutoField(primary_key=True)
     
     
-    name = models.CharField(
+    local = models.CharField(
         max_length=80,
-        verbose_name='Locais',
+        verbose_name='Local',
     )
     
     
@@ -29,7 +29,7 @@ class InfoUA(models.Model):
     
     
     circunscricao_predio = models.ForeignKey(
-        Local,
+        Locais,
         on_delete=models.PROTECT, 
         related_name=' circunscrição_predio',
         verbose_name='Circunscricao/Prédio',
@@ -80,21 +80,20 @@ class InfoUA(models.Model):
 # --- Informações Bens Permanentes DIMRCBP ---
 class BensPermanentes(models.Model):
     
+    
     id = models.AutoField(
         primary_key=True
     )
+        
     
-    
-    efisco = models.CharField(
-        max_length=20,
+    descricao = models.CharField(
+        max_length=100,
         blank=True,
         null=True,
-        verbose_name='E-Fisco',
-    
+        editable=False,
+        verbose_name='Descrição',
     )
-    
-    
-    #descricao = models()
+ 
     
     forma_de_controle = models.CharField(
         max_length=15,
@@ -147,10 +146,22 @@ class BensPermanentes(models.Model):
         verbose_name='Situação Jurídica'
     )
     
-    
-    #situacao_fisica = models()
-    
-    #estado_de_conservacao = models()
+    #temporariamente
+    situacao_fisica = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Situação Física',
+    )
+ 
+    #temporariamente    
+    estado_de_conservacao = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Estado de Conservação',
+    )
+ 
     
     forma_de_ingresso = models.CharField(
         max_length=15,
@@ -186,7 +197,7 @@ class BensPermanentes(models.Model):
         blank=True,
         verbose_name='CPF do Fornecedor',
     )
-    
+
     
     cnpj_fornecedor = BRCNPJField(
         null=True,
@@ -197,10 +208,10 @@ class BensPermanentes(models.Model):
     
     data_aquisicao = models.DateField(
         blank=True,
-        null=True,
         verbose_name='Data da aquisição',
+        null=True,
     )
-    
+       
     
     modalidade = models.CharField(
         max_length=25,
@@ -228,6 +239,7 @@ class BensPermanentes(models.Model):
     moeda = models.CharField(
         max_length=5,
         default='REAL',
+        editable=False,
         verbose_name='Moeda',
     )
      
@@ -392,8 +404,14 @@ class BensPermanentes(models.Model):
     )
     
 
+    matricula_resp_uso_ext = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Matrícula Responsável Uso Externo',
+    )
 
-    contato_responsavel_uso_ext = models.CharField(
+
+    contato_resp_uso_ext = models.CharField(
         max_length=16,
         validators=[Complementos.validator_contato],
         blank=True,
@@ -401,11 +419,70 @@ class BensPermanentes(models.Model):
         verbose_name='Contato Responsável Uso Externo',
     )
     
-    
+        
     def __str__(self):
         return self.tombamento_legado
-    
 
 # --- Informações Bens de Consumo ---
+
+class GrupoConsumo(models.Model):
+    id = models.AutoField(primary_key=True)
+    
+    grupo = models.CharField(
+        max_length=60,
+    )    
+
+
+    def __str__(self):
+        return self.grupo
+   
 class BensConsumo(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    efisco = models.IntegerField(
+    verbose_name='E-Fisco',
+    )
+
+
+    marca = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name='Marca',
+    )
+    
+    
+    validade = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Validade'
+    )
+    
+    
+    custo_unit = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name='Custo Unitário',
+    )
+   
+    
+    medida = models.CharField(
+        max_length=20,
+        verbose_name='Unidade de Medida',
+    )
+
+    
+    quantidade = models.IntegerField(
+        blank=True,
+        null=True,
+        default=0
+    )
+    
+    
+    grupo_consumo = models.ForeignKey(
+        GrupoConsumo,
+        on_delete=models.PROTECT,
+        related_name='GrupoConsumo',
+        verbose_name='Grupo',
+    )
+    
