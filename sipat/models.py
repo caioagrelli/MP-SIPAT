@@ -1,12 +1,14 @@
 from django.db import models
 from django.conf import settings
+from .utils import caminho_benspermanentes, caminho_bensconsumo
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
 from django.core.validators import RegexValidator
 
 # Recursos Usados pelo Banco de Dados
-class Complementos():
+class Complementos(): #Temporário
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
+
 
 # --- Informações sobre as Uas ---
 class Locais(models.Model):
@@ -55,13 +57,15 @@ class InfoUA(models.Model):
     
     responsavel_ua = models.CharField(
         max_length=60, 
-        blank=True, 
+        default='Não Consta',
+        blank=True,
         verbose_name='Responsável da UA',
     )
     
     
     mat_resp_ua = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='Matrícula do Responsável da UA',
     )
     
@@ -92,6 +96,7 @@ class BensPermanentes(models.Model):
     descricao = models.CharField(
         max_length=100,
         blank=True,
+        default='Não Consta',
         editable=False,
         verbose_name='Descrição',
     )
@@ -121,7 +126,7 @@ class BensPermanentes(models.Model):
     
     
     marca_fabricante = models.CharField(
-        max_length=30,
+        max_length=60,
         default='Sem Marca',
         blank=True,
         verbose_name='Marca/Fabricante',
@@ -154,7 +159,7 @@ class BensPermanentes(models.Model):
     #temporariamente
     situacao_fisica = models.CharField(
         max_length=20,
-        editable='Não Consta',
+        default='Não Consta',
         blank=True,
         verbose_name='Situação Física',
     )
@@ -162,7 +167,7 @@ class BensPermanentes(models.Model):
     #temporariamente    
     estado_de_conservacao = models.CharField(
         max_length=20,
-        editable='Não Consta',
+        default='Não Consta',
         blank=True,
         verbose_name='Estado de Conservação',
     )
@@ -212,6 +217,7 @@ class BensPermanentes(models.Model):
     
     cnpj_fornecedor = BRCNPJField(
         blank=True,
+        null=True,
         verbose_name='CNPJ do Fornecedor',
     )
     
@@ -227,6 +233,7 @@ class BensPermanentes(models.Model):
         max_length=25,
         blank=True,
         default='Pregão Eletrônico',
+        editable=False,
         verbose_name='Modalidade',
     )
     
@@ -234,6 +241,7 @@ class BensPermanentes(models.Model):
     numero_do_processo = models.CharField(
         max_length=20,
         blank=True, 
+        default='S/Número',
         verbose_name='Número do Processo',
     )
     
@@ -241,7 +249,8 @@ class BensPermanentes(models.Model):
     codigo_natureza_de_despesa = models.CharField(
         max_length=20,
         blank=True,
-        verbose_name='Código Natureza de Despesa'
+        default='S/Número',
+        verbose_name='Código Natureza de Despesa',
         
     )
     
@@ -257,6 +266,7 @@ class BensPermanentes(models.Model):
     numero_da_af = models.CharField(
         max_length=20,
         blank=True,
+        default='S/Número',
         verbose_name='Número da AF',
         
     )
@@ -265,6 +275,7 @@ class BensPermanentes(models.Model):
     numero_do_empenho = models.CharField(
         max_length=20,
         blank=True,
+        default='S/Número',
         verbose_name='Número do Empenho',
     )
     
@@ -287,13 +298,15 @@ class BensPermanentes(models.Model):
     
     
     qtde = models.IntegerField(
+        blank=True,
         verbose_name='Quantidade',
     )
     
     
-    observacao = models.CharField(
+    observacao = models.TextField(
         max_length=80,
         blank=True,
+        default='',
         verbose_name='Observação',
     )
     
@@ -309,6 +322,7 @@ class BensPermanentes(models.Model):
     tombamento_legado = models.IntegerField(
         unique=True,
         blank=True,
+        null=True,
         verbose_name='Tombo',
     )
     
@@ -324,6 +338,7 @@ class BensPermanentes(models.Model):
     
     
     matricula_responsavel = models.IntegerField(
+        default='Não Consta',
         blank=True,
         verbose_name='Matrícula Responsável'
     )
@@ -331,6 +346,7 @@ class BensPermanentes(models.Model):
     
     nome_responsavel = models.CharField(
     max_length=90,
+    default='Não Consta',
     blank=True,
     verbose_name='Nome Responsável',
     )
@@ -342,7 +358,6 @@ class BensPermanentes(models.Model):
         default=0,
         editable=False,
         blank=True,
-        null=True,
         verbose_name='Valor Atual do Bem',
     )
     
@@ -350,6 +365,7 @@ class BensPermanentes(models.Model):
     descricao_manual = models.CharField(
         max_length=30,
         blank=True,
+        null=True,
         verbose_name='Descrição Manual'
     )
     
@@ -357,6 +373,7 @@ class BensPermanentes(models.Model):
     classe = models.CharField(
         max_length=30,
         blank=True,
+        null=True,
         verbose_name='Classe',
     )
     
@@ -364,6 +381,7 @@ class BensPermanentes(models.Model):
     subclasse = models.CharField(
         max_length=30,
         blank=True,
+        null=True,
         verbose_name='Subclasse',
     )
     
@@ -371,6 +389,7 @@ class BensPermanentes(models.Model):
     subclasse_2 = models.CharField(
         max_length=30,
         blank=True,
+        null=True,
         verbose_name='Subclasse 2',
     )
     
@@ -378,6 +397,7 @@ class BensPermanentes(models.Model):
     subclasse_3 = models.CharField(
         max_length=30,
         blank=True,
+        null=True,
         verbose_name='Subclasse 3',
     )
     
@@ -397,10 +417,18 @@ class BensPermanentes(models.Model):
         null=True,
         verbose_name='UA Atual'
     )
+    
+    imagem_permanente = models.ImageField(
+        upload_to=caminho_benspermanentes,
+        blank=True,
+        null=True,
+        verbose_name='Imagem do Bem'
+    )
 
 
     nome_resp_uso_ext = models.CharField(
         max_length=50,
+        default='Não Consta',
         blank=True,
         verbose_name='Nome Responsável Uso Externo',
     )
@@ -417,6 +445,7 @@ class BensPermanentes(models.Model):
         max_length=16,
         validators=[Complementos.validator_contato],
         blank=True,
+        null=True,
         verbose_name='Contato Responsável Uso Externo',
     )
     
@@ -430,7 +459,6 @@ class BensPermanentes(models.Model):
 
 
 # --- Informações Bens de Consumo ---
-
 class GrupoConsumo(models.Model):
     id = models.AutoField(primary_key=True)
     
@@ -447,10 +475,12 @@ class GrupoConsumo(models.Model):
         return self.grupo
    
 class BensConsumo(models.Model):
+
     id = models.AutoField(primary_key=True)
     
     efisco = models.CharField(
         max_length=20,
+        default='Não Consta',
         blank=True,
         verbose_name='E-Fisco',
     )
@@ -496,8 +526,17 @@ class BensConsumo(models.Model):
     grupo_consumo = models.ForeignKey(
         GrupoConsumo,
         on_delete=models.PROTECT,
+        blank=True,
+        null=True,
         related_name='grupos_de_consumo',
         verbose_name='Grupo',
+    )
+    
+    imagem_consumo = models.ImageField(
+        upload_to=caminho_bensconsumo,
+        blank=True,
+        null=True,
+        verbose_name='Imagem do Item'
     )
     
     class Meta():
@@ -506,3 +545,11 @@ class BensConsumo(models.Model):
         
     def __str__(self):
         return self.efisco
+
+
+# --- Histórico de Movimentações---
+class MovimentacoesPermanentes(models.Model):
+    id = models.AutoField(primary_key=True)
+    
+class SolicitacoesConsumo(models.Model):
+    id = models.AutoField(primary_key=True)

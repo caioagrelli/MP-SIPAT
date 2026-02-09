@@ -137,7 +137,13 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'venc_garantia',
             )
         }),
-
+        
+        ('Foto do Bem', {
+        'fields': (
+            'imagem_permanente',
+        )    
+        }),
+        
         ('Informações do Responsável de Uso Externo', {
             'fields': (
                 'nome_resp_uso_ext',
@@ -182,6 +188,12 @@ class BensConsumoAdmin(admin.ModelAdmin):
             'fields': (
                 'validade',
                 'custo_unit',
+            )
+        }),
+        
+        ('Foto do Item', {
+            'fields': (
+                'imagem_consumo',
             )
         }),
             
