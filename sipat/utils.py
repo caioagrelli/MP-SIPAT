@@ -5,12 +5,19 @@ def caminho_benspermanentes(instance, filename):
     ext = os.path.splitext(filename)[1]
     nome_aquivo = f'{tombamento}{ext}'
     
-    return f'permanentes/{nome_aquivo}'
+    return f'bens/permanentes/{nome_aquivo}'
 
 
 def caminho_bensconsumo(instance, filename):
-    efisco = instance.efisco or 'sem_efisco'
+    n_efisco = instance.efisco or 'sem_efisco'
     ext = os.path.splitext(filename)[1]
-    nome_aquivo = f'{efisco}{ext}'
+    nome_aquivo = f'{n_efisco}{ext}'
     
-    return f'consumo/{nome_aquivo}'
+    return f'bens/consumo/{nome_aquivo}'
+
+def caminho_movimentacao_consumo(instance, filename):
+    n_movimentacao = instance.id
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{n_movimentacao}{ext}'
+    
+    return f'documentos/movimentacao_consumo/{nome_aquivo}'

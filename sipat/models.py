@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from .utils import caminho_benspermanentes, caminho_bensconsumo
+from .utils import caminho_benspermanentes, caminho_bensconsumo, caminho_movimentacao_consumo
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
 from django.core.validators import RegexValidator
@@ -550,6 +550,52 @@ class BensConsumo(models.Model):
 # --- Histórico de Movimentações---
 class MovimentacoesPermanentes(models.Model):
     id = models.AutoField(primary_key=True)
-    
+
 class SolicitacoesConsumo(models.Model):
     id = models.AutoField(primary_key=True)
+        
+    item = models.ForeignKey(
+        BensConsumo,
+        related_name='itens_movimentados',
+        verbose_name='Item Movimentado',
+    )
+    
+    
+    acao = models.CharField(
+        max_length=10,
+        verbose_name='Ação'
+    )
+    
+    
+    quantidade = models.PositiveIntegerField()
+    
+    
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_mov_consumo',
+        verbose_name='Usuário Responsável',
+    )
+    
+    
+    data_hora = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data e Hora da Movimentação'
+    )
+    
+    
+    observacao = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observação'
+    )
+    
+    
+    anexo = models.FileField(
+        upload_to=caminho_movimentacao_consumo,
+        blank=True,
+        null=True,
+        verbose_name='Documento Anexado'
+    )
