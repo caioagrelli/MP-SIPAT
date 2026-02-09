@@ -9,10 +9,7 @@ class LocaisAdmin(admin.ModelAdmin):
         
         search_fields=(
             'local',
-        )
-    
-    
-        
+        ) 
 
 @admin.register(InfoUA)
 class InfoUaAdmin(admin.ModelAdmin):

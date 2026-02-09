@@ -25,7 +25,6 @@ class Locais(models.Model):
     def __str__(self):
         return self.local
 
-
 class InfoUA(models.Model):
     
     id = models.AutoField(primary_key=True)
@@ -459,6 +458,7 @@ class BensConsumo(models.Model):
 
     marca = models.CharField(
         max_length=30,
+        default='S/Marca',
         blank=True,
         verbose_name='Marca',
     )
