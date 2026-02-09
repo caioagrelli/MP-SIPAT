@@ -1,5 +1,18 @@
 from django.contrib import admin
-from .models import InfoUA, BensPermanentes, BensConsumo
+from .models import InfoUA, BensPermanentes, BensConsumo, Locais
+
+@admin.register(Locais)
+class LocaisAdmin(admin.ModelAdmin):
+        list_display=(
+            'local',
+        )
+        
+        search_fields=(
+            'local',
+        )
+    
+    
+        
 
 @admin.register(InfoUA)
 class InfoUaAdmin(admin.ModelAdmin):
@@ -34,7 +47,7 @@ class InfoUaAdmin(admin.ModelAdmin):
             'fields': (
                 'circunscricao_predio',
             )
-        })
+        }),
         
         ('Informações da UA', {
             'fields': (
@@ -42,7 +55,7 @@ class InfoUaAdmin(admin.ModelAdmin):
                 'contato_ua',
                 'email_ua',
             )
-        })
+        }),
         
         ('Informações do Responsável', {
             'fields': (
@@ -50,36 +63,22 @@ class InfoUaAdmin(admin.ModelAdmin):
                 'mat_resp_ua',
             )
                 
-        })
+        }),
     )
 
 @admin.register(BensPermanentes)
 class BensPermanentesAdmin(admin.ModelAdmin):
     list_display = (
         'tombamento_legado',
-        'numero_de_serie',
-        'descricao_manual',
         'marca_fabricante',
         'modelo',
-        'forma_de_ingresso',
         'nota_fiscal',
         'cpf_fornecedor',
-        'cnpj_fornecedor',
         'data_aquisicao',
-        'numero_do_processo',
-        'numero_do_empenho',
         'valor_unitario',
         'qtde',
         'ua_atual',
         'valor_atual_do_bem',
-        'classe',
-        'subclasse',
-        'subclasse_2',
-        'subclasse_3',
-        'venc_garantia',
-        'nome_resp_uso_ext',
-        'matricula_uso_ext'
-        'contato_resp_uso_ext',
     )
     
     search_fields=(
@@ -108,8 +107,10 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'numero_de_serie',
                 'modelo',
                 'qtde',
+                'matricula_responsavel',
+
             )
-        })
+        }),
         
         ('Detalhamento do Bem', {
             'fields': (
@@ -119,7 +120,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'subclasse_2',
                 'subclasse_3',
             )
-        })
+        }),
         
         ('Informações do Fornecedor', {
             'fields': (
@@ -127,7 +128,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'cpf_fornecedor',
                 'cnpj_fornecedor',
             )
-        })
+        }),
 
         ('Informações da Compra', {
             'fields': (
@@ -138,7 +139,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'data_aquisicao',
                 'venc_garantia',
             )
-        })
+        }),
 
         ('Informações do Responsável de Uso Externo', {
             'fields': (
@@ -146,7 +147,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'matricula_resp_uso_ext',
                 'contato_resp_uso_ext',
             )
-        })
+        }),
     )
 
 @admin.register(BensConsumo)
@@ -178,19 +179,19 @@ class BensConsumoAdmin(admin.ModelAdmin):
                 'marca',
                 'grupo_consumo',
             )
-        })
+        }),
         
         ('Descrição do Bem', {
             'fields': (
                 'validade',
                 'custo_unit',
             )
-        })
+        }),
             
         ('Quantidade', {
             'fields': (
                 'medida',
                 'quantidade',
             )
-        })
+        }),
     )

@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
@@ -19,9 +18,13 @@ class Locais(models.Model):
         verbose_name='Local',
     )
     
-    
+    class Meta:
+        verbose_name = 'Local'
+        verbose_name_plural = 'Locais'
+
     def __str__(self):
         return self.local
+
 
 class InfoUA(models.Model):
     
@@ -31,7 +34,7 @@ class InfoUA(models.Model):
     circunscricao_predio = models.ForeignKey(
         Locais,
         on_delete=models.PROTECT, 
-        related_name=' circunscricoes_predios',
+        related_name='circunscricoes_predios',
         verbose_name='Circunscricao/Prédio',
     )
      
@@ -45,8 +48,8 @@ class InfoUA(models.Model):
     contato_ua = models.CharField(
         max_length=15,
         validators=[Complementos.validator_contato],
+        default='S/Contato',
         blank=True,
-        null=True,
         verbose_name='Contato da UA',
     )
     
@@ -54,14 +57,12 @@ class InfoUA(models.Model):
     responsavel_ua = models.CharField(
         max_length=60, 
         blank=True, 
-        null=True,
         verbose_name='Responsável da UA',
     )
     
     
     mat_resp_ua = models.IntegerField(
         blank=True,
-        null=True,
         verbose_name='Matrícula do Responsável da UA',
     )
     
@@ -72,6 +73,9 @@ class InfoUA(models.Model):
         verbose_name='Email da UA'
     )
 
+    class Meta():
+        verbose_name='UA'
+        verbose_name_plural='UAs'
 
     def __str__(self):
         return self.ua
@@ -89,7 +93,6 @@ class BensPermanentes(models.Model):
     descricao = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         editable=False,
         verbose_name='Descrição',
     )
@@ -97,6 +100,7 @@ class BensPermanentes(models.Model):
     
     forma_de_controle = models.CharField(
         max_length=15,
+        editable=False,
         default='Individual',
         verbose_name='Forma de Controle'
     )
@@ -104,12 +108,14 @@ class BensPermanentes(models.Model):
     
     tipo_de_bem = models.CharField(
         max_length=15,
+        editable=False,
         default='Móvel',
         verbose_name='Tipo do Bem',
     )
     
     
     imobilizado = models.BooleanField(
+        editable=False,
         default=True,
         verbose_name='Imobilizado',
     )
@@ -117,30 +123,31 @@ class BensPermanentes(models.Model):
     
     marca_fabricante = models.CharField(
         max_length=30,
+        default='Sem Marca',
         blank=True,
-        null=True,
         verbose_name='Marca/Fabricante',
     )
     
     
     modelo = models.CharField(
         max_length=60,
+        default='S/Modelo',
         blank=True,
-        null=True,
         verbose_name='Modelo',
     )
     
     
     numero_de_serie = models.CharField(
         max_length=30,
+        default='S/Número',
         blank=True,
-        null=True,
         verbose_name='Número de Série',
     )
     
     
     situacao_juridica = models.CharField(
         max_length=15,
+        editable=False,
         default='Regular',
         verbose_name='Situação Jurídica'
     )
@@ -148,36 +155,41 @@ class BensPermanentes(models.Model):
     #temporariamente
     situacao_fisica = models.CharField(
         max_length=20,
+        editable='Não Consta',
         blank=True,
-        null=True,
         verbose_name='Situação Física',
     )
  
     #temporariamente    
     estado_de_conservacao = models.CharField(
         max_length=20,
+        editable='Não Consta',
         blank=True,
-        null=True,
         verbose_name='Estado de Conservação',
     )
  
     
     forma_de_ingresso = models.CharField(
         max_length=15,
+        blank=True,
+        editable=False,
         default='Compra',
         verbose_name='Forma de Ingresso',
     )
     
     
     nota_fiscal = models.CharField(
+        max_length=20,
         blank=True,
-        null=True,
+        default='S/Nota Fiscal',
         verbose_name='Nota Fiscal'
     )
     
     
     tipo_do_documento = models.CharField(
         max_length=20,
+        blank=True,
+        editable=False,
         default='Nota Fiscal',
         verbose_name='Tipo do Documento',
     )
@@ -186,6 +198,7 @@ class BensPermanentes(models.Model):
     codigo_unidade = models.CharField(
         max_length=10,
         default='320101',
+        blank=True,
         editable=False,
         verbose_name='Código da Unidade',
     )
@@ -199,21 +212,21 @@ class BensPermanentes(models.Model):
 
     
     cnpj_fornecedor = BRCNPJField(
-        null=True,
         blank=True,
         verbose_name='CNPJ do Fornecedor',
     )
     
     
     data_aquisicao = models.DateField(
+        null=True,
         blank=True,
         verbose_name='Data da aquisição',
-        null=True,
     )
        
     
     modalidade = models.CharField(
         max_length=25,
+        blank=True,
         default='Pregão Eletrônico',
         verbose_name='Modalidade',
     )
@@ -222,7 +235,6 @@ class BensPermanentes(models.Model):
     numero_do_processo = models.CharField(
         max_length=20,
         blank=True, 
-        null=True,
         verbose_name='Número do Processo',
     )
     
@@ -230,7 +242,6 @@ class BensPermanentes(models.Model):
     codigo_natureza_de_despesa = models.CharField(
         max_length=20,
         blank=True,
-        null=True,
         verbose_name='Código Natureza de Despesa'
         
     )
@@ -247,7 +258,6 @@ class BensPermanentes(models.Model):
     numero_da_af = models.CharField(
         max_length=20,
         blank=True,
-        null=True,
         verbose_name='Número da AF',
         
     )
@@ -256,7 +266,6 @@ class BensPermanentes(models.Model):
     numero_do_empenho = models.CharField(
         max_length=20,
         blank=True,
-        null=True,
         verbose_name='Número do Empenho',
     )
     
@@ -272,8 +281,8 @@ class BensPermanentes(models.Model):
         max_digits=12,
         decimal_places=2,
         default=0,
-        null=True,
         blank=True,
+        null=True,
         verbose_name='Valor Unitário',
     )
     
@@ -286,7 +295,6 @@ class BensPermanentes(models.Model):
     observacao = models.CharField(
         max_length=80,
         blank=True,
-        null=True,
         verbose_name='Observação',
     )
     
@@ -295,18 +303,14 @@ class BensPermanentes(models.Model):
         max_length=20,
         default='Ativo Móveis',
         blank=True,
-        null=True,
-        verbose_name='Conta Contábil',
-        
-        
+        verbose_name='Conta Contábil',        
     )
     
     
     tombamento_legado = models.IntegerField(
         unique=True,
         blank=True,
-        null=True,
-        verbose_name='Tombamento Legado',
+        verbose_name='Tombo',
     )
     
     
@@ -321,12 +325,14 @@ class BensPermanentes(models.Model):
     
     
     matricula_responsavel = models.IntegerField(
-        verbose_name='Matrícula Responsável',
+        blank=True,
+        verbose_name='Matrícula Responsável'
     )
     
     
     nome_responsavel = models.CharField(
     max_length=90,
+    blank=True,
     verbose_name='Nome Responsável',
     )
     
@@ -336,8 +342,8 @@ class BensPermanentes(models.Model):
         decimal_places=2,
         default=0,
         editable=False,
-        null=True,
         blank=True,
+        null=True,
         verbose_name='Valor Atual do Bem',
     )
     
@@ -345,7 +351,6 @@ class BensPermanentes(models.Model):
     descricao_manual = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Descrição Manual'
     )
     
@@ -353,7 +358,6 @@ class BensPermanentes(models.Model):
     classe = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Classe',
     )
     
@@ -361,7 +365,6 @@ class BensPermanentes(models.Model):
     subclasse = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Subclasse',
     )
     
@@ -369,7 +372,6 @@ class BensPermanentes(models.Model):
     subclasse_2 = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Subclasse 2',
     )
     
@@ -377,7 +379,6 @@ class BensPermanentes(models.Model):
     subclasse_3 = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Subclasse 3',
     )
     
@@ -402,7 +403,6 @@ class BensPermanentes(models.Model):
     nome_resp_uso_ext = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name='Nome Responsável Uso Externo',
     )
     
@@ -418,10 +418,13 @@ class BensPermanentes(models.Model):
         max_length=16,
         validators=[Complementos.validator_contato],
         blank=True,
-        null=True,
         verbose_name='Contato Responsável Uso Externo',
     )
     
+
+    class Meta():
+        verbose_name='Bem Permanente'
+        verbose_name_plural='Bens Permanentes'
         
     def __str__(self):
         return str(self.tombamento_legado) if self.tombamento_legado else f"Bem #{self.pk}"
@@ -437,6 +440,10 @@ class GrupoConsumo(models.Model):
     )    
 
 
+    class Meta():
+        verbose_name='Grupo de Bem de Consumo'
+        verbose_name_plural='Grupos de Bens de Consumo'
+
     def __str__(self):
         return self.grupo
    
@@ -445,6 +452,7 @@ class BensConsumo(models.Model):
     
     efisco = models.CharField(
         max_length=20,
+        blank=True,
         verbose_name='E-Fisco',
     )
 
@@ -452,7 +460,6 @@ class BensConsumo(models.Model):
     marca = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         verbose_name='Marca',
     )
     
@@ -493,3 +500,9 @@ class BensConsumo(models.Model):
         verbose_name='Grupo',
     )
     
+    class Meta():
+        verbose_name='Bem de Consumo'
+        verbose_name_plural='Bens de Consumo'
+        
+    def __str__(self):
+        return self.efisco
