@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from .utils import caminho_benspermanentes, caminho_bensconsumo, caminho_movimentacao_consumo
+from .choices import AcaoConsumo, AcaoPermanente, TipoLocalizacao, UnidadesMedida, EstadoConservacao, SituacaoFisica, GrupoConsumo
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
 from django.core.validators import RegexValidator
@@ -27,8 +28,7 @@ class Locais(models.Model):
     def __str__(self):
         return self.local
 
-class InfoUA(models.Model):
-    
+class InfoUA(models.Model): 
     id = models.AutoField(primary_key=True)
     
     
@@ -49,8 +49,8 @@ class InfoUA(models.Model):
     contato_ua = models.CharField(
         max_length=15,
         validators=[Complementos.validator_contato],
-        default='S/Contato',
         blank=True,
+        null=True,
         verbose_name='Contato da UA',
     )
     
@@ -84,10 +84,59 @@ class InfoUA(models.Model):
         return self.ua
 
 
+# --- Localização Interna no DEMPAM ---
+class Setor(models.Model):
+    id = models.AutoField(primary_key=True)
+    
+    setor = models.CharField(
+        max_length=30,
+        verbose_name='Setor/Sala'
+    )
+    
+    class Meta():
+        verbose_name='Setor/Sala DEMPAM'
+        verbose_name_plural='Setores/Salas'
+        
+    def __str__(self):
+       return str(self.setor)  
+
+class Localizacao(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    setor_sala = models.ForeignKey(
+        Setor,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='localizacao_interna',
+        verbose_name='Setor/Sala',
+    )
+
+
+    prateleira_pallet = models.CharField(
+        max_length=30,
+        blank=True, 
+        null=True,
+        verbose_name='Prateleira/Pallet'
+    )
+    
+    
+    tipo_localizacao = models.CharField(
+        choices=TipoLocalizacao.choices,
+        blank=True,
+        null=True,
+    )
+    
+    class Meta():
+        verbose_name='Localização Interna DEMPAM'
+        verbose_name_plural='Localizações Internas DEMPAM'
+        
+    def __str__(self):
+       return str(self.prateleira_pallet) 
+
+
 # --- Informações Bens Permanentes DIMRCBP ---
-class BensPermanentes(models.Model):
-    
-    
+class BensPermanentes(models.Model):    
     id = models.AutoField(
         primary_key=True
     )
@@ -156,19 +205,20 @@ class BensPermanentes(models.Model):
         verbose_name='Situação Jurídica'
     )
     
-    #temporariamente
     situacao_fisica = models.CharField(
         max_length=20,
-        default='Não Consta',
+        choices=SituacaoFisica.choices,
         blank=True,
+        null=True,
         verbose_name='Situação Física',
     )
  
     #temporariamente    
     estado_de_conservacao = models.CharField(
         max_length=20,
-        default='Não Consta',
+        choices=EstadoConservacao.choices,
         blank=True,
+        null=True,
         verbose_name='Estado de Conservação',
     )
  
@@ -283,7 +333,7 @@ class BensPermanentes(models.Model):
     garantia_em_dias = models.DateField(
         blank=True,
         null=True,
-        verbose_name='Garantia em Dias',
+        verbose_name='Vencimento Garantia',
     )
     
     
@@ -334,21 +384,6 @@ class BensPermanentes(models.Model):
         blank=True,
         null=True,
         verbose_name='Unidade Gestora',
-    )
-    
-    
-    matricula_responsavel = models.IntegerField(
-        default='Não Consta',
-        blank=True,
-        verbose_name='Matrícula Responsável'
-    )
-    
-    
-    nome_responsavel = models.CharField(
-    max_length=90,
-    default='Não Consta',
-    blank=True,
-    verbose_name='Nome Responsável',
     )
     
     
@@ -418,6 +453,7 @@ class BensPermanentes(models.Model):
         verbose_name='UA Atual'
     )
     
+    
     imagem_permanente = models.ImageField(
         upload_to=caminho_benspermanentes,
         blank=True,
@@ -425,7 +461,7 @@ class BensPermanentes(models.Model):
         verbose_name='Imagem do Bem'
     )
 
-
+# Informações Uso Externo
     nome_resp_uso_ext = models.CharField(
         max_length=50,
         default='Não Consta',
@@ -434,7 +470,9 @@ class BensPermanentes(models.Model):
     )
     
 
-    matricula_resp_uso_ext = models.IntegerField(
+    matricula_resp_uso_ext = models.CharField(
+        max_length=25,
+        default='Não Consta',
         blank=True,
         null=True,
         verbose_name='Matrícula Responsável Uso Externo',
@@ -455,27 +493,11 @@ class BensPermanentes(models.Model):
         verbose_name_plural='Bens Permanentes'
         
     def __str__(self):
-        return str(self.tombamento_legado) if self.tombamento_legado else f"Bem #{self.pk}"
+        return str(self.tombamento_legado)
 
 
-# --- Informações Bens de Consumo ---
-class GrupoConsumo(models.Model):
-    id = models.AutoField(primary_key=True)
-    
-    grupo = models.CharField(
-        max_length=60,
-    )    
-
-
-    class Meta():
-        verbose_name='Grupo de Bem de Consumo'
-        verbose_name_plural='Grupos de Bens de Consumo'
-
-    def __str__(self):
-        return self.grupo
-   
+# --- Informações Bens de Consumo DIMMS ---   
 class BensConsumo(models.Model):
-
     id = models.AutoField(primary_key=True)
     
     efisco = models.CharField(
@@ -512,6 +534,9 @@ class BensConsumo(models.Model):
     
     medida = models.CharField(
         max_length=20,
+        choices=UnidadesMedida.choices,
+        blank=True,
+        null=True,
         verbose_name='Unidade de Medida',
     )
 
@@ -523,14 +548,24 @@ class BensConsumo(models.Model):
     )
     
     
-    grupo_consumo = models.ForeignKey(
-        GrupoConsumo,
+    grupo_consumo = models.CharField(
+        choices=GrupoConsumo.choices,
+        blank=True,
+        null=True,
+        verbose_name='Grupo',
+    )
+    
+    
+    local = models.ForeignKey(
+        Localizacao,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name='grupos_de_consumo',
-        verbose_name='Grupo',
+        related_name='localizacao_consumo',
+        verbose_name='Localização',
+        
     )
+    
     
     imagem_consumo = models.ImageField(
         upload_to=caminho_bensconsumo,
@@ -550,12 +585,117 @@ class BensConsumo(models.Model):
 # --- Histórico de Movimentações---
 class MovimentacoesPermanentes(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    sei = models.CharField(
+        max_length=25,
+        blank=True,
+        null=True,
+        verbose_name='SEI',
+    )
+    
+    tombo = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='tombos_movimentados',
+        verbose_name='Tombo',
+    )
+    
+    
+    acao = models.CharField(
+        choices=AcaoPermanente.choices,
+        default=AcaoPermanente.tranferencia,
+        verbose_name='Ação',
+    )
 
-class SolicitacoesConsumo(models.Model):
+
+    origem = models.ForeignKey(
+        InfoUA,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='origens_uas',
+        verbose_name='Origem',
+    )
+
+
+    destino = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='destinos_uas',
+        verbose_name='Destino',
+    )
+    
+    
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_mov_permanentes',
+        verbose_name='Usuário Responsável',
+    )
+    
+    
+    data_hora = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now_add=True,
+        verbose_name='Data e Hora da Movimentação'
+    )
+
+    
+    anexo = models.FileField(
+        upload_to=caminho_movimentacao_consumo,
+        blank=True,
+        null=True,
+        verbose_name='Documento Anexado'
+    )
+    
+    
+    nome_resp_uso_ext = models.CharField(
+        max_length=50,
+        default='Não Consta',
+        blank=True,
+        verbose_name='Nome Responsável Uso Externo',
+    )
+
+
+    matricula_resp_uso_ext = models.CharField(
+        max_length=25,
+        default='Não Consta',
+        blank=True,
+        null=True,
+        verbose_name='Matrícula Responsável Uso Externo',
+    )
+
+
+    contato_resp_uso_ext = models.CharField(
+        max_length=25,
+        validators=[Complementos.validator_contato],
+        blank=True,
+        null=True,
+        verbose_name='Contato Responsável Uso Externo',
+    )
+
+    
+    class Meta():
+        verbose_name='Movimentação Permanente'
+        verbose_name_plural='Movimentações de Bens Permanentes'
+        
+    def __str__(self):
+       return str(self.id)            
+   
+class MovimentacoesConsumo(models.Model): 
+    
     id = models.AutoField(primary_key=True)
         
     item = models.ForeignKey(
         BensConsumo,
+        on_delete=models.PROTECT,
         related_name='itens_movimentados',
         verbose_name='Item Movimentado',
     )
@@ -563,11 +703,14 @@ class SolicitacoesConsumo(models.Model):
     
     acao = models.CharField(
         max_length=10,
+        choices=AcaoConsumo.choices,
         verbose_name='Ação'
     )
     
     
-    quantidade = models.PositiveIntegerField()
+    quantidade = models.PositiveIntegerField(
+        verbose_name='Quantidade',
+    )
     
     
     usuario = models.ForeignKey(
@@ -599,3 +742,12 @@ class SolicitacoesConsumo(models.Model):
         null=True,
         verbose_name='Documento Anexado'
     )
+    
+    class Meta():
+        verbose_name='Movimentação Consumo'
+        verbose_name_plural='Movimentações de Bens Consumo'
+        
+    def __str__(self):
+       return str(self.id)  
+   
+   

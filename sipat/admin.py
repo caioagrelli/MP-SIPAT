@@ -1,7 +1,11 @@
 from django.contrib import admin
-from .models import InfoUA, BensPermanentes, BensConsumo, Locais
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from .models import InfoUA, BensPermanentes, BensConsumo, Locais, MovimentacoesConsumo, MovimentacoesPermanentes, Setor, Localizacao
 
-@admin.register(Locais)
+
+# --- Informações sobre as Uas ---
+@admin.register(Locais) # (colocar só para atualizar todos os locais)
 class LocaisAdmin(admin.ModelAdmin):
         list_display=(
             'local',
@@ -14,11 +18,11 @@ class LocaisAdmin(admin.ModelAdmin):
 @admin.register(InfoUA)
 class InfoUaAdmin(admin.ModelAdmin):
     list_display=(
-        'circunscricao_predio',
         'ua',
-        'contato_ua',
+        'circunscricao_predio',
         'responsavel_ua',
         'mat_resp_ua',
+        'contato_ua',
         'email_ua',
     )
 
@@ -63,18 +67,17 @@ class InfoUaAdmin(admin.ModelAdmin):
         }),
     )
 
+
+# --- Informações Bens Permanentes DIMRCBP --
 @admin.register(BensPermanentes)
 class BensPermanentesAdmin(admin.ModelAdmin):
-    list_display = (
+    list_display =(
         'tombamento_legado',
-        'marca_fabricante',
+        'descricao_manual',
         'modelo',
-        'nota_fiscal',
-        'cpf_fornecedor',
         'data_aquisicao',
-        'valor_unitario',
-        'qtde',
         'ua_atual',
+        'valor_unitario',
         'valor_atual_do_bem',
     )
     
@@ -104,8 +107,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
                 'numero_de_serie',
                 'modelo',
                 'qtde',
-                'matricula_responsavel',
-
+                'ua_atual',
             )
         }),
         
@@ -153,6 +155,8 @@ class BensPermanentesAdmin(admin.ModelAdmin):
         }),
     )
 
+
+# --- Informações Bens de Consumo DIMMS ---   
 @admin.register(BensConsumo)
 class BensConsumoAdmin(admin.ModelAdmin):
     list_display=(
@@ -163,12 +167,14 @@ class BensConsumoAdmin(admin.ModelAdmin):
         'medida',
         'quantidade',
         'grupo_consumo',
+        'local'
     )
     
     search_fields=(
         'efisco',
         'marca',
         'grupo_consumo',
+        'local'
     )
     
     list_filter=(
@@ -201,6 +207,199 @@ class BensConsumoAdmin(admin.ModelAdmin):
             'fields': (
                 'medida',
                 'quantidade',
+            )
+        }),
+    )
+
+
+# --- Histórico de Movimentações---
+@admin.register(MovimentacoesConsumo)
+class  MovimentacoesConsumoAdmin(admin.ModelAdmin):
+    list_display=(
+        'item',
+        'quantidade',
+        'usuario',
+        'acao',
+        'data_hora',
+    )
+
+    search_fields=(
+        'item__efisco',
+        'usuario__username',
+        'data_hora',
+    )
+    
+    list_filter=(
+        'acao',
+    )
+    
+    readonly_fields=(
+        'usuario', 
+        'data_hora'
+    )
+    
+    fieldsets =(
+        ('Solicitações', {
+            'fields': (
+                'item',
+                'acao',
+                'quantidade',
+            )
+        }),
+        
+        ('Documentos', {
+            'fields': (
+                'anexo',
+            )
+        }),
+    )
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if change:
+            raise ValidationError('Não edite solicitações. Crie uma nova :) ')
+        
+        obj.usuario = request.user
+        item = obj.item
+        
+        if obj.acao == 'SAIDA':
+            if obj.quantidade > item.quantidade:
+                raise ValidationError('Saldo insuficiente para essa retirada.')
+            else:
+                item.quantidade -= obj.quantidade
+        elif obj.acao == 'ENTRADA':
+            item.quantidade += obj.quantidade
+        else:
+            raise ValidationError('Ação Inválida')
+            
+        item.save()
+        super().save_model(request, obj, form, change)
+
+@admin.register(MovimentacoesPermanentes)
+class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
+    list_display=(
+        'tombo',
+        'acao',
+        'origem',
+        'destino',
+        'nome_resp_uso_ext',
+        'usuario',
+        'data_hora',
+    )
+    
+    
+    search_fields=(
+        'tombo',
+        'usuario_username',
+        'data_hora',
+    )
+    
+    
+    list_filter=(
+        'acao',
+    )
+    
+    
+    readonly_fields=(
+        'usuario',
+        'data_hora',
+    )
+    
+    
+    fieldsets=(
+        ('SEI da Movimentação', {
+            'fields': (
+                'sei',
+            )
+        }),
+        
+        ('Movimentação', {
+            'fields': (
+                'tombo',
+                'acao',
+                'destino'
+            )
+        }),
+        
+        ('Documentos', {
+            'fields': (
+                'anexo',
+            )
+        }),
+        
+        ('Informações Uso Externo', {
+            'fields': (
+                'nome_resp_uso_ext',
+                'matricula_resp_uso_ext',
+                'contato_resp_uso_ext',
+            )
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        if change:
+            raise ValidationError('Não Edite Movimentações, crie uma nova :) ')
+        
+        obj.usuario = request.user
+        bem = obj.tombo        
+        obj.origem = bem.ua_atual
+
+        if obj.destino ==  obj.origem:
+            raise ValidationError('O Destino não pode ser igual à Origem :(')
+        
+        bem.ua_atual = obj.destino
+        bem.save()
+        
+        return super().save_model(request, obj, form, change)        
+
+
+# --- Localização Interna no DEMPAM ---
+@admin.register(Setor)
+class SetorAdmin(admin.ModelAdmin):
+    list_display=(
+        'setor',
+    )
+    
+    search_fields=(
+        'setor',
+    )
+    
+    fieldsets=(
+        ('Setor', {
+            'fields': (
+                'setor',
+            )
+        }),
+    )
+    
+admin.register(Localizacao)
+class LocalizacaoAdmin(admin.ModelAdmin):
+    list_display=(
+        'setor_sala',
+        'prateleira_pallet',
+        'tipo_localizacao',
+    )
+    
+    search_fields=(
+        'setor_sala',
+        'prateleira_pallet',
+    )
+    
+    list_filter=(
+        'setor_sala',
+    )
+    
+    fieldsets=(
+        ('Setor/Sala', {
+            'fields': (
+                'setor_sala',
+            )
+        }),
+        
+        ('Prateleira/Pallet', {
+            'fields': (
+                'prateleira_pallet',
+                'tipo_localizacao',
             )
         }),
     )
