@@ -1,0 +1,44 @@
+{% extends 'itens/base_gestao.html' %}
+
+{% block title %}Ficha Completa: {{ item.nome }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="mb-0">Ficha Técnica Completa - {{ item.nome }}</h2>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <tbody>
+                <tr><th style="width: 30%;">Tombo / Nº de Identificação</th><td>{{ item.numero_identificacao }}</td></tr>
+                <tr><th>Nome do Item</th><td>{{ item.nome }}</td></tr>
+                <tr><th>Descrição</th><td>{{ item.descricao|linebreaksbr }}</td></tr>
+                <tr><th>Código E-FISCO</th><td>{{ item.codigo_efisco }}</td></tr>
+                <tr><th>Tipo do Bem</th><td>{{ item.tipo_do_bem }}</td></tr>
+                <tr><th>Marca</th><td>{{ item.marca }}</td></tr>
+                <tr><th>Fabricante</th><td>{{ item.fabricante }}</td></tr>
+                <tr><th>Modelo</th><td>{{ item.modelo }}</td></tr>
+                <tr><th>Nº de Série</th><td>{{ item.numero_de_serie }}</td></tr>
+                <tr><th>Situação Jurídica</th><td>{{ item.situacao_juridica }}</td></tr>
+                <tr><th>Situação Física</th><td>{{ item.situacao_fisica }}</td></tr>
+                <tr><th>Estado de Conservação</th><td>{{ item.estado_de_conservacao }}</td></tr>
+                <tr><th>Forma de Ingresso</th><td>{{ item.forma_de_ingresso }}</td></tr>
+                <tr><th>Nº do Documento</th><td>{{ item.numero_do_documento }}</td></tr>
+                <tr><th>Tipo do Documento</th><td>{{ item.tipo_do_documento }}</td></tr>
+                <tr><th>CNPJ do Fornecedor</th><td>{{ item.cnpj_fornecedor }}</td></tr>
+                <tr><th>Data de Aquisição</th><td>{{ item.data_aquisicao|date:"d/m/Y" }}</td></tr>
+                <tr><th>Valor Unitário</th><td>R$ {{ item.valor_unitario }}</td></tr>
+                <tr><th>Garantia (em dias)</th><td>{{ item.garantia_em_dias }}</td></tr>
+                <tr><th>Centro de Custo (UA)</th><td>{{ item.centro_de_custo }}</td></tr>
+                <tr><th>Responsável UA</th><td>{{ item.responsavel_ua }}</td></tr>
+                <tr><th>Matrícula Responsável UA</th><td>{{ item.mat_responsavel_ua }}</td></tr>
+                <tr><th>Observação</th><td>{{ item.observacao|linebreaksbr }}</td></tr>
+                <tr><th>Data de Cadastro no Sistema</th><td>{{ item.data_cadastro|date:"d/m/Y \à\s H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'detalhe_item' item.numero_identificacao %}" class="btn btn-secondary">Voltar para a Visão Principal</a>
+    </div>
+</div>
+{% endblock %}

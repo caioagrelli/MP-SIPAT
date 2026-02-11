@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Salvo com Sucesso!</title>
+    
+    <style>
+        body { font-family: sans-serif; text-align: center; max-width: 600px; margin: 80px auto; padding: 20px; }
+        .container { border: 1px solid #d4edda; background-color: #f2fff5; padding: 30px; border-radius: 8px; }
+        h1 { color: #155724; }
+        .acoes a {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .btn-principal {
+            background-color: #28a745; /* Verde de sucesso */
+            color: white;
+        }
+        .btn-principal:hover {
+            background-color: #218838;
+        }
+        .btn-secundario {
+            background-color: #f0f0f0;
+            color: #333;
+            border-color: #ccc;
+        }
+        .btn-secundario:hover {
+            background-color: #e2e6ea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Item Salvo com Sucesso!</h1>
+        <p style="font-size: 1.2em;">O item <strong>"{{ item.nome }}"</strong> (ID: {{ item.numero_identificacao }}) foi cadastrado no sistema.</p>
+        
+        <p style="margin-top: 30px;">O que você deseja fazer agora?</p>
+
+        <div class="acoes">
+            <a href="{% url 'gerar_etiqueta_item' item.numero_identificacao %}" class="btn-principal">
+                Baixar Etiqueta Completa
+            </a>
+            <br><br>
+            <a href="{% url 'adicionar_item' %}" class="btn-secundario">Cadastrar Outro Item</a>
+            <a href="{% url 'gestao_itens' %}" class="btn-secundario">Voltar para a Lista</a>
+        </div>
+    </div>
+</body>
+</html>
