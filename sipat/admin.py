@@ -190,6 +190,12 @@ class BensConsumoAdmin(admin.ModelAdmin):
             )
         }),
         
+        ('Localização no DEMPAM', {
+            'fields': (
+                'local',
+            )
+        }),
+        
         ('Descrição do Bem', {
             'fields': (
                 'validade',
