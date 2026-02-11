@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from .models import InfoUA, BensPermanentes, BensConsumo, Locais, MovimentacoesConsumo, MovimentacoesPermanentes, Setor, Localizacao
+from .models import InfoUA, BensPermanentes, BensConsumo, CircunscricaoPredio, MovimentacoesConsumo, MovimentacoesPermanentes, SetorDEMPAM, LocalizacaoDEMPAM
 
 
 # --- Informações sobre as Uas ---
-@admin.register(Locais) # (colocar só para atualizar todos os locais)
-class LocaisAdmin(admin.ModelAdmin):
+@admin.register(CircunscricaoPredio) # (colocar só para atualizar todos os locais)
+class CircunscricaoPredioAdmin(admin.ModelAdmin):
         list_display=(
             'local',
         )
@@ -167,14 +167,14 @@ class BensConsumoAdmin(admin.ModelAdmin):
         'medida',
         'quantidade',
         'grupo_consumo',
-        'local'
+        'local_armazenamento'
     )
     
     search_fields=(
         'efisco',
         'marca',
         'grupo_consumo',
-        'local'
+        'local_armazenamento'
     )
     
     list_filter=(
@@ -192,7 +192,7 @@ class BensConsumoAdmin(admin.ModelAdmin):
         
         ('Localização no DEMPAM', {
             'fields': (
-                'local',
+                'local_armazenamento',
             )
         }),
         
@@ -360,8 +360,8 @@ class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
 
 
 # --- Localização Interna no DEMPAM ---
-@admin.register(Setor)
-class SetorAdmin(admin.ModelAdmin):
+@admin.register(SetorDEMPAM)
+class SetorDEMPAMAdmin(admin.ModelAdmin):
     list_display=(
         'setor',
     )
@@ -378,8 +378,8 @@ class SetorAdmin(admin.ModelAdmin):
         }),
     )
     
-admin.register(Localizacao)
-class LocalizacaoAdmin(admin.ModelAdmin):
+@admin.register(LocalizacaoDEMPAM)
+class LocalizacaoDEMPAMAdmin(admin.ModelAdmin):
     list_display=(
         'setor_sala',
         'prateleira_pallet',

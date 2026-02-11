@@ -37,7 +37,7 @@ ROOT_URLCONF = 'app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/ 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,16 +77,22 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Recife'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "root"
+LOGOUT_REDIRECT_URL = "login"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+
+
+

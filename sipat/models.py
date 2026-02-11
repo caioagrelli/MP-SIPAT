@@ -12,7 +12,7 @@ class Complementos(): #Temporário
 
 
 # --- Informações sobre as Uas ---
-class Locais(models.Model):
+class CircunscricaoPredio(models.Model):
     id = models.AutoField(primary_key=True)
     
     
@@ -22,8 +22,8 @@ class Locais(models.Model):
     )
     
     class Meta:
-        verbose_name = 'Local'
-        verbose_name_plural = 'Locais'
+        verbose_name = 'Circunscrição/Prédio'
+        verbose_name_plural = 'Circunscrições/Prédios'
 
     def __str__(self):
         return self.local
@@ -33,7 +33,7 @@ class InfoUA(models.Model):
     
     
     circunscricao_predio = models.ForeignKey(
-        Locais,
+        CircunscricaoPredio,
         on_delete=models.PROTECT, 
         related_name='circunscricoes_predios',
         verbose_name='Circunscricao/Prédio',
@@ -85,7 +85,7 @@ class InfoUA(models.Model):
 
 
 # --- Localização Interna no DEMPAM ---
-class Setor(models.Model):
+class SetorDEMPAM(models.Model):
     id = models.AutoField(primary_key=True)
     
     setor = models.CharField(
@@ -95,16 +95,16 @@ class Setor(models.Model):
     
     class Meta():
         verbose_name='Setor/Sala DEMPAM'
-        verbose_name_plural='Setores/Salas'
+        verbose_name_plural='Setores/Salas DEMPAM'
         
     def __str__(self):
        return str(self.setor)  
 
-class Localizacao(models.Model):
+class LocalizacaoDEMPAM(models.Model):
     id = models.AutoField(primary_key=True)
 
     setor_sala = models.ForeignKey(
-        Setor,
+        SetorDEMPAM,
         blank=True,
         null=True,
         on_delete=models.PROTECT,
@@ -122,14 +122,15 @@ class Localizacao(models.Model):
     
     
     tipo_localizacao = models.CharField(
+        max_length=30,
         choices=TipoLocalizacao.choices,
         blank=True,
         null=True,
     )
     
     class Meta():
-        verbose_name='Localização Interna DEMPAM'
-        verbose_name_plural='Localizações Internas DEMPAM'
+        verbose_name='Localização DEMPAM'
+        verbose_name_plural='Localizações DEMPAM'
         
     def __str__(self):
        return str(self.prateleira_pallet) 
@@ -556,8 +557,8 @@ class BensConsumo(models.Model):
     )
     
     
-    local = models.ForeignKey(
-        Localizacao,
+    local_armazenamento = models.ForeignKey(
+        LocalizacaoDEMPAM,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
@@ -683,8 +684,8 @@ class MovimentacoesPermanentes(models.Model):
 
     
     class Meta():
-        verbose_name='Movimentação Permanente'
-        verbose_name_plural='Movimentações de Bens Permanentes'
+        verbose_name='Movimentação (Permanente)'
+        verbose_name_plural='Movimentações (Permanentes)'
         
     def __str__(self):
        return str(self.id)            
@@ -744,8 +745,8 @@ class MovimentacoesConsumo(models.Model):
     )
     
     class Meta():
-        verbose_name='Movimentação Consumo'
-        verbose_name_plural='Movimentações de Bens Consumo'
+        verbose_name='Movimentação (Consumo)'
+        verbose_name_plural='Movimentações (Consumo)'
         
     def __str__(self):
        return str(self.id)  
