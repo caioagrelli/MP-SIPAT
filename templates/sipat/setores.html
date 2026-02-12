@@ -1,0 +1,104 @@
+{% extends 'sipat/base.html' %}
+
+{% block title %}Setores{% endblock %}
+
+{% block content %}
+<style>
+    .page-wrap {
+        background: #f6f7fb;
+        padding: 25px;
+        border-radius: 12px;
+    }
+
+    h1 {
+        color: #3d5a80;
+        font-weight: 600;
+    }
+
+    .card-setor {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 20px;
+        transition: 0.2s ease;
+    }
+
+    .card-setor:hover {
+        transform: translateY(-3px);
+        border-color: #3d5a80;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .btn-mov {
+        background: #3d5a80;
+        color: #fff;
+        border-radius: 8px;
+        padding: 8px 15px;
+        border: none;
+    }
+
+    .btn-mov:hover {
+        background: #2e4666;
+    }
+</style>
+
+<div class="page-wrap">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Setores</h1>
+            <p class="text-muted">Página em construção (estrutura visual).</p>
+        </div>
+
+        <button class="btn-mov">+ Novo Setor (Provisório)</button>
+    </div>
+
+    <!-- Filtros falsos -->
+    <div class="card-setor mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="🔍 Buscar setor...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select">
+                    <option>Tipo</option>
+                    <option>Almoxarifado</option>
+                    <option>Sala</option>
+                    <option>Depósito</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-secondary w-100">Filtrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards falsos -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card-setor">
+                <h5>Almoxarifado Central</h5>
+                <p class="text-muted mb-2">12 blocos cadastrados</p>
+                <button class="btn btn-outline-primary btn-sm">Ver detalhes</button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-setor">
+                <h5>Depósito Administrativo</h5>
+                <p class="text-muted mb-2">7 blocos cadastrados</p>
+                <button class="btn btn-outline-primary btn-sm">Ver detalhes</button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-setor">
+                <h5>Sala Técnica</h5>
+                <p class="text-muted mb-2">4 blocos cadastrados</p>
+                <button class="btn btn-outline-primary btn-sm">Ver detalhes</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

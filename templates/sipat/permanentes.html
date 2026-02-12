@@ -1,0 +1,178 @@
+{% extends 'sipat/base.html' %}
+
+{% block title %}Bens Permanentes{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --cinza-fundo:#f9fafc;
+    --cinza-card:#ffffff;
+    --cinza-texto:#444;
+    --cinza-borda:#e2e6ea;
+    --azul-suave:#2f4f6f;
+    --azul-botao:#406080;
+    --verde-suave:#5cb85c;
+    --vermelho-suave:#d9534f;
+  }
+
+  .page-wrap{
+    background:var(--cinza-fundo);
+    color:var(--cinza-texto);
+    font-family:"Inter","Segoe UI",sans-serif;
+    padding:18px;
+    border-radius:12px;
+  }
+
+  h1,h4{ color:var(--azul-suave); font-weight:600; }
+
+  .btn-primary{
+    background-color:var(--azul-botao);
+    border:none;
+    border-radius:8px;
+    font-weight:500;
+    padding:8px 18px;
+  }
+  .btn-primary:hover{ background-color:#324b66; }
+
+  .btn-outline-secondary{
+    border-radius:8px;
+    padding:8px 14px;
+  }
+
+  .card{
+    background-color:var(--cinza-card);
+    border:1px solid var(--cinza-borda);
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  }
+  .card-header{
+    background:transparent;
+    border-bottom:1px solid var(--cinza-borda);
+    color:var(--azul-suave);
+    font-weight:600;
+  }
+
+  .filter-label{ font-size:.85rem; color:#6c757d; margin-bottom:6px; }
+  .form-control, .form-select{
+    border:1px solid var(--cinza-borda);
+    border-radius:10px;
+    padding:10px 12px;
+  }
+
+  table thead{
+    background:#f0f2f5;
+    color:var(--azul-suave);
+    font-weight:600;
+  }
+  table tbody tr:hover{ background:#f9f9f9; }
+  .table td,.table th{ vertical-align:middle; }
+
+  .badge-soft{
+    background:#e9eef6;
+    color:#2f4f6f;
+    border:1px solid #d7e2f3;
+    font-weight:600;
+  }
+</style>
+
+<div class="page-wrap">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-0">Bens Permanentes</h1>
+      <p class="text-muted mb-0">Consulta e acompanhamento dos bens permanentes cadastrados.</p>
+    </div>
+
+    <!-- Botão provisório (troca depois por uma URL real) -->
+    <a href="#" class="btn btn-primary shadow-sm">↔ Movimentações (provisório)</a>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card mb-4">
+    <div class="card-header">Filtros</div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+
+        <div class="col-md-4">
+          <div class="filter-label">Buscar (nome / marca / tombo)</div>
+          <input class="form-control" type="text" name="q"
+                 value="{{ query|default_if_none:'' }}"
+                 placeholder="Ex: cadeira, dell, 12345...">
+        </div>
+
+        <div class="col-md-3">
+          <div class="filter-label">Localização</div>
+          <input class="form-control" type="text" name="local"
+                 value="{{ filtro_local|default_if_none:'' }}"
+                 placeholder="Ex: Sala 203, Almox...">
+        </div>
+
+        <div class="col-md-3">
+          <div class="filter-label">Situação</div>
+          <select class="form-select" name="situacao">
+            <option value="">Todas</option>
+            <option value="ATIVO" {% if filtro_situacao == "ATIVO" %}selected{% endif %}>Ativo</option>
+            <option value="BAIXA" {% if filtro_situacao == "BAIXA" %}selected{% endif %}>Baixa</option>
+            <option value="MANUTENCAO" {% if filtro_situacao == "MANUTENCAO" %}selected{% endif %}>Manutenção</option>
+            <option value="EMPRESTADO" {% if filtro_situacao == "EMPRESTADO" %}selected{% endif %}>Emprestado</option>
+          </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end gap-2">
+          <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+          <a class="btn btn-outline-secondary w-100" href="">Limpar</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- LISTAGEM -->
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Todos os Bens Permanentes ({{ total_bens|default:0 }})</h4>
+      {% if total_ativos is not None %}
+        <span class="badge badge-soft px-3 py-2">Ativos: {{ total_ativos }}</span>
+      {% endif %}
+    </div>
+
+    <div class="card-body">
+      {% if bens %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Tombo</th>
+                <th>Bem</th>
+                <th>Localização</th>
+                <th>Marca</th>
+                <th>Situação</th>
+                <th style="width:170px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bem in bens %}
+                <tr>
+                  <td>{{ bem.numero_identificacao|default:"-" }}</td>
+                  <td class="fw-semibold">{{ bem.nome|default:"-" }}</td>
+                  <td>{{ bem.localizacao|default:"N/A" }}</td>
+                  <td>{{ bem.marca|default:"N/A" }}</td>
+                  <td>{{ bem.situacao|default:"-" }}</td>
+                  <td>
+                    <!-- Ações provisórias (liga depois em rotas reais) -->
+                    <a href="#" class="btn btn-sm btn-outline-secondary">Detalhes</a>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Movimentar</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info text-center py-3 mb-0">Nenhum bem permanente encontrado.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

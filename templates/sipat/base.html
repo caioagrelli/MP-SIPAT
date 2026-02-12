@@ -73,20 +73,44 @@
         <h3 class="m-0">
             <a href="{% url 'homepage' %}">SIPAT | MPPE</a>
         </h3>
-        <small class="text-secondary">Sistema Interno de Patrimonial</small>
+        <small class="text-secondary">Sistema Interno Patrimonial</small>
     </div>
 
     {% if user.is_authenticated %}
         <ul class="nav flex-column">
+
+            <!-- HOME -->
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'homepage' %}active{% endif %}"
-                   href="{% url 'homepage' %}">🏠 Painel Principal</a>
+                   href="{% url 'homepage' %}">
+                   🏠 Painel Principal
+                </a>
             </li>
 
-            <!-- Links temporários (depois você cria as rotas reais) -->
-            <li class="nav-item mb-2"><a class="nav-link" href="#">📦 Bens Permanentes</a></li>
-            <li class="nav-item mb-2"><a class="nav-link" href="#">📝 Bens de Consumo</a></li>
-            <li class="nav-item mb-2"><a class="nav-link" href="#">🏢 Setores/Salas</a></li>
+            <!-- BENS PERMANENTES -->
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'benspermanentes' %}active{% endif %}"
+                   href="{% url 'benspermanentes' %}">
+                   📦 Bens Permanentes
+                </a>
+            </li>
+
+            <!-- BENS DE CONSUMO -->
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'bensconsumo' %}active{% endif %}"
+                   href="{% url 'bensconsumo' %}">
+                   📝 Bens de Consumo
+                </a>
+            </li>
+
+            <!-- SETORES (futuro) -->
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'setores' %}active{% endif %}"
+                href="{% url 'setores' %}">
+                🏢 Setores / Salas
+                </a>
+            </li>
+
         </ul>
 
         <div class="user-info">
