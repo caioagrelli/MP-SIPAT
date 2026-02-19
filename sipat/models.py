@@ -814,7 +814,7 @@ class SolicitacoesConsumo(models.Model):
         
     def __str__(self):
        return str(self.id)  
-   
+
 
 
 # --- Histórico de Movimentações---
