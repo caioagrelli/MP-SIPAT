@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from .models import InfoUA, BensPermanentes, BensConsumo, CircunscricaoPredio, MovimentacoesConsumo, MovimentacoesPermanentes, SetorDEMPAM, LocalizacaoDEMPAM, Fornecedor, SaldoAtivo
+from .models import *
 
 
 # --- Informações sobre as Uas ---
@@ -66,6 +66,7 @@ class InfoUaAdmin(admin.ModelAdmin):
                 
         }),
     )
+
 
 
 # --- Informações Bens Permanentes DIMRCBP --
@@ -155,234 +156,6 @@ class BensPermanentesAdmin(admin.ModelAdmin):
         }),
     )
 
-
-# --- Informações Bens de Consumo DIMMS ---   
-@admin.register(BensConsumo)
-class BensConsumoAdmin(admin.ModelAdmin):
-    list_display=(
-        'efisco',
-        'marca',
-        'validade',
-        'custo_unit',
-        'medida',
-        'quantidade',
-        'grupo_consumo',
-        'local_armazenamento'
-    )
-    
-    search_fields=(
-        'efisco',
-        'marca',
-        'grupo_consumo',
-        'local_armazenamento'
-    )
-    
-    list_filter=(
-        'grupo_consumo',
-    )
-    
-    fieldsets=(
-        ('Informações Do Bem', {
-            'fields': (
-                'efisco',
-                'marca',
-                'grupo_consumo',
-            )
-        }),
-        
-        ('Localização no DEMPAM', {
-            'fields': (
-                'local_armazenamento',
-            )
-        }),
-        
-        ('Descrição do Bem', {
-            'fields': (
-                'validade',
-                'custo_unit',
-            )
-        }),
-        
-        ('Foto do Item', {
-            'fields': (
-                'imagem_consumo',
-            )
-        }),
-            
-        ('Quantidade', {
-            'fields': (
-                'medida',
-                'quantidade',
-            )
-        }),
-    )
-
-@admin.register(Fornecedor)
-class FornecedorAdmin(admin.ModelAdmin):
-    list_display=(
-        'fonecedor',
-        'cnpj_fornecedor',
-        'contato_fornecedor',
-        'email_fornecedor',
-        'contrato',
-        'homologacao',
-        'inicio_vigencia',
-        'final_vigencia',
-        'cs',
-        'cod_liquidacao',
-        'pregao',
-    )
-    
-    search_fields=(
-        'fonecedor',
-        'cnpj_fornecedor',
-        'contrato',
-        'homologacao',
-        'cs',
-        'cod_liquidacao',
-        'pregao',
-    )
-
-    fieldsets=(
-        ('Dados do Fonecedor', {
-            'fields': (
-                'fonecedor',
-                'cnpj_fornecedor',
-                'contato_fornecedor',
-                'email_fornecedor',
-            )
-        }),
-        
-        ('Vigência', {
-            'fields': (
-                'inicio_vigencia',
-                'final_vigencia',                
-            )
-        }),
-        
-        ('Informações do Contrato', {
-            'fields': (
-        'contrato',
-        'homologacao',
-        'cs',
-        'cod_liquidacao',
-        'pregao',                
-            )
-        }),
-    )
-
-@admin.register(SaldoAtivo)
-class SaldoAtivoAdmin(admin.ModelAdmin):
-
-    list_display = (
-        'fornecedor_saldoativo',
-        'efisco',
-        'grupo',
-        'cota',
-        'quantidade',
-    )
-
-    list_filter = (
-        'grupo',
-    )
-
-    search_fields = (
-        'fornecedor_saldoativo',   
-        'efisco',                  
-    )
-
-    autocomplete_fields = (
-        'fornecedor_saldoativo',
-        'efisco',
-    )
-
-    ordering = (
-        '-id',
-        )
-
-    fieldsets = (
-        ('Informações do Fornecedor', {
-            'fields': (
-                'fornecedor_saldoativo',
-            )
-        }),
-
-        ('Dados do Item', {
-            'fields': (
-                'efisco',
-                'grupo',
-                'cota',
-            )
-        }),
-
-        ('Controle de Quantidade', {
-            'fields': (
-                'quantidade',
-            )
-        }),
-    )
-
-
-# --- Histórico de Movimentações---
-@admin.register(MovimentacoesConsumo)
-class  MovimentacoesConsumoAdmin(admin.ModelAdmin):
-    list_display=(
-        'item',
-        'quantidade',
-        'usuario',
-        'data_hora',
-    )
-
-    ordering = ('-id',)
-
-    search_fields=(
-        'item__efisco',
-        'usuario__username',
-        'data_hora',
-    )
-    
-    
-    readonly_fields=(
-        'usuario', 
-        'data_hora'
-    )
-    
-    fieldsets =(
-        ('Solicitações', {
-            'fields': (
-                'item',
-                'quantidade',
-            )
-        }),
-        
-        ('Documentos', {
-            'fields': (
-                'anexo',
-            )
-        }),
-    )
-
-    @transaction.atomic
-    def save_model(self, request, obj, form, change):
-        if change:
-            raise ValidationError('Não edite solicitações. Crie uma nova :) ')
-        
-        obj.usuario = request.user
-        item = obj.item
-        
-        if obj.acao == 'SAIDA':
-            if obj.quantidade > item.quantidade:
-                raise ValidationError('Saldo insuficiente para essa retirada.')
-            else:
-                item.quantidade -= obj.quantidade
-        elif obj.acao == 'ENTRADA':
-            item.quantidade += obj.quantidade
-        else:
-            raise ValidationError('Ação Inválida')
-            
-        item.save()
-        super().save_model(request, obj, form, change)
-
 @admin.register(MovimentacoesPermanentes)
 class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
     list_display=(
@@ -460,8 +233,200 @@ class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
         bem.ua_atual = obj.destino
         bem.save()
         
-        return super().save_model(request, obj, form, change)        
+        return super().save_model(request, obj, form, change)       
 
+
+
+# --- Informações Bens de Consumo DIMMS ---   
+@admin.register(BensConsumo)
+class BensConsumoAdmin(admin.ModelAdmin):
+    list_display=(
+        'efisco',
+        'descricao_manual',
+        'descricao_efisco',
+        'medida',
+        'grupo_consumo',
+    )
+    
+    search_fields=(
+        'efisco',
+        'descricao_manual',
+        'descricao_efisco'
+        'grupo_consumo',
+    )
+    
+    list_filter=(
+        'grupo_consumo',
+    )
+    
+    fieldsets=(
+        ('Informações Do Bem', {
+            'fields': (
+                'efisco',
+                'grupo_consumo',
+            )
+        }),
+                                    
+        ('Unidade de Medida', {
+            'fields': (
+                'medida',
+            )
+        }),
+        
+        ('Descrição', {
+            'fields': (
+                'descricao_manual',
+                'descricao_efisco',                
+            )
+        }),
+    )
+
+@admin.register(Fornecedor)
+class FornecedorAdmin(admin.ModelAdmin):
+    list_display=(
+        'fornecedor',
+        'cnpj_fornecedor',
+        'contato_fornecedor',
+        'email_fornecedor',
+    )
+    
+    search_fields=(
+        'fornecedor',
+        'cnpj_fornecedor',
+    )
+
+    fieldsets=(
+        ('Fornecedor', {
+            'fields': (
+                'fornecedor',
+            )
+        }),
+
+        ('Dados do Fornecedor', {
+            'fields': (
+                'cnpj_fornecedor',
+                'contato_fornecedor',
+                'email_fornecedor',
+            )
+        }),
+    )
+
+class SaldoAtivoInline(admin.TabularInline):
+    model = SaldoAtivo
+    extra = 0
+    fields = ('efisco', 'saldo_disponivel', 'cota')
+    readonly_fields= ('saldo_disponivel',)
+    autocomplete_fields = ('efisco',)
+    ordering = ('efisco',)
+    verbose_name = 'Saldo Ativo'
+    verbose_name_plural = 'Saldos Ativos'
+    classes = ('collapse',)
+
+@admin.register(Contrato)
+class ContratoAdmin(admin.ModelAdmin):
+    list_display= (
+        'contrato',
+        'fornecedor',
+        'homologacao',
+        'cs',
+        'cod_liquidacao',
+        'inicio_vigencia',
+        'final_vigencia',
+    )
+ 
+    search_fields= (
+        'contrato',
+        'fornecedor__fornecedor',
+        'homologacao',
+        'cs',
+        'cod_liquidacao',        
+    )
+
+    list_select_related = (
+        'fornecedor',
+        )
+
+    autocomplete_fields = (
+        'fornecedor',
+        )
+    
+    ordering = (
+        '-id',
+        )
+
+    fieldsets= (
+        ('Fornecedor', {
+            'fields': (
+                'fornecedor',
+            )
+        }),
+        
+        ('Informações do Contrato', {
+            'fields': (
+                'contrato',
+                'homologacao',
+                'cs',
+                'cod_liquidacao',        
+            )
+        }),
+        
+        ('Datas do Contrato', {
+            'fields': (
+                'inicio_vigencia',
+                'final_vigencia',
+            )
+        })
+    )
+
+    inlines= [
+        SaldoAtivoInline
+        ]
+
+'''@admin.register(SaldoAtivo)
+class SaldoAtivoAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'contrato_saldo',
+        'efisco',
+        'saldo_disponivel',
+        'cota',
+    )
+
+    search_fields = (
+        'contrato_saldo',
+        'efisco',
+    )
+
+    list_filter= (
+        'efisco__grupo_consumo'
+    )
+
+    autocomplete_fields = (
+        'contrato_saldo',
+        'efisco',
+    )
+
+    ordering = (
+        '-id',
+        )
+
+    fieldsets = (
+        ('Informações do Contrato', {
+            'fields': (
+                'contrato_saldo',
+                'cota'
+            )
+        }),
+
+        ('Dados do Item', {
+            'fields': (
+                'efisco',
+                'saldo_disponivel',
+            )
+        }),
+
+    )
+'''
 
 # --- Localização Interna no DEMPAM ---
 @admin.register(SetorDEMPAM)

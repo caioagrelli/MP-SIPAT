@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from .utils import caminho_benspermanentes, caminho_bensconsumo, caminho_movimentacao_consumo
+from .utils import *
 from .choices import *
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
@@ -498,7 +498,7 @@ class BensPermanentes(models.Model):
 
 
 # --- Informações Bens de Consumo DIMMS ---   
-class BensConsumo(models.Model):
+class BensConsumo(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
     
     efisco = models.CharField(
@@ -548,7 +548,7 @@ class BensConsumo(models.Model):
     def __str__(self):
         return self.efisco
 
-class Fornecedor(models.Model):
+class Fornecedor(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
     
     fornecedor = models.CharField(
@@ -587,10 +587,64 @@ class Fornecedor(models.Model):
     def __str__(self):
         return str(self.fornecedor)
 
-class CompraIndividual(models.Model):
-    ...
 
-class Contrato(models.Model):
+class CompraIndividual(models.Model): #PRONTO
+    efisco = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        related_name='compras_individuais',
+        blank=True,
+        null=True,
+        verbose_name='Efisco'
+    )
+    
+    
+    bem = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Bem',
+    )
+    
+    
+    quantidade = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Quantidade'
+    )
+    
+    
+    valor = models.PositiveIntegerField(
+        verbose_name='Valor'
+    )
+    
+    
+    nf = models.FileField(
+        upload_to=caminho_nf_compraindividual,
+        blank=True,
+        null=True,
+        verbose_name='Nota Fiscal'
+    )
+    
+    
+    data_compra = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Data da Compra'
+    
+    )
+    
+    
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_compraindividual',
+        verbose_name='Usuário Responsável',
+    )
+    
+class Contrato(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
 
     fornecedor = models.ForeignKey(
@@ -649,29 +703,35 @@ class Contrato(models.Model):
     def __str__(self):
         return str(self.contrato)
 
-class SaldoAtivo(models.Model):
+class SaldoAtivo(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
     
     contrato_saldo = models.ForeignKey(
         Contrato,
         on_delete=models.PROTECT,
-        related_name='fornecedoressaldoativo',
-        verbose_name='Fornecedor' 
+        related_name='Contrato',
+        verbose_name='Contrato' 
     )
     
     
     efisco = models.ForeignKey(
         BensConsumo,
         on_delete=models.PROTECT,
-        related_name='bensdofonecedor',
+        related_name='saldos_ativos',
         verbose_name='Efisco'
     )
     
     
-    quantidade = models.PositiveIntegerField(
-        verbose_name='Quantidade'
+    quantidade_contrato = models.PositiveIntegerField(
+        verbose_name='Quantidade Contrato',
     )
     
+    
+    saldo_disponivel = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Saldo Disponível'
+    )
+
     
     cota = models.CharField(
         max_length=15,
@@ -681,16 +741,25 @@ class SaldoAtivo(models.Model):
         verbose_name='Cota'
     )
     
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.saldo_disponivel = self.quantidade_contrato
+        super().save(*args, **kwargs)
     
     class Meta():
         verbose_name='Saldo Ativo'
         verbose_name_plural='Saldo Ativo'
+        unique_together = ('contrato_saldo', 'efisco')
         
     def __str__(self):
         return str(self.efisco)
 
+
 class SolicitacoesSalvoAtivo(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    
+
 
 class BensEnviados(models.Model):
     ...
@@ -751,7 +820,7 @@ class SolicitacoesConsumo(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='usuario_mov_permanentes',
+        related_name='usuario_sol_consumo',
         verbose_name='Usuário Responsável',
     )
     

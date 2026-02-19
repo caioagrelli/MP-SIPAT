@@ -21,3 +21,10 @@ def caminho_movimentacao_consumo(instance, filename):
     nome_aquivo = f'{n_movimentacao}{ext}'
     
     return f'documentos/movimentacao_consumo/{nome_aquivo}'
+
+def caminho_nf_compraindividual(instance, filename):
+    n_nf = instance.id
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{n_nf}{ext}'
+    
+    return f'documentos/nf_individual/{nome_aquivo}'
