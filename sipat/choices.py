@@ -1,8 +1,4 @@
 from django.db import models
-
-class AcaoConsumo(models.TextChoices):
-    entrada = 'ENTRADA', 'Entrada'
-    saida = 'SAIDA', 'Saída'
     
 class AcaoPermanente(models.TextChoices):
     solicitacao = 'SOLICITACAO', 'Solicitação'
@@ -53,3 +49,7 @@ class GrupoConsumo(models.TextChoices):
     papeis_limpeza = 'PAPEIS_LIMPEZA', 'Papéis de Limpeza'
     refrigeracao = 'REFRIGERACAO', 'Refrigeração'
     toner = 'TONER', 'Toner'
+    
+class Cota(models.TextChoices):
+    principal = 'PRINCIPAL', 'Principal'
+    reservada = 'RESERVADA', 'Reservada'

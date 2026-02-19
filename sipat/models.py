@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from .utils import caminho_benspermanentes, caminho_bensconsumo, caminho_movimentacao_consumo
-from .choices import AcaoConsumo, AcaoPermanente, TipoLocalizacao, UnidadesMedida, EstadoConservacao, SituacaoFisica, GrupoConsumo
+from .choices import *
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCPFField, BRCNPJField
 from django.core.validators import RegexValidator
@@ -507,31 +507,20 @@ class BensConsumo(models.Model):
         blank=True,
         verbose_name='E-Fisco',
     )
-
-
-    marca = models.CharField(
-        max_length=30,
-        default='S/Marca',
-        blank=True,
-        verbose_name='Marca',
-    )
     
-    
-    validade = models.DateField(
+    descricao_manual= models.CharField(
+        max_length=60, 
         blank=True,
         null=True,
-        verbose_name='Validade'
+        verbose_name='Descrição Manual'
     )
     
-    
-    custo_unit = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+    descricao_efisco= models.TextField(
         blank=True,
         null=True,
-        verbose_name='Custo Unitário',
-    )
-   
+        verbose_name='Descrição Efisco'
+    )    
+    
     
     medida = models.CharField(
         max_length=20,
@@ -542,18 +531,211 @@ class BensConsumo(models.Model):
     )
 
     
-    quantidade = models.IntegerField(
-        blank=True,
-        null=True,
-        default=0
-    )
-    
-    
     grupo_consumo = models.CharField(
         choices=GrupoConsumo.choices,
         blank=True,
         null=True,
         verbose_name='Grupo',
+    )
+    
+    class Meta():
+        verbose_name='Bem de Consumo'
+        verbose_name_plural='Bens de Consumo'
+        
+    def __str__(self):
+        return self.efisco
+
+class Fornecedor(models.Model):
+    id = models.AutoField(primary_key=True)
+    
+    fornecedor = models.CharField(
+        max_length=40,
+        verbose_name='Fornecedor'
+    )
+
+
+    cnpj_fornecedor = BRCNPJField(
+        blank=True,
+        null=True,
+        verbose_name='CNPJ do Fornecedor',
+    )
+    
+    
+    contato_fornecedor = models.CharField(
+    max_length=15,
+    validators=[Complementos.validator_contato],
+    blank=True,
+    null=True,
+    verbose_name='Contato do Fornecedor',
+    )
+    
+    
+    email_fornecedor = models.EmailField(
+    blank=True,
+    null=True,
+    verbose_name='Email do Fornecedor'
+    )
+
+    
+    class Meta():
+        verbose_name='Fornecedor'
+        verbose_name_plural='Fonecedores'
+        
+    def __str__(self):
+        return str(self.fornecedor)
+
+class Contrato(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    fornecedor = models.ForeignKey(
+        Fornecedor,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    
+    
+    contrato = models.CharField(
+        max_length=30,
+        verbose_name='N° Contrato'
+    )
+    
+    
+    inicio_vigencia = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Início da Vigência',
+    )
+    
+    
+    final_vigencia = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Final da Vigência',
+    )
+    
+    
+    homologacao = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Homologação',
+    )
+    
+    
+    cs = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name='N° CS',
+    )
+    
+    
+    cod_liquidacao = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Código de Licitação',
+    )
+
+
+    class Meta():
+        verbose_name='Contrato'
+        verbose_name_plural='Contratos'
+        
+    def __str__(self):
+        return str(self.contrato)
+
+class SaldoAtivo(models.Model):
+    id = models.AutoField(primary_key=True)
+    
+    contrato_saldo = models.ForeignKey(
+        Contrato,
+        on_delete=models.PROTECT,
+        related_name='fornecedoressaldoativo',
+        verbose_name='Fornecedor' 
+    )
+    
+    
+    efisco = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        related_name='bensdofonecedor',
+        verbose_name='Efisco'
+    )
+    
+    
+    quantidade = models.PositiveIntegerField(
+        verbose_name='Quantidade'
+    )
+    
+    
+    cota = models.CharField(
+        max_length=15,
+        choices=Cota,
+        blank=True,
+        null=True,
+        verbose_name='Cota'
+    )
+    
+    
+    class Meta():
+        verbose_name='Saldo Ativo'
+        verbose_name_plural='Saldo Ativo'
+        
+    def __str__(self):
+        return str(self.efisco)
+
+class SolicitacoesSalvoAtivo(models.Model): #pra fazer
+    id = models.AutoField(primary_key=True)
+
+class BensEnviados(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    solicitacao = models.ForeignKey(
+        SolicitacoesSalvoAtivo,
+        on_delete=models.PROTECT,
+        related_name='solicitacoesfinalizadas',
+        verbose_name='Solicitação',
+    )
+
+
+    quantidade = models.PositiveIntegerField(
+        verbose_name='Quantidade'
+    )
+
+
+    marca = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name='Quantidade',
+    )
+
+    
+    validade = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Validade',
+    )
+
+    class Meta():
+        verbose_name='Bem Enviado'
+        verbose_name_plural='Bens Enviados'
+        
+    def __str__(self):
+        return str(self.solicitacao)
+
+class BensConsumoEstoque(models.Model): 
+    id = models.AutoField(primary_key=True)
+    
+    solicitacao = models.ForeignKey(
+        BensEnviados,
+        on_delete=models.PROTECT,
+        related_name='estoquesolicitacao',
+        verbose_name='Estoque da Solicitação',
+    )
+      
+        
+    quantidade = models.PositiveIntegerField(
+        verbose_name='Quantidade',
     )
     
     
@@ -564,16 +746,8 @@ class BensConsumo(models.Model):
         null=True,
         related_name='localizacao_consumo',
         verbose_name='Localização',
-        
-    )
-    
-    
-    imagem_consumo = models.ImageField(
-        upload_to=caminho_bensconsumo,
-        blank=True,
-        null=True,
-        verbose_name='Imagem do Item'
-    )
+        )
+
     
     class Meta():
         verbose_name='Bem de Consumo'
@@ -581,6 +755,66 @@ class BensConsumo(models.Model):
         
     def __str__(self):
         return self.efisco
+
+class SolicitacoesConsumo(models.Model):  
+    id = models.AutoField(primary_key=True)
+        
+    item = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        related_name='itens_movimentados',
+        verbose_name='Item Movimentado',
+    )
+
+
+    solicitante = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        related_name='solicitantesconsumo',
+        verbose_name='Solicitante',
+    )
+    
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_mov_permanentes',
+        verbose_name='Usuário Responsável',
+    )
+    
+    quantidade = models.PositiveIntegerField(
+        verbose_name='Quantidade',
+    )
+    
+    
+    data_hora = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data e Hora da Movimentação'
+    )
+    
+    
+    observacao = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observação'
+    )
+    
+    
+    anexo = models.FileField(
+        upload_to=caminho_movimentacao_consumo,
+        blank=True,
+        null=True,
+        verbose_name='Documento Anexado'
+    )
+    
+    class Meta():
+        verbose_name='Movimentação (Consumo)'
+        verbose_name_plural='Movimentações (Consumo)'
+        
+    def __str__(self):
+       return str(self.id)  
+   
 
 
 # --- Histórico de Movimentações---
@@ -593,6 +827,7 @@ class MovimentacoesPermanentes(models.Model):
         null=True,
         verbose_name='SEI',
     )
+    
     
     tombo = models.ForeignKey(
         BensPermanentes,
@@ -689,66 +924,4 @@ class MovimentacoesPermanentes(models.Model):
         
     def __str__(self):
        return str(self.id)            
-   
-class MovimentacoesConsumo(models.Model): 
-    
-    id = models.AutoField(primary_key=True)
-        
-    item = models.ForeignKey(
-        BensConsumo,
-        on_delete=models.PROTECT,
-        related_name='itens_movimentados',
-        verbose_name='Item Movimentado',
-    )
-    
-    
-    acao = models.CharField(
-        max_length=10,
-        choices=AcaoConsumo.choices,
-        verbose_name='Ação'
-    )
-    
-    
-    quantidade = models.PositiveIntegerField(
-        verbose_name='Quantidade',
-    )
-    
-    
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name='usuario_mov_consumo',
-        verbose_name='Usuário Responsável',
-    )
-    
-    
-    data_hora = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Data e Hora da Movimentação'
-    )
-    
-    
-    observacao = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name='Observação'
-    )
-    
-    
-    anexo = models.FileField(
-        upload_to=caminho_movimentacao_consumo,
-        blank=True,
-        null=True,
-        verbose_name='Documento Anexado'
-    )
-    
-    class Meta():
-        verbose_name='Movimentação (Consumo)'
-        verbose_name_plural='Movimentações (Consumo)'
-        
-    def __str__(self):
-       return str(self.id)  
-   
    

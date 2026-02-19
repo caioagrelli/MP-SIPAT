@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from .models import InfoUA, BensPermanentes, BensConsumo, CircunscricaoPredio, MovimentacoesConsumo, MovimentacoesPermanentes, SetorDEMPAM, LocalizacaoDEMPAM
+from .models import InfoUA, BensPermanentes, BensConsumo, CircunscricaoPredio, MovimentacoesConsumo, MovimentacoesPermanentes, SetorDEMPAM, LocalizacaoDEMPAM, Fornecedor, SaldoAtivo
 
 
 # --- Informações sobre as Uas ---
@@ -124,7 +124,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
         ('Informações do Fornecedor', {
             'fields': (
                 'marca_fabricante',
-                'cpf_fornecedor',
+                'cpf_fornecedor_fornecedor',
                 'cnpj_fornecedor',
             )
         }),
@@ -217,6 +217,111 @@ class BensConsumoAdmin(admin.ModelAdmin):
         }),
     )
 
+@admin.register(Fornecedor)
+class FornecedorAdmin(admin.ModelAdmin):
+    list_display=(
+        'fonecedor',
+        'cnpj_fornecedor',
+        'contato_fornecedor',
+        'email_fornecedor',
+        'contrato',
+        'homologacao',
+        'inicio_vigencia',
+        'final_vigencia',
+        'cs',
+        'cod_liquidacao',
+        'pregao',
+    )
+    
+    search_fields=(
+        'fonecedor',
+        'cnpj_fornecedor',
+        'contrato',
+        'homologacao',
+        'cs',
+        'cod_liquidacao',
+        'pregao',
+    )
+
+    fieldsets=(
+        ('Dados do Fonecedor', {
+            'fields': (
+                'fonecedor',
+                'cnpj_fornecedor',
+                'contato_fornecedor',
+                'email_fornecedor',
+            )
+        }),
+        
+        ('Vigência', {
+            'fields': (
+                'inicio_vigencia',
+                'final_vigencia',                
+            )
+        }),
+        
+        ('Informações do Contrato', {
+            'fields': (
+        'contrato',
+        'homologacao',
+        'cs',
+        'cod_liquidacao',
+        'pregao',                
+            )
+        }),
+    )
+
+@admin.register(SaldoAtivo)
+class SaldoAtivoAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'fornecedor_saldoativo',
+        'efisco',
+        'grupo',
+        'cota',
+        'quantidade',
+    )
+
+    list_filter = (
+        'grupo',
+    )
+
+    search_fields = (
+        'fornecedor_saldoativo',   
+        'efisco',                  
+    )
+
+    autocomplete_fields = (
+        'fornecedor_saldoativo',
+        'efisco',
+    )
+
+    ordering = (
+        '-id',
+        )
+
+    fieldsets = (
+        ('Informações do Fornecedor', {
+            'fields': (
+                'fornecedor_saldoativo',
+            )
+        }),
+
+        ('Dados do Item', {
+            'fields': (
+                'efisco',
+                'grupo',
+                'cota',
+            )
+        }),
+
+        ('Controle de Quantidade', {
+            'fields': (
+                'quantidade',
+            )
+        }),
+    )
+
 
 # --- Histórico de Movimentações---
 @admin.register(MovimentacoesConsumo)
@@ -225,9 +330,10 @@ class  MovimentacoesConsumoAdmin(admin.ModelAdmin):
         'item',
         'quantidade',
         'usuario',
-        'acao',
         'data_hora',
     )
+
+    ordering = ('-id',)
 
     search_fields=(
         'item__efisco',
@@ -235,9 +341,6 @@ class  MovimentacoesConsumoAdmin(admin.ModelAdmin):
         'data_hora',
     )
     
-    list_filter=(
-        'acao',
-    )
     
     readonly_fields=(
         'usuario', 
@@ -248,7 +351,6 @@ class  MovimentacoesConsumoAdmin(admin.ModelAdmin):
         ('Solicitações', {
             'fields': (
                 'item',
-                'acao',
                 'quantidade',
             )
         }),
@@ -292,7 +394,9 @@ class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
         'usuario',
         'data_hora',
     )
-    
+
+    ordering = ('-id',)
+   
     
     search_fields=(
         'tombo',
