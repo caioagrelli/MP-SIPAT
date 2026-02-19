@@ -508,12 +508,14 @@ class BensConsumo(models.Model):
         verbose_name='E-Fisco',
     )
     
+    
     descricao_manual= models.CharField(
         max_length=60, 
         blank=True,
         null=True,
         verbose_name='Descrição Manual'
     )
+    
     
     descricao_efisco= models.TextField(
         blank=True,
@@ -537,6 +539,7 @@ class BensConsumo(models.Model):
         null=True,
         verbose_name='Grupo',
     )
+    
     
     class Meta():
         verbose_name='Bem de Consumo'
@@ -583,6 +586,9 @@ class Fornecedor(models.Model):
         
     def __str__(self):
         return str(self.fornecedor)
+
+class CompraIndividual(models.Model):
+    ...
 
 class Contrato(models.Model):
     id = models.AutoField(primary_key=True)
@@ -683,45 +689,11 @@ class SaldoAtivo(models.Model):
     def __str__(self):
         return str(self.efisco)
 
-class SolicitacoesSalvoAtivo(models.Model): #pra fazer
+class SolicitacoesSalvoAtivo(models.Model):
     id = models.AutoField(primary_key=True)
 
 class BensEnviados(models.Model):
-    id = models.AutoField(primary_key=True)
-
-    solicitacao = models.ForeignKey(
-        SolicitacoesSalvoAtivo,
-        on_delete=models.PROTECT,
-        related_name='solicitacoesfinalizadas',
-        verbose_name='Solicitação',
-    )
-
-
-    quantidade = models.PositiveIntegerField(
-        verbose_name='Quantidade'
-    )
-
-
-    marca = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Quantidade',
-    )
-
-    
-    validade = models.DateField(
-        blank=True,
-        null=True,
-        verbose_name='Validade',
-    )
-
-    class Meta():
-        verbose_name='Bem Enviado'
-        verbose_name_plural='Bens Enviados'
-        
-    def __str__(self):
-        return str(self.solicitacao)
+    ...
 
 class BensConsumoEstoque(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -815,6 +787,8 @@ class SolicitacoesConsumo(models.Model):
     def __str__(self):
        return str(self.id)  
 
+class Tramitacao(models.Model):
+    ...
 
 
 # --- Histórico de Movimentações---
