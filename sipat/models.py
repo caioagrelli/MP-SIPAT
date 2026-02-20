@@ -3,7 +3,7 @@ from django.conf import settings
 from .utils import *
 from .choices import *
 from django.contrib.auth.models import User
-from localflavor.br.models import BRCPFField, BRCNPJField
+from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
 
 # Recursos Usados pelo Banco de Dados
@@ -137,7 +137,7 @@ class LocalizacaoDEMPAM(models.Model):
 
 
 # --- Informações Bens Permanentes DIMRCBP ---
-class BensPermanentes(models.Model):    
+class BensPermanentes(models.Model):
     id = models.AutoField(
         primary_key=True
     )
@@ -256,13 +256,6 @@ class BensPermanentes(models.Model):
         blank=True,
         editable=False,
         verbose_name='Código da Unidade',
-    )
-    
-    
-    cpf_fornecedor = BRCPFField(
-        null=True,
-        blank=True,
-        verbose_name='CPF do Fornecedor',
     )
 
     
@@ -508,15 +501,7 @@ class BensConsumo(models.Model): #PRONTO
         verbose_name='E-Fisco',
     )
     
-    
-    descricao_manual= models.CharField(
-        max_length=60, 
-        blank=True,
-        null=True,
-        verbose_name='Descrição Manual'
-    )
-    
-    
+
     descricao_efisco= models.TextField(
         blank=True,
         null=True,
@@ -720,6 +705,22 @@ class SaldoAtivo(models.Model): #PRONTO
         related_name='saldos_ativos',
         verbose_name='Efisco'
     )
+   
+    
+    marca = models.CharField(
+        max_length=60,
+        blank=True,
+        null=True,
+        verbose_name='Marca',
+    )    
+    
+
+    descricao_manual= models.CharField(
+        max_length=60, 
+        blank=True,
+        null=True,
+        verbose_name='Descrição Manual'
+    )
     
     
     quantidade_contrato = models.PositiveIntegerField(
@@ -728,8 +729,9 @@ class SaldoAtivo(models.Model): #PRONTO
     
     
     saldo_disponivel = models.PositiveIntegerField(
-        default=0,
-        verbose_name='Saldo Disponível'
+        blank=True,
+        null=True,
+        verbose_name='Saldo Disponível',
     )
 
     
@@ -752,11 +754,36 @@ class SaldoAtivo(models.Model): #PRONTO
         unique_together = ('contrato_saldo', 'efisco')
         
     def __str__(self):
-        return str(self.efisco)
-
+        return str(self.contrato_saldo)
 
 class SolicitacoesSalvoAtivo(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    status = models.CharField(
+        max_length=20,
+        choices=Status,
+        default='Rascunho',
+        verbose_name='Status',
+    )
+    
+    
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_solic_saldoativo',
+        verbose_name='Usuário Responsável',
+    )
+    
+    
+    data_hora = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now_add=True,
+        verbose_name='Data e Hora da Movimentação'
+    )
+    
     
     
 

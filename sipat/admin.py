@@ -125,7 +125,6 @@ class BensPermanentesAdmin(admin.ModelAdmin):
         ('Informações do Fornecedor', {
             'fields': (
                 'marca_fabricante',
-                'cpf_fornecedor_fornecedor',
                 'cnpj_fornecedor',
             )
         }),
@@ -168,9 +167,10 @@ class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
         'data_hora',
     )
 
-    ordering = ('-id',)
+    ordering = (
+                '-id',
+                )
    
-    
     search_fields=(
         'tombo',
         'usuario_username',
@@ -242,7 +242,6 @@ class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
 class BensConsumoAdmin(admin.ModelAdmin):
     list_display=(
         'efisco',
-        'descricao_manual',
         'descricao_efisco',
         'medida',
         'grupo_consumo',
@@ -250,7 +249,6 @@ class BensConsumoAdmin(admin.ModelAdmin):
     
     search_fields=(
         'efisco',
-        'descricao_manual',
         'descricao_efisco'
         'grupo_consumo',
     )
@@ -275,7 +273,6 @@ class BensConsumoAdmin(admin.ModelAdmin):
         
         ('Descrição', {
             'fields': (
-                'descricao_manual',
                 'descricao_efisco',                
             )
         }),
@@ -311,20 +308,9 @@ class FornecedorAdmin(admin.ModelAdmin):
         }),
     )
 
-class SaldoAtivoInline(admin.TabularInline):
-    model = SaldoAtivo
-    extra = 0
-    fields = ('efisco', 'saldo_disponivel', 'cota')
-    readonly_fields= ('saldo_disponivel',)
-    autocomplete_fields = ('efisco',)
-    ordering = ('efisco',)
-    verbose_name = 'Saldo Ativo'
-    verbose_name_plural = 'Saldos Ativos'
-    classes = ('collapse',)
-
 @admin.register(Contrato)
 class ContratoAdmin(admin.ModelAdmin):
-    list_display= (
+    list_display=(
         'contrato',
         'fornecedor',
         'homologacao',
@@ -334,7 +320,7 @@ class ContratoAdmin(admin.ModelAdmin):
         'final_vigencia',
     )
  
-    search_fields= (
+    search_fields=(
         'contrato',
         'fornecedor__fornecedor',
         'homologacao',
@@ -342,19 +328,19 @@ class ContratoAdmin(admin.ModelAdmin):
         'cod_liquidacao',        
     )
 
-    list_select_related = (
+    list_select_related =(
         'fornecedor',
         )
 
-    autocomplete_fields = (
+    autocomplete_fields =(
         'fornecedor',
         )
     
-    ordering = (
+    ordering =(
         '-id',
         )
 
-    fieldsets= (
+    fieldsets=(
         ('Fornecedor', {
             'fields': (
                 'fornecedor',
@@ -366,7 +352,7 @@ class ContratoAdmin(admin.ModelAdmin):
                 'contrato',
                 'homologacao',
                 'cs',
-                'cod_liquidacao',        
+                'cod_liquidacao',     
             )
         }),
         
@@ -378,55 +364,40 @@ class ContratoAdmin(admin.ModelAdmin):
         })
     )
 
-    inlines= [
-        SaldoAtivoInline
-        ]
-
-'''@admin.register(SaldoAtivo)
+@admin.register(SaldoAtivo)
 class SaldoAtivoAdmin(admin.ModelAdmin):
-
-    list_display = (
+    list_display=(
         'contrato_saldo',
         'efisco',
+        'descricao_manual',
+        'marca',
         'saldo_disponivel',
         'cota',
     )
-
-    search_fields = (
-        'contrato_saldo',
-        'efisco',
+    
+    search_fields=(
+        'contrato_saldo__contrato',
+        'efisco__efisco',
+        'descricao_manual',
     )
-
-    list_filter= (
-        'efisco__grupo_consumo'
-    )
-
-    autocomplete_fields = (
-        'contrato_saldo',
-        'efisco',
-    )
-
-    ordering = (
-        '-id',
-        )
-
-    fieldsets = (
+    
+    fieldsets=(
         ('Informações do Contrato', {
             'fields': (
                 'contrato_saldo',
-                'cota'
+                'cota',
             )
         }),
-
-        ('Dados do Item', {
+        
+        ('Informações do Bem', {
             'fields': (
-                'efisco',
-                'saldo_disponivel',
+                'efisco',                
+                'quantidade_contrato',
+                'marca',
+                'descricao_manual',
             )
         }),
-
     )
-'''
 
 # --- Localização Interna no DEMPAM ---
 @admin.register(SetorDEMPAM)

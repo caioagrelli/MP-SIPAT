@@ -53,3 +53,9 @@ class GrupoConsumo(models.TextChoices):
 class Cota(models.TextChoices):
     principal = 'PRINCIPAL', 'Principal'
     reservada = 'RESERVADA', 'Reservada'
+    
+class Status(models.TextChoices):
+    rascunho = "RASCUNHO", "Rascunho"
+    enviada = "ENVIADA", "Enviada"
+    atendida = "ATENDIDA", "Atendida"
+    cancelada = "CANCELADA", "Cancelada" 
