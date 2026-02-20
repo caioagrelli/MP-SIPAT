@@ -399,6 +399,13 @@ class SaldoAtivoAdmin(admin.ModelAdmin):
         }),
     )
 
+@admin.register(SolicitacoesSaldoAtivo)
+class SolicitacoesSaldoAtivoAdmin(admin.ModelAdmin):
+    list_display=(
+        '',
+    )
+
+
 # --- Localização Interna no DEMPAM ---
 @admin.register(SetorDEMPAM)
 class SetorDEMPAMAdmin(admin.ModelAdmin):

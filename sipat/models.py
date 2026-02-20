@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
-from .utils import *
-from .choices import *
+from django.utils import timezone
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
+from .utils import *
+from .choices import *
+
 
 # Recursos Usados pelo Banco de Dados
 class Complementos(): #Temporário
@@ -756,14 +758,30 @@ class SaldoAtivo(models.Model): #PRONTO
     def __str__(self):
         return str(self.contrato_saldo)
 
-class SolicitacoesSalvoAtivo(models.Model):
+class SolicitacoesSaldoAtivo(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    codigo = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name="Código da Solicitação"
+    )
+    
     
     status = models.CharField(
         max_length=20,
         choices=Status,
         default='Rascunho',
         verbose_name='Status',
+    )
+    
+    
+    contrato = models.ForeignKey(
+        SaldoAtivo,
+        on_delete=models.PROTECT,
+        related_name='contrato_soli_saldoativo',
+        verbose_name='Contrato',
     )
     
     
@@ -783,6 +801,27 @@ class SolicitacoesSalvoAtivo(models.Model):
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
     )
+    
+    
+
+    class Meta():
+        verbose_name='Solicitação Saldo Ativo'
+        verbose_name_plural='Solicitação Saldo Ativo'
+        
+        
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            ultimo = SolicitacoesSaldoAtivo.objects.filter(
+                codigo__startswith=f"SSA-{ano}"
+            ).count() + 1
+
+            self.codigo = f"SSA-{ano}-{ultimo:04d}"
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.codigo
     
     
     
