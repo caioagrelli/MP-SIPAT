@@ -402,9 +402,52 @@ class SaldoAtivoAdmin(admin.ModelAdmin):
 @admin.register(SolicitacoesSaldoAtivo)
 class SolicitacoesSaldoAtivoAdmin(admin.ModelAdmin):
     list_display=(
-        '',
+        'codigo',
+        'status',
+        'contrato',
+    )
+    
+    search_fields=(
+        'codigo',
+        'status',
+        'contrato',
     )
 
+    fieldsets=(
+        ('Contrato', {
+            'fields': (
+                'contrato',
+            )
+        }),
+    )
+
+@admin.register(BensEnviados)
+class BensEnviadosAdmin(admin.ModelAdmin):
+    list_display=(
+        'solicitacao',
+        'bem',
+        'quantidade'
+    )
+    
+    search_fields=(
+        'solicitacao',
+        'bem',
+    )
+    
+    fieldsets=(
+        ('Dados do envio', {
+            'fields': (
+                'solicitacao',
+            )
+        }),
+        
+        ('Dados do Bem', {
+            'fields': (
+                'bem',
+                'quantidade',
+            )
+        }),
+    )
 
 # --- Localização Interna no DEMPAM ---
 @admin.register(SetorDEMPAM)

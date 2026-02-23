@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
@@ -492,8 +493,9 @@ class BensPermanentes(models.Model):
         return str(self.tombamento_legado)
 
 
-# --- Informações Bens de Consumo DIMMS ---   
-class BensConsumo(models.Model): #PRONTO
+''' --- Informações Bens de Consumo DIMMS --- '''   
+# Campo Usado para o cadastro de Bens de acordo com o EFISCO 
+class BensConsumo(models.Model): 
     id = models.AutoField(primary_key=True)
     
     efisco = models.CharField(
@@ -535,6 +537,7 @@ class BensConsumo(models.Model): #PRONTO
     def __str__(self):
         return self.efisco
 
+# Campo usado para o cadastro de fornecedores
 class Fornecedor(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
     
@@ -574,7 +577,7 @@ class Fornecedor(models.Model): #PRONTO
     def __str__(self):
         return str(self.fornecedor)
 
-
+# Campo Usado para formulário de cadastro de compra Individual
 class CompraIndividual(models.Model): #PRONTO
     efisco = models.ForeignKey(
         BensConsumo,
@@ -631,6 +634,7 @@ class CompraIndividual(models.Model): #PRONTO
         verbose_name='Usuário Responsável',
     )
     
+# Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
 
@@ -690,6 +694,7 @@ class Contrato(models.Model): #PRONTO
     def __str__(self):
         return str(self.contrato)
 
+# Campo usado para cadastro de Itens (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
     id = models.AutoField(primary_key=True)
     
@@ -756,8 +761,9 @@ class SaldoAtivo(models.Model): #PRONTO
         unique_together = ('contrato_saldo', 'efisco')
         
     def __str__(self):
-        return str(self.contrato_saldo)
+        return f'{self.contrato_saldo} | {self.efisco}'
 
+# Campo usado para solicitações de Itens com base em um Contrato
 class SolicitacoesSaldoAtivo(models.Model):
     id = models.AutoField(primary_key=True)
     
@@ -765,7 +771,7 @@ class SolicitacoesSaldoAtivo(models.Model):
         max_length=30,
         unique=True,
         editable=False,
-        verbose_name="Código da Solicitação"
+        verbose_name='Código da Solicitação'
     )
     
     
@@ -778,7 +784,7 @@ class SolicitacoesSaldoAtivo(models.Model):
     
     
     contrato = models.ForeignKey(
-        SaldoAtivo,
+        Contrato,
         on_delete=models.PROTECT,
         related_name='contrato_soli_saldoativo',
         verbose_name='Contrato',
@@ -813,22 +819,70 @@ class SolicitacoesSaldoAtivo(models.Model):
         if not self.codigo:
             ano = timezone.now().year
             ultimo = SolicitacoesSaldoAtivo.objects.filter(
-                codigo__startswith=f"SSA-{ano}"
+                codigo__startswith=f'SSA-{ano}'
             ).count() + 1
 
-            self.codigo = f"SSA-{ano}-{ultimo:04d}"
+            self.codigo = f'SSA-{ano}-{ultimo:04d}'
 
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.codigo
-    
-    
-    
 
-
+# Campo usado para Inserir os itens solicitados
 class BensEnviados(models.Model):
-    ...
+    id = models.AutoField(primary_key=True)
+    
+    solicitacao = models.ForeignKey(
+        SolicitacoesSaldoAtivo,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='bensenviados_saldoativo',
+        verbose_name='Solicitação',
+    )
+    
+    
+    bem = models.ForeignKey(
+        SaldoAtivo,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='itens_enviados',
+        verbose_name='Item do Contrato (Saldo Ativo)',
+    )
+    
+    
+    quantidade = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Quantidade Solicitada',
+    )
+
+    def clean(self):
+        super().clean()
+
+        # Verifica se o item pertence ao contrato da solicitação
+        if self.solicitacao_id and self.bem_id:
+            if self.bem.contrato_saldo_id != self.solicitacao.contrato_id:
+                raise ValidationError(
+                    'Esse item não pertence ao contrato desta solicitação.'
+                )
+
+        # Verifica se tem saldo suficiente
+        if self.bem_id and self.quantidade:
+            if self.quantidade > (self.bem.saldo_disponivel or 0):
+                raise ValidationError(
+                    'Quantidade solicitada maior que o saldo disponível.'
+                )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['solicitacao', 'bem'],
+                name='uniq_item_por_solicitacao'
+            )
+        ]
 
 class BensConsumoEstoque(models.Model): 
     id = models.AutoField(primary_key=True)
