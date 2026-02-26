@@ -1,0 +1,111 @@
+{% extends "global/base.html" %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h4 fw-bold mb-1">Painel Gerencial — DEMPAM</h1>
+      <small class="text-secondary">Visão geral administrativa (modo demonstração)</small>
+    </div>
+
+    <div>
+      <a href="#" class="btn btn-outline-primary me-2">📌 Gerenciar Setores</a>
+      <a href="#" class="btn btn-primary">⚙️ Admin</a>
+    </div>
+  </div>
+
+  <!-- KPIs Fake -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <small class="text-secondary">Setores cadastrados</small>
+          <h4 class="fw-bold">12</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <small class="text-secondary">Bens permanentes</small>
+          <h4 class="fw-bold">248</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <small class="text-secondary">Bens de consumo</small>
+          <h4 class="fw-bold">89</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <small class="text-secondary">Pendências</small>
+          <h4 class="fw-bold text-warning">5</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela Fake -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0">
+      <h6 class="fw-bold mb-0">Resumo Operacional</h6>
+      <small class="text-secondary">Dados fictícios para demonstração</small>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th>Status</th>
+              <th class="text-end">Atualização</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Setor</td>
+              <td>Almoxarifado Central</td>
+              <td><span class="badge bg-success">OK</span></td>
+              <td class="text-end">Hoje</td>
+            </tr>
+
+            <tr>
+              <td>Permanente</td>
+              <td>Notebook Dell</td>
+              <td><span class="badge bg-warning text-dark">Pendente</span></td>
+              <td class="text-end">Ontem</td>
+            </tr>
+
+            <tr>
+              <td>Consumo</td>
+              <td>Caixa de papel A4</td>
+              <td><span class="badge bg-secondary">Estoque baixo</span></td>
+              <td class="text-end">2 dias atrás</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-end">
+        <a href="#" class="btn btn-sm btn-outline-secondary">Ver mais</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

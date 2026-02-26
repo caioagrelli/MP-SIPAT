@@ -1,0 +1,76 @@
+{% extends 'global/base.html' %}
+{% load static %}
+
+{% block title %}SIPAT{% endblock %}
+
+{% block content %}
+
+<style>
+    .bg-bordo {
+        background-color: #800000 !important;
+        color: #fff !important;
+    }
+
+    .btn-bordo {
+        background-color: #800000;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-bordo:hover {
+        background-color: #660000;
+        color: #fff;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <h1 class="mb-0 fw-bold text-dark d-flex align-items-center">
+        Sistema Patrimonial do DEMPAM
+    </h1>
+</div>
+
+
+<div class="row mb-5">
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <h5 class="card-title">📦 Bens Permanentes</h5>
+                <p class="card-text text-muted flex-grow-1">
+                    Itens de longa duração, como móveis e veículos.
+                </p>
+                <a href="#" class="btn btn-bordo btn-lg mt-auto shadow-sm">
+                    Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <h5 class="card-title">📝 Bens de Consumo</h5>
+                <p class="card-text text-muted flex-grow-1">
+                    Materiais de escritório e produtos de uso diário.
+                </p>
+                <a href="#" class="btn btn-bordo btn-lg mt-auto shadow-sm">
+                    Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-bordo">
+        <h4 class="mb-0">
+            <i class="bi bi-list-check me-2"></i>Itens cadastrados
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            Área pronta para receber listagem real do banco de dados.
+        </div>
+    </div>
+</div>
+
+{% endblock %}
