@@ -16,8 +16,6 @@ class Complementos(): #Temporário
 ''' --- Informações Bens de Consumo DIMMS --- '''   
 # Campo Usado para o cadastro de Bens de acordo com o EFISCO 
 class BensConsumo(models.Model): 
-    id = models.AutoField(primary_key=True)
-    
     efisco = models.CharField(
         max_length=20,
         default='Não Consta',
@@ -59,8 +57,6 @@ class BensConsumo(models.Model):
 
 # Campo usado para o cadastro de fornecedores
 class Fornecedor(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-    
     fornecedor = models.CharField(
         max_length=40,
         verbose_name='Fornecedor'
@@ -156,8 +152,6 @@ class CompraIndividual(models.Model): #PRONTO
     
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-
     fornecedor = models.ForeignKey(
         Fornecedor,
         on_delete=models.PROTECT,
@@ -216,8 +210,6 @@ class Contrato(models.Model): #PRONTO
 
 # Campo usado para cadastro de Itens (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-    
     contrato_saldo = models.ForeignKey(
         Contrato,
         on_delete=models.PROTECT,
@@ -285,8 +277,6 @@ class SaldoAtivo(models.Model): #PRONTO
 
 # Campo usado para solicitações de Itens com base em um Contrato
 class SolicitacoesSaldoAtivo(models.Model):
-    id = models.AutoField(primary_key=True)
-    
     codigo = models.CharField(
         max_length=30,
         unique=True,
@@ -351,8 +341,6 @@ class SolicitacoesSaldoAtivo(models.Model):
 
 # Campo usado para Inserir os itens solicitados
 class ItensSolicitados(models.Model):
-    id = models.AutoField(primary_key=True)
-    
     solicitacao = models.ForeignKey(
         SolicitacoesSaldoAtivo,
         on_delete=models.CASCADE,
@@ -408,8 +396,6 @@ class ItensSolicitados(models.Model):
 
 # Campo usado para Inserir os Bens que foram enviados a partir da solicitação 
 class BensEnviados(models.Model):
-    id = models.AutoField(primary_key=True)
-
     item_enviado = models.OneToOneField(
         ItensSolicitados,
         on_delete=models.PROTECT,
@@ -462,8 +448,6 @@ class BensEnviados(models.Model):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
 
 class BensConsumoEstoque(models.Model): 
-    id = models.AutoField(primary_key=True)
-    
     solicitacao = models.ForeignKey(
         ItensSolicitados,
         on_delete=models.PROTECT,
@@ -495,7 +479,13 @@ class BensConsumoEstoque(models.Model):
         return self.efisco
 
 class SolicitacoesConsumo(models.Model):  
-    id = models.AutoField(primary_key=True)
+    codigo = models.CharField(
+    max_length=30,
+    unique=True,
+    editable=False,
+    verbose_name='Código da Solicitação'
+    )
+      
         
     item = models.ForeignKey(
         BensConsumo,
@@ -512,6 +502,7 @@ class SolicitacoesConsumo(models.Model):
         verbose_name='Solicitante',
     )
     
+    
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -520,6 +511,7 @@ class SolicitacoesConsumo(models.Model):
         related_name='usuario_sol_consumo',
         verbose_name='Usuário Responsável',
     )
+    
     
     quantidade = models.PositiveIntegerField(
         verbose_name='Quantidade',
@@ -546,12 +538,24 @@ class SolicitacoesConsumo(models.Model):
         verbose_name='Documento Anexado'
     )
     
+    
     class Meta():
         verbose_name='Movimentação (Consumo)'
         verbose_name_plural='Movimentações (Consumo)'
         
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            ultimo = SolicitacoesConsumo.objects.filter(
+                codigo__startswith=f'SBC-{ano}'
+            ).count() + 1
+
+            self.codigo = f'SBC-{ano}-{ultimo:04d}'
+
+        super().save(*args, **kwargs)        
+        
     def __str__(self):
-       return str(self.id)  
+       return str(self.codigo)  
 
 class Tramitacao(models.Model):
     ...

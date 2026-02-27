@@ -15,9 +15,6 @@ class Complementos(): #Temporário
 
 # --- Informações sobre as Uas ---
 class CircunscricaoPredio(models.Model):
-    id = models.AutoField(primary_key=True)
-    
-    
     local = models.CharField(
         max_length=80,
         verbose_name='Local',
@@ -31,9 +28,6 @@ class CircunscricaoPredio(models.Model):
         return self.local
 
 class InfoUA(models.Model): 
-    id = models.AutoField(primary_key=True)
-    
-    
     circunscricao_predio = models.ForeignKey(
         CircunscricaoPredio,
         on_delete=models.PROTECT, 
@@ -88,8 +82,6 @@ class InfoUA(models.Model):
 
 # --- Localização Interna no DEMPAM ---
 class SetorDEMPAM(models.Model):
-    id = models.AutoField(primary_key=True)
-    
     setor = models.CharField(
         max_length=30,
         verbose_name='Setor/Sala'
@@ -103,8 +95,6 @@ class SetorDEMPAM(models.Model):
        return str(self.setor)  
 
 class LocalizacaoDEMPAM(models.Model):
-    id = models.AutoField(primary_key=True)
-
     setor_sala = models.ForeignKey(
         SetorDEMPAM,
         blank=True,
