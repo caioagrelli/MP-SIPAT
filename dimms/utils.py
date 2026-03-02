@@ -22,7 +22,14 @@ def caminho_nf_compraindividual(instance, filename):
     ext = os.path.splitext(filename)[1]
     nome_aquivo = f'{n_nf}{ext}'
     
-    return f'documentos/nf_individual/{nome_aquivo}'
+    return f'documentos/consumo/nf_individual/{nome_aquivo}'
+
+def caminho_consum_update(instance, filename):
+    n_update = instance.id
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{n_update}{ext}'
+    
+    return f'documentos/consumo/anexo_atualizacao/{nome_aquivo}'
 
 
 # --- Choices ---
@@ -61,3 +68,11 @@ class Status(models.TextChoices):
     atendida = 'ATENDIDA', 'Atendida'
     cancelada = 'CANCELADA', 'Cancelada'
     analise = 'EM ANÁLISE', 'Em análise'
+    
+class StatusTramitacao(models.TextChoices):
+    processamento = 'PROCESSAMENTO', 'EM Processamento'
+    separada = 'SEPARADA', 'Separada'
+    para_envio = 'ENVIO', 'Para Envio'
+    em_tramitacao = 'TRAMITACAO', 'Em Tramitação'
+    recebida = 'RECEBIDA', 'Recebida'
+    cancelada = 'CANCELADA', 'Cancelada'

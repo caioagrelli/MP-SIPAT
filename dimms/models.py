@@ -447,21 +447,30 @@ class BensEnviados(models.Model):
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
 
-class BensConsumoEstoque(models.Model): 
-    solicitacao = models.ForeignKey(
-        ItensSolicitados,
+# Campo usado para armazenar os Itens em Estoque
+class Estoque(models.Model): 
+    item_shock = models.ForeignKey(
+        BensConsumo,
         on_delete=models.PROTECT,
-        related_name='estoquesolicitacao',
-        verbose_name='Estoque da Solicitação',
+        related_name='bem_estoque',
+        verbose_name='Bem no Estoque',
     )
-      
+    
+    description_manual = models.CharField(
+        max_length=90,
+        verbose_name='Descrição Manual',
+    )
+    
+    mark = models.CharField(
+        max_length=40,
+        verbose_name='Marca',
+    )
         
-    quantidade = models.PositiveIntegerField(
+    amount_shock = models.PositiveIntegerField(
         verbose_name='Quantidade',
     )
     
-    
-    local_armazenamento = models.ForeignKey(
+    locate = models.ForeignKey(
         LocalizacaoDEMPAM,
         on_delete=models.PROTECT,
         blank=True,
@@ -469,69 +478,46 @@ class BensConsumoEstoque(models.Model):
         related_name='localizacao_consumo',
         verbose_name='Localização',
         )
-
     
     class Meta():
         verbose_name='Bem de Consumo'
         verbose_name_plural='Bens de Consumo'
         
     def __str__(self):
-        return self.efisco
+        return self.item_shock
 
-class SolicitacoesConsumo(models.Model):  
-    codigo = models.CharField(
-    max_length=30,
-    unique=True,
-    editable=False,
-    verbose_name='Código da Solicitação'
+# Campo usado para criar uma Solicitação de Materiais
+class Solicitacao(models.Model):  
+    request = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name='Código da Solicitação'
     )
       
-        
-    item = models.ForeignKey(
-        BensConsumo,
-        on_delete=models.PROTECT,
-        related_name='itens_movimentados',
-        verbose_name='Item Movimentado',
-    )
-
-
-    solicitante = models.ForeignKey(
+      
+    user_order = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
         related_name='solicitantesconsumo',
         verbose_name='Solicitante',
     )
-    
-    
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name='usuario_sol_consumo',
-        verbose_name='Usuário Responsável',
-    )
-    
-    
-    quantidade = models.PositiveIntegerField(
-        verbose_name='Quantidade',
-    )
-    
-    
-    data_hora = models.DateTimeField(
+      
+      
+    data_order = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
     )
     
     
-    observacao = models.TextField(
+    observation_order = models.TextField(
         blank=True,
         null=True,
         verbose_name='Observação'
     )
     
     
-    anexo = models.FileField(
+    documents_order = models.FileField(
         upload_to=caminho_movimentacao_consumo,
         blank=True,
         null=True,
@@ -539,6 +525,21 @@ class SolicitacoesConsumo(models.Model):
     )
     
     
+    situation = models.CharField(
+        max_length=20,
+        verbose_name='Situação',
+    )
+ 
+ 
+    user_responsible = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_sol_consumo',
+        verbose_name='Usuário Responsável',
+    )   
+
     class Meta():
         verbose_name='Movimentação (Consumo)'
         verbose_name_plural='Movimentações (Consumo)'
@@ -546,7 +547,7 @@ class SolicitacoesConsumo(models.Model):
     def save(self, *args, **kwargs):
         if not self.codigo:
             ano = timezone.now().year
-            ultimo = SolicitacoesConsumo.objects.filter(
+            ultimo = Solicitacao.objects.filter(
                 codigo__startswith=f'SBC-{ano}'
             ).count() + 1
 
@@ -555,8 +556,78 @@ class SolicitacoesConsumo(models.Model):
         super().save(*args, **kwargs)        
         
     def __str__(self):
-       return str(self.codigo)  
+       return str(self.request)  
 
+# Campo usado para adicionar os itens solicitados
+class SolicitacaoItens(models.Model):
+    request_defendant = models.ForeignKey(
+        Solicitacao,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='itens_solicitados',
+        verbose_name='Itens Solicitados',
+    )
+    
+    item_order = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='itens_solicitados',
+        verbose_name='Item Solicitado',
+    )
+    
+    amont_order = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Quantidade',
+    )
+
+# Campo usado para atualizar o status da entrega do material
 class Tramitacao(models.Model):
-    ...
+    request_update = models.ForeignKey(
+        Solicitacao,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='tramitacao',
+        verbose_name='Tramitação',
+    )
 
+    update = models.CharField(
+        max_length=30,
+        choices=StatusTramitacao,
+        blank=True,
+        null=True,
+        verbose_name='Status',
+    )    
+    
+    observation_update = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observação'       
+    )   
+    
+    documents_update = models.FileField(
+        upload_to=caminho_consum_update,
+        blank=True,
+        null=True,
+        verbose_name='Documento Anexado'
+    )
+    
+    date_update = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now_add=True,
+        verbose_name='Data e Hora da Atualização'
+    )
+    
+    user_update = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_atualizacao',
+        verbose_name='Usuário Responsável',
+    )
