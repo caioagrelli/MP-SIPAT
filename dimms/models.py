@@ -279,6 +279,8 @@ class SaldoAtivo(models.Model): #PRONTO
 class SolicitacoesSaldoAtivo(models.Model):
     codigo = models.CharField(
         max_length=30,
+        blank=True,
+        null=True,
         unique=True,
         editable=False,
         verbose_name='Código da Solicitação'
@@ -385,8 +387,8 @@ class ItensSolicitados(models.Model):
                 )
 
     class Meta:
-        verbose_name = 'Item Solicitado'
-        verbose_name_plural = '06 - Itens Solicitados'
+        verbose_name = 'Bens Solicitado'
+        verbose_name_plural = '06 - Bens Solicitados'
         constraints = [
             models.UniqueConstraint(
                 fields=['solicitacao', 'bem'],
@@ -402,7 +404,7 @@ class BensEnviados(models.Model):
         blank=True,
         null=True,
         related_name='itemenviado',
-        verbose_name='Itens Enviados',
+        verbose_name='Bens Enviados',
     )
 
     quantidade_enviada = models.PositiveIntegerField(
@@ -442,7 +444,7 @@ class BensEnviados(models.Model):
 
     class Meta:
         verbose_name = 'Item Enviado'
-        verbose_name_plural = '07 - Itens Enviados'
+        verbose_name_plural = '07 - Bens Enviados'
 
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
@@ -480,11 +482,11 @@ class Estoque(models.Model):
         )
     
     class Meta():
-        verbose_name='Bem de Consumo'
-        verbose_name_plural='Bens de Consumo'
+        verbose_name='Bem Estoque'
+        verbose_name_plural='08 - Bens Estoque'
         
     def __str__(self):
-        return self.item_shock
+        return str(self.item_shock)
 
 # Campo usado para criar uma Solicitação de Materiais
 class Solicitacao(models.Model):  
@@ -541,17 +543,17 @@ class Solicitacao(models.Model):
     )   
 
     class Meta():
-        verbose_name='Movimentação (Consumo)'
-        verbose_name_plural='Movimentações (Consumo)'
+        verbose_name='Solicitações'
+        verbose_name_plural='09 - Solicitações'
         
     def save(self, *args, **kwargs):
-        if not self.codigo:
+        if not self.request:
             ano = timezone.now().year
             ultimo = Solicitacao.objects.filter(
-                codigo__startswith=f'SBC-{ano}'
+                request__startswith=f'SBC-{ano}'
             ).count() + 1
 
-            self.codigo = f'SBC-{ano}-{ultimo:04d}'
+            self.request = f'SBC-{ano}-{ultimo:04d}'
 
         super().save(*args, **kwargs)        
         
@@ -565,8 +567,8 @@ class SolicitacaoItens(models.Model):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        related_name='itens_solicitados',
-        verbose_name='Itens Solicitados',
+        related_name='bens_solicitados',
+        verbose_name='Bens Solicitados',
     )
     
     item_order = models.ForeignKey(
@@ -583,6 +585,13 @@ class SolicitacaoItens(models.Model):
         null=True,
         verbose_name='Quantidade',
     )
+
+    class Meta():
+        verbose_name='Bem Solicitado'
+        verbose_name_plural='10 - Bens Solicitados'
+    
+    def __str__(self):
+        return str(self.request_defendant) 
 
 # Campo usado para atualizar o status da entrega do material
 class Tramitacao(models.Model):
@@ -631,3 +640,10 @@ class Tramitacao(models.Model):
         related_name='usuario_atualizacao',
         verbose_name='Usuário Responsável',
     )
+    
+    class Meta():
+        verbose_name='Tramitação'
+        verbose_name_plural='11 - Tramitação'
+    
+    def __str__(self):
+        return str(self.request_update) 

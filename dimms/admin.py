@@ -239,4 +239,138 @@ class BensEnviadosAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+
+@admin.register(Estoque)
+class EstoqueAdmin(admin.ModelAdmin):
+    list_display=(
+        'item_shock',
+        'description_manual',
+        'mark',
+        'amount_shock',
+        'locate',
+    )
     
+    search_fields=(
+        'item_shock'
+        'description_manual',
+        'mark',
+        'locate',
+    )
+    
+    fieldsets=(
+        ('Informações do Bem', {
+            'fields': (
+                'item_shock',
+                'amount_shock',
+                'description_manual',
+                'mark',
+            )
+        }),
+        
+        ('Local de Armazenamento', {
+            'fields': (
+                'locate',
+            )
+        }),
+    )
+    
+@admin.register(Solicitacao)
+class SolicitacaoAdmin(admin.ModelAdmin):
+    list_display=(
+        'request',
+        'user_order',
+        'data_order',
+        'situation',
+    )
+
+    search_fields=(
+        'request',
+        'user_order',
+        'situation',
+    )
+    
+    fieldsets=(
+        ('Informações da Requisição', {
+            'fields': (
+                'user_order',
+            )
+        }),
+        
+        ('Observação', {
+            'fields': (
+                'observation_order',
+            )
+        }),
+        
+        ('Documento Anexado', {
+            'fields': (
+                'documents_order',
+            )
+        }),
+
+    )
+
+@admin.register(SolicitacaoItens)
+class SolicitacaoItensAdmin(admin.ModelAdmin):
+    list_display=(
+        'request_defendant',
+        'item_order',
+        'amont_order',
+    )
+    
+    search_fields=(
+        'request_defendant',
+        'item_order',
+    )
+    
+    fieldsets=(
+        ('Requisição', {
+            'fields': (
+                'request_defendant',
+            )
+        }),
+        
+        ('Dados Item', {
+            'fields': (
+                'item_order',
+                'amont_order',
+            )
+        }),
+    )
+
+@admin.register(Tramitacao)
+class TramitacaoAdmin(admin.ModelAdmin):
+    list_display=(
+        'request_update',
+        'update',
+        'date_update',
+        'user_update',
+    )
+    
+    search_fields=(
+        'request_update',
+        'update',
+        'user_update',
+    )
+    
+    fieldsets=(
+        ('Requisição', {
+            'fields': (
+                'request_update',
+            )
+        }),
+        
+        ('Dados da Requisição', {
+            'fields': (
+                'update',
+                'observation_update',
+            )
+        }),
+        
+        ('Documentos Anexados', {
+            'fields': (
+                'documents_update',
+            )
+        }),
+    )
