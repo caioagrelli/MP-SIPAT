@@ -240,7 +240,7 @@ class BensEnviadosAdmin(admin.ModelAdmin):
         }),
     )
 
-
+ 
 @admin.register(Estoque)
 class EstoqueAdmin(admin.ModelAdmin):
     list_display=(

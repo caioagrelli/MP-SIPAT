@@ -552,7 +552,7 @@ class Solicitacao(models.Model):
             ultimo = Solicitacao.objects.filter(
                 request__startswith=f'SBC-{ano}'
             ).count() + 1
-
+ 
             self.request = f'SBC-{ano}-{ultimo:04d}'
 
         super().save(*args, **kwargs)        
