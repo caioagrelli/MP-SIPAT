@@ -23,5 +23,5 @@ media/
 .idea/
 
 # Operating System
-.DS_Store
+.DS_Store 
 Thumbs.db
