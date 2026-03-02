@@ -12,7 +12,6 @@ from .utils import *
 class Complementos(): #Temporário
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
 
-
 # --- Informações sobre as Uas ---
 class CircunscricaoPredio(models.Model):
     local = models.CharField(
