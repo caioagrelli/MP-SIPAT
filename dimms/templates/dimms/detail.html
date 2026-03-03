@@ -1,0 +1,420 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Detalhes: {{ item.description_manual|default:"Item do Estoque" }}{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --border:#e3e7ed;
+    --text:#2b2f33;
+    --muted:#6c757d;
+    --primary:#2f4f6f;
+    --primary-dark:#1f354b;
+    --success:#28a745;
+    --danger:#dc3545;
+    --warning:#ffc107;
+    --info:#17a2b8;
+  }
+
+  .wrap{ background:var(--bg); padding:18px; border-radius:12px; }
+  .cardx{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+    overflow:hidden;
+  }
+  .cardx + .cardx{ margin-top: 16px; }
+
+  .cardx-header{
+    padding:14px 18px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .cardx-title{
+    margin:0;
+    color:var(--primary);
+    font-weight:800;
+    font-size:1.4rem;
+    line-height:1.2;
+  }
+  .sub{ color:var(--muted); font-size:.95rem; margin-top:6px; }
+
+  .badge-pill{
+    border-radius:999px;
+    padding:6px 10px;
+    font-weight:700;
+    font-size:.85rem;
+    background:rgba(47,79,111,.10);
+    color:var(--primary);
+    border:1px solid rgba(47,79,111,.15);
+    white-space:nowrap;
+  }
+
+  .cardx-body{ padding:18px; }
+  
+  .photo-box{
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fafbfc;
+    height:300px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .photo-box img{
+    max-height:100%;
+    max-width:100%;
+    object-fit:contain;
+    border-radius:12px;
+  }
+
+  .kvs{
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .kvs .rowi{
+    display:grid;
+    grid-template-columns: 220px 1fr;
+    gap:10px 12px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  .kvs .rowi:last-child{ border-bottom:none; }
+  .k{ color:var(--muted); font-weight:700; }
+  .v{ color:var(--text); font-weight:600; }
+
+  .qty{
+    font-size:1.35rem;
+    font-weight:900;
+    margin:0;
+  }
+  .qty.low{ color: var(--danger); }
+  .qty.ok{ color: var(--success); }
+
+  .btnbar{
+    padding:12px 18px;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+    background:#fcfdff;
+  }
+  .btnx{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid transparent;
+    font-weight:700;
+    font-size:.95rem;
+    text-decoration:none;
+  }
+  .btnx-success{ background:var(--success); color:#fff; }
+  .btnx-info{ background:var(--info); color:#fff; }
+  .btnx-warning{ background:var(--warning); color:#1b1b1b; }
+  .btnx-danger{ background:transparent; color:var(--danger); border-color: rgba(220,53,69,.45); }
+
+  .btnx-disabled{
+    opacity:.55;
+    pointer-events:none;
+    filter:grayscale(20%);
+  }
+
+.cardx-header{
+  padding:14px 18px;
+  border-bottom:1px solid #e3e7ed;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+
+/* Evita o título "estourar" e empurrar tudo */
+.cardx-header > div:first-child{
+  min-width:0;
+}
+.cardx-title{
+  margin:0;
+  color:#2f4f6f;
+  font-weight:800;
+  font-size:1.35rem;
+  line-height:1.2;
+  word-break: break-word;
+}
+
+/* E-FISCO em box mais visível */
+.efisco-box{
+  background:#2f4f6f;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:12px;
+  text-align:center;
+  min-width:150px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  flex:0 0 auto;
+}
+.efisco-label{
+  font-size:.70rem;
+  letter-spacing:1px;
+  opacity:.75;
+}
+.efisco-value{
+  font-size:1.2rem;
+  font-weight:900;
+  line-height:1.1;
+}
+
+/* FOTO */
+.photo-box{
+  border:1px solid #e3e7ed;
+  border-radius:12px;
+  background:#f8fafc;
+  height:400px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  padding:10px;
+}
+.photo-box img{
+  max-height:100%;
+  max-width:100%;
+  object-fit:contain;
+  border-radius:12px;
+}
+
+/* CARD interno da tabela de detalhes */
+.kvs{
+  border:1px solid #e3e7ed;
+  border-radius:12px;
+  overflow:hidden;
+}
+.kvs .rowi{
+  display:grid;
+  grid-template-columns: 220px 1fr;
+  gap:10px 12px;
+  padding:12px 14px;
+  border-bottom:1px solid #e3e7ed;
+}
+.kvs .rowi:last-child{ border-bottom:none; }
+.k{ color:#6c757d; font-weight:700; }
+.v{ color:#222; font-weight:600; }
+
+.muted-note{ color:#6c757d; font-size:.92rem; }
+
+.qty{
+  font-size:1.35rem;
+  font-weight:900;
+  margin:0;
+}
+.qty.low{ color:#dc3545; }
+.qty.ok{ color:#28a745; }
+
+  .muted-note{ color:var(--muted); font-size:.9rem; }
+
+  /* badge grupo */
+  .badge-grupo{
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: .3px;
+    color: #fff;
+    display: inline-block;
+  }
+  .grupo-ALIMENTO { background: #27ae60; }
+  .grupo-CONFECCAO { background: #8e44ad; }
+  .grupo-COPA_COZINHA { background: #e67e22; }
+  .grupo-DOMISSANITARIO { background: #16a085; }
+  .grupo-ELETRICA { background: #f39c12; color:#000; }
+  .grupo-EPI { background: #c0392b; }
+  .grupo-HIDROSANITARIO { background: #2980b9; }
+  .grupo-INFORMATICA { background: #2c3e50; }
+  .grupo-LIMPEZA { background: #1abc9c; }
+  .grupo-MANUTENCAO { background: #7f8c8d; }
+  .grupo-MARCENARIA { background: #6d4c41; }
+  .grupo-PINTURA { background: #d35400; }
+  .grupo-PAPEIS_EXPEDIENTE { background: #3498db; }
+  .grupo-PAPEIS_LIMPEZA { background: #48c9b0; }
+  .grupo-REFRIGERACAO { background: #5dade2; }
+  .grupo-TONER { background: #34495e; }
+  .grupo-None { background: #95a5a6; }
+</style>
+
+<div class="wrap">
+
+  <!-- CARD PRINCIPAL -->
+    <div class="cardx">
+    <div class="cardx-header">
+        <div>
+        <h2 class="cardx-title">{{ item.description_manual|default:"Item do Estoque" }}</h2>
+        <div class="muted-note mt-1">
+            Bem vinculado: <strong>{{ item.item_shock }}</strong>
+        </div>
+        </div>
+
+        <div class="efisco-box">
+        <div class="efisco-label">E-FISCO</div>
+        <div class="efisco-value">{{ item.item_shock.efisco|default:"-" }}</div>
+        </div>
+    </div>
+
+    <div class="cardx-body">
+        <div class="row">
+        <!-- FOTO -->
+        <div class="col-lg-5 mb-3">
+            <div class="photo-box">
+            {% if item.photo %}
+                <a href="{{ item.photo.url }}" target="_blank">
+                <img src="{{ item.photo.url }}" alt="Foto do item" class="img-fluid">
+                </a>
+            {% else %}
+                <div class="text-center">
+                <div style="font-size:2.5rem;">📦</div>
+                <div class="muted-note mt-2">Sem foto cadastrada</div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+
+        <!-- INFO -->
+        <div class="col-lg-7">
+            <div class="d-flex align-items-baseline justify-content-between mb-3">
+            <div>
+                <div class="muted-note">Estoque Atual</div>
+                {% if item.amount_shock < 10 %}
+                <p class="qty low">{{ item.amount_shock }}</p>
+                {% else %}
+                <p class="qty ok">{{ item.amount_shock }}</p>
+                {% endif %}
+            </div>
+
+            <div class="text-end">
+                {% if item.item_shock.grupo_consumo %}
+                <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
+                    {{ item.item_shock.get_grupo_consumo_display }}
+                </span>
+                {% else %}
+                <span class="badge-grupo grupo-None">-</span>
+                {% endif %}
+            </div>
+            </div>
+
+            <div class="kvs">
+            <div class="rowi">
+                <div class="k">E-Fisco</div>
+                <div class="v">{{ item.item_shock.efisco|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Descrição Manual</div>
+                <div class="v">{{ item.description_manual|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Marca</div>
+                <div class="v">{{ item.mark|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Validade</div>
+                <div class="v">{{ item.validity|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Localização</div>
+                <div class="v">{{ item.locate|default:"-" }}</div>
+            </div>
+            </div>
+
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- BOTÕES (PROVISÓRIOS / VISUAIS) -->
+    <div class="btnbar">
+      <div class="btn-group">
+        <a href="#" class="btnx btnx-success btnx-disabled" aria-disabled="true">
+          Gerar Etiqueta ▾
+        </a>
+      </div>
+
+      <a href="#" class="btnx btnx-info btnx-disabled" aria-disabled="true">
+        Ver Ficha Completa
+      </a>
+
+      <a href="#" class="btnx btnx-warning btnx-disabled" aria-disabled="true">
+        Editar
+      </a>
+
+      <a href="{% url 'dimms:homepage' %}" class="btnx" style="border:1px solid rgba(0,0,0,.12); background:#fff; color:#333;">
+        Voltar
+      </a>
+    </div>
+  </div>
+
+  <!-- MOVIMENTAÇÃO (VISUAL PROVISÓRIO) -->
+  <div class="cardx">
+    <div class="cardx-header">
+      <h4 class="mb-0" style="color:var(--primary); font-weight:800;">Registrar Movimentação</h4>
+      <span class="badge-pill">Em breve</span>
+    </div>
+
+    <div class="cardx-body">
+      <div class="muted-note mb-3">
+      </div>
+
+      <form action="#" method="post" enctype="multipart/form-data">
+        <div class="row align-items-end">
+          <div class="col-md-3 form-group">
+            <label class="font-weight-bold">Quantidade</label>
+            <input type="number" class="form-control" placeholder="Ex: 5" disabled>
+          </div>
+
+          <div class="col-md-4 form-group">
+            <label>Observação (Opcional)</label>
+            <input type="text" class="form-control" placeholder="Motivo da movimentação" disabled>
+          </div>
+
+          <div class="col-md-3 form-group">
+            <label>Documento (PDF/Foto)</label>
+            <input type="file" class="form-control-file" disabled>
+          </div>
+
+          <div class="col-md-2 d-flex form-group" style="gap:10px;">
+            <button type="button" class="btn btn-danger w-100" disabled>Retirar</button>
+            <button type="button" class="btn btn-success w-100" disabled>Adicionar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO (VISUAL PROVISÓRIO) -->
+  <div class="cardx">
+    <div class="cardx-header">
+      <h4 class="mb-0" style="color:var(--primary); font-weight:800;">Histórico de Tramitações</h4>
+      <span class="badge-pill">Em breve</span>
+    </div>
+
+    <div class="cardx-body">
+      <div class="text-muted text-center">
+        Nenhuma tramitação registrada.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

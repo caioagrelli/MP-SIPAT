@@ -4,9 +4,9 @@ from django.db import models
 # --- Paths ---
 
 def caminho_bensconsumo(instance, filename):
-    n_efisco = instance.efisco or 'sem_efisco'
+    item_shock = instance.item_shock or 'sem_efisco'
     ext = os.path.splitext(filename)[1]
-    nome_aquivo = f'{n_efisco}{ext}'
+    nome_aquivo = f'{item_shock}{ext}'
     
     return f'bens/consumo/{nome_aquivo}'
 

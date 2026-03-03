@@ -238,7 +238,12 @@
                 <td>{{ item.locate|default:"-" }}</td>
 
                 <!-- Código E-fisco (vem do BensConsumo) -->
-                <td>{{ item.item_shock.efisco|default:"-" }}</td>
+                <td>
+                    <a href="{% url 'dimms:detail' item.pk %}"
+                          class="text-decoration-none text-primary">    
+                        {{ item.item_shock.efisco}}
+                    </a>
+                </td>
 
                 <!-- Descrição -->
                 <td>{{ item.description_manual }}</td>
