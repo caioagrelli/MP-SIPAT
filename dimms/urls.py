@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import *
+from . import views
 
 app_name = 'dimms'
 
 urlpatterns = [
-    path('', homepage, name='homepage'),    
+    path('', views.homepage, name='homepage'),    
 ]
 

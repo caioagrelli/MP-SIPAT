@@ -47,6 +47,55 @@
       font-weight: 600;
   }
 
+    .badge-grupo {
+        padding: 6px 12px;
+        border-radius: 18px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        color: #fff;
+        display: inline-block;
+    }
+
+    /* ================= GRUPOS ================= */
+
+    .grupo-ALIMENTO { background: #27ae60; }
+
+    .grupo-CONFECCAO { background: #8e44ad; }
+
+    .grupo-COPA_COZINHA { background: #e67e22; }
+
+    .grupo-DOMISSANITARIO { background: #16a085; }
+
+    .grupo-ELETRICA { background: #f39c12; color:#000; }
+
+    .grupo-EPI { background: #c0392b; }
+
+    .grupo-HIDROSANITARIO { background: #2980b9; }
+
+    .grupo-INFORMATICA { background: #2c3e50; }
+
+    .grupo-LIMPEZA { background: #1abc9c; }
+
+    .grupo-MANUTENCAO { background: #7f8c8d; }
+
+    .grupo-MARCENARIA { background: #6d4c41; }
+
+    .grupo-PINTURA { background: #d35400; }
+
+    .grupo-PAPEIS_EXPEDIENTE { background: #3498db; }
+
+    .grupo-PAPEIS_LIMPEZA { background: #48c9b0; }
+
+    .grupo-REFRIGERACAO { background: #5dade2; }
+
+    .grupo-TONER { background: #34495e; }
+
+    /* fallback caso algo venha vazio */
+    .grupo-None {
+        background: #95a5a6;
+    }
+
   .input-group{
       border: 1px solid var(--cinza-borda);
       border-radius: 8px;
@@ -154,61 +203,72 @@
               </div>
           </form>
 
-          {% if itens %}
-              <div class="table-responsive">
-                  <table class="table table-hover align-middle">
-                      <thead>
-                          <tr>
-                              <th>Tombo</th>
-                              <th>Nome do Item</th>
-                              <th>Localização</th>
-                              <th>Marca</th>
-                              <th style="width: 140px;">Ações</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {% for item in itens %}
-                          <tr>
-                              <td>{{ item.numero_identificacao }}</td>
-                              <td>
-                                {% url 'detalhe_item' item.numero_identificacao as detalhe_url %}
-                                {% if detalhe_url %}
-                                  <a href="{{ detalhe_url }}" class="text-decoration-none text-dark fw-semibold">{{ item.nome }}</a>
-                                {% else %}
-                                  <span class="fw-semibold">{{ item.nome }}</span>
-                                {% endif %}
-                              </td>
-                              <td>{{ item.localizacao|default:"N/A" }}</td>
-                              <td>{{ item.marca|default:"N/A" }}</td>
-                              <td>
-                                  <div class="d-flex">
-                                      {% url 'editar_item' item.numero_identificacao as edit_url %}
-                                      {% url 'apagar_item' item.numero_identificacao as del_url %}
+{% if itens %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Grupo</th>
+                <th>Localização</th>
+                <th>E-fisco</th>
+                <th>Descrição</th>
+                <th>Marca</th>
+                <th>Unidade</th>
+                <th>Quantidade</th>
+                <th>Validade</th>
 
-                                      {% if edit_url %}
-                                        <a href="{{ edit_url }}" class="btn-action btn-edit">Editar</a>
-                                      {% else %}
-                                        <a href="#" class="btn-action btn-edit disabled" aria-disabled="true">Editar</a>
-                                      {% endif %}
+            </tr>
+        </thead>
 
-                                      {% if del_url %}
-                                        <a href="{{ del_url }}" class="btn-action btn-delete">Apagar</a>
-                                      {% else %}
-                                        <a href="#" class="btn-action btn-delete disabled" aria-disabled="true">Apagar</a>
-                                      {% endif %}
-                                  </div>
-                              </td>
-                          </tr>
-                          {% endfor %}
-                      </tbody>
-                  </table>
-              </div>
-          {% else %}
-              <div class="alert alert-info text-center py-3 mb-0">Nenhum bem de consumo encontrado.</div>
-          {% endif %}
-      </div>
-  </div>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <!-- Grupo (vem do BensConsumo) -->
+                <td>
+                {% if item.item_shock.grupo_consumo %}
+                    <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
+                    {{ item.item_shock.get_grupo_consumo_display }}
+                    </span>
+                {% else %}
+                    <span class="badge-grupo grupo-None">-</span>
+                {% endif %}
+                </td>
 
+                <!-- Localização -->
+                <td>{{ item.locate|default:"-" }}</td>
+
+                <!-- Código E-fisco (vem do BensConsumo) -->
+                <td>{{ item.item_shock.efisco|default:"-" }}</td>
+
+                <!-- Descrição -->
+                <td>{{ item.description_manual }}</td>
+
+                <!-- Marca -->
+                <td>{{ item.mark }}</td>
+
+                <!-- Medida -->
+                <td>{{ item.item_shock.medida }}</td>
+
+                <!-- Quantidade -->
+                <td>{{ item.amount_shock }}</td>
+
+                <!-- Validade -->
+                <td>{{ item.validity|default:"-" }}</td>
+
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center mb-0">
+    Nenhum item encontrado no estoque.
+</div>
+{% endif %}
+
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

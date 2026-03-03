@@ -481,6 +481,18 @@ class Estoque(models.Model):
         verbose_name='Localização',
         )
     
+    validity = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Validade',
+    )
+    
+    photo = models.ImageField(
+        upload_to=caminho_bensconsumo,
+        blank=True,
+        null=True,      
+        verbose_name='Foto do Item',
+    )
     class Meta():
         verbose_name='Bem Estoque'
         verbose_name_plural='08 - Bens Estoque'
@@ -528,7 +540,8 @@ class Solicitacao(models.Model):
     
     
     situation = models.CharField(
-        max_length=20,
+        max_length=25,
+        choices=StatusTramitacao,
         verbose_name='Situação',
     )
  
@@ -645,5 +658,18 @@ class Tramitacao(models.Model):
         verbose_name='Tramitação'
         verbose_name_plural='11 - Tramitação'
     
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.request_update_id and self.update:
+            solicitacao = self.request_update
+
+            # só a tramitação mais recente manda
+            ultima = solicitacao.tramitacao.order_by("-date_update", "-id").first()
+            if ultima and ultima.id == self.id:
+                solicitacao.situation = self.update
+                solicitacao.save(update_fields=["situation"])
+
     def __str__(self):
         return str(self.request_update) 

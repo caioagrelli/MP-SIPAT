@@ -265,6 +265,7 @@ class EstoqueAdmin(admin.ModelAdmin):
                 'amount_shock',
                 'description_manual',
                 'mark',
+                'validity',
             )
         }),
         
@@ -273,7 +274,13 @@ class EstoqueAdmin(admin.ModelAdmin):
                 'locate',
             )
         }),
-    )
+        
+        ('Fotos do Bem', {
+            'fields': (
+                'photo',
+            )
+        }), 
+        )
     
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(admin.ModelAdmin):
@@ -338,6 +345,11 @@ class SolicitacaoItensAdmin(admin.ModelAdmin):
             )
         }),
     )
+    class SolicitacaoAdmin(admin.ModelAdmin):
+        def save_model(self, request, obj, form, change):
+            if not obj.user_responsible_id:
+                obj.user_responsible = request.user
+            super().save_model(request, obj, form, change)
 
 @admin.register(Tramitacao)
 class TramitacaoAdmin(admin.ModelAdmin):
@@ -374,3 +386,8 @@ class TramitacaoAdmin(admin.ModelAdmin):
             )
         }),
     )
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.user_update_id:
+            obj.user_update = request.user
+        super().save_model(request, obj, form, change)
