@@ -141,14 +141,6 @@
           <h1 class="mb-0">Bens de Consumo</h1>
           <p class="text-muted mb-0">Análise e acompanhamento dos itens de consumo cadastrados.</p>
       </div>
-
-      {# se a URL ainda não existe, não quebra #}
-      {% url 'adicionar_item' as add_url %}
-      {% if add_url %}
-        <a href="{{ add_url }}" class="btn btn-primary shadow-sm">+ Adicionar Novo Item</a>
-      {% else %}
-        <a href="#" class="btn btn-primary shadow-sm disabled" aria-disabled="true">+ Adicionar Novo Item</a>
-      {% endif %}
   </div>
 
   <div class="row mb-4">
@@ -196,9 +188,9 @@
               <div class="input-group shadow-sm">
                   <input class="form-control" type="text" name="q"
                          value="{{ query|default_if_none:'' }}"
-                         placeholder="🔍 Pesquisar por nome, marca ou localização...">
+                         placeholder="Pesquisar por nome, marca ou localização...">
                   <div class="input-group-append">
-                      <button class="btn" type="submit">Pesquisar</button>
+                      <button class="btn" type="submit">🔍 Pesquisar</button>
                   </div>
               </div>
           </form>
@@ -239,7 +231,7 @@
 
                 <!-- Código E-fisco (vem do BensConsumo) -->
                 <td>
-                    <a href="{% url 'dimms:detail' item.pk %}"
+                    <a href="{% url 'dimms:overview' item.pk %}"
                           class="text-decoration-none text-primary">    
                         {{ item.item_shock.efisco}}
                     </a>

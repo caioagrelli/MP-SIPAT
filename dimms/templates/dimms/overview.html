@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Detalhes: {{ item.description_manual|default:"Item do Estoque" }}{% endblock %}
+{% block title %}SIPAT{% endblock %}
 
 {% block content %}
 <style>
@@ -28,22 +28,28 @@
   }
   .cardx + .cardx{ margin-top: 16px; }
 
-  .cardx-header{
+    .cardx-header{
     padding:14px 18px;
     border-bottom:1px solid var(--border);
     display:flex;
-    align-items:center;
+    align-items:center;        /* centraliza verticalmente */
     justify-content:space-between;
     gap:12px;
-  }
-  .cardx-title{
+    }
+
+    .cardx-title{
     margin:0;
     color:var(--primary);
     font-weight:800;
-    font-size:1.4rem;
-    line-height:1.2;
-  }
-  .sub{ color:var(--muted); font-size:.95rem; margin-top:6px; }
+    font-size:1.5rem;
+    line-height:1;
+    }
+
+.sub{
+  color:var(--muted);
+  font-size:.95rem;
+  margin-top:6px;
+}
 
   .badge-pill{
     border-radius:999px;
@@ -92,7 +98,7 @@
   .v{ color:var(--text); font-weight:600; }
 
   .qty{
-    font-size:1.35rem;
+    font-size:2rem;
     font-weight:900;
     margin:0;
   }
@@ -121,6 +127,7 @@
     text-decoration:none;
   }
   .btnx-success{ background:var(--success); color:#fff; }
+  .btnx-orange{ background:#fd7e14; color:#fff; }
   .btnx-info{ background:var(--info); color:#fff; }
   .btnx-warning{ background:var(--warning); color:#1b1b1b; }
   .btnx-danger{ background:transparent; color:var(--danger); border-color: rgba(220,53,69,.45); }
@@ -133,8 +140,9 @@
 
 .cardx-header{
   padding:14px 18px;
-  border-bottom:1px solid #e3e7ed;
+  border-bottom:1px solid var(--border);
   display:flex;
+  align-items:center;
   align-items:flex-start;
   justify-content:space-between;
   gap:16px;
@@ -148,7 +156,8 @@
   margin:0;
   color:#2f4f6f;
   font-weight:800;
-  font-size:1.35rem;
+  align-items:center;
+  font-size:2rem;
   line-height:1.2;
   word-break: break-word;
 }
@@ -175,6 +184,38 @@
   line-height:1.1;
 }
 
+  /* coluna da foto */
+.photo-area{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* QR embaixo da foto */
+.qr-under{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff;
+  padding:3px;
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  gap:14px;
+}
+
+.qr-title{
+  font-weight:700;
+  color:var(--primary);
+  font-size:.85rem;
+  margin-bottom:px;
+}
+
+.qr-under-img{
+  width:140px;
+  height:140px;
+  image-rendering:pixelated;
+}
+
 /* FOTO */
 .photo-box{
   border:1px solid #e3e7ed;
@@ -194,6 +235,17 @@
   border-radius:12px;
 }
 
+.qr-title{
+  font-weight:900;
+  color:var(--primary);
+  font-size:1rem;
+}
+
+.qr-subtitle{
+  color:var(--muted);
+  font-size:.85rem;
+}
+
 /* CARD interno da tabela de detalhes */
 .kvs{
   border:1px solid #e3e7ed;
@@ -211,7 +263,7 @@
 .k{ color:#6c757d; font-weight:700; }
 .v{ color:#222; font-weight:600; }
 
-.muted-note{ color:#6c757d; font-size:.92rem; }
+.muted-note{ color:#6c757d; font-size:.902rem; }
 
 .qty{
   font-size:1.35rem;
@@ -257,37 +309,57 @@
   <!-- CARD PRINCIPAL -->
     <div class="cardx">
     <div class="cardx-header">
-        <div>
-        <h2 class="cardx-title">{{ item.description_manual|default:"Item do Estoque" }}</h2>
-        <div class="muted-note mt-1">
-            Bem vinculado: <strong>{{ item.item_shock }}</strong>
-        </div>
-        </div>
+    
+    <h2 class="cardx-title">
+        {{ item.description_manual|default:"Item do Estoque" }}
+    </h2>
 
-        <div class="efisco-box">
+    <div class="efisco-box">
         <div class="efisco-label">E-FISCO</div>
         <div class="efisco-value">{{ item.item_shock.efisco|default:"-" }}</div>
-        </div>
     </div>
 
-    <div class="cardx-body">
-        <div class="row">
-        <!-- FOTO -->
-        <div class="col-lg-5 mb-3">
-            <div class="photo-box">
-            {% if item.photo %}
-                <a href="{{ item.photo.url }}" target="_blank">
-                <img src="{{ item.photo.url }}" alt="Foto do item" class="img-fluid">
-                </a>
-            {% else %}
-                <div class="text-center">
-                <div style="font-size:2.5rem;">📦</div>
-                <div class="muted-note mt-2">Sem foto cadastrada</div>
-                </div>
-            {% endif %}
-            </div>
+    </div>
+
+<div class="cardx-body">
+  <div class="row">
+
+    <!-- FOTO + QR -->
+    <div class="col-lg-5 mb-3">
+
+      <!-- FOTO -->
+      <div class="photo-box mb-3">
+        {% if item.photo %}
+          <a href="{{ item.photo.url }}" target="_blank">
+            <img src="{{ item.photo.url }}" alt="Foto do item" class="img-fluid">
+          </a>
+        {% else %}
+          <div class="text-center">
+            <div style="font-size:2.5rem;">📦</div>
+            <div class="muted-note mt-2">Sem foto cadastrada</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- QR CODE -->
+      <div class="qr-under">
+
+        <img
+          src="{% url 'dimms:qrcode' item.pk %}"
+          alt="QR Code do item"
+          class="qr-under-img"
+        >
+
+        <div class="qr-text">
+          <div class="qr-title">QR Code</div>
+          <div class="qr-subtitle">
+            Escaneie para abrir este item no sistema
+          </div>
         </div>
 
+      </div>
+
+    </div>
         <!-- INFO -->
         <div class="col-lg-7">
             <div class="d-flex align-items-baseline justify-content-between mb-3">
@@ -312,14 +384,30 @@
             </div>
 
             <div class="kvs">
+            
+            <div class="rowi">
+                <div class="k">Grupo</div>
+                <div class="v">{{ item.item_shock.grupo_consumo|default:"-" }}</div>
+            </div>
+
             <div class="rowi">
                 <div class="k">E-Fisco</div>
                 <div class="v">{{ item.item_shock.efisco|default:"-" }}</div>
             </div>
 
             <div class="rowi">
+                <div class="k">Unidade de Medida</div>
+                <div class="v">{{ item.item_shock.medida|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
                 <div class="k">Descrição Manual</div>
                 <div class="v">{{ item.description_manual|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Descrição E-fisco</div>
+                <div class="v">{{ item.item_shock.descricao_efisco|default:"-" }}</div>
             </div>
 
             <div class="rowi">
@@ -334,8 +422,23 @@
 
             <div class="rowi">
                 <div class="k">Localização</div>
+                <div class="v">{{ item.locate.setor_sala|default:"-" }}</div>
+            </div>
+
+            <div class="rowi">
+                <div class="k">Prateleira/Pallet</div>
                 <div class="v">{{ item.locate|default:"-" }}</div>
             </div>
+
+            <div class="rowi">
+                <div class="k">Tipo de Armazenamento</div>
+                <div class="v">{{ item.locate.tipo_localizacao|default:"-" }}</div>
+            </div>
+
+
+
+
+            
             </div>
 
         </div>
@@ -346,18 +449,16 @@
     <!-- BOTÕES (PROVISÓRIOS / VISUAIS) -->
     <div class="btnbar">
       <div class="btn-group">
-        <a href="#" class="btnx btnx-success btnx-disabled" aria-disabled="true">
+        <a href="{% url 'dimms:label' item.pk %}" class="btnx btnx-success">
           Gerar Etiqueta ▾
         </a>
       </div>
 
-      <a href="#" class="btnx btnx-info btnx-disabled" aria-disabled="true">
-        Ver Ficha Completa
-      </a>
-
-      <a href="#" class="btnx btnx-warning btnx-disabled" aria-disabled="true">
-        Editar
-      </a>
+      <div class="btn-group">
+        <a href="#" class="btnx btnx-orange btnx-disabled" aria-disabled="true">
+          Gerar Ficha Técnica ▾
+        </a>
+      </div>
 
       <a href="{% url 'dimms:homepage' %}" class="btnx" style="border:1px solid rgba(0,0,0,.12); background:#fff; color:#333;">
         Voltar

@@ -5,6 +5,8 @@ app_name = 'dimms'
 
 urlpatterns = [
     path('', views.homepage, name='homepage'),    
-    path('detail/<int:pk>/', views.detail, name='detail'),
+    path('overview/<int:pk>/', views.overview, name='overview'),
+    path('overview/<int:pk>/qrcode/', views.qrcode_view, name='qrcode'),
+    path("overview/<int:pk>/label/", views.label, name="label"),   
 ]
 
