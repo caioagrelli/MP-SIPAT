@@ -76,3 +76,18 @@ class StatusTramitacao(models.TextChoices):
     em_tramitacao = 'TRAMITACAO', 'Em Tramitação'
     recebida = 'RECEBIDA', 'Recebida'
     cancelada = 'CANCELADA', 'Cancelada'
+    
+    
+    # --- Utils ---
+    
+def calcular_duracao(amount_shock, monthly_consumption):
+    if amount_shock is None or monthly_consumption in (None, 0):
+        return None
+
+    meses = amount_shock / monthly_consumption
+
+    if meses < 1:
+        dias = round(meses * 30)
+        return f"{dias} dias"
+
+    return f"{round(meses, 1)} meses"

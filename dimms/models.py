@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from datetime import date
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -481,6 +482,26 @@ class Estoque(models.Model):
         verbose_name='Localização',
         )
     
+    monthly_consumption = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Consumo Mensal',
+    )
+    
+    duration = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name='Duração (Meses)',
+    )
+    
+    essential = models.BooleanField(
+        default=False,
+        blank=True,
+        null=True,
+        verbose_name='Essencial',
+    )
+    
     validity = models.DateField(
         blank=True,
         null=True,
@@ -493,6 +514,52 @@ class Estoque(models.Model):
         null=True,      
         verbose_name='Foto do Item',
     )
+    
+    @property
+    def duration(self):
+        if self.amount_shock is not None and self.monthly_consumption not in (None, 0):
+            return calcular_duracao(
+                self.amount_shock,
+                self.monthly_consumption
+            )
+        return None
+
+    @property
+    def low_stock(self):
+        duracao = self.duration
+
+        if not duracao:
+            return False
+        duracao = str(duracao).strip().lower()
+
+        if "dia" in duracao:
+            return True
+
+        if "mes" in duracao:
+            numero = (
+                duracao
+                .replace("meses", "")
+                .replace("mês", "")
+                .replace("mes", "")
+                .strip()
+            )
+
+            try:
+                return float(numero) < 3
+            except ValueError:
+                return False
+
+        return False
+        
+    @property
+    def alerta_vencimento(self):
+        if not self.validity:
+            return False
+
+        dias_restantes = (self.validity - date.today()).days
+
+        return dias_restantes <= 30
+
     class Meta():
         verbose_name='Bem Estoque'
         verbose_name_plural='08 - Bens Estoque'

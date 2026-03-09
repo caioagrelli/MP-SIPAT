@@ -266,6 +266,8 @@ class EstoqueAdmin(admin.ModelAdmin):
                 'description_manual',
                 'mark',
                 'validity',
+                'essential', 
+                'monthly_consumption',
             )
         }),
         
