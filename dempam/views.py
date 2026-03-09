@@ -11,7 +11,7 @@ def root(request):
 @login_required
 def home(request):
     return render(request, 'global/home.html')
-
+  
 @login_required
 def homepage(request):
     return render(request, 'dempam/homepage.html')
