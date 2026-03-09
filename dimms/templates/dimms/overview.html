@@ -265,6 +265,8 @@
 
 .muted-note{ color:#6c757d; font-size:.902rem; }
 
+
+
 .qty{
   font-size:1.35rem;
   font-weight:900;
@@ -330,9 +332,13 @@
       <!-- FOTO -->
       <div class="photo-box mb-3">
         {% if item.photo %}
-          <a href="{{ item.photo.url }}" target="_blank">
-            <img src="{{ item.photo.url }}" alt="Foto do item" class="img-fluid">
-          </a>
+          <img 
+            src="{{ item.photo.url }}" 
+            alt="Foto do item" 
+            class="img-fluid item-photo"
+            data-bs-toggle="modal"
+            data-bs-target="#fotoModal"
+          >
         {% else %}
           <div class="text-center">
             <div style="font-size:2.5rem;">📦</div>
@@ -518,4 +524,29 @@
   </div>
 
 </div>
+
+<div class="modal fade" id="fotoModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content bg-dark border-0">
+
+      <div class="modal-body text-center p-0">
+        <img id="modalImage" src="" class="img-fluid w-100">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.item-photo').forEach(img => {
+
+  img.addEventListener('click', function(){
+
+    const modalImg = document.getElementById('modalImage');
+    modalImg.src = this.src;
+
+  });
+
+});
+</script>
 {% endblock %}

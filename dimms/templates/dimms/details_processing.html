@@ -1,0 +1,569 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Detalhes da Solicitação{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --cinza-fundo:#f9fafc;
+    --cinza-card:#ffffff;
+    --cinza-texto:#444;
+    --cinza-borda:#e2e6ea;
+    --azul-suave:#2f4f6f;
+    --azul-botao:#406080;
+    --azul-claro:#eef4fb;
+    --verde-suave:#5cb85c;
+    --verde-fundo:#edf8ef;
+    --amarelo-suave:#f0ad4e;
+    --amarelo-fundo:#fff7e8;
+    --vermelho-suave:#d9534f;
+    --vermelho-fundo:#fdeeee;
+    --cinza-badge:#6c757d;
+    --cinza-badge-fundo:#f1f3f5;
+  }
+
+  .page-wrap{
+    background:var(--cinza-fundo);
+    color:var(--cinza-texto);
+    font-family:"Inter","Segoe UI",sans-serif;
+    padding:18px;
+    border-radius:12px;
+  }
+
+  h1,h4,h5,h6{
+    color:var(--azul-suave);
+    font-weight:600;
+  }
+
+  .btn-primary{
+    background-color:var(--azul-botao);
+    border:none;
+    border-radius:8px;
+    font-weight:500;
+    padding:8px 18px;
+  }
+
+  .btn-primary:hover{
+    background-color:#324b66;
+  }
+
+  .btn-outline-secondary,
+  .btn-outline-primary,
+  .btn-outline-danger,
+  .btn-outline-success{
+    border-radius:8px;
+    padding:8px 14px;
+  }
+
+  .card{
+    background-color:var(--cinza-card);
+    border:1px solid var(--cinza-borda);
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  }
+
+  .card-header{
+    background:transparent;
+    border-bottom:1px solid var(--cinza-borda);
+    color:var(--azul-suave);
+    font-weight:600;
+  }
+
+  .info-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+
+  .info-box{
+    background:#fff;
+    border:1px solid var(--cinza-borda);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.03);
+    height:100%;
+  }
+
+  .info-label{
+    font-size:.82rem;
+    color:#6c757d;
+    margin-bottom:6px;
+  }
+
+  .info-value{
+    font-size:1rem;
+    font-weight:600;
+    color:var(--azul-suave);
+  }
+
+  .status-pill{
+    display:inline-block;
+    font-weight:600;
+    padding:.45rem .8rem;
+    border-radius:999px;
+    font-size:.78rem;
+  }
+
+  .status-aberta{
+    background:#eef4fb;
+    color:#2166b1;
+    border:1px solid #cfe3fb;
+  }
+
+  .status-triagem{
+    background:#fff7e8;
+    color:#9a6700;
+    border:1px solid #f5deb3;
+  }
+
+  .status-andamento{
+    background:#eaf4ff;
+    color:#2166b1;
+    border:1px solid #cfe3fb;
+  }
+
+  .status-validacao{
+    background:#fff7e8;
+    color:#9a6700;
+    border:1px solid #f5deb3;
+  }
+
+  .status-concluida{
+    background:var(--verde-fundo);
+    color:#2f7d32;
+    border:1px solid #cfe8d1;
+  }
+
+  .status-cancelada{
+    background:var(--vermelho-fundo);
+    color:#a94442;
+    border:1px solid #f1c8c6;
+  }
+
+  .prioridade-pill{
+    display:inline-block;
+    font-weight:600;
+    padding:.45rem .8rem;
+    border-radius:999px;
+    font-size:.78rem;
+  }
+
+  .prioridade-alta{
+    background:#fdeeee;
+    color:#a94442;
+    border:1px solid #f1c8c6;
+  }
+
+  .prioridade-normal{
+    background:#eef2f6;
+    color:#4f6376;
+    border:1px solid #dbe4ec;
+  }
+
+  .prioridade-baixa{
+    background:#f8f9fa;
+    color:#6c757d;
+    border:1px solid #e9ecef;
+  }
+
+  .summary-box{
+    border:1px solid var(--cinza-borda);
+    background:#fff;
+    border-radius:12px;
+    padding:16px;
+    height:100%;
+  }
+
+  .timeline{
+    position:relative;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:13px;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:#d9e2ec;
+  }
+
+  .timeline-item{
+    position:relative;
+    padding-left:42px;
+    margin-bottom:22px;
+  }
+
+  .timeline-dot{
+    position:absolute;
+    left:4px;
+    top:4px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#406080;
+    border:3px solid #dce8f3;
+  }
+
+  .timeline-card{
+    background:#fff;
+    border:1px solid var(--cinza-borda);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+
+  .timeline-top{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+
+  .timeline-date{
+    color:#6c757d;
+    font-size:.88rem;
+  }
+
+  .timeline-responsavel{
+    font-weight:600;
+    color:var(--azul-suave);
+  }
+
+  .action-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+  }
+
+  .action-card{
+    border:1px solid var(--cinza-borda);
+    border-radius:12px;
+    background:#fff;
+    padding:16px;
+    text-align:left;
+    height:100%;
+  }
+
+  .action-card h6{
+    margin-bottom:6px;
+  }
+
+  .table thead{
+    background:#f0f2f5;
+    color:var(--azul-suave);
+    font-weight:600;
+  }
+
+  .table tbody tr:hover{
+    background:#f9f9f9;
+  }
+
+  .table td,.table th{
+    vertical-align:middle;
+  }
+
+  @media (max-width: 992px){
+    .info-grid{
+      grid-template-columns:repeat(2, 1fr);
+    }
+
+    .action-grid{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 576px){
+    .info-grid{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- TOPO -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h1 class="mb-1">Detalhes da Solicitação</h1>
+      <p class="text-muted mb-0">
+        Acompanhamento completo da tramitação e histórico de atualizações.
+      </p>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="#" class="btn btn-outline-secondary">← Voltar</a>
+      <a href="#" class="btn btn-outline-primary">🖨 Gerar Relatório</a>
+      <a href="#" class="btn btn-primary">✎ Editar Solicitação</a>
+    </div>
+  </div>
+
+  <!-- CABEÇALHO DA SOLICITAÇÃO -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div class="text-muted small mb-1">Número da solicitação</div>
+          <h4 class="mb-2">{{ solicitacao.numero }}</h4>
+          <div class="fw-semibold mb-2">{{ solicitacao.titulo }}</div>
+          <div class="text-muted">{{ solicitacao.descricao }}</div>
+        </div>
+
+        <div class="text-end">
+          <div class="mb-2">
+            {% if solicitacao.status_atual == "EM_ANDAMENTO" %}
+              <span class="status-pill status-andamento">Em andamento</span>
+            {% elif solicitacao.status_atual == "EM_TRIAGEM" %}
+              <span class="status-pill status-triagem">Em triagem</span>
+            {% elif solicitacao.status_atual == "AGUARDANDO_VALIDACAO" %}
+              <span class="status-pill status-validacao">Aguardando validação</span>
+            {% elif solicitacao.status_atual == "CONCLUIDA" %}
+              <span class="status-pill status-concluida">Concluída</span>
+            {% elif solicitacao.status_atual == "CANCELADA" %}
+              <span class="status-pill status-cancelada">Cancelada</span>
+            {% else %}
+              <span class="status-pill status-aberta">{{ solicitacao.status_atual }}</span>
+            {% endif %}
+          </div>
+
+          <div>
+            {% if solicitacao.prioridade == "Alta" %}
+              <span class="prioridade-pill prioridade-alta">Prioridade Alta</span>
+            {% elif solicitacao.prioridade == "Normal" %}
+              <span class="prioridade-pill prioridade-normal">Prioridade Normal</span>
+            {% else %}
+              <span class="prioridade-pill prioridade-baixa">Prioridade Baixa</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISÃO GERAL -->
+  <div class="info-grid mb-4">
+    <div class="info-box">
+      <div class="info-label">Solicitante</div>
+      <div class="info-value">{{ solicitacao.solicitante }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Responsável atual</div>
+      <div class="info-value">{{ solicitacao.responsavel_atual }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Setor de origem</div>
+      <div class="info-value">{{ solicitacao.setor_origem }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Setor de destino</div>
+      <div class="info-value">{{ solicitacao.setor_destino }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Data de abertura</div>
+      <div class="info-value">{{ solicitacao.data_abertura }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Última atualização</div>
+      <div class="info-value">{{ solicitacao.ultima_atualizacao }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Prazo</div>
+      <div class="info-value">{{ solicitacao.prazo }}</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">Observações</div>
+      <div class="info-value">{{ solicitacao.observacoes }}</div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ITENS E AÇÕES -->
+    <div class="col-lg-7">
+
+      <!-- ITENS DA SOLICITAÇÃO -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Itens da Solicitação</h5>
+          <span class="text-muted small">Total de itens: {{ itens_solicitacao|length }}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Descrição</th>
+                  <th>Quantidade</th>
+                  <th>Unidade</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in itens_solicitacao %}
+                  <tr>
+                    <td class="fw-semibold">{{ item.codigo }}</td>
+                    <td>{{ item.descricao }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.unidade }}</td>
+                    <td>{{ item.observacao }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                      Nenhum item vinculado à solicitação.
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Histórico de Status</h5>
+        </div>
+
+        <div class="card-body">
+          <ul class="timeline">
+            {% for h in historico_status %}
+              <li class="timeline-item">
+                <span class="timeline-dot"></span>
+
+                <div class="timeline-card">
+                  <div class="timeline-top">
+                    <div>
+                      <div class="timeline-responsavel">{{ h.responsavel }}</div>
+                      <div class="timeline-date">{{ h.data_hora }}</div>
+                    </div>
+
+                    <div>
+                      {% if h.status == "ABERTA" %}
+                        <span class="status-pill status-aberta">Aberta</span>
+                      {% elif h.status == "EM_TRIAGEM" %}
+                        <span class="status-pill status-triagem">Em triagem</span>
+                      {% elif h.status == "EM_ANDAMENTO" %}
+                        <span class="status-pill status-andamento">Em andamento</span>
+                      {% elif h.status == "AGUARDANDO_VALIDACAO" %}
+                        <span class="status-pill status-validacao">Aguardando validação</span>
+                      {% elif h.status == "CONCLUIDA" %}
+                        <span class="status-pill status-concluida">Concluída</span>
+                      {% elif h.status == "CANCELADA" %}
+                        <span class="status-pill status-cancelada">Cancelada</span>
+                      {% else %}
+                        <span class="status-pill status-aberta">{{ h.status }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div>{{ h.mudanca }}</div>
+                </div>
+              </li>
+            {% empty %}
+              <li class="text-muted">Nenhum histórico registrado.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- LATERAL -->
+    <div class="col-lg-5">
+
+      <!-- AÇÕES RÁPIDAS -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Ações Rápidas</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="action-grid">
+            <div class="action-card">
+              <h6>Registrar atualização</h6>
+              <p class="text-muted small mb-3">
+                Adicionar uma nova observação ou movimentação no histórico.
+              </p>
+              <a href="#" class="btn btn-sm btn-outline-primary">Registrar</a>
+            </div>
+
+            <div class="action-card">
+              <h6>Abrir chamado</h6>
+              <p class="text-muted small mb-3">
+                Criar um chamado relacionado à solicitação atual.
+              </p>
+              <a href="#" class="btn btn-sm btn-outline-danger">Abrir chamado</a>
+            </div>
+
+            <div class="action-card">
+              <h6>Alterar status</h6>
+              <p class="text-muted small mb-3">
+                Atualizar o status geral da solicitação.
+              </p>
+              <a href="#" class="btn btn-sm btn-outline-success">Alterar</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUMO EXECUTIVO -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Resumo Executivo</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="summary-box mb-3">
+            <div class="text-muted small">Status atual</div>
+            <div class="fw-semibold">{{ solicitacao.status_atual }}</div>
+          </div>
+
+          <div class="summary-box mb-3">
+            <div class="text-muted small">Destino</div>
+            <div class="fw-semibold">{{ solicitacao.setor_destino }}</div>
+          </div>
+
+          <div class="summary-box mb-3">
+            <div class="text-muted small">Último responsável</div>
+            <div class="fw-semibold">{{ solicitacao.responsavel_atual }}</div>
+          </div>
+
+          <div class="summary-box">
+            <div class="text-muted small">Última movimentação</div>
+            <div class="fw-semibold">{{ solicitacao.ultima_atualizacao }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RELATÓRIOS -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Relatórios</h5>
+        </div>
+
+        <div class="card-body d-grid gap-2">
+          <a href="#" class="btn btn-outline-primary">Gerar relatório completo</a>
+          <a href="#" class="btn btn-outline-secondary">Exportar histórico</a>
+          <a href="#" class="btn btn-outline-secondary">Gerar comprovante</a>
+          <a href="#" class="btn btn-outline-secondary">Emitir resumo da solicitação</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
