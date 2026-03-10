@@ -4,9 +4,9 @@ from django.db import models
 # --- Paths ---
 
 def caminho_bensconsumo(instance, filename):
-    n_efisco = instance.efisco or 'sem_efisco'
+    item_shock = instance.item_shock or 'sem_efisco'
     ext = os.path.splitext(filename)[1]
-    nome_aquivo = f'{n_efisco}{ext}'
+    nome_aquivo = f'{item_shock}{ext}'
     
     return f'bens/consumo/{nome_aquivo}'
 
@@ -22,7 +22,14 @@ def caminho_nf_compraindividual(instance, filename):
     ext = os.path.splitext(filename)[1]
     nome_aquivo = f'{n_nf}{ext}'
     
-    return f'documentos/nf_individual/{nome_aquivo}'
+    return f'documentos/consumo/nf_individual/{nome_aquivo}'
+
+def caminho_consum_update(instance, filename):
+    n_update = instance.id
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{n_update}{ext}'
+    
+    return f'documentos/consumo/anexo_atualizacao/{nome_aquivo}'
 
 
 # --- Choices ---
@@ -61,3 +68,25 @@ class Status(models.TextChoices):
     atendida = 'ATENDIDA', 'Atendida'
     cancelada = 'CANCELADA', 'Cancelada'
     analise = 'EM ANÁLISE', 'Em análise'
+    
+class StatusTramitacao(models.TextChoices):
+    processamento = 'PROCESSAMENTO', 'EM Processamento'
+    separada = 'SEPARADA', 'Separada'
+    em_tramitacao = 'TRAMITACAO', 'Em Tramitação'
+    recebida = 'RECEBIDA', 'Recebida'
+    cancelada = 'CANCELADA', 'Cancelada'
+    
+    
+    # --- Utils ---
+    
+def calcular_duracao(amount_shock, monthly_consumption):
+    if amount_shock is None or monthly_consumption in (None, 0):
+        return None
+
+    meses = amount_shock / monthly_consumption
+
+    if meses < 1:
+        dias = round(meses * 30)
+        return f"{dias} dias"
+
+    return f"{round(meses, 1)} meses"

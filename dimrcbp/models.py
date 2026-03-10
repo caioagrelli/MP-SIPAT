@@ -14,11 +14,6 @@ class Complementos(): #Temporário
 
 # --- Informações Bens Permanentes DIMRCBP ---
 class BensPermanentes(models.Model):
-    id = models.AutoField(
-        primary_key=True
-    )
-        
-    
     descricao = models.CharField(
         max_length=100,
         blank=True,
@@ -367,8 +362,13 @@ class BensPermanentes(models.Model):
 
 # --- Histórico de Movimentações---
 class MovimentacoesPermanentes(models.Model):
-    id = models.AutoField(primary_key=True)
-    
+    codigo = models.CharField(
+    max_length=30,
+    unique=True,
+    editable=False,
+    verbose_name='Código da Movimentação'
+    )
+
     sei = models.CharField(
         max_length=25,
         blank=True,
@@ -470,6 +470,17 @@ class MovimentacoesPermanentes(models.Model):
         verbose_name='Movimentação (Permanente)'
         verbose_name_plural='02 - Movimentações (Permanentes)'
         
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            ultimo = MovimentacoesPermanentes.objects.filter(
+                codigo__startswith=f'SMP-{ano}'
+            ).count() + 1
+
+            self.codigo = f'SSA-{ano}-{ultimo:04d}'
+
+        super().save(*args, **kwargs)
+        
     def __str__(self):
-       return str(self.id)            
-   
+       return str(self.codigo)            
+

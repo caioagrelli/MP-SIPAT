@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from datetime import date
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -16,8 +17,6 @@ class Complementos(): #Temporário
 ''' --- Informações Bens de Consumo DIMMS --- '''   
 # Campo Usado para o cadastro de Bens de acordo com o EFISCO 
 class BensConsumo(models.Model): 
-    id = models.AutoField(primary_key=True)
-    
     efisco = models.CharField(
         max_length=20,
         default='Não Consta',
@@ -59,8 +58,6 @@ class BensConsumo(models.Model):
 
 # Campo usado para o cadastro de fornecedores
 class Fornecedor(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-    
     fornecedor = models.CharField(
         max_length=40,
         verbose_name='Fornecedor'
@@ -156,8 +153,6 @@ class CompraIndividual(models.Model): #PRONTO
     
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-
     fornecedor = models.ForeignKey(
         Fornecedor,
         on_delete=models.PROTECT,
@@ -216,8 +211,6 @@ class Contrato(models.Model): #PRONTO
 
 # Campo usado para cadastro de Itens (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
-    id = models.AutoField(primary_key=True)
-    
     contrato_saldo = models.ForeignKey(
         Contrato,
         on_delete=models.PROTECT,
@@ -285,10 +278,10 @@ class SaldoAtivo(models.Model): #PRONTO
 
 # Campo usado para solicitações de Itens com base em um Contrato
 class SolicitacoesSaldoAtivo(models.Model):
-    id = models.AutoField(primary_key=True)
-    
     codigo = models.CharField(
         max_length=30,
+        blank=True,
+        null=True,
         unique=True,
         editable=False,
         verbose_name='Código da Solicitação'
@@ -351,8 +344,6 @@ class SolicitacoesSaldoAtivo(models.Model):
 
 # Campo usado para Inserir os itens solicitados
 class ItensSolicitados(models.Model):
-    id = models.AutoField(primary_key=True)
-    
     solicitacao = models.ForeignKey(
         SolicitacoesSaldoAtivo,
         on_delete=models.CASCADE,
@@ -397,8 +388,8 @@ class ItensSolicitados(models.Model):
                 )
 
     class Meta:
-        verbose_name = 'Item Solicitado'
-        verbose_name_plural = '06 - Itens Solicitados'
+        verbose_name = 'Bens Solicitado'
+        verbose_name_plural = '06 - Bens Solicitados'
         constraints = [
             models.UniqueConstraint(
                 fields=['solicitacao', 'bem'],
@@ -408,15 +399,13 @@ class ItensSolicitados(models.Model):
 
 # Campo usado para Inserir os Bens que foram enviados a partir da solicitação 
 class BensEnviados(models.Model):
-    id = models.AutoField(primary_key=True)
-
     item_enviado = models.OneToOneField(
         ItensSolicitados,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
         related_name='itemenviado',
-        verbose_name='Itens Enviados',
+        verbose_name='Bens Enviados',
     )
 
     quantidade_enviada = models.PositiveIntegerField(
@@ -456,28 +445,35 @@ class BensEnviados(models.Model):
 
     class Meta:
         verbose_name = 'Item Enviado'
-        verbose_name_plural = '07 - Itens Enviados'
+        verbose_name_plural = '07 - Bens Enviados'
 
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
 
-class BensConsumoEstoque(models.Model): 
-    id = models.AutoField(primary_key=True)
-    
-    solicitacao = models.ForeignKey(
-        ItensSolicitados,
+# Campo usado para armazenar os Itens em Estoque
+class Estoque(models.Model): 
+    item_shock = models.ForeignKey(
+        BensConsumo,
         on_delete=models.PROTECT,
-        related_name='estoquesolicitacao',
-        verbose_name='Estoque da Solicitação',
+        related_name='bem_estoque',
+        verbose_name='Bem no Estoque',
     )
-      
+    
+    description_manual = models.CharField(
+        max_length=90,
+        verbose_name='Descrição Manual',
+    )
+    
+    mark = models.CharField(
+        max_length=40,
+        verbose_name='Marca',
+    )
         
-    quantidade = models.PositiveIntegerField(
+    amount_shock = models.PositiveIntegerField(
         verbose_name='Quantidade',
     )
     
-    
-    local_armazenamento = models.ForeignKey(
+    locate = models.ForeignKey(
         LocalizacaoDEMPAM,
         on_delete=models.PROTECT,
         blank=True,
@@ -485,74 +481,280 @@ class BensConsumoEstoque(models.Model):
         related_name='localizacao_consumo',
         verbose_name='Localização',
         )
-
     
+    monthly_consumption = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Consumo Mensal',
+    )
+    
+    duration = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name='Duração (Meses)',
+    )
+    
+    essential = models.BooleanField(
+        default=False,
+        blank=True,
+        null=True,
+        verbose_name='Essencial',
+    )
+    
+    validity = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Validade',
+    )
+    
+    photo = models.ImageField(
+        upload_to=caminho_bensconsumo,
+        blank=True,
+        null=True,      
+        verbose_name='Foto do Item',
+    )
+    
+    @property
+    def duration(self):
+        if self.amount_shock is not None and self.monthly_consumption not in (None, 0):
+            return calcular_duracao(
+                self.amount_shock,
+                self.monthly_consumption
+            )
+        return None
+
+    @property
+    def low_stock(self):
+        duracao = self.duration
+
+        if not duracao:
+            return False
+        duracao = str(duracao).strip().lower()
+
+        if "dia" in duracao:
+            return True
+
+        if "mes" in duracao:
+            numero = (
+                duracao
+                .replace("meses", "")
+                .replace("mês", "")
+                .replace("mes", "")
+                .strip()
+            )
+
+            try:
+                return float(numero) < 3
+            except ValueError:
+                return False
+
+        return False
+        
+    @property
+    def alerta_vencimento(self):
+        if not self.validity:
+            return False
+
+        dias_restantes = (self.validity - date.today()).days
+
+        return dias_restantes <= 30
+
     class Meta():
-        verbose_name='Bem de Consumo'
-        verbose_name_plural='Bens de Consumo'
+        verbose_name='Bem Estoque'
+        verbose_name_plural='08 - Bens Estoque'
         
     def __str__(self):
-        return self.efisco
+        return str(self.item_shock)
 
-class SolicitacoesConsumo(models.Model):  
-    id = models.AutoField(primary_key=True)
-        
-    item = models.ForeignKey(
-        BensConsumo,
-        on_delete=models.PROTECT,
-        related_name='itens_movimentados',
-        verbose_name='Item Movimentado',
+# Campo usado para criar uma Solicitação de Materiais
+class Solicitacao(models.Model):  
+    request_code = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name='Código da Solicitação'
     )
-
-
-    solicitante = models.ForeignKey(
+          
+    ua_order = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
+        blank=True,
+        null=True,
         related_name='solicitantesconsumo',
         verbose_name='Solicitante',
     )
     
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+    user_order = models.CharField(
+        max_length=40,
         blank=True,
         null=True,
-        related_name='usuario_sol_consumo',
-        verbose_name='Usuário Responsável',
+        verbose_name='Usuário Solicitante',
     )
-    
-    quantidade = models.PositiveIntegerField(
-        verbose_name='Quantidade',
-    )
-    
-    
-    data_hora = models.DateTimeField(
+      
+    data_order = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
     )
     
-    
-    observacao = models.TextField(
+    observation_order = models.TextField(
         blank=True,
         null=True,
         verbose_name='Observação'
     )
     
-    
-    anexo = models.FileField(
+    documents_order = models.FileField(
         upload_to=caminho_movimentacao_consumo,
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
     )
     
+    situation = models.CharField(
+        max_length=25,
+        choices=StatusTramitacao,
+        verbose_name='Situação',
+    )
+ 
+    user_responsible = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_sol_consumo',
+        verbose_name='Usuário Responsável',
+    )   
+
     class Meta():
-        verbose_name='Movimentação (Consumo)'
-        verbose_name_plural='Movimentações (Consumo)'
+        verbose_name='Solicitações'
+        verbose_name_plural='09 - Solicitações'
+        
+    def save(self, *args, **kwargs):
+        if not self.request_code:
+            ano = timezone.now().year
+            ultimo = Solicitacao.objects.filter(
+                request_code__startswith=f'SBC-{ano}'
+            ).count() + 1
+ 
+            self.request_code = f'SBC-{ano}-{ultimo:04d}'
+
+        super().save(*args, **kwargs)        
         
     def __str__(self):
-       return str(self.id)  
+       return str(self.request_code)  
 
+# Campo usado para adicionar os itens solicitados
+class SolicitacaoItens(models.Model):
+    request_defendant = models.ForeignKey(
+        Solicitacao,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='bens_solicitados',
+        verbose_name='Bens Solicitados',
+    )
+    
+    item_order = models.ForeignKey(
+        Estoque,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='itens_solicitados',
+        verbose_name='Item Solicitado',
+    )
+    
+    amount_order = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Quantidade',
+    )
+
+    class Meta():
+        verbose_name='Bem Solicitado'
+        verbose_name_plural='10 - Bens Solicitados'
+    
+    def __str__(self):
+        return str(self.request_defendant) 
+
+# Campo usado para atualizar o status da entrega do material
 class Tramitacao(models.Model):
-    ...
+    request_update = models.ForeignKey(
+        Solicitacao,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='tramitacao',
+        verbose_name='Tramitação',
+    )
 
+    update = models.CharField(
+        max_length=30,
+        choices=StatusTramitacao,
+        blank=True,
+        null=True,
+        verbose_name='Status',
+    )    
+    
+    responsible_update = models.CharField(
+        max_length=40, 
+        blank=True,
+        null=True,
+        verbose_name='Responsável pela Atualização',
+    )
+    
+    
+    observation_update = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observação'       
+    )   
+    
+    documents_update = models.FileField(
+        upload_to=caminho_consum_update,
+        blank=True,
+        null=True,
+        verbose_name='Documento Anexado'
+    )
+    
+    photo_update = models.ImageField(
+        upload_to=caminho_consum_update,
+        blank=True,
+        null=True,
+        verbose_name='Foto do Item',
+    )
+    
+    date_update = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now_add=True,
+        verbose_name='Data e Hora da Atualização'
+    )
+    
+    user_update = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='usuario_atualizacao',
+        verbose_name='Usuário Responsável',
+    )
+    
+    class Meta():
+        verbose_name='Tramitação'
+        verbose_name_plural='11 - Tramitação'
+    
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.request_update_id and self.update:
+            solicitacao = self.request_update
+
+            # só a tramitação mais recente manda
+            ultima = solicitacao.tramitacao.order_by("-date_update", "-id").first()
+            if ultima and ultima.id == self.id:
+                solicitacao.situation = self.update
+                solicitacao.save(update_fields=["situation"])
+
+    def __str__(self):
+        return str(self.request_update) 

@@ -239,4 +239,165 @@ class BensEnviadosAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+ 
+@admin.register(Estoque)
+class EstoqueAdmin(admin.ModelAdmin):
+    list_display=(
+        'item_shock',
+        'description_manual',
+        'mark',
+        'amount_shock',
+        'locate',
+    )
     
+    search_fields=(
+        'item_shock'
+        'description_manual',
+        'mark',
+        'locate',
+    )
+    
+    fieldsets=(
+        ('Informações do Bem', {
+            'fields': (
+                'item_shock',
+                'amount_shock',
+                'description_manual',
+                'mark',
+                'validity',
+                'essential', 
+                'monthly_consumption',
+            )
+        }),
+        
+        ('Local de Armazenamento', {
+            'fields': (
+                'locate',
+            )
+        }),
+        
+        ('Fotos do Bem', {
+            'fields': (
+                'photo',
+            )
+        }), 
+        )
+    
+@admin.register(Solicitacao)
+class SolicitacaoAdmin(admin.ModelAdmin):
+    list_display=(
+        'request_code',
+        'ua_order',
+        'data_order',
+        'situation',
+    )
+
+    search_fields=(
+        'request_code',
+        'user_order',
+        'situation',
+    )
+    
+    fieldsets=(
+        ('Informações da Requisição', {
+            'fields': (
+                'ua_order',
+                'user_order',
+                'situation',
+            )
+        }),
+        
+        ('Observação', {
+            'fields': (
+                'observation_order',
+            )
+        }),
+        
+        ('Documento Anexado', {
+            'fields': (
+                'documents_order',
+            )
+        }),
+
+    )
+
+@admin.register(SolicitacaoItens)
+class SolicitacaoItensAdmin(admin.ModelAdmin):
+    list_display=(
+        'request_defendant',
+        'item_order',
+        'amount_order',
+    )
+    
+    search_fields=(
+        'request_defendant',
+        'item_order',
+    )
+    
+    fieldsets=(
+        ('Requisição', {
+            'fields': (
+                'request_defendant',
+            )
+        }),
+        
+        ('Dados Item', {
+            'fields': (
+                'item_order',
+                'amount_order',
+            )
+        }),
+    )
+    class SolicitacaoAdmin(admin.ModelAdmin):
+        def save_model(self, request, obj, form, change):
+            if not obj.user_responsible_id:
+                obj.user_responsible = request.user
+            super().save_model(request, obj, form, change)
+
+@admin.register(Tramitacao)
+class TramitacaoAdmin(admin.ModelAdmin):
+    list_display=(
+        'request_update',
+        'update',
+        'date_update',
+        'user_update',
+    )
+    
+    search_fields=(
+        'request_update',
+        'update',
+        'user_update',
+    )
+    
+    fieldsets=(
+        ('Requisição', {
+            'fields': (
+                'request_update',
+            )
+        }),
+        
+        ('Dados da Requisição', {
+            'fields': (
+                'update',
+                'observation_update',
+            )
+        }),
+        
+        ('Documentos Anexados', {
+            'fields': (
+                'documents_update',
+            )
+        }),
+        
+        ('Foto da Atualização', {
+            'fields': (
+                'photo_update',
+            )
+        })
+        )
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.user_update_id:
+            obj.user_update = request.user
+        super().save_model(request, obj, form, change)

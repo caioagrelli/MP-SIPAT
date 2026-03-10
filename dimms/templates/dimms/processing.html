@@ -1,0 +1,407 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT{% endblock %}
+
+{% block content %}
+<style>
+
+:root{
+--bg-page:#f7f9fc;
+--card:#ffffff;
+--border:#e2e8f0;
+--text:#334155;
+--muted:#64748b;
+
+--primary:#2f4f6f;
+--primary-dark:#243b53;
+
+/* cores fortes */
+--proc:#2166b1;
+--sep:#7d4ab5;
+--env:#a66300;
+--tram:#0f766e;
+--rec:#2f7d32;
+--can:#a94442;
+}
+
+.page-wrap{
+background:var(--bg-page);
+padding:20px;
+border-radius:16px;
+font-family:"Segoe UI", sans-serif;
+}
+
+/* HEADER */
+
+.page-header{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:16px;
+flex-wrap:wrap;
+margin-bottom:24px;
+}
+
+.page-header h2{
+margin:0 0 4px 0;
+color:var(--primary);
+font-weight:700;
+}
+
+.page-header p{
+margin:0;
+color:var(--muted);
+}
+
+.page-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+/* CARDS */
+
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:16px;
+box-shadow:0 6px 18px rgba(15,23,42,.04);
+}
+
+.card-header{
+background:#f8fbff;
+color:var(--primary);
+font-weight:700;
+border-bottom:1px solid var(--border);
+border-radius:16px 16px 0 0 !important;
+}
+
+/* KPI */
+
+.kpi-card{
+background:#fff;
+border-radius:14px;
+padding:14px 16px;
+border:1px solid var(--border);
+box-shadow:0 4px 12px rgba(15,23,42,.03);
+height:100%;
+}
+
+.kpi-card-title{
+font-size:.92rem;
+color:var(--muted);
+margin-bottom:6px;
+}
+
+.kpi-value{
+font-size:1.6rem;
+font-weight:800;
+line-height:1;
+color:var(--text);
+}
+
+/* cores dos cards */
+
+.kpi-processamento{ border-left:5px solid var(--proc); }
+.kpi-separada{ border-left:5px solid var(--sep); }
+.kpi-envio{ border-left:5px solid var(--env); }
+.kpi-tramitacao{ border-left:5px solid var(--tram); }
+.kpi-recebida{ border-left:5px solid var(--rec); }
+.kpi-cancelada{ border-left:5px solid var(--can); }
+
+/* filtros */
+
+.filters-card{
+margin-bottom:22px;
+}
+
+.filter-label{
+font-size:.83rem;
+color:var(--muted);
+margin-bottom:6px;
+font-weight:600;
+}
+
+.form-control,
+.form-select{
+border-radius:12px;
+border:1px solid var(--border);
+padding:10px 12px;
+}
+
+.form-control:focus,
+.form-select:focus{
+border-color:#bfd3ea;
+box-shadow:0 0 0 .2rem rgba(47,79,111,.08);
+}
+
+/* BOTÕES */
+
+.btn{
+border-radius:12px;
+font-weight:600;
+}
+
+.btn-primary{
+background:var(--primary);
+border-color:var(--primary);
+}
+
+.btn-primary:hover{
+background:var(--primary-dark);
+border-color:var(--primary-dark);
+}
+
+/* TABELA */
+
+.table{
+margin-bottom:0;
+}
+
+.table thead th{
+background:#f8fafc;
+color:var(--primary);
+font-size:.88rem;
+font-weight:700;
+border-bottom:1px solid var(--border);
+white-space:nowrap;
+}
+
+.table td{
+vertical-align:middle;
+color:var(--text);
+}
+
+.table tbody tr:hover{
+background:#fbfdff;
+}
+
+/* LINKS */
+
+.link-numero{
+font-weight:700;
+text-decoration:none;
+color:#2c6ed5;
+}
+
+.link-numero:hover{
+text-decoration:underline;
+color:#1f57ab;
+}
+
+/* STATUS */
+
+.badge-status{
+display:inline-flex;
+align-items:center;
+padding:7px 14px;
+border-radius:999px;
+font-size:.76rem;
+font-weight:700;
+color:white;
+box-shadow:0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* cores vivas */
+
+.status-processamento{background:var(--proc);}
+.status-separada{background:var(--sep);}
+.status-envio{background:var(--env);}
+.status-tramitacao{background:var(--tram);}
+.status-recebida{background:var(--rec);}
+.status-cancelada{background:var(--can);}
+
+.table-empty{
+padding:28px 12px !important;
+color:var(--muted) !important;
+}
+
+@media (max-width:768px){
+.page-wrap{
+padding:14px;
+}
+}
+
+</style>
+
+<div class="page-wrap">
+
+  <!-- TOPO -->
+  <div class="page-header">
+    <div>
+      <h2>🚚 Tramitações</h2>
+      <p>Acompanhamento visual das solicitações e suas etapas.</p>
+    </div>
+
+    <div class="page-actions">
+      <a href="#" class="btn btn-outline-primary">Atualizar</a>
+      <a href="#" class="btn btn-primary">Nova Solicitação</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row mb-4 g-3">
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-processamento">
+        <div class="kpi-card-title">⚙️ Processamento</div>
+        <div class="kpi-value">{{ total_processamento }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-separada">
+        <div class="kpi-card-title">📦 Separada</div>
+        <div class="kpi-value">{{ total_separada }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-envio">
+        <div class="kpi-card-title">🚚 Envio</div>
+        <div class="kpi-value">{{ total_envio }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-tramitacao">
+        <div class="kpi-card-title">🛣️ Tramitação</div>
+        <div class="kpi-value">{{ total_tramitacao }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-recebida">
+        <div class="kpi-card-title">✅ Recebida</div>
+        <div class="kpi-value">{{ total_recebida }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-cancelada">
+        <div class="kpi-card-title">❌ Cancelada</div>
+        <div class="kpi-value">{{ total_cancelada }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESQUISA / FILTROS -->
+  <div class="card filters-card">
+    <div class="card-header">
+      Pesquisa e filtros
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-6">
+          <div class="filter-label">Pesquisar</div>
+          <input
+            type="text"
+            name="q"
+            class="form-control"
+            value="{{ query|default_if_none:'' }}"
+            placeholder="Buscar por código, UA ou solicitante">
+        </div>
+
+        <div class="col-md-3">
+          <div class="filter-label">Status</div>
+          <select name="status" class="form-select">
+            <option value="">Todos</option>
+            <option value="PROCESSAMENTO" {% if filtro_status == "PROCESSAMENTO" %}selected{% endif %}>Processamento</option>
+            <option value="SEPARADA" {% if filtro_status == "SEPARADA" %}selected{% endif %}>Separada</option>
+            <option value="ENVIO" {% if filtro_status == "ENVIO" %}selected{% endif %}>Envio</option>
+            <option value="TRAMITACAO" {% if filtro_status == "TRAMITACAO" %}selected{% endif %}>Tramitação</option>
+            <option value="RECEBIDA" {% if filtro_status == "RECEBIDA" %}selected{% endif %}>Recebida</option>
+            <option value="CANCELADA" {% if filtro_status == "CANCELADA" %}selected{% endif %}>Cancelada</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary w-100">🔎 Pesquisar</button>
+          <a href="{% url 'dimms:processing' %}" class="btn btn-outline-secondary w-100">Limpar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card">
+    <div class="card-header">
+    🌍 Todas as Solicitações ({{ total_tramitacoes }})
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Solicitação</th>
+              <th>UA</th>
+              <th>Solicitante</th>
+              <th>Status</th>
+              <th>Data Atualização</th>
+              <th>Responsável Atualização</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for t in tramitacoes %}
+            <tr>
+              <td>
+                <a href="{% url 'dimms:details_processing' t.pk %}" class="link-numero">
+                  {{ t.request_code }}
+                </a>
+              </td>
+
+              <td>{{ t.ua_order }}</td>
+
+              <td>{{ t.user_order|default:"-" }}</td>
+
+              <td>
+                {% if t.situation == "PROCESSAMENTO" %}
+                  <span class="badge-status status-processamento">Processamento</span>
+                {% elif t.situation == "SEPARADA" %}
+                  <span class="badge-status status-separada">Separada</span>
+                {% elif t.situation == "ENVIO" %}
+                  <span class="badge-status status-envio">Envio</span>
+                {% elif t.situation == "TRAMITACAO" %}
+                  <span class="badge-status status-tramitacao">Tramitação</span>
+                {% elif t.situation == "RECEBIDA" %}
+                  <span class="badge-status status-recebida">Recebida</span>
+                {% elif t.situation == "CANCELADA" %}
+                  <span class="badge-status status-cancelada">Cancelada</span>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+
+             <td>
+            {% if t.ultima_tramitacao %}
+                {{ t.ultima_tramitacao.date_update|date:"d/m/Y H:i" }}
+            {% else %}
+                -
+            {% endif %}
+            </td>
+
+            <td>
+            {% if t.ultima_tramitacao and t.ultima_tramitacao.user_update %}
+                {{ t.ultima_tramitacao.user_update.get_full_name|default:t.ultima_tramitacao.user_update.username }}
+            {% else %}
+                -
+            {% endif %}
+            </td>
+
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center table-empty">
+                Nenhuma solicitação encontrada.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends "global/base.html" %}
+
+{% block content %}
+
+<style>
+/* =========================
+   CARD / TABELA
+========================= */
+
+.card{
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.card-header{
+    background: #ffffff;
+    border-bottom: 1px solid #eceff3;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.table{
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
+.table thead th{
+    background: #f4f6f9 !important;
+    color: #34495e;
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-bottom: 1px solid #e5e9ef;
+    white-space: nowrap;
+}
+
+.table tbody td{
+    padding: .9rem .75rem;
+    border-color: #edf1f5;
+}
+
+.table tbody tr:hover{
+    background: #fafcff;
+}
+
+/* =========================
+   BADGES DE GRUPO
+========================= */
+
+.badge-grupo{
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #fff;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.grupo-ALIMENTO{background:#27ae60;}
+.grupo-CONFECCAO{background:#8e44ad;}
+.grupo-COPA_COZINHA{background:#e67e22;}
+.grupo-DOMISSANITARIO{background:#16a085;}
+.grupo-ELETRICA{background:#f39c12;color:#000;}
+.grupo-EPI{background:#c0392b;}
+.grupo-HIDROSANITARIO{background:#2980b9;}
+.grupo-INFORMATICA{background:#2c3e50;}
+.grupo-LIMPEZA{background:#1abc9c;}
+.grupo-MANUTENCAO{background:#7f8c8d;}
+.grupo-MARCENARIA{background:#6d4c41;}
+.grupo-PINTURA{background:#d35400;}
+.grupo-PAPEIS_EXPEDIENTE{background:#3498db;}
+.grupo-PAPEIS_LIMPEZA{background:#48c9b0;}
+.grupo-REFRIGERACAO{background:#5dade2;}
+.grupo-TONER{background:#34495e;}
+.grupo-None{background:#95a5a6;}
+
+/* =========================
+   ALERTAS
+========================= */
+
+.badge-alerta{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: .84rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.alerta-box{
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.alerta-vermelho{
+    background: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220,53,69,.12);
+}
+
+.alerta-verde{
+    background: #28a745;
+    box-shadow: 0 0 0 3px rgba(40,167,69,.12);
+}
+
+.badge-alerta-vermelho{
+    background: #fdeaea;
+    color: #a61e2d;
+}
+
+.badge-alerta-verde{
+    background: #eaf7ee;
+    color: #1f7a38;
+}
+</style>
+
+<div class="container-fluid">
+
+    <!-- Header da página -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="mb-1">Estoque Baixo ⚠️</h2>
+            <p class="text-muted mb-0">
+                Lista completa dos itens com duração inferior a 3 meses ou em dias.
+            </p>
+        </div>
+
+        <a href="{% url 'dimms:homepage' %}" class="btn btn-outline-primary">
+            ← Voltar
+        </a>
+    </div>
+
+    <!-- Card principal -->
+    <div class="card shadow-sm h-100">
+
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><strong>Total de itens:</strong> {{ estoque_baixo|length }}</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive essenciais-scroll">
+                <table class="table table-hover mb-0 w-100 table-essenciais">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Grupo</th>
+                            <th>E-fisco</th>
+                            <th>Descrição</th>
+                            <th>Marca</th>
+                            <th>Unidade</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">Consumo Mensal</th>
+                            <th class="text-center">Duração</th>
+                            <th class="text-center">Validade</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in estoque_baixo %}
+                        <tr>
+
+                            <!-- Grupo -->
+                            <td>
+                                {% if item.item_shock.grupo_consumo %}
+                                    <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
+                                        {{ item.item_shock.get_grupo_consumo_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge-grupo grupo-None">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- E-fisco -->
+                            <td>
+                                <a href="{% url 'dimms:overview' item.pk %}"
+                                   class="text-decoration-none fw-semibold text-primary">
+                                    {{ item.item_shock.efisco|default:"-" }}
+                                </a>
+                            </td>
+
+                            <!-- Descrição -->
+                            <td>
+                                <a href="{% url 'dimms:overview' item.pk %}"
+                                   class="text-decoration-none fw-semibold text-dark">
+                                    {{ item.description_manual|default:"-" }}
+                                </a>
+                            </td>
+
+                            <!-- Marca -->
+                            <td>{{ item.mark|default:"-" }}</td>
+
+                            <!-- Unidade -->
+                            <td>{{ item.item_shock.medida|default:"-" }}</td>
+
+                            <!-- Quantidade -->
+                            <td class="text-center">
+                                {{ item.amount_shock|default:"-" }}
+                            </td>
+
+                            <!-- Consumo -->
+                            <td class="text-center">
+                                {{ item.monthly_consumption|default:"-" }}
+                            </td>
+
+                            <!-- Duração -->
+                            <td class="text-center">
+                                {% if item.low_stock %}
+                                    <span class="badge-alerta badge-alerta-vermelho">
+                                        <span class="alerta-box alerta-vermelho"></span>
+                                        {{ item.duration|default:"—" }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge-alerta badge-alerta-verde">
+                                        <span class="alerta-box alerta-verde"></span>
+                                        {{ item.duration|default:"—" }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Validade -->
+                            <td class="text-center">
+                                {% if item.validity %}
+                                    {% if item.alerta_vencimento %}
+                                        <span class="badge-alerta badge-alerta-vermelho">
+                                            <span class="alerta-box alerta-vermelho"></span>
+                                            {{ item.validity|date:"d/m/Y" }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-alerta badge-alerta-verde">
+                                            <span class="alerta-box alerta-verde"></span>
+                                            {{ item.validity|date:"d/m/Y" }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                Nenhum item com baixo estoque encontrado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
