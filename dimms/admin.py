@@ -287,14 +287,14 @@ class EstoqueAdmin(admin.ModelAdmin):
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(admin.ModelAdmin):
     list_display=(
-        'request',
-        'user_order',
+        'request_code',
+        'ua_order',
         'data_order',
         'situation',
     )
 
     search_fields=(
-        'request',
+        'request_code',
         'user_order',
         'situation',
     )
@@ -302,7 +302,9 @@ class SolicitacaoAdmin(admin.ModelAdmin):
     fieldsets=(
         ('Informações da Requisição', {
             'fields': (
+                'ua_order',
                 'user_order',
+                'situation',
             )
         }),
         
@@ -325,7 +327,7 @@ class SolicitacaoItensAdmin(admin.ModelAdmin):
     list_display=(
         'request_defendant',
         'item_order',
-        'amont_order',
+        'amount_order',
     )
     
     search_fields=(
@@ -343,7 +345,7 @@ class SolicitacaoItensAdmin(admin.ModelAdmin):
         ('Dados Item', {
             'fields': (
                 'item_order',
-                'amont_order',
+                'amount_order',
             )
         }),
     )
@@ -387,7 +389,13 @@ class TramitacaoAdmin(admin.ModelAdmin):
                 'documents_update',
             )
         }),
-    )
+        
+        ('Foto da Atualização', {
+            'fields': (
+                'photo_update',
+            )
+        })
+        )
     
     def save_model(self, request, obj, form, change):
         if not obj.user_update_id:

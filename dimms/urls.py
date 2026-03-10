@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('processing/', processing, name='processing'),
     path('processing/<int:pk>/', details_processing, name='details_processing'),
+    path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
     
     path('active_balance/', active_balance, name='active_balance'), #inativa
     path('register_movement/', register_movement, name='register_movement'), #inativa

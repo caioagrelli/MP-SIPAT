@@ -1,370 +1,407 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Tramitações{% endblock %}
+{% block title %}SIPAT{% endblock %}
 
 {% block content %}
 <style>
-  :root{
-    --cinza-fundo:#f9fafc;
-    --cinza-card:#ffffff;
-    --cinza-texto:#444;
-    --cinza-borda:#e2e6ea;
-    --azul-suave:#2f4f6f;
-    --azul-botao:#406080;
-    --azul-claro:#eef4fb;
-    --verde-suave:#5cb85c;
-    --verde-fundo:#edf8ef;
-    --amarelo-suave:#f0ad4e;
-    --amarelo-fundo:#fff7e8;
-    --vermelho-suave:#d9534f;
-    --vermelho-fundo:#fdeeee;
-    --cinza-badge:#6c757d;
-    --cinza-badge-fundo:#f1f3f5;
-  }
 
-  .page-wrap{
-    background:var(--cinza-fundo);
-    color:var(--cinza-texto);
-    font-family:"Inter","Segoe UI",sans-serif;
-    padding:18px;
-    border-radius:12px;
-  }
+:root{
+--bg-page:#f7f9fc;
+--card:#ffffff;
+--border:#e2e8f0;
+--text:#334155;
+--muted:#64748b;
 
-  h1,h4,h5,h6{
-    color:var(--azul-suave);
-    font-weight:600;
-  }
+--primary:#2f4f6f;
+--primary-dark:#243b53;
 
-  .btn-primary{
-    background-color:var(--azul-botao);
-    border:none;
-    border-radius:8px;
-    font-weight:500;
-    padding:8px 18px;
-  }
+/* cores fortes */
+--proc:#2166b1;
+--sep:#7d4ab5;
+--env:#a66300;
+--tram:#0f766e;
+--rec:#2f7d32;
+--can:#a94442;
+}
 
-  .btn-primary:hover{
-    background-color:#324b66;
-  }
+.page-wrap{
+background:var(--bg-page);
+padding:20px;
+border-radius:16px;
+font-family:"Segoe UI", sans-serif;
+}
 
-  .btn-outline-secondary,
-  .btn-outline-primary{
-    border-radius:8px;
-    padding:8px 14px;
-  }
+/* HEADER */
 
-  .card{
-    background-color:var(--cinza-card);
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-  }
+.page-header{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:16px;
+flex-wrap:wrap;
+margin-bottom:24px;
+}
 
-  .card-header{
-    background:transparent;
-    border-bottom:1px solid var(--cinza-borda);
-    color:var(--azul-suave);
-    font-weight:600;
-  }
+.page-header h2{
+margin:0 0 4px 0;
+color:var(--primary);
+font-weight:700;
+}
 
-  .filter-label{
-    font-size:.85rem;
-    color:#6c757d;
-    margin-bottom:6px;
-  }
+.page-header p{
+margin:0;
+color:var(--muted);
+}
 
-  .form-control,
-  .form-select{
-    border:1px solid var(--cinza-borda);
-    border-radius:10px;
-    padding:10px 12px;
-  }
+.page-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
 
-  table thead{
-    background:#f0f2f5;
-    color:var(--azul-suave);
-    font-weight:600;
-  }
+/* CARDS */
 
-  table tbody tr:hover{
-    background:#f9f9f9;
-  }
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:16px;
+box-shadow:0 6px 18px rgba(15,23,42,.04);
+}
 
-  .table td,.table th{
-    vertical-align:middle;
-  }
+.card-header{
+background:#f8fbff;
+color:var(--primary);
+font-weight:700;
+border-bottom:1px solid var(--border);
+border-radius:16px 16px 0 0 !important;
+}
 
-  .kpi-card{
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    background:#fff;
-    box-shadow:0 2px 8px rgba(0,0,0,.03);
-    height:100%;
-  }
+/* KPI */
 
-  .kpi-card .card-body{
-    padding:1rem 1.1rem;
-  }
+.kpi-card{
+background:#fff;
+border-radius:14px;
+padding:14px 16px;
+border:1px solid var(--border);
+box-shadow:0 4px 12px rgba(15,23,42,.03);
+height:100%;
+}
 
-  .kpi-label{
-    font-size:.85rem;
-    color:#6c757d;
-    margin-bottom:6px;
-  }
+.kpi-card-title{
+font-size:.92rem;
+color:var(--muted);
+margin-bottom:6px;
+}
 
-  .kpi-value{
-    font-size:1.7rem;
-    font-weight:700;
-    line-height:1.1;
-    color:var(--azul-suave);
-  }
+.kpi-value{
+font-size:1.6rem;
+font-weight:800;
+line-height:1;
+color:var(--text);
+}
 
-  .kpi-andamento{ border-left:5px solid #3498db; }
-  .kpi-concluida{ border-left:5px solid var(--verde-suave); }
-  .kpi-pendente{ border-left:5px solid var(--amarelo-suave); }
-  .kpi-cancelada{ border-left:5px solid var(--vermelho-suave); }
+/* cores dos cards */
 
-  .badge-status{
-    font-weight:600;
-    padding:.45rem .75rem;
-    border-radius:999px;
-    font-size:.78rem;
-    display:inline-block;
-  }
+.kpi-processamento{ border-left:5px solid var(--proc); }
+.kpi-separada{ border-left:5px solid var(--sep); }
+.kpi-envio{ border-left:5px solid var(--env); }
+.kpi-tramitacao{ border-left:5px solid var(--tram); }
+.kpi-recebida{ border-left:5px solid var(--rec); }
+.kpi-cancelada{ border-left:5px solid var(--can); }
 
-  .status-andamento{
-    background:#eaf4ff;
-    color:#2166b1;
-    border:1px solid #cfe3fb;
-  }
+/* filtros */
 
-  .status-concluida{
-    background:var(--verde-fundo);
-    color:#2f7d32;
-    border:1px solid #cfe8d1;
-  }
+.filters-card{
+margin-bottom:22px;
+}
 
-  .status-pendente{
-    background:var(--amarelo-fundo);
-    color:#9a6700;
-    border:1px solid #f5deb3;
-  }
+.filter-label{
+font-size:.83rem;
+color:var(--muted);
+margin-bottom:6px;
+font-weight:600;
+}
 
-  .status-cancelada{
-    background:var(--vermelho-fundo);
-    color:#a94442;
-    border:1px solid #f1c8c6;
-  }
+.form-control,
+.form-select{
+border-radius:12px;
+border:1px solid var(--border);
+padding:10px 12px;
+}
 
-  .badge-prioridade{
-    font-weight:600;
-    padding:.4rem .7rem;
-    border-radius:999px;
-    font-size:.75rem;
-    display:inline-block;
-  }
+.form-control:focus,
+.form-select:focus{
+border-color:#bfd3ea;
+box-shadow:0 0 0 .2rem rgba(47,79,111,.08);
+}
 
-  .prioridade-alta{
-    background:#fdeeee;
-    color:#a94442;
-    border:1px solid #f1c8c6;
-  }
+/* BOTÕES */
 
-  .prioridade-normal{
-    background:#eef2f6;
-    color:#4f6376;
-    border:1px solid #dbe4ec;
-  }
+.btn{
+border-radius:12px;
+font-weight:600;
+}
 
-  .prioridade-baixa{
-    background:#f8f9fa;
-    color:#6c757d;
-    border:1px solid #e9ecef;
-  }
+.btn-primary{
+background:var(--primary);
+border-color:var(--primary);
+}
 
-  .table-actions{
-    display:flex;
-    gap:.45rem;
-    flex-wrap:wrap;
-  }
+.btn-primary:hover{
+background:var(--primary-dark);
+border-color:var(--primary-dark);
+}
+
+/* TABELA */
+
+.table{
+margin-bottom:0;
+}
+
+.table thead th{
+background:#f8fafc;
+color:var(--primary);
+font-size:.88rem;
+font-weight:700;
+border-bottom:1px solid var(--border);
+white-space:nowrap;
+}
+
+.table td{
+vertical-align:middle;
+color:var(--text);
+}
+
+.table tbody tr:hover{
+background:#fbfdff;
+}
+
+/* LINKS */
+
+.link-numero{
+font-weight:700;
+text-decoration:none;
+color:#2c6ed5;
+}
+
+.link-numero:hover{
+text-decoration:underline;
+color:#1f57ab;
+}
+
+/* STATUS */
+
+.badge-status{
+display:inline-flex;
+align-items:center;
+padding:7px 14px;
+border-radius:999px;
+font-size:.76rem;
+font-weight:700;
+color:white;
+box-shadow:0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* cores vivas */
+
+.status-processamento{background:var(--proc);}
+.status-separada{background:var(--sep);}
+.status-envio{background:var(--env);}
+.status-tramitacao{background:var(--tram);}
+.status-recebida{background:var(--rec);}
+.status-cancelada{background:var(--can);}
+
+.table-empty{
+padding:28px 12px !important;
+color:var(--muted) !important;
+}
+
+@media (max-width:768px){
+.page-wrap{
+padding:14px;
+}
+}
+
 </style>
 
 <div class="page-wrap">
 
   <!-- TOPO -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="page-header">
     <div>
-      <h1 class="mb-0">🚚 Tramitações</h1>
-      <p class="text-muted mb-0">
-        Painel visual para acompanhamento das tramitações internas.
-      </p>
+      <h2>🚚 Tramitações</h2>
+      <p>Acompanhamento visual das solicitações e suas etapas.</p>
     </div>
 
-    <div class="d-flex gap-2">
-      <a href="#" class="btn btn-outline-primary shadow-sm">↻ Atualizar Tramitações</a>
-      <a href="#" class="btn btn-primary shadow-sm">＋ Nova Tramitação</a>
+    <div class="page-actions">
+      <a href="#" class="btn btn-outline-primary">Atualizar</a>
+      <a href="#" class="btn btn-primary">Nova Solicitação</a>
     </div>
   </div>
 
-  <!-- VISÃO GERAL -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="kpi-card kpi-andamento">
-        <div class="card-body">
-          <div class="kpi-label">Em andamento</div>
-          <div class="kpi-value">{{ total_andamento }}</div>
-        </div>
+  <!-- KPIs -->
+  <div class="row mb-4 g-3">
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-processamento">
+        <div class="kpi-card-title">⚙️ Processamento</div>
+        <div class="kpi-value">{{ total_processamento }}</div>
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="kpi-card kpi-concluida">
-        <div class="card-body">
-          <div class="kpi-label">Concluídas</div>
-          <div class="kpi-value">{{ total_concluidas }}</div>
-        </div>
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-separada">
+        <div class="kpi-card-title">📦 Separada</div>
+        <div class="kpi-value">{{ total_separada }}</div>
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="kpi-card kpi-pendente">
-        <div class="card-body">
-          <div class="kpi-label">Pendentes</div>
-          <div class="kpi-value">{{ total_pendentes }}</div>
-        </div>
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-envio">
+        <div class="kpi-card-title">🚚 Envio</div>
+        <div class="kpi-value">{{ total_envio }}</div>
       </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-tramitacao">
+        <div class="kpi-card-title">🛣️ Tramitação</div>
+        <div class="kpi-value">{{ total_tramitacao }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="kpi-card kpi-recebida">
+        <div class="kpi-card-title">✅ Recebida</div>
+        <div class="kpi-value">{{ total_recebida }}</div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6">
       <div class="kpi-card kpi-cancelada">
-        <div class="card-body">
-          <div class="kpi-label">Canceladas</div>
-          <div class="kpi-value">{{ total_canceladas }}</div>
-        </div>
+        <div class="kpi-card-title">❌ Cancelada</div>
+        <div class="kpi-value">{{ total_cancelada }}</div>
       </div>
     </div>
   </div>
 
-  <!-- FILTROS -->
-  <div class="card mb-4">
-    <div class="card-header">Filtros</div>
+  <!-- PESQUISA / FILTROS -->
+  <div class="card filters-card">
+    <div class="card-header">
+      Pesquisa e filtros
+    </div>
     <div class="card-body">
       <form method="get" class="row g-3">
-
         <div class="col-md-6">
-          <div class="filter-label">Buscar tramitação</div>
+          <div class="filter-label">Pesquisar</div>
           <input
-            class="form-control"
             type="text"
             name="q"
+            class="form-control"
             value="{{ query|default_if_none:'' }}"
-            placeholder="Ex: número, assunto, setor ou responsável">
+            placeholder="Buscar por código, UA ou solicitante">
         </div>
 
         <div class="col-md-3">
           <div class="filter-label">Status</div>
-          <select class="form-select" name="status">
+          <select name="status" class="form-select">
             <option value="">Todos</option>
-            <option value="EM_ANDAMENTO" {% if filtro_status == "EM_ANDAMENTO" %}selected{% endif %}>Em andamento</option>
-            <option value="CONCLUIDA" {% if filtro_status == "CONCLUIDA" %}selected{% endif %}>Concluída</option>
-            <option value="PENDENTE" {% if filtro_status == "PENDENTE" %}selected{% endif %}>Pendente</option>
+            <option value="PROCESSAMENTO" {% if filtro_status == "PROCESSAMENTO" %}selected{% endif %}>Processamento</option>
+            <option value="SEPARADA" {% if filtro_status == "SEPARADA" %}selected{% endif %}>Separada</option>
+            <option value="ENVIO" {% if filtro_status == "ENVIO" %}selected{% endif %}>Envio</option>
+            <option value="TRAMITACAO" {% if filtro_status == "TRAMITACAO" %}selected{% endif %}>Tramitação</option>
+            <option value="RECEBIDA" {% if filtro_status == "RECEBIDA" %}selected{% endif %}>Recebida</option>
             <option value="CANCELADA" {% if filtro_status == "CANCELADA" %}selected{% endif %}>Cancelada</option>
           </select>
         </div>
 
         <div class="col-md-3 d-flex align-items-end gap-2">
-          <button class="btn btn-primary w-100" type="submit">Filtrar</button>
-          <a class="btn btn-outline-secondary w-100" href="{% url 'dimms:processing' %}">Limpar</a>
+          <button type="submit" class="btn btn-primary w-100">🔎 Pesquisar</button>
+          <a href="{% url 'dimms:processing' %}" class="btn btn-outline-secondary w-100">Limpar</a>
         </div>
-
       </form>
     </div>
   </div>
 
   <!-- TABELA -->
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Todas as Tramitações ({{ total_tramitacoes }})</h4>
-      <span class="badge-soft px-3 py-2" style="background:#e9eef6;color:#2f4f6f;border:1px solid #d7e2f3;font-weight:600;border-radius:999px;">
-        Painel demonstrativo
-      </span>
+  <div class="card">
+    <div class="card-header">
+    🌍 Todas as Solicitações ({{ total_tramitacoes }})
     </div>
 
     <div class="card-body">
-      {% if tramitacoes %}
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Número</th>
-                <th>Assunto</th>
-                <th>Origem</th>
-                <th>Destino</th>
-                <th>Responsável</th>
-                <th>Status</th>
-                <th>Prioridade</th>
-                <th>Atualização</th>
-                <th style="width:200px;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for t in tramitacoes %}
-                <tr>
-                  <td>
-                    <a href="{% url 'dimms:details_processing' forloop.counter %}"
-                        class="text-decoration-none fw-semibold text-primary">
-                        {{ t.numero }}
-                    </a>
-                    </td>
-                  <td>{{ t.assunto }}</td>
-                  <td>{{ t.setor_origem }}</td>
-                  <td>{{ t.setor_destino }}</td>
-                  <td>{{ t.responsavel }}</td>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Solicitação</th>
+              <th>UA</th>
+              <th>Solicitante</th>
+              <th>Status</th>
+              <th>Data Atualização</th>
+              <th>Responsável Atualização</th>
+            </tr>
+          </thead>
 
-                  <td>
-                    {% if t.status == "EM_ANDAMENTO" %}
-                      <span class="badge-status status-andamento">Em andamento</span>
-                    {% elif t.status == "CONCLUIDA" %}
-                      <span class="badge-status status-concluida">Concluída</span>
-                    {% elif t.status == "PENDENTE" %}
-                      <span class="badge-status status-pendente">Pendente</span>
-                    {% elif t.status == "CANCELADA" %}
-                      <span class="badge-status status-cancelada">Cancelada</span>
-                    {% else %}
-                      <span class="badge-status" style="background:#f1f3f5;color:#555;">{{ t.status }}</span>
-                    {% endif %}
-                  </td>
+          <tbody>
+            {% for t in tramitacoes %}
+            <tr>
+              <td>
+                <a href="{% url 'dimms:details_processing' t.pk %}" class="link-numero">
+                  {{ t.request_code }}
+                </a>
+              </td>
 
-                  <td>
-                    {% if t.prioridade == "Alta" %}
-                      <span class="badge-prioridade prioridade-alta">Alta</span>
-                    {% elif t.prioridade == "Normal" %}
-                      <span class="badge-prioridade prioridade-normal">Normal</span>
-                    {% else %}
-                      <span class="badge-prioridade prioridade-baixa">Baixa</span>
-                    {% endif %}
-                  </td>
+              <td>{{ t.ua_order }}</td>
 
-                  <td>{{ t.ultima_atualizacao }}</td>
+              <td>{{ t.user_order|default:"-" }}</td>
 
-                  <td>
-                    <div class="table-actions">
-                      <a href="#" class="btn btn-sm btn-outline-secondary">Detalhes</a>
-                      <a href="#" class="btn btn-sm btn-outline-primary">Atualizar</a>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="alert alert-info text-center py-3 mb-0">
-          Nenhuma tramitação encontrada.
-        </div>
-      {% endif %}
+              <td>
+                {% if t.situation == "PROCESSAMENTO" %}
+                  <span class="badge-status status-processamento">Processamento</span>
+                {% elif t.situation == "SEPARADA" %}
+                  <span class="badge-status status-separada">Separada</span>
+                {% elif t.situation == "ENVIO" %}
+                  <span class="badge-status status-envio">Envio</span>
+                {% elif t.situation == "TRAMITACAO" %}
+                  <span class="badge-status status-tramitacao">Tramitação</span>
+                {% elif t.situation == "RECEBIDA" %}
+                  <span class="badge-status status-recebida">Recebida</span>
+                {% elif t.situation == "CANCELADA" %}
+                  <span class="badge-status status-cancelada">Cancelada</span>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+
+             <td>
+            {% if t.ultima_tramitacao %}
+                {{ t.ultima_tramitacao.date_update|date:"d/m/Y H:i" }}
+            {% else %}
+                -
+            {% endif %}
+            </td>
+
+            <td>
+            {% if t.ultima_tramitacao and t.ultima_tramitacao.user_update %}
+                {{ t.ultima_tramitacao.user_update.get_full_name|default:t.ultima_tramitacao.user_update.username }}
+            {% else %}
+                -
+            {% endif %}
+            </td>
+
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center table-empty">
+                Nenhuma solicitação encontrada.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
 </div>
+
 {% endblock %}

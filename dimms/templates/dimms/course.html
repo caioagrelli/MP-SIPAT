@@ -1,0 +1,594 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --card:#ffffff;
+    --text:#334155;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --primary:#2f4f6f;
+    --primary-dark:#243b53;
+    --primary-soft:#eef4fb;
+    --success:#2e7d32;
+    --success-soft:#edf8ef;
+    --warning:#9a6700;
+    --warning-soft:#fff7e8;
+    --danger:#a94442;
+    --danger-soft:#fdeeee;
+    --purple:#7d4ab5;
+    --purple-soft:#f4ebfa;
+    --teal:#0f766e;
+    --teal-soft:#e8f8f5;
+    --shadow:0 8px 24px rgba(15, 23, 42, .06);
+  }
+
+  .course-page{
+    background:var(--bg);
+    border-radius:18px;
+    padding:22px;
+  }
+
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .topbar h1{
+    margin:0 0 6px 0;
+    color:var(--primary);
+    font-size:1.8rem;
+    font-weight:700;
+  }
+
+  .topbar p{
+    margin:0;
+    color:var(--muted);
+  }
+
+  .topbar-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .btn-soft,
+  .btn-main,
+  .btn-danger-soft{
+    border-radius:12px;
+    padding:10px 16px;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:.18s ease;
+  }
+
+  .btn-soft{
+    background:#fff;
+    border:1px solid var(--border);
+    color:var(--primary);
+  }
+
+  .btn-soft:hover{
+    background:#f8fafc;
+    color:var(--primary-dark);
+  }
+
+  .btn-main{
+    background:var(--primary);
+    border:1px solid var(--primary);
+    color:#fff;
+  }
+
+  .btn-main:hover{
+    background:var(--primary-dark);
+    color:#fff;
+  }
+
+  .btn-danger-soft{
+    background:#fff;
+    border:1px solid #f3d1d1;
+    color:var(--danger);
+  }
+
+  .btn-danger-soft:hover{
+    background:#fff5f5;
+    color:#8f2f2d;
+  }
+
+  .hero-card,
+  .section-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+  }
+
+  .hero-card{
+    padding:22px;
+    margin-bottom:20px;
+  }
+
+  .hero-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .hero-kicker{
+    font-size:.82rem;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  .hero-code{
+    font-size:1.6rem;
+    font-weight:800;
+    color:var(--primary);
+    margin-bottom:6px;
+  }
+
+  .hero-sub{
+    color:var(--text);
+    font-weight:600;
+  }
+
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:.55rem .95rem;
+    border-radius:999px;
+    font-size:.82rem;
+    font-weight:700;
+    border:1px solid transparent;
+    white-space:nowrap;
+  }
+
+  .status-processamento{
+    background:var(--primary-soft);
+    color:#2166b1;
+    border-color:#cfe3fb;
+  }
+
+  .status-separada{
+    background:var(--purple-soft);
+    color:var(--purple);
+    border-color:#dfcff8;
+  }
+
+  .status-envio{
+    background:#fff5e6;
+    color:#a66300;
+    border-color:#f5ddb2;
+  }
+
+  .status-tramitacao{
+    background:var(--teal-soft);
+    color:var(--teal);
+    border-color:#bfe8df;
+  }
+
+  .status-recebida{
+    background:var(--success-soft);
+    color:var(--success);
+    border-color:#cfe8d1;
+  }
+
+  .status-cancelada{
+    background:var(--danger-soft);
+    color:var(--danger);
+    border-color:#f1c8c6;
+  }
+
+  .grid-main{
+    display:grid;
+    grid-template-columns:1.35fr .85fr;
+    gap:20px;
+  }
+
+  .section-card{
+    overflow:hidden;
+  }
+
+  .section-header{
+    padding:16px 18px;
+    border-bottom:1px solid var(--border);
+    color:white;
+    font-weight:700;
+    background:var(--primary-dark);
+  }
+
+  .section-body{
+    padding:18px;
+  }
+
+  .info-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:14px;
+  }
+
+  .info-box{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:14px;
+    padding:14px 15px;
+  }
+
+  .info-label{
+    font-size:.8rem;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  .info-value{
+    color:var(--primary);
+    font-weight:700;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .note-box{
+    border:1px solid var(--border);
+    background:#fbfcfe;
+    border-radius:14px;
+    padding:16px;
+    color:#475569;
+    line-height:1.65;
+    white-space:pre-line;
+    min-height:120px;
+  }
+
+  .preview-wrap{
+    border:1px dashed #cfd8e3;
+    background:#fbfcfe;
+    border-radius:16px;
+    padding:14px;
+  }
+
+  .preview-image{
+    width:100%;
+    max-height:440px;
+    object-fit:cover;
+    border-radius:14px;
+    border:1px solid var(--border);
+    display:block;
+  }
+
+  .empty-state{
+    padding:18px;
+    border:1px dashed #d8dee7;
+    border-radius:14px;
+    background:#fbfcfe;
+    color:#8b949e;
+    font-style:italic;
+  }
+
+  .file-card{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#fff;
+    padding:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .file-title{
+    font-weight:700;
+    color:var(--primary);
+    margin-bottom:4px;
+  }
+
+  .file-sub{
+    color:var(--muted);
+    font-size:.92rem;
+  }
+
+  .side-stack{
+    display:grid;
+    gap:20px;
+  }
+
+  .summary-list{
+    display:grid;
+    gap:12px;
+  }
+
+  .summary-item{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px 15px;
+    background:#fff;
+  }
+
+  .summary-item .label{
+    font-size:.8rem;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+
+  .summary-item .value{
+    color:var(--primary);
+    font-weight:700;
+    line-height:1.35;
+  }
+
+  .actions-list{
+    display:grid;
+    gap:10px;
+  }
+
+  .actions-list a{
+    text-decoration:none;
+  }
+
+  @media (max-width: 992px){
+    .grid-main{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 640px){
+    .info-grid{
+      grid-template-columns:1fr;
+    }
+
+    .course-page{
+      padding:14px;
+    }
+
+    .hero-card,
+    .section-body{
+      padding:14px;
+    }
+  }
+</style>
+
+<div class="course-page">
+
+  <div class="topbar">
+    <div>
+      <h1>ℹ️ Detalhes da Tramitação</h1>
+      <p>Etapa individual registrada no histórico da solicitação {{ solicitacao.request_code }}.</p>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn-soft">
+        ◀️ Voltar
+      </a>
+      <a href="#" class="btn-danger-soft">
+        📞 Abrir chamado
+      </a>
+      <a href="#" class="btn-main">
+        📝 Gerar comprovante
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="hero-head">
+      <div>
+        <div class="hero-kicker">Solicitação vinculada</div>
+        <div class="hero-code">{{ solicitacao.request_code }}</div>
+        <div class="hero-sub">
+          {{ tramitacao.get_update_display|default:tramitacao.update|default:"Etapa não identificada" }}
+        </div>
+      </div>
+
+      <div>
+        {% if tramitacao.update == "PROCESSAMENTO" %}
+          <span class="status-pill status-processamento">Em Processamento</span>
+        {% elif tramitacao.update == "SEPARADA" %}
+          <span class="status-pill status-separada">Separada</span>
+        {% elif tramitacao.update == "ENVIO" %}
+          <span class="status-pill status-envio">Para Envio</span>
+        {% elif tramitacao.update == "TRAMITACAO" %}
+          <span class="status-pill status-tramitacao">Em Tramitação</span>
+        {% elif tramitacao.update == "RECEBIDA" %}
+          <span class="status-pill status-recebida">Recebida</span>
+        {% elif tramitacao.update == "CANCELADA" %}
+          <span class="status-pill status-cancelada">Cancelada</span>
+        {% else %}
+          <span class="status-pill status-processamento">
+            {{ tramitacao.get_update_display|default:tramitacao.update|default:"Sem etapa" }}
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+
+    <div class="main-stack">
+
+      <div class="section-card">
+        <div class="section-header">Informações principais</div>
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-box">
+              <div class="info-label">Código da solicitação</div>
+              <div class="info-value">{{ solicitacao.request_code }}</div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Etapa</div>
+              <div class="info-value">
+                {{ tramitacao.get_update_display|default:tramitacao.update|default:"-" }}
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Data e hora da atualização</div>
+              <div class="info-value">
+                {{ tramitacao.date_update|date:"d/m/Y H:i"|default:"-" }}
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">ID da tramitação</div>
+              <div class="info-value">#{{ tramitacao.pk }}</div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Usuário que registrou a tramitação</div>
+              <div class="info-value">
+                {% if tramitacao.user_update %}
+                  {{ tramitacao.user_update.get_full_name|default:tramitacao.user_update.username }}
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Responsável pela tramitação</div>
+              <div class="info-value">
+                {{ tramitacao.responsible_update|default:"-" }}
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Solicitante</div>
+              <div class="info-value">{{ solicitacao.ua_order|default:"-" }}</div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Usuário solicitante</div>
+              <div class="info-value">{{ solicitacao.user_order|default:"-" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">Observação da etapa</div>
+        <div class="section-body">
+          <div class="note-box">
+            {{ tramitacao.observation_update|default:"Nenhuma observação registrada para esta etapa." }}
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">Foto / evidência visual</div>
+        <div class="section-body">
+          {% if tramitacao.photo_update %}
+            <div class="preview-wrap">
+              <img
+                src="{{ tramitacao.photo_update.url }}"
+                alt="Foto da tramitação"
+                class="preview-image">
+            </div>
+          {% else %}
+            <div class="empty-state">
+              Nenhuma foto anexada para esta etapa.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">Documento anexado</div>
+        <div class="section-body">
+          {% if tramitacao.documents_update %}
+            <div class="file-card">
+              <div>
+                <div class="file-title">Documento disponível</div>
+                <div class="file-sub">Anexo registrado nesta atualização.</div>
+              </div>
+
+              <a href="{{ tramitacao.documents_update.url }}"
+                 target="_blank"
+                 class="btn-soft">
+                Abrir documento
+              </a>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              Nenhum documento anexado para esta etapa.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="side-stack">
+
+      <div class="section-card">
+        <div class="section-header">Resumo rápido</div>
+        <div class="section-body">
+          <div class="summary-list">
+            <div class="summary-item">
+              <div class="label">Etapa atual</div>
+              <div class="value">
+                {{ tramitacao.get_update_display|default:tramitacao.update|default:"-" }}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="label">Registrado por</div>
+              <div class="value">
+                {% if tramitacao.user_update %}
+                  {{ tramitacao.user_update.get_full_name|default:tramitacao.user_update.username }}
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="label">Responsável operacional</div>
+              <div class="value">
+                {{ tramitacao.responsible_update|default:"-" }}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="label">Atualizado em</div>
+              <div class="value">
+                {{ tramitacao.date_update|date:"d/m/Y H:i"|default:"-" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">Ações</div>
+        <div class="section-body">
+          <div class="actions-list">
+            <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn-soft">
+              ◀️ Voltar
+            </a>
+            <a href="#" class="btn-danger-soft">
+              📞 Abrir chamado
+            </a>
+            <a href="#" class="btn-main">
+              📝 Gerar comprovante
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

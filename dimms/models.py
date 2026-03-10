@@ -569,34 +569,39 @@ class Estoque(models.Model):
 
 # Campo usado para criar uma Solicitação de Materiais
 class Solicitacao(models.Model):  
-    request = models.CharField(
+    request_code = models.CharField(
         max_length=30,
         unique=True,
         editable=False,
         verbose_name='Código da Solicitação'
     )
-      
-      
-    user_order = models.ForeignKey(
+          
+    ua_order = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
+        blank=True,
+        null=True,
         related_name='solicitantesconsumo',
         verbose_name='Solicitante',
     )
-      
+    
+    user_order = models.CharField(
+        max_length=40,
+        blank=True,
+        null=True,
+        verbose_name='Usuário Solicitante',
+    )
       
     data_order = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
     )
     
-    
     observation_order = models.TextField(
         blank=True,
         null=True,
         verbose_name='Observação'
     )
-    
     
     documents_order = models.FileField(
         upload_to=caminho_movimentacao_consumo,
@@ -605,13 +610,11 @@ class Solicitacao(models.Model):
         verbose_name='Documento Anexado'
     )
     
-    
     situation = models.CharField(
         max_length=25,
         choices=StatusTramitacao,
         verbose_name='Situação',
     )
- 
  
     user_responsible = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -627,18 +630,18 @@ class Solicitacao(models.Model):
         verbose_name_plural='09 - Solicitações'
         
     def save(self, *args, **kwargs):
-        if not self.request:
+        if not self.request_code:
             ano = timezone.now().year
             ultimo = Solicitacao.objects.filter(
-                request__startswith=f'SBC-{ano}'
+                request_code__startswith=f'SBC-{ano}'
             ).count() + 1
  
-            self.request = f'SBC-{ano}-{ultimo:04d}'
+            self.request_code = f'SBC-{ano}-{ultimo:04d}'
 
         super().save(*args, **kwargs)        
         
     def __str__(self):
-       return str(self.request)  
+       return str(self.request_code)  
 
 # Campo usado para adicionar os itens solicitados
 class SolicitacaoItens(models.Model):
@@ -652,7 +655,7 @@ class SolicitacaoItens(models.Model):
     )
     
     item_order = models.ForeignKey(
-        BensConsumo,
+        Estoque,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
@@ -660,7 +663,7 @@ class SolicitacaoItens(models.Model):
         verbose_name='Item Solicitado',
     )
     
-    amont_order = models.PositiveIntegerField(
+    amount_order = models.PositiveIntegerField(
         blank=True,
         null=True,
         verbose_name='Quantidade',
@@ -692,6 +695,14 @@ class Tramitacao(models.Model):
         verbose_name='Status',
     )    
     
+    responsible_update = models.CharField(
+        max_length=40, 
+        blank=True,
+        null=True,
+        verbose_name='Responsável pela Atualização',
+    )
+    
+    
     observation_update = models.TextField(
         blank=True,
         null=True,
@@ -703,6 +714,13 @@ class Tramitacao(models.Model):
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
+    )
+    
+    photo_update = models.ImageField(
+        upload_to=caminho_consum_update,
+        blank=True,
+        null=True,
+        verbose_name='Foto do Item',
     )
     
     date_update = models.DateTimeField(

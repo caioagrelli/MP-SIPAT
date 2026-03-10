@@ -72,7 +72,6 @@ class Status(models.TextChoices):
 class StatusTramitacao(models.TextChoices):
     processamento = 'PROCESSAMENTO', 'EM Processamento'
     separada = 'SEPARADA', 'Separada'
-    para_envio = 'ENVIO', 'Para Envio'
     em_tramitacao = 'TRAMITACAO', 'Em Tramitação'
     recebida = 'RECEBIDA', 'Recebida'
     cancelada = 'CANCELADA', 'Cancelada'

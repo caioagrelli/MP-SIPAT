@@ -1,569 +1,601 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Detalhes da Solicitação{% endblock %}
+{% block title %}SIPAT{% endblock %}
 
 {% block content %}
+
 <style>
-  :root{
-    --cinza-fundo:#f9fafc;
-    --cinza-card:#ffffff;
-    --cinza-texto:#444;
-    --cinza-borda:#e2e6ea;
-    --azul-suave:#2f4f6f;
-    --azul-botao:#406080;
-    --azul-claro:#eef4fb;
-    --verde-suave:#5cb85c;
-    --verde-fundo:#edf8ef;
-    --amarelo-suave:#f0ad4e;
-    --amarelo-fundo:#fff7e8;
-    --vermelho-suave:#d9534f;
-    --vermelho-fundo:#fdeeee;
-    --cinza-badge:#6c757d;
-    --cinza-badge-fundo:#f1f3f5;
-  }
 
-  .page-wrap{
-    background:var(--cinza-fundo);
-    color:var(--cinza-texto);
-    font-family:"Inter","Segoe UI",sans-serif;
-    padding:18px;
-    border-radius:12px;
-  }
+.page-wrap{
+background:#f9fafc;
+padding:20px;
+border-radius:12px;
+font-family:Segoe UI;
+}
 
-  h1,h4,h5,h6{
-    color:var(--azul-suave);
+.card{
+border-radius:12px;
+border:1px solid #e2e6ea;
+margin-bottom:20px;
+}
+
+.card-header{
+    background:#243b53;
+    color:white;
     font-weight:600;
-  }
+}
 
-  .btn-primary{
-    background-color:var(--azul-botao);
-    border:none;
-    border-radius:8px;
-    font-weight:500;
-    padding:8px 18px;
-  }
+.label{
+font-size:.8rem;
+color:#888;
+}
 
-  .btn-primary:hover{
-    background-color:#324b66;
-  }
+.value{
+font-weight:600;
+}
 
-  .btn-outline-secondary,
-  .btn-outline-primary,
-  .btn-outline-danger,
-  .btn-outline-success{
-    border-radius:8px;
-    padding:8px 14px;
-  }
+.status{
+padding:6px 12px;
+border-radius:20px;
+font-size:.8rem;
+font-weight:600;
+}
 
-  .card{
-    background-color:var(--cinza-card);
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-  }
+.status-processamento{background:#eaf4ff;color:#2166b1;}
+.status-separada{background:#f3eefe;color:#7d4ab5;}
+.status-envio{background:#fff5e6;color:#a66300;}
+.status-tramitacao{background:#e8f8f5;color:#0f766e;}
+.status-recebida{background:#edf8ef;color:#2f7d32;}
+.status-cancelada{background:#fdeeee;color:#a94442;}
 
-  .card-header{
-    background:transparent;
-    border-bottom:1px solid var(--cinza-borda);
-    color:var(--azul-suave);
-    font-weight:600;
-  }
+.tracking-wrapper{
+    position: relative;
+    max-width: 760px;
+}
 
-  .info-grid{
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:16px;
-  }
+.tracking-step{
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    position: relative;
+    min-height: 74px;
+}
 
-  .info-box{
-    background:#fff;
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    padding:14px 16px;
-    box-shadow:0 2px 8px rgba(0,0,0,.03);
-    height:100%;
-  }
+.tracking-step:not(:last-child){
+    margin-bottom: 10px;
+}
 
-  .info-label{
-    font-size:.82rem;
-    color:#6c757d;
-    margin-bottom:6px;
-  }
+.tracking-marker{
+    width: 22px;
+    min-width: 22px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+}
 
-  .info-value{
-    font-size:1rem;
-    font-weight:600;
-    color:var(--azul-suave);
-  }
+.tracking-event-note{
+    font-size: .94rem;
+    color: #6c757d;
+    line-height: 1.5;
+    background: #f8f9fb;
+    border: 1px solid #e9edf2;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
 
-  .status-pill{
-    display:inline-block;
-    font-weight:600;
-    padding:.45rem .8rem;
-    border-radius:999px;
-    font-size:.78rem;
-  }
+.tracking-dot{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e5dcd9;
+    border: 2px solid #d9dee5;
+    z-index: 2;
+    margin-top: 4px;
+}
 
-  .status-aberta{
-    background:#eef4fb;
-    color:#2166b1;
-    border:1px solid #cfe3fb;
-  }
+.tracking-line{
+    position: absolute;
+    top: 20px;
+    bottom: -12px;
+    width: 2px;
+    background: #d9dee5;
+    border-radius: 2px;
+}
 
-  .status-triagem{
-    background:#fff7e8;
-    color:#9a6700;
-    border:1px solid #f5deb3;
-  }
+.tracking-step:last-child .tracking-line{
+    display:none;
+}
 
-  .status-andamento{
-    background:#eaf4ff;
-    color:#2166b1;
-    border:1px solid #cfe3fb;
-  }
+.tracking-content{
+    flex: 1;
+    padding-bottom: 4px;
+}
 
-  .status-validacao{
-    background:#fff7e8;
-    color:#9a6700;
-    border:1px solid #f5deb3;
-  }
+.tracking-title{
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #c0c4ca;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
 
-  .status-concluida{
-    background:var(--verde-fundo);
-    color:#2f7d32;
-    border:1px solid #cfe8d1;
-  }
+.tracking-subtitle{
+    color: #9aa1a9;
+    font-size: .95rem;
+    margin-bottom: 8px;
+}
 
-  .status-cancelada{
-    background:var(--vermelho-fundo);
-    color:#a94442;
-    border:1px solid #f1c8c6;
-  }
+.tracking-event{
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
 
-  .prioridade-pill{
-    display:inline-block;
-    font-weight:600;
-    padding:.45rem .8rem;
-    border-radius:999px;
-    font-size:.78rem;
-  }
+.tracking-event-text{
+    color: #4b5563;
+    line-height: 1.45;
+    margin-bottom: 2px;
+}
 
-  .prioridade-alta{
-    background:#fdeeee;
-    color:#a94442;
-    border:1px solid #f1c8c6;
-  }
+.tracking-event-meta{
+    font-size: .92rem;
+    color: #7b8794;
+}
 
-  .prioridade-normal{
-    background:#eef2f6;
-    color:#4f6376;
-    border:1px solid #dbe4ec;
-  }
+/* etapas concluídas */
+.tracking-step.is-done .tracking-dot{
+    background: #212529;
+    border-color: #212529;
+}
 
-  .prioridade-baixa{
-    background:#f8f9fa;
-    color:#6c757d;
-    border:1px solid #e9ecef;
-  }
+.tracking-step.is-done .tracking-line{
+    background: #212529;
+}
 
-  .summary-box{
-    border:1px solid var(--cinza-borda);
-    background:#fff;
-    border-radius:12px;
-    padding:16px;
-    height:100%;
-  }
+.tracking-step.is-done .tracking-title{
+    color: #6c757d;
+}
 
-  .timeline{
-    position:relative;
-    margin:0;
-    padding:0;
-    list-style:none;
-  }
+.tracking-step.is-done .tracking-subtitle{
+    color: #8a939b;
+}
 
-  .timeline::before{
-    content:"";
-    position:absolute;
-    left:13px;
-    top:0;
-    bottom:0;
-    width:2px;
-    background:#d9e2ec;
-  }
+/* etapa atual */
+.tracking-step.is-current .tracking-dot{
+    background: #212529;
+    border: 3px solid #e9ecef;
+    box-shadow: 0 0 0 2px #212529;
+}
 
-  .timeline-item{
-    position:relative;
-    padding-left:42px;
-    margin-bottom:22px;
-  }
+.tracking-step.is-current .tracking-line{
+    background: #212529;
+}
 
-  .timeline-dot{
-    position:absolute;
-    left:4px;
-    top:4px;
-    width:18px;
-    height:18px;
-    border-radius:50%;
-    background:#406080;
-    border:3px solid #dce8f3;
-  }
+.tracking-step.is-current .tracking-title{
+    color: #212529;
+}
 
-  .timeline-card{
-    background:#fff;
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    padding:14px 16px;
-  }
+.tracking-step.is-current .tracking-subtitle{
+    color: #6c757d;
+}
 
-  .timeline-top{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    flex-wrap:wrap;
-    margin-bottom:6px;
-  }
+/* etapas pendentes */
+.tracking-step.is-pending .tracking-dot{
+    background: #fff;
+    border: 2px solid #d9dee5;
+}
 
-  .timeline-date{
-    color:#6c757d;
-    font-size:.88rem;
-  }
+.tracking-step.is-pending .tracking-line{
+    background: #e5e9ee;
+}
 
-  .timeline-responsavel{
-    font-weight:600;
-    color:var(--azul-suave);
-  }
+.tracking-step.is-pending .tracking-title{
+    color: #d0d4d9;
+}
 
-  .action-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:12px;
-  }
+.tracking-step.is-pending .tracking-subtitle{
+    color: #c0c5cb;
+}
 
-  .action-card{
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    background:#fff;
-    padding:16px;
-    text-align:left;
-    height:100%;
-  }
-
-  .action-card h6{
-    margin-bottom:6px;
-  }
-
-  .table thead{
-    background:#f0f2f5;
-    color:var(--azul-suave);
-    font-weight:600;
-  }
-
-  .table tbody tr:hover{
-    background:#f9f9f9;
-  }
-
-  .table td,.table th{
-    vertical-align:middle;
-  }
-
-  @media (max-width: 992px){
-    .info-grid{
-      grid-template-columns:repeat(2, 1fr);
-    }
-
-    .action-grid{
-      grid-template-columns:1fr;
-    }
-  }
-
-  @media (max-width: 576px){
-    .info-grid{
-      grid-template-columns:1fr;
-    }
-  }
 </style>
+
 
 <div class="page-wrap">
 
-  <!-- TOPO -->
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <div>
-      <h1 class="mb-1">Detalhes da Solicitação</h1>
-      <p class="text-muted mb-0">
-        Acompanhamento completo da tramitação e histórico de atualizações.
-      </p>
-    </div>
+<div class="d-flex justify-content-between mb-4">
 
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="#" class="btn btn-outline-secondary">← Voltar</a>
-      <a href="#" class="btn btn-outline-primary">🖨 Gerar Relatório</a>
-      <a href="#" class="btn btn-primary">✎ Editar Solicitação</a>
-    </div>
-  </div>
+<div>
+<h2>📦 Solicitação {{ solicitacao.request_code }}</h2>
+<p class="text-muted">Detalhes da tramitação</p>
+</div>
 
-  <!-- CABEÇALHO DA SOLICITAÇÃO -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-        <div>
-          <div class="text-muted small mb-1">Número da solicitação</div>
-          <h4 class="mb-2">{{ solicitacao.numero }}</h4>
-          <div class="fw-semibold mb-2">{{ solicitacao.titulo }}</div>
-          <div class="text-muted">{{ solicitacao.descricao }}</div>
-        </div>
+<div>
 
-        <div class="text-end">
-          <div class="mb-2">
-            {% if solicitacao.status_atual == "EM_ANDAMENTO" %}
-              <span class="status-pill status-andamento">Em andamento</span>
-            {% elif solicitacao.status_atual == "EM_TRIAGEM" %}
-              <span class="status-pill status-triagem">Em triagem</span>
-            {% elif solicitacao.status_atual == "AGUARDANDO_VALIDACAO" %}
-              <span class="status-pill status-validacao">Aguardando validação</span>
-            {% elif solicitacao.status_atual == "CONCLUIDA" %}
-              <span class="status-pill status-concluida">Concluída</span>
-            {% elif solicitacao.status_atual == "CANCELADA" %}
-              <span class="status-pill status-cancelada">Cancelada</span>
-            {% else %}
-              <span class="status-pill status-aberta">{{ solicitacao.status_atual }}</span>
-            {% endif %}
-          </div>
+<a href="{% url 'dimms:processing' %}" class="btn btn-outline-secondary">
+Voltar
+</a>
 
-          <div>
-            {% if solicitacao.prioridade == "Alta" %}
-              <span class="prioridade-pill prioridade-alta">Prioridade Alta</span>
-            {% elif solicitacao.prioridade == "Normal" %}
-              <span class="prioridade-pill prioridade-normal">Prioridade Normal</span>
-            {% else %}
-              <span class="prioridade-pill prioridade-baixa">Prioridade Baixa</span>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VISÃO GERAL -->
-  <div class="info-grid mb-4">
-    <div class="info-box">
-      <div class="info-label">Solicitante</div>
-      <div class="info-value">{{ solicitacao.solicitante }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Responsável atual</div>
-      <div class="info-value">{{ solicitacao.responsavel_atual }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Setor de origem</div>
-      <div class="info-value">{{ solicitacao.setor_origem }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Setor de destino</div>
-      <div class="info-value">{{ solicitacao.setor_destino }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Data de abertura</div>
-      <div class="info-value">{{ solicitacao.data_abertura }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Última atualização</div>
-      <div class="info-value">{{ solicitacao.ultima_atualizacao }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Prazo</div>
-      <div class="info-value">{{ solicitacao.prazo }}</div>
-    </div>
-
-    <div class="info-box">
-      <div class="info-label">Observações</div>
-      <div class="info-value">{{ solicitacao.observacoes }}</div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-
-    <!-- ITENS E AÇÕES -->
-    <div class="col-lg-7">
-
-      <!-- ITENS DA SOLICITAÇÃO -->
-      <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Itens da Solicitação</h5>
-          <span class="text-muted small">Total de itens: {{ itens_solicitacao|length }}</span>
-        </div>
-
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Descrição</th>
-                  <th>Quantidade</th>
-                  <th>Unidade</th>
-                  <th>Observação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in itens_solicitacao %}
-                  <tr>
-                    <td class="fw-semibold">{{ item.codigo }}</td>
-                    <td>{{ item.descricao }}</td>
-                    <td>{{ item.quantidade }}</td>
-                    <td>{{ item.unidade }}</td>
-                    <td>{{ item.observacao }}</td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="5" class="text-center text-muted py-3">
-                      Nenhum item vinculado à solicitação.
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- HISTÓRICO -->
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Histórico de Status</h5>
-        </div>
-
-        <div class="card-body">
-          <ul class="timeline">
-            {% for h in historico_status %}
-              <li class="timeline-item">
-                <span class="timeline-dot"></span>
-
-                <div class="timeline-card">
-                  <div class="timeline-top">
-                    <div>
-                      <div class="timeline-responsavel">{{ h.responsavel }}</div>
-                      <div class="timeline-date">{{ h.data_hora }}</div>
-                    </div>
-
-                    <div>
-                      {% if h.status == "ABERTA" %}
-                        <span class="status-pill status-aberta">Aberta</span>
-                      {% elif h.status == "EM_TRIAGEM" %}
-                        <span class="status-pill status-triagem">Em triagem</span>
-                      {% elif h.status == "EM_ANDAMENTO" %}
-                        <span class="status-pill status-andamento">Em andamento</span>
-                      {% elif h.status == "AGUARDANDO_VALIDACAO" %}
-                        <span class="status-pill status-validacao">Aguardando validação</span>
-                      {% elif h.status == "CONCLUIDA" %}
-                        <span class="status-pill status-concluida">Concluída</span>
-                      {% elif h.status == "CANCELADA" %}
-                        <span class="status-pill status-cancelada">Cancelada</span>
-                      {% else %}
-                        <span class="status-pill status-aberta">{{ h.status }}</span>
-                      {% endif %}
-                    </div>
-                  </div>
-
-                  <div>{{ h.mudanca }}</div>
-                </div>
-              </li>
-            {% empty %}
-              <li class="text-muted">Nenhum histórico registrado.</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- LATERAL -->
-    <div class="col-lg-5">
-
-      <!-- AÇÕES RÁPIDAS -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Ações Rápidas</h5>
-        </div>
-
-        <div class="card-body">
-          <div class="action-grid">
-            <div class="action-card">
-              <h6>Registrar atualização</h6>
-              <p class="text-muted small mb-3">
-                Adicionar uma nova observação ou movimentação no histórico.
-              </p>
-              <a href="#" class="btn btn-sm btn-outline-primary">Registrar</a>
-            </div>
-
-            <div class="action-card">
-              <h6>Abrir chamado</h6>
-              <p class="text-muted small mb-3">
-                Criar um chamado relacionado à solicitação atual.
-              </p>
-              <a href="#" class="btn btn-sm btn-outline-danger">Abrir chamado</a>
-            </div>
-
-            <div class="action-card">
-              <h6>Alterar status</h6>
-              <p class="text-muted small mb-3">
-                Atualizar o status geral da solicitação.
-              </p>
-              <a href="#" class="btn btn-sm btn-outline-success">Alterar</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RESUMO EXECUTIVO -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Resumo Executivo</h5>
-        </div>
-
-        <div class="card-body">
-          <div class="summary-box mb-3">
-            <div class="text-muted small">Status atual</div>
-            <div class="fw-semibold">{{ solicitacao.status_atual }}</div>
-          </div>
-
-          <div class="summary-box mb-3">
-            <div class="text-muted small">Destino</div>
-            <div class="fw-semibold">{{ solicitacao.setor_destino }}</div>
-          </div>
-
-          <div class="summary-box mb-3">
-            <div class="text-muted small">Último responsável</div>
-            <div class="fw-semibold">{{ solicitacao.responsavel_atual }}</div>
-          </div>
-
-          <div class="summary-box">
-            <div class="text-muted small">Última movimentação</div>
-            <div class="fw-semibold">{{ solicitacao.ultima_atualizacao }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RELATÓRIOS -->
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Relatórios</h5>
-        </div>
-
-        <div class="card-body d-grid gap-2">
-          <a href="#" class="btn btn-outline-primary">Gerar relatório completo</a>
-          <a href="#" class="btn btn-outline-secondary">Exportar histórico</a>
-          <a href="#" class="btn btn-outline-secondary">Gerar comprovante</a>
-          <a href="#" class="btn btn-outline-secondary">Emitir resumo da solicitação</a>
-        </div>
-      </div>
-
-    </div>
-  </div>
+<a href="#" class="btn btn-primary">
+Atualizar Status
+</a>
 
 </div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-header">
+Informações da Solicitação
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-4">
+<div class="label">Código</div>
+<div class="value">{{ solicitacao.request_code }}</div>
+</div>
+
+<div class="col-md-4">
+<div class="label">Solicitante</div>
+<div class="value">{{ solicitacao.ua_order }}</div>
+</div>
+
+<div class="col-md-4">
+<div class="label">Usuário Solicitante</div>
+<div class="value">{{ solicitacao.user_order|default:"-" }}</div>
+</div>
+
+<div class="col-md-4 mt-3">
+<div class="label">Responsável</div>
+<div class="value">
+{% if solicitacao.user_responsible %}
+{{ solicitacao.user_responsible }}
+{% else %}
+-
+{% endif %}
+</div>
+</div>
+
+<div class="col-md-4 mt-3">
+<div class="label">Data</div>
+<div class="value">{{ solicitacao.data_order|date:"d/m/Y H:i" }}</div>
+</div>
+
+<div class="col-md-4 mt-3">
+<div class="label">Status</div>
+
+{% if solicitacao.situation == "PROCESSAMENTO" %}
+<span class="status status-processamento">Processamento</span>
+
+{% elif solicitacao.situation == "SEPARADA" %}
+<span class="status status-separada">Separada</span>
+
+{% elif solicitacao.situation == "ENVIO" %}
+<span class="status status-envio">Envio</span>
+
+{% elif solicitacao.situation == "TRAMITACAO" %}
+<span class="status status-tramitacao">Tramitação</span>
+
+{% elif solicitacao.situation == "RECEBIDA" %}
+<span class="status status-recebida">Recebida</span>
+
+{% elif solicitacao.situation == "CANCELADA" %}
+<span class="status status-cancelada">Cancelada</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-header">
+Observação
+</div>
+
+<div class="card-body">
+
+{{ solicitacao.observation_order|default:"Sem observação." }}
+
+</div>
+
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Itens da Solicitação
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>E-Fisco</th>
+                        <th>Descrição</th>
+                        <th>Grupo</th>
+                        <th class="text-center">Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens_solicitados %}
+                        <tr>
+                            <td>
+                                {% if item.item_order %}
+                                    <a href="{% url 'dimms:overview' item.item_order.pk %}"
+                                    class="text-decoration-none text-primary">
+                                        {{ item.item_order.item_shock.efisco|default:"-" }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ item.item_order.description_manual|default:"-" }}</td>
+                            <td>{{ item.item_order.item_shock.get_grupo_consumo_display|default:"-" }}</td>
+                            <td class="text-center">{{ item.amount_order|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">
+                                Nenhum item vinculado a esta solicitação.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div class="card mb-4">
+    <div class="card-header">
+        Andamento da Solicitação
+    </div>
+
+    <div class="card-body">
+        {% if solicitacao.situation == "CANCELADA" %}
+            <div class="alert alert-danger mb-0">
+                Esta solicitação foi cancelada.
+            </div>
+        {% else %}
+            {% if historico_tramitacao %}
+                <div class="tracking-wrapper">
+
+                    {% for etapa in etapas_fluxo %}
+                        <div class="tracking-step
+                            {% if etapa.concluida %}is-done{% endif %}
+                            {% if etapa.atual %}is-current{% endif %}
+                            {% if etapa.pendente %}is-pending{% endif %}">
+
+                            <div class="tracking-marker">
+                                <span class="tracking-dot"></span>
+                                {% if not forloop.last %}
+                                    <span class="tracking-line"></span>
+                                {% endif %}
+                            </div>
+
+                            <div class="tracking-content">
+                                <div class="tracking-title">
+                                    {{ etapa.label }}
+                                </div>
+
+                                {% if etapa.atual %}
+                                    <div class="tracking-subtitle">
+                                        Etapa atual da solicitação.
+                                    </div>
+
+                                    {% for h in historico_tramitacao %}
+                                        {% if h.update == etapa.codigo %}
+                                            <div class="tracking-event">
+
+                                                <div class="tracking-event-text">
+                                                    {% if h.update == "PROCESSAMENTO" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} iniciou o processamento da solicitação.
+                                                        {% else %}
+                                                            O processamento da solicitação foi iniciado.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "SEPARADA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} separou os itens da solicitação.
+                                                        {% else %}
+                                                            Os itens da solicitação foram separados.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "ENVIO" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} liberou a solicitação para envio.
+                                                        {% else %}
+                                                            A solicitação foi liberada para envio.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "TRAMITACAO" %}
+                                                        {% if h.user_update %}
+                                                            O motorista {{ h.user_update.get_full_name|default:h.user_update.username }} recolheu a solicitação e está em trânsito.
+                                                        {% else %}
+                                                            A solicitação foi recolhida e está em trânsito.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "RECEBIDA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} recebeu a solicitação no destino.
+                                                        {% else %}
+                                                            A solicitação foi recebida no destino.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "CANCELADA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} cancelou a solicitação.
+                                                        {% else %}
+                                                            A solicitação foi cancelada.
+                                                        {% endif %}
+
+                                                    {% else %}
+                                                        {{ h.observation_update|default:"Atualização registrada sem observação." }}
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="tracking-event-meta">
+                                                    {% if h.user_update %}
+                                                        {{ h.user_update.get_full_name|default:h.user_update.username }}
+                                                    {% else %}
+                                                        Sistema
+                                                    {% endif %}
+                                                    • {{ h.date_update|date:"d/m/Y H:i" }}
+                                                </div>
+
+                                                {% if h.observation_update %}
+                                                    <div class="tracking-event-note mt-2">
+                                                        {{ h.observation_update }}
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="mt-2 d-flex gap-2 flex-wrap">
+                                                    <a href="{% url 'dimms:course' solicitacao.pk h.pk %}"
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        Ver detalhes
+                                                    </a>
+
+                                                    {% if h.documents_update %}
+                                                        <a href="{{ h.documents_update.url }}"
+                                                           target="_blank"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            Abrir documento
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if etapa.concluida %}
+                                    <div class="tracking-subtitle">
+                                        Etapa concluída.
+                                    </div>
+
+                                    {% for h in historico_tramitacao %}
+                                        {% if h.update == etapa.codigo %}
+                                            <div class="tracking-event">
+
+                                                <div class="tracking-event-text">
+                                                    {% if h.update == "PROCESSAMENTO" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} iniciou o processamento da solicitação.
+                                                        {% else %}
+                                                            O processamento da solicitação foi iniciado.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "SEPARADA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} separou os itens da solicitação.
+                                                        {% else %}
+                                                            Os itens da solicitação foram separados.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "ENVIO" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} liberou a solicitação para envio.
+                                                        {% else %}
+                                                            A solicitação foi liberada para envio.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "TRAMITACAO" %}
+                                                        {% if h.user_update %}
+                                                            O motorista {{ h.user_update.get_full_name|default:h.user_update.username }} recolheu a solicitação e está em trânsito.
+                                                        {% else %}
+                                                            A solicitação foi recolhida e está em trânsito.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "RECEBIDA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} recebeu a solicitação no destino.
+                                                        {% else %}
+                                                            A solicitação foi recebida no destino.
+                                                        {% endif %}
+
+                                                    {% elif h.update == "CANCELADA" %}
+                                                        {% if h.user_update %}
+                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} cancelou a solicitação.
+                                                        {% else %}
+                                                            A solicitação foi cancelada.
+                                                        {% endif %}
+
+                                                    {% else %}
+                                                        {{ h.observation_update|default:"Etapa registrada." }}
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="tracking-event-meta">
+                                                    {% if h.user_update %}
+                                                        {{ h.user_update.get_full_name|default:h.user_update.username }}
+                                                    {% else %}
+                                                        Sistema
+                                                    {% endif %}
+                                                    • {{ h.date_update|date:"d/m/Y H:i" }}
+                                                </div>
+
+                                                <div class="mt-2">
+                                                    <a href="{% url 'dimms:course' solicitacao.pk h.pk %}"
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        Ver detalhes
+                                                    </a>
+                                                </div>
+
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% else %}
+                <div class="alert alert-light border text-muted mb-0">
+                    Nenhuma atualização de tramitação registrada até o momento.
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+
+
+{% if solicitacao.documents_order %}
+
+<div class="card">
+
+<div class="card-header">
+Documento anexado
+</div>
+
+<div class="card-body">
+
+<a href="{{ solicitacao.documents_order.url }}" target="_blank" class="btn btn-outline-primary">
+Abrir Documento
+</a>
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
 {% endblock %}

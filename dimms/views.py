@@ -256,197 +256,125 @@ def label(request, pk):
 def label_mini(request):
     return redirect('dimms:homepage')
 
-
-# Páginas de detalhes (processing, active balance, register movement)
-@login_required 
+@login_required
 def processing(request):
-    query = request.GET.get('q', '')
-    filtro_status = request.GET.get('status', '')
+    query = request.GET.get('q', '').strip()
+    filtro_status = request.GET.get('status', '').strip()
 
-    tramitacoes = [
-        {
-            "numero": "TRM-2026-001",
-            "assunto": "Aquisição de cadeiras ergonômicas",
-            "setor_origem": "Almoxarifado",
-            "setor_destino": "Compras",
-            "responsavel": "Maria Souza",
-            "status": "EM_ANDAMENTO",
-            "prioridade": "Alta",
-            "ultima_atualizacao": "Hoje, 09:15",
-        },
-        {
-            "numero": "TRM-2026-002",
-            "assunto": "Reposição de papel A4",
-            "setor_origem": "Administrativo",
-            "setor_destino": "Almoxarifado",
-            "responsavel": "Carlos Lima",
-            "status": "CONCLUIDA",
-            "prioridade": "Normal",
-            "ultima_atualizacao": "Ontem, 16:40",
-        },
-        {
-            "numero": "TRM-2026-003",
-            "assunto": "Solicitação de manutenção em ar-condicionado",
-            "setor_origem": "Patrimônio",
-            "setor_destino": "Infraestrutura",
-            "responsavel": "Fernanda Alves",
-            "status": "PENDENTE",
-            "prioridade": "Alta",
-            "ultima_atualizacao": "Hoje, 08:10",
-        },
-        {
-            "numero": "TRM-2026-004",
-            "assunto": "Movimentação de notebooks",
-            "setor_origem": "TI",
-            "setor_destino": "Gabinete",
-            "responsavel": "João Pedro",
-            "status": "CANCELADA",
-            "prioridade": "Baixa",
-            "ultima_atualizacao": "03/03/2026",
-        },
-        {
-            "numero": "TRM-2026-005",
-            "assunto": "Compra de toners",
-            "setor_origem": "Secretaria",
-            "setor_destino": "Compras",
-            "responsavel": "Ana Beatriz",
-            "status": "EM_ANDAMENTO",
-            "prioridade": "Normal",
-            "ultima_atualizacao": "Hoje, 11:32",
-        },
-        {
-            "numero": "TRM-2026-006",
-            "assunto": "Regularização de patrimônio sem tombo",
-            "setor_origem": "Patrimônio",
-            "setor_destino": "Diretoria",
-            "responsavel": "Ricardo Nunes",
-            "status": "CONCLUIDA",
-            "prioridade": "Alta",
-            "ultima_atualizacao": "01/03/2026",
-        },
-        {
-            "numero": "TRM-2026-007",
-            "assunto": "Solicitação de material de limpeza",
-            "setor_origem": "Serviços Gerais",
-            "setor_destino": "Almoxarifado",
-            "responsavel": "Paula Mendes",
-            "status": "PENDENTE",
-            "prioridade": "Normal",
-            "ultima_atualizacao": "Hoje, 10:05",
-        },
-    ]
+    solicitacoes = (
+        Solicitacao.objects
+        .select_related('ua_order', 'user_responsible')
+        .order_by('-data_order')
+    )
 
     if query:
-        termo = query.lower()
-        tramitacoes = [
-            t for t in tramitacoes
-            if termo in t["numero"].lower()
-            or termo in t["assunto"].lower()
-            or termo in t["setor_origem"].lower()
-            or termo in t["setor_destino"].lower()
-            or termo in t["responsavel"].lower()
-        ]
+        solicitacoes = solicitacoes.filter(
+            Q(request_code__icontains=query) |
+            Q(user_order__icontains=query) |
+            Q(observation_order__icontains=query) |
+            Q(user_responsible__username__icontains=query) |
+            Q(user_responsible__first_name__icontains=query) |
+            Q(user_responsible__last_name__icontains=query)
+            # Exemplo, se quiser pesquisar também por UA:
+            # | Q(ua_order__nome__icontains=query)
+        )
 
     if filtro_status:
-        tramitacoes = [t for t in tramitacoes if t["status"] == filtro_status]
+        solicitacoes = solicitacoes.filter(situation=filtro_status)
 
-    total = len(tramitacoes)
-    total_andamento = sum(1 for t in tramitacoes if t["status"] == "EM_ANDAMENTO")
-    total_concluidas = sum(1 for t in tramitacoes if t["status"] == "CONCLUIDA")
-    total_pendentes = sum(1 for t in tramitacoes if t["status"] == "PENDENTE")
-    total_canceladas = sum(1 for t in tramitacoes if t["status"] == "CANCELADA")
+    for s in solicitacoes:
+        s.ultima_tramitacao = s.tramitacao.order_by('-date_update', '-id').first()
+    
+    context = {
+        'tramitacoes': solicitacoes,
+        'query': query,
+        'filtro_status': filtro_status,
+
+        'total_tramitacoes': solicitacoes.count(),
+        'total_processamento': solicitacoes.filter(situation='PROCESSAMENTO').count(),
+        'total_separada': solicitacoes.filter(situation='SEPARADA').count(),
+        'total_envio': solicitacoes.filter(situation='ENVIO').count(),
+        'total_tramitacao': solicitacoes.filter(situation='TRAMITACAO').count(),
+        'total_recebida': solicitacoes.filter(situation='RECEBIDA').count(),
+        'total_cancelada': solicitacoes.filter(situation='CANCELADA').count(),
+    }
+
+    return render(request, 'dimms/processing.html', context)
+
+def details_processing(request, pk):
+    solicitacao = get_object_or_404(
+        Solicitacao.objects
+        .select_related('ua_order', 'user_responsible'),
+        pk=pk
+    )
+
+    itens_solicitados = (
+        solicitacao.bens_solicitados
+        .select_related('item_order__item_shock')
+        .all()
+    )
+
+    historico_tramitacao = (
+        solicitacao.tramitacao
+        .select_related('user_update')
+        .order_by('date_update', 'id')
+    )
+
+    ultima_tramitacao = historico_tramitacao.last()
+
+    etapas_fluxo = [
+        {"codigo": "PROCESSAMENTO", "label": "Em preparação"},
+        {"codigo": "SEPARADA", "label": "Separada"},
+        {"codigo": "ENVIO", "label": "Para envio"},
+        {"codigo": "TRAMITACAO", "label": "A caminho"},
+        {"codigo": "RECEBIDA", "label": "Recebida"},
+    ]
+
+    ordem_status = {
+        "PROCESSAMENTO": 0,
+        "SEPARADA": 1,
+        "ENVIO": 2,
+        "TRAMITACAO": 3,
+        "RECEBIDA": 4,
+    }
+
+    status_atual = solicitacao.situation
+    indice_atual = ordem_status.get(status_atual, -1)
+
+    for i, etapa in enumerate(etapas_fluxo):
+        etapa["concluida"] = i < indice_atual
+        etapa["atual"] = i == indice_atual
+        etapa["pendente"] = i > indice_atual
 
     context = {
-        "tramitacoes": tramitacoes,
-        "query": query,
-        "filtro_status": filtro_status,
-        "total_tramitacoes": total,
-        "total_andamento": total_andamento,
-        "total_concluidas": total_concluidas,
-        "total_pendentes": total_pendentes,
-        "total_canceladas": total_canceladas,
+        'solicitacao': solicitacao,
+        'itens_solicitados': itens_solicitados,
+        'historico_tramitacao': historico_tramitacao,
+        'ultima_tramitacao': ultima_tramitacao,
+        'etapas_fluxo': etapas_fluxo,
     }
 
-    return render(request, "dimms/processing.html", context)
+    return render(request, 'dimms/details_processing.html', context)
 
-@login_required
-def details_processing(request, pk):
-    solicitacao = {
-        "id": pk,
-        "numero": f"PROC-2026-{pk:03d}",
-        "titulo": "Solicitação de materiais de expediente",
-        "descricao": "Solicitação provisória criada apenas para demonstração visual da página de detalhes.",
-        "status_atual": "EM_ANDAMENTO",
-        "prioridade": "Alta",
-        "setor_origem": "Almoxarifado Central",
-        "setor_destino": "Diretoria Administrativa",
-        "responsavel_atual": "Mariana Alves",
-        "solicitante": "Carlos Henrique",
-        "data_abertura": "09/03/2026 08:30",
-        "ultima_atualizacao": "09/03/2026 14:15",
-        "prazo": "12/03/2026",
-        "observacoes": "Processo em acompanhamento. Aguardando validação do setor de destino.",
-    }
+def course(request, solicitacao_pk, tramitacao_pk):
+    solicitacao = get_object_or_404(
+        Solicitacao.objects.select_related('ua_order', 'user_responsible'),
+        pk=solicitacao_pk
+    )
 
-    itens_solicitacao = [
-        {
-            "codigo": "MAT-001",
-            "descricao": "Resma de papel A4",
-            "quantidade": 20,
-            "unidade": "pacotes",
-            "observacao": "Uso administrativo"
-        },
-        {
-            "codigo": "MAT-014",
-            "descricao": "Caneta esferográfica azul",
-            "quantidade": 50,
-            "unidade": "unidades",
-            "observacao": "Distribuição interna"
-        },
-        {
-            "codigo": "MAT-020",
-            "descricao": "Pasta arquivo",
-            "quantidade": 15,
-            "unidade": "unidades",
-            "observacao": "Arquivo de documentos"
-        },
-    ]
-
-    historico_status = [
-        {
-            "data_hora": "09/03/2026 08:30",
-            "responsavel": "Carlos Henrique",
-            "status": "ABERTA",
-            "mudanca": "Solicitação criada no sistema."
-        },
-        {
-            "data_hora": "09/03/2026 09:10",
-            "responsavel": "Mariana Alves",
-            "status": "EM_TRIAGEM",
-            "mudanca": "Solicitação recebida para conferência inicial."
-        },
-        {
-            "data_hora": "09/03/2026 11:45",
-            "responsavel": "Mariana Alves",
-            "status": "EM_ANDAMENTO",
-            "mudanca": "Itens conferidos e encaminhamento iniciado."
-        },
-        {
-            "data_hora": "09/03/2026 14:15",
-            "responsavel": "João Pedro",
-            "status": "AGUARDANDO_VALIDACAO",
-            "mudanca": "Encaminhado ao setor de destino para validação."
-        },
-    ]
+    tramitacao = get_object_or_404(
+        Tramitacao.objects.select_related('request_update', 'user_update'),
+        pk=tramitacao_pk,
+        request_update=solicitacao
+    )
 
     context = {
         "solicitacao": solicitacao,
-        "itens_solicitacao": itens_solicitacao,
-        "historico_status": historico_status,
+        "tramitacao": tramitacao,
+        "destino": "Destino não configurado",  # depois você troca pelo campo real
     }
 
-    return render(request, "dimms/details_processing.html", context)
-
+    return render(request, "dimms/course.html", context)
 
 def active_balance(request):
     return render(request, 'dimms/active_balance.html')
