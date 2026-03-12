@@ -1,10 +1,60 @@
-image: python:3.12 
+image:
+  name: harbor.mppe.mp.br/dempro/kubectl:alpine-3.22.1-aed76cd
 
 stages:
   - test
+  - build
 
 test:
   stage: test
   script:
     - pip install -r requirements.txt
     - python manage.py check
+
+generate-tag-job:
+  stage: build
+  script:
+    - echo "VERSION=$(git show -s --format=%cd-%h --date=format:%Y.%-m.%-d%H%M%S)" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+build:
+  stage: build
+  tags: ["docker"]
+  needs:
+    - job: generate-tag-job
+      artifacts: true
+    - job: test
+  image:
+    name: harbor.mppe.mp.br/googlegcrhub/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo "Preparing..."
+    - echo ""
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${HARBOR_URL}\":{\"auth\":\"${HARBOR_TOKEN}\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+  script:
+    - echo "Building..."
+    - echo ""
+    - cd ${CI_PROJECT_DIR}
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --build-arg "VERSION=${VERSION}"
+      --destination "harbor.mppe.mp.br/dempro/gitlab-auto-kubeconfig:${VERSION}"
+    - echo "--------------------------------------------------"
+
+
+#trigger-manifests:
+#  stage: build
+#  needs:
+#    - job: generate-tag-job
+#      artifacts: true
+#    - job: build
+#  trigger:
+#    project: devops/applications/sipat
+#  variables:
+#    IMAGE_TAG: ${VERSION}
