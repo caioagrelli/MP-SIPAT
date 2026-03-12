@@ -361,11 +361,13 @@ class TramitacaoAdmin(admin.ModelAdmin):
         'request_update',
         'update',
         'date_update',
+        'responsible_update',
         'user_update',
     )
     
     search_fields=(
         'request_update',
+        'responsible_update',
         'update',
         'user_update',
     )
@@ -380,6 +382,7 @@ class TramitacaoAdmin(admin.ModelAdmin):
         ('Dados da Requisição', {
             'fields': (
                 'update',
+                'responsible_update',
                 'observation_update',
             )
         }),

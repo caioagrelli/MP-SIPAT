@@ -1,0 +1,92 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Nova Tramitação{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">🔄 Nova Tramitação</h4>
+                <small class="text-muted">
+                    Solicitação: {{ solicitacao.request_code }}
+                </small>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Status</label>
+                        {{ form.update }}
+                        {% if form.update.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.update.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Responsável pela Atualização</label>
+                        {{ form.responsible_update }}
+                        {% if form.responsible_update.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.responsible_update.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Observação</label>
+                        {{ form.observation_update }}
+                        {% if form.observation_update.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.observation_update.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Documento Anexado</label>
+                        {{ form.documents_update }}
+                        {% if form.documents_update.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.documents_update.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Foto do Item</label>
+                        {{ form.photo_update }}
+                        {% if form.photo_update.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.photo_update.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Salvar Tramitação
+                    </button>
+
+                    <a href="{% url 'dimms:processing_detail' solicitacao.pk %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

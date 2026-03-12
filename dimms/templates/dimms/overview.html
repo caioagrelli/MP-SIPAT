@@ -1,552 +1,800 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT{% endblock %}
+{% block title %}SIPAT — {{ item.description_manual|default:"Item do Estoque" }}{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg:#f4f6f9;
-    --card:#ffffff;
-    --border:#e3e7ed;
-    --text:#2b2f33;
-    --muted:#6c757d;
-    --primary:#2f4f6f;
-    --primary-dark:#1f354b;
-    --success:#28a745;
-    --danger:#dc3545;
-    --warning:#ffc107;
-    --info:#17a2b8;
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
+
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
+
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
+
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
+
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
+
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
+
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.12);
+
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
   }
 
-  .wrap{ background:var(--bg); padding:18px; border-radius:12px; }
-  .cardx{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-    overflow:hidden;
-  }
-  .cardx + .cardx{ margin-top: 16px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .cardx-header{
-    padding:14px 18px;
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;        /* centraliza verticalmente */
-    justify-content:space-between;
-    gap:12px;
-    }
-
-    .cardx-title{
-    margin:0;
-    color:var(--primary);
-    font-weight:800;
-    font-size:1.5rem;
-    line-height:1;
-    }
-
-.sub{
-  color:var(--muted);
-  font-size:.95rem;
-  margin-top:6px;
-}
-
-  .badge-pill{
-    border-radius:999px;
-    padding:6px 10px;
-    font-weight:700;
-    font-size:.85rem;
-    background:rgba(47,79,111,.10);
-    color:var(--primary);
-    border:1px solid rgba(47,79,111,.15);
-    white-space:nowrap;
+  .opage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px;
+    color: var(--ink);
   }
 
-  .cardx-body{ padding:18px; }
-  
-  .photo-box{
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:#fafbfc;
-    height:300px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .78rem;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+    font-weight: 500;
   }
-  .photo-box img{
-    max-height:100%;
-    max-width:100%;
-    object-fit:contain;
-    border-radius:12px;
-  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { opacity: .45; }
 
-  .kvs{
-    border:1px solid var(--border);
-    border-radius:12px;
-    overflow:hidden;
-  }
-  .kvs .rowi{
-    display:grid;
-    grid-template-columns: 220px 1fr;
-    gap:10px 12px;
-    padding:12px 14px;
-    border-bottom:1px solid var(--border);
-  }
-  .kvs .rowi:last-child{ border-bottom:none; }
-  .k{ color:var(--muted); font-weight:700; }
-  .v{ color:var(--text); font-weight:600; }
-
-  .qty{
-    font-size:2rem;
-    font-weight:900;
-    margin:0;
-  }
-  .qty.low{ color: var(--danger); }
-  .qty.ok{ color: var(--success); }
-
-  .btnbar{
-    padding:12px 18px;
-    border-top:1px solid var(--border);
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    flex-wrap:wrap;
-    background:#fcfdff;
-  }
-  .btnx{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    padding:8px 12px;
-    border-radius:10px;
-    border:1px solid transparent;
-    font-weight:700;
-    font-size:.95rem;
-    text-decoration:none;
-  }
-  .btnx-success{ background:var(--success); color:#fff; }
-  .btnx-orange{ background:#fd7e14; color:#fff; }
-  .btnx-info{ background:var(--info); color:#fff; }
-  .btnx-warning{ background:var(--warning); color:#1b1b1b; }
-  .btnx-danger{ background:transparent; color:var(--danger); border-color: rgba(220,53,69,.45); }
-
-  .btnx-disabled{
-    opacity:.55;
-    pointer-events:none;
-    filter:grayscale(20%);
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
   }
 
-.cardx-header{
-  padding:14px 18px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
-}
+  .topbar-left { min-width: 0; flex: 1; }
 
-/* Evita o título "estourar" e empurrar tudo */
-.cardx-header > div:first-child{
-  min-width:0;
-}
-.cardx-title{
-  margin:0;
-  color:#2f4f6f;
-  font-weight:800;
-  align-items:center;
-  font-size:2rem;
-  line-height:1.2;
-  word-break: break-word;
-}
-
-/* E-FISCO em box mais visível */
-.efisco-box{
-  background:#2f4f6f;
-  color:#fff;
-  padding:10px 14px;
-  border-radius:12px;
-  text-align:center;
-  min-width:150px;
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
-  flex:0 0 auto;
-}
-.efisco-label{
-  font-size:.70rem;
-  letter-spacing:1px;
-  opacity:.75;
-}
-.efisco-value{
-  font-size:1.2rem;
-  font-weight:900;
-  line-height:1.1;
-}
-
-  /* coluna da foto */
-.photo-area{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-/* QR embaixo da foto */
-.qr-under{
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:#fff;
-  padding:3px;
-  display:flex;
-  justify-content:flex-start;
-  align-items:center;
-  gap:14px;
-}
-
-.qr-title{
-  font-weight:700;
-  color:var(--primary);
-  font-size:.85rem;
-  margin-bottom:px;
-}
-
-.qr-under-img{
-  width:140px;
-  height:140px;
-  image-rendering:pixelated;
-}
-
-/* FOTO */
-.photo-box{
-  border:1px solid #e3e7ed;
-  border-radius:12px;
-  background:#f8fafc;
-  height:400px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  padding:10px;
-}
-.photo-box img{
-  max-height:100%;
-  max-width:100%;
-  object-fit:contain;
-  border-radius:12px;
-}
-
-.qr-title{
-  font-weight:900;
-  color:var(--primary);
-  font-size:1rem;
-}
-
-.qr-subtitle{
-  color:var(--muted);
-  font-size:.85rem;
-}
-
-/* CARD interno da tabela de detalhes */
-.kvs{
-  border:1px solid #e3e7ed;
-  border-radius:12px;
-  overflow:hidden;
-}
-.kvs .rowi{
-  display:grid;
-  grid-template-columns: 220px 1fr;
-  gap:10px 12px;
-  padding:12px 14px;
-  border-bottom:1px solid #e3e7ed;
-}
-.kvs .rowi:last-child{ border-bottom:none; }
-.k{ color:#6c757d; font-weight:700; }
-.v{ color:#222; font-weight:600; }
-
-.muted-note{ color:#6c757d; font-size:.902rem; }
-
-
-
-.qty{
-  font-size:1.35rem;
-  font-weight:900;
-  margin:0;
-}
-.qty.low{ color:#dc3545; }
-.qty.ok{ color:#28a745; }
-
-  .muted-note{ color:var(--muted); font-size:.9rem; }
-
-  /* badge grupo */
-  .badge-grupo{
-    padding: 6px 12px;
-    border-radius: 18px;
-    font-size: 0.75rem;
+  .item-title {
+    font-size: 1.6rem;
     font-weight: 800;
-    letter-spacing: .3px;
-    color: #fff;
-    display: inline-block;
+    color: var(--ink);
+    letter-spacing: -.03em;
+    line-height: 1.2;
+    word-break: break-word;
   }
-  .grupo-ALIMENTO { background: #27ae60; }
-  .grupo-CONFECCAO { background: #8e44ad; }
-  .grupo-COPA_COZINHA { background: #e67e22; }
-  .grupo-DOMISSANITARIO { background: #16a085; }
-  .grupo-ELETRICA { background: #f39c12; color:#000; }
-  .grupo-EPI { background: #c0392b; }
-  .grupo-HIDROSANITARIO { background: #2980b9; }
-  .grupo-INFORMATICA { background: #2c3e50; }
-  .grupo-LIMPEZA { background: #1abc9c; }
-  .grupo-MANUTENCAO { background: #7f8c8d; }
-  .grupo-MARCENARIA { background: #6d4c41; }
-  .grupo-PINTURA { background: #d35400; }
-  .grupo-PAPEIS_EXPEDIENTE { background: #3498db; }
-  .grupo-PAPEIS_LIMPEZA { background: #48c9b0; }
-  .grupo-REFRIGERACAO { background: #5dade2; }
-  .grupo-TONER { background: #34495e; }
-  .grupo-None { background: #95a5a6; }
+
+  .item-sub {
+    margin-top: 5px;
+    font-size: .88rem;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .efisco-chip {
+    background: #1e2d42;
+    border-radius: var(--r-sm);
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 140px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(15,23,42,.2);
+  }
+  .efisco-chip-label {
+    font-size: .65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: rgba(160,175,210,.7);
+    margin-bottom: 4px;
+  }
+  .efisco-chip-value {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 20px;
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: fadeUp .3s ease both;
+  }
+  .card:last-child { margin-bottom: 0; }
+  .card:nth-child(2) { animation-delay: .05s; }
+  .card:nth-child(3) { animation-delay: .10s; }
+
+  .card-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .card-head-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .card-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .ci-blue   { background: var(--blue-soft); }
+  .ci-green  { background: var(--green-soft); }
+  .ci-amber  { background: var(--amber-soft); }
+  .ci-red    { background: var(--red-soft); }
+
+  .card-title {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .card-body { padding: 18px; }
+
+  /* ─── PHOTO ─── */
+  .photo-box {
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow .15s;
+  }
+  .photo-box:hover { box-shadow: var(--shadow-md); }
+  .photo-box img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+  }
+  .photo-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-3);
+    font-size: .85rem;
+  }
+  .photo-empty-icon { font-size: 2.5rem; opacity: .4; }
+
+  /* ─── QR ─── */
+  .qr-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px 16px;
+  }
+  .qr-box img {
+    width: 140px; height: 140px;
+    image-rendering: pixelated;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .qr-label {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .qr-sub {
+    font-size: .78rem;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+
+  /* ─── STOCK HERO ─── */
+  .stock-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .stock-number-wrap { display: flex; flex-direction: column; }
+  .stock-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+  .stock-number {
+    font-size: 3rem;
+    font-weight: 900;
+    font-family: var(--mono);
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+  .stock-number.low  { color: var(--red); }
+  .stock-number.ok   { color: var(--green); }
+
+  .stock-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    border: 1px solid;
+  }
+  .stock-status-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .pill-ok  { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .pill-ok .dot { background: var(--green); }
+  .pill-low { background: var(--red-soft);  color: var(--red);   border-color: var(--red-mid); }
+  .pill-low .dot { background: var(--red); }
+
+  /* ─── KV TABLE ─── */
+  .kv-table { width: 100%; border-collapse: collapse; }
+
+  .kv-table tr { border-bottom: 1px solid var(--border); }
+  .kv-table tr:last-child { border-bottom: none; }
+  .kv-table tr:hover td { background: var(--blue-soft); }
+
+  .kv-table td {
+    padding: 10px 12px;
+    font-size: .87rem;
+    vertical-align: middle;
+  }
+
+  .kv-table td:first-child {
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-3);
+    width: 42%;
+    white-space: nowrap;
+  }
+
+  .kv-table td:last-child {
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  /* ─── GRUPO BADGE ─── */
+  .grupo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+  }
+  .grupo-ALIMENTO       { background: #16a34a; }
+  .grupo-CONFECCAO      { background: #7c3aed; }
+  .grupo-COPA_COZINHA   { background: #ea580c; }
+  .grupo-DOMISSANITARIO { background: #0d9488; }
+  .grupo-ELETRICA       { background: #d97706; color: #1a1a1a; }
+  .grupo-EPI            { background: #dc2626; }
+  .grupo-HIDROSANITARIO { background: #2563eb; }
+  .grupo-INFORMATICA    { background: #1e293b; }
+  .grupo-LIMPEZA        { background: #0891b2; }
+  .grupo-MANUTENCAO     { background: #64748b; }
+  .grupo-MARCENARIA     { background: #92400e; }
+  .grupo-PINTURA        { background: #c2410c; }
+  .grupo-PAPEIS_EXPEDIENTE { background: #3b82f6; }
+  .grupo-PAPEIS_LIMPEZA { background: #06b6d4; }
+  .grupo-REFRIGERACAO   { background: #38bdf8; color: #0c4a6e; }
+  .grupo-TONER          { background: #334155; }
+  .grupo-None           { background: #94a3b8; }
+
+  /* ─── BUTTONS ─── */
+  .btn-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    justify-content: flex-end;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+
+  .btn-green {
+    background: var(--green);
+    color: #fff;
+    border-color: #166534;
+    box-shadow: 0 2px 8px rgba(21,128,61,.2);
+  }
+  .btn-green:hover { background: #166534; }
+
+  .btn-orange {
+    background: #ea580c;
+    color: #fff;
+    border-color: #c2410c;
+    box-shadow: 0 2px 8px rgba(234,88,12,.2);
+  }
+  .btn-orange:hover { background: #c2410c; }
+
+  .btn-ghost {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--ink-2);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .btn-disabled {
+    opacity: .45;
+    pointer-events: none;
+    filter: grayscale(25%);
+  }
+
+  /* ─── COMING SOON CARD ─── */
+  .soon-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    background: var(--blue-soft);
+    color: var(--blue);
+    border: 1px solid var(--blue-mid);
+  }
+
+  /* ─── MOVIMENTAÇÃO FORM ─── */
+  .move-form {
+    display: grid;
+    grid-template-columns: 120px 1fr auto auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+  }
+  .form-input {
+    height: 38px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 0 12px;
+    font-family: var(--font);
+    font-size: .87rem;
+    color: var(--ink);
+    background: var(--surface-2);
+    outline: none;
+  }
+  .form-input:disabled { opacity: .5; cursor: not-allowed; }
+
+  .move-actions { display: flex; gap: 8px; }
+
+  .btn-retirar {
+    background: var(--red-soft);
+    border: 1px solid var(--red-mid);
+    color: var(--red);
+    font-weight: 700;
+    height: 38px;
+  }
+  .btn-adicionar {
+    background: var(--green-soft);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+    font-weight: 700;
+    height: 38px;
+  }
+
+  /* ─── EMPTY ─── */
+  .empty-state {
+    padding: 30px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: .88rem;
+  }
+  .empty-state-icon { font-size: 2rem; margin-bottom: 8px; opacity: .4; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,15,30,.85);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-inner {
+    max-width: 90vw;
+    max-height: 90vh;
+    position: relative;
+  }
+  .modal-inner img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: var(--r-md);
+    display: block;
+  }
+  .modal-close {
+    position: absolute;
+    top: -14px; right: -14px;
+    width: 32px; height: 32px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow-md);
+    color: var(--ink);
+  }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .opage { padding: 14px 12px; }
+    .item-title { font-size: 1.25rem; }
+    .move-form { grid-template-columns: 1fr 1fr; }
+    .move-actions { grid-column: 1 / -1; }
+  }
 </style>
 
-<div class="wrap">
+<div class="opage">
 
-  <!-- CARD PRINCIPAL -->
-    <div class="cardx">
-    <div class="cardx-header">
-    
-    <h2 class="cardx-title">
-        {{ item.description_manual|default:"Item do Estoque" }}
-    </h2>
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">Bens de Consumo</a>
+    <span>›</span>
+    {{ item.description_manual|default:"Item" }}
+  </nav>
 
-    <div class="efisco-box">
-        <div class="efisco-label">E-FISCO</div>
-        <div class="efisco-value">{{ item.item_shock.efisco|default:"-" }}</div>
-    </div>
-
-    </div>
-
-<div class="cardx-body">
-  <div class="row">
-
-    <!-- FOTO + QR -->
-    <div class="col-lg-5 mb-3">
-
-      <!-- FOTO -->
-      <div class="photo-box mb-3">
-        {% if item.photo %}
-          <img 
-            src="{{ item.photo.url }}" 
-            alt="Foto do item" 
-            class="img-fluid item-photo"
-            data-bs-toggle="modal"
-            data-bs-target="#fotoModal"
-          >
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="item-title">{{ item.description_manual|default:"Item do Estoque" }}</div>
+      <div class="item-sub">
+        {% if item.item_shock.grupo_consumo %}
+          <span class="grupo-badge grupo-{{ item.item_shock.grupo_consumo }}">
+            {{ item.item_shock.get_grupo_consumo_display }}
+          </span>
         {% else %}
-          <div class="text-center">
-            <div style="font-size:2.5rem;">📦</div>
-            <div class="muted-note mt-2">Sem foto cadastrada</div>
-          </div>
+          <span class="grupo-badge grupo-None">Sem grupo</span>
         {% endif %}
       </div>
+    </div>
 
-      <!-- QR CODE -->
-      <div class="qr-under">
+    <div class="efisco-chip">
+      <div class="efisco-chip-label">E-Fisco</div>
+      <div class="efisco-chip-value">{{ item.item_shock.efisco|default:"—" }}</div>
+    </div>
+  </div>
 
-        <img
-          src="{% url 'dimms:qrcode' item.pk %}"
-          alt="QR Code do item"
-          class="qr-under-img"
-        >
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
 
-        <div class="qr-text">
-          <div class="qr-title">QR Code</div>
-          <div class="qr-subtitle">
-            Escaneie para abrir este item no sistema
+    <!-- LEFT: Foto + QR -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">📷</div>
+            <div class="card-title">Foto do Item</div>
+          </div>
+          {% if item.photo %}
+          <span style="font-size:.75rem; color:var(--ink-3);">Clique para ampliar</span>
+          {% endif %}
+        </div>
+        <div class="card-body" style="padding-bottom:14px;">
+          <div class="photo-box" id="photoTrigger">
+            {% if item.photo %}
+              <img src="{{ item.photo.url }}" alt="Foto do item" id="mainPhoto">
+            {% else %}
+              <div class="photo-empty">
+                <div class="photo-empty-icon">📦</div>
+                <span>Sem foto cadastrada</span>
+              </div>
+            {% endif %}
           </div>
         </div>
-
       </div>
 
-    </div>
-        <!-- INFO -->
-        <div class="col-lg-7">
-            <div class="d-flex align-items-baseline justify-content-between mb-3">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">🔲</div>
+            <div class="card-title">QR Code</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="qr-box">
+            <img src="{% url 'dimms:qrcode' item.pk %}" alt="QR Code">
             <div>
-                <div class="muted-note">Estoque Atual</div>
-                {% if item.amount_shock < 10 %}
-                <p class="qty low">{{ item.amount_shock }}</p>
-                {% else %}
-                <p class="qty ok">{{ item.amount_shock }}</p>
-                {% endif %}
+              <div class="qr-label">Acesso rápido</div>
+              <div class="qr-sub">Escaneie para abrir este item diretamente no sistema.</div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div class="text-end">
+    <!-- RIGHT: Estoque + Info -->
+    <div>
+
+      <!-- ESTOQUE ATUAL -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-green">📊</div>
+            <div class="card-title">Estoque Atual</div>
+          </div>
+          {% if item.amount_shock < 10 %}
+            <span class="stock-status-pill pill-low"><span class="dot"></span>Estoque baixo</span>
+          {% else %}
+            <span class="stock-status-pill pill-ok"><span class="dot"></span>Estoque normal</span>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="stock-hero">
+            <div class="stock-number-wrap">
+              <div class="stock-label">Quantidade disponível</div>
+              <div class="stock-number {% if item.amount_shock < 10 %}low{% else %}ok{% endif %}">
+                {{ item.amount_shock }}
+              </div>
+            </div>
+          </div>
+
+          <table class="kv-table">
+            <tr>
+              <td>Consumo Mensal</td>
+              <td>{{ item.monthly_consumption|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Duração Estimada</td>
+              <td>{{ item.duration|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Validade</td>
+              <td style="font-family:var(--mono); font-size:.83rem;">{{ item.validity|date:"d/m/Y"|default:"—" }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- DETALHES -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">🗂️</div>
+            <div class="card-title">Informações do Item</div>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr>
+              <td>Grupo</td>
+              <td>
                 {% if item.item_shock.grupo_consumo %}
-                <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
+                  <span class="grupo-badge grupo-{{ item.item_shock.grupo_consumo }}">
                     {{ item.item_shock.get_grupo_consumo_display }}
-                </span>
-                {% else %}
-                <span class="badge-grupo grupo-None">-</span>
-                {% endif %}
-            </div>
-            </div>
-
-            <div class="kvs">
-            
-            <div class="rowi">
-                <div class="k">Grupo</div>
-                <div class="v">{{ item.item_shock.grupo_consumo|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">E-Fisco</div>
-                <div class="v">{{ item.item_shock.efisco|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Unidade de Medida</div>
-                <div class="v">{{ item.item_shock.medida|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Descrição Manual</div>
-                <div class="v">{{ item.description_manual|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Descrição E-fisco</div>
-                <div class="v">{{ item.item_shock.descricao_efisco|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Marca</div>
-                <div class="v">{{ item.mark|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Validade</div>
-                <div class="v">{{ item.validity|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Localização</div>
-                <div class="v">{{ item.locate.setor_sala|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Prateleira/Pallet</div>
-                <div class="v">{{ item.locate|default:"-" }}</div>
-            </div>
-
-            <div class="rowi">
-                <div class="k">Tipo de Armazenamento</div>
-                <div class="v">{{ item.locate.tipo_localizacao|default:"-" }}</div>
-            </div>
-
-
-
-
-            
-            </div>
-
+                  </span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>E-Fisco</td>
+              <td style="font-family:var(--mono); font-size:.83rem;">{{ item.item_shock.efisco|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Unidade de Medida</td>
+              <td>{{ item.item_shock.medida|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Desc. Manual</td>
+              <td>{{ item.description_manual|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Desc. E-Fisco</td>
+              <td>{{ item.item_shock.descricao_efisco|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Marca</td>
+              <td>{{ item.mark|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Localização</td>
+              <td>{{ item.locate.setor_sala|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Prateleira / Pallet</td>
+              <td>{{ item.locate|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td>Tipo de Armazenamento</td>
+              <td>{{ item.locate.tipo_localizacao|default:"—" }}</td>
+            </tr>
+          </table>
         </div>
-        </div>
-    </div>
-    </div>
 
-    <!-- BOTÕES (PROVISÓRIOS / VISUAIS) -->
-    <div class="btnbar">
-      <div class="btn-group">
-        <a href="{% url 'dimms:label' item.pk %}" class="btnx btnx-success">
-          Gerar Etiqueta ▾
-        </a>
+        <div class="btn-bar">
+          <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Voltar
+          </a>
+          <a href="#" class="btn btn-orange btn-disabled">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Ficha Técnica
+          </a>
+          <a href="{% url 'dimms:label' item.pk %}" class="btn btn-green">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+            Gerar Etiqueta
+          </a>
+        </div>
       </div>
 
-      <div class="btn-group">
-        <a href="#" class="btnx btnx-orange btnx-disabled" aria-disabled="true">
-          Gerar Ficha Técnica ▾
-        </a>
-      </div>
-
-      <a href="{% url 'dimms:homepage' %}" class="btnx" style="border:1px solid rgba(0,0,0,.12); background:#fff; color:#333;">
-        Voltar
-      </a>
     </div>
   </div>
 
-  <!-- MOVIMENTAÇÃO (VISUAL PROVISÓRIO) -->
-  <div class="cardx">
-    <div class="cardx-header">
-      <h4 class="mb-0" style="color:var(--primary); font-weight:800;">Registrar Movimentação</h4>
-      <span class="badge-pill">Em breve</span>
-    </div>
-
-    <div class="cardx-body">
-      <div class="muted-note mb-3">
+  <!-- MOVIMENTAÇÃO -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-amber">🔄</div>
+        <div class="card-title">Registrar Movimentação</div>
       </div>
-
-      <form action="#" method="post" enctype="multipart/form-data">
-        <div class="row align-items-end">
-          <div class="col-md-3 form-group">
-            <label class="font-weight-bold">Quantidade</label>
-            <input type="number" class="form-control" placeholder="Ex: 5" disabled>
-          </div>
-
-          <div class="col-md-4 form-group">
-            <label>Observação (Opcional)</label>
-            <input type="text" class="form-control" placeholder="Motivo da movimentação" disabled>
-          </div>
-
-          <div class="col-md-3 form-group">
-            <label>Documento (PDF/Foto)</label>
-            <input type="file" class="form-control-file" disabled>
-          </div>
-
-          <div class="col-md-2 d-flex form-group" style="gap:10px;">
-            <button type="button" class="btn btn-danger w-100" disabled>Retirar</button>
-            <button type="button" class="btn btn-success w-100" disabled>Adicionar</button>
-          </div>
+      <span class="soon-badge">Em breve</span>
+    </div>
+    <div class="card-body">
+      <div class="move-form">
+        <div class="form-group">
+          <label class="form-label">Quantidade</label>
+          <input type="number" class="form-input" placeholder="Ex: 5" disabled>
         </div>
-      </form>
+        <div class="form-group">
+          <label class="form-label">Observação</label>
+          <input type="text" class="form-input" placeholder="Motivo da movimentação" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Documento</label>
+          <input type="file" class="form-input" disabled>
+        </div>
+        <div class="move-actions" style="padding-bottom:0; align-self:flex-end;">
+          <button class="btn btn-retirar btn-disabled" disabled>↓ Retirar</button>
+          <button class="btn btn-adicionar btn-disabled" disabled>↑ Adicionar</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- HISTÓRICO (VISUAL PROVISÓRIO) -->
-  <div class="cardx">
-    <div class="cardx-header">
-      <h4 class="mb-0" style="color:var(--primary); font-weight:800;">Histórico de Tramitações</h4>
-      <span class="badge-pill">Em breve</span>
+  <!-- HISTÓRICO -->
+  <div class="card" style="margin-top:16px;">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-blue">🕒</div>
+        <div class="card-title">Histórico de Tramitações</div>
+      </div>
+      <span class="soon-badge">Em breve</span>
     </div>
-
-    <div class="cardx-body">
-      <div class="text-muted text-center">
-        Nenhuma tramitação registrada.
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        Nenhuma tramitação registrada ainda.
       </div>
     </div>
   </div>
 
 </div>
 
-<div class="modal fade" id="fotoModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content bg-dark border-0">
-
-      <div class="modal-body text-center p-0">
-        <img id="modalImage" src="" class="img-fluid w-100">
-      </div>
-
-    </div>
+<!-- MODAL FOTO -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal-inner">
+    <button class="modal-close" id="modalClose">✕</button>
+    <img id="modalImg" src="" alt="Foto ampliada">
   </div>
 </div>
 
 <script>
-document.querySelectorAll('.item-photo').forEach(img => {
+  const trigger = document.getElementById('photoTrigger');
+  const modal   = document.getElementById('photoModal');
+  const close   = document.getElementById('modalClose');
+  const mImg    = document.getElementById('modalImg');
+  const src     = document.getElementById('mainPhoto');
 
-  img.addEventListener('click', function(){
+  if (trigger && src) {
+    trigger.addEventListener('click', () => {
+      mImg.src = src.src;
+      modal.classList.add('open');
+    });
+  }
 
-    const modalImg = document.getElementById('modalImage');
-    modalImg.src = this.src;
-
-  });
-
-});
+  if (close) close.addEventListener('click', () => modal.classList.remove('open'));
+  if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 </script>
+
 {% endblock %}

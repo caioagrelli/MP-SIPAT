@@ -16,10 +16,11 @@ urlpatterns = [
     path('processing/', processing, name='processing'),
     path('processing/<int:pk>/', details_processing, name='details_processing'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
-    
+    path('processing/create_request/', create_request, name='create_request'), 
+    path('processing/create_update/',create_update,name= 'create_update'),
+        
     path('active_balance/', active_balance, name='active_balance'), #inativa
-    path('register_movement/', register_movement, name='register_movement'), #inativa
     
-    
+
 ]
 

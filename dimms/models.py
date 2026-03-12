@@ -690,6 +690,7 @@ class Tramitacao(models.Model):
     update = models.CharField(
         max_length=30,
         choices=StatusTramitacao,
+        default=StatusTramitacao.atendimento,
         blank=True,
         null=True,
         verbose_name='Status',
@@ -701,7 +702,6 @@ class Tramitacao(models.Model):
         null=True,
         verbose_name='Responsável pela Atualização',
     )
-    
     
     observation_update = models.TextField(
         blank=True,

@@ -1,601 +1,963 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT{% endblock %}
+{% block title %}SIPAT — Solicitação {{ solicitacao.request_code }}{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
 
-.page-wrap{
-background:#f9fafc;
-padding:20px;
-border-radius:12px;
-font-family:Segoe UI;
-}
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
 
-.card{
-border-radius:12px;
-border:1px solid #e2e6ea;
-margin-bottom:20px;
-}
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
 
-.card-header{
-    background:#243b53;
-    color:white;
-    font-weight:600;
-}
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
 
-.label{
-font-size:.8rem;
-color:#888;
-}
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
 
-.value{
-font-weight:600;
-}
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
 
-.status{
-padding:6px 12px;
-border-radius:20px;
-font-size:.8rem;
-font-weight:600;
-}
+    --violet: #6d28d9;
+    --violet-soft: #f5f3ff;
+    --violet-mid: #ddd6fe;
 
-.status-processamento{background:#eaf4ff;color:#2166b1;}
-.status-separada{background:#f3eefe;color:#7d4ab5;}
-.status-envio{background:#fff5e6;color:#a66300;}
-.status-tramitacao{background:#e8f8f5;color:#0f766e;}
-.status-recebida{background:#edf8ef;color:#2f7d32;}
-.status-cancelada{background:#fdeeee;color:#a94442;}
+    --teal: #0f766e;
+    --teal-soft: #f0fdfa;
+    --teal-mid: #99f6e4;
 
-.tracking-wrapper{
-    position: relative;
-    max-width: 760px;
-}
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.12);
 
-.tracking-step{
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.10);
+
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .dpage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px;
+    color: var(--ink);
+  }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .78rem;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { opacity: .45; }
+
+  /* ─── HERO ─── */
+  .hero {
+    background: #1e2d42;
+    border-radius: var(--r-lg);
+    padding: 28px 32px;
+    margin-bottom: 24px;
     display: flex;
     align-items: flex-start;
-    gap: 18px;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
     position: relative;
-    min-height: 74px;
-}
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    animation: fadeUp .3s ease both;
+  }
 
-.tracking-step:not(:last-child){
-    margin-bottom: 10px;
-}
-
-.tracking-marker{
-    width: 22px;
-    min-width: 22px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-self: stretch;
-}
-
-.tracking-event-note{
-    font-size: .94rem;
-    color: #6c757d;
-    line-height: 1.5;
-    background: #f8f9fb;
-    border: 1px solid #e9edf2;
-    border-radius: 10px;
-    padding: 10px 12px;
-}
-
-.tracking-dot{
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #e5dcd9;
-    border: 2px solid #d9dee5;
-    z-index: 2;
-    margin-top: 4px;
-}
-
-.tracking-line{
+  .hero::before {
+    content: '';
     position: absolute;
-    top: 20px;
-    bottom: -12px;
-    width: 2px;
-    background: #d9dee5;
-    border-radius: 2px;
-}
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(37,99,235,.12);
+    pointer-events: none;
+  }
 
-.tracking-step:last-child .tracking-line{
-    display:none;
-}
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 40%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(109,40,217,.08);
+    pointer-events: none;
+  }
 
-.tracking-content{
-    flex: 1;
-    padding-bottom: 4px;
-}
+  .hero-left { position: relative; z-index: 1; }
 
-.tracking-title{
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #c0c4ca;
-    line-height: 1.2;
-    margin-bottom: 4px;
-}
-
-.tracking-subtitle{
-    color: #9aa1a9;
-    font-size: .95rem;
+  .hero-eyebrow {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: rgba(160,185,240,.65);
     margin-bottom: 8px;
-}
+  }
 
-.tracking-event{
-    margin-top: 8px;
+  .hero-code {
+    font-family: var(--mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.02em;
+    line-height: 1;
     margin-bottom: 10px;
-}
+  }
 
-.tracking-event-text{
-    color: #4b5563;
-    line-height: 1.45;
-    margin-bottom: 2px;
-}
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
 
-.tracking-event-meta{
-    font-size: .92rem;
-    color: #7b8794;
-}
+  .hero-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-/* etapas concluídas */
-.tracking-step.is-done .tracking-dot{
-    background: #212529;
-    border-color: #212529;
-}
+  .hero-meta-label {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: rgba(160,185,240,.6);
+  }
 
-.tracking-step.is-done .tracking-line{
-    background: #212529;
-}
+  .hero-meta-value {
+    font-size: .9rem;
+    font-weight: 600;
+    color: rgba(220,230,255,.9);
+  }
 
-.tracking-step.is-done .tracking-title{
-    color: #6c757d;
-}
+  .hero-right {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+  }
 
-.tracking-step.is-done .tracking-subtitle{
-    color: #8a939b;
-}
+  .hero-actions { display: flex; gap: 10px; }
 
-/* etapa atual */
-.tracking-step.is-current .tracking-dot{
-    background: #212529;
-    border: 3px solid #e9ecef;
-    box-shadow: 0 0 0 2px #212529;
-}
+  /* ─── STATUS PILLS ─── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-.tracking-step.is-current .tracking-line{
-    background: #212529;
-}
+  .s-atend  { background: var(--blue-soft);   color: var(--blue);   border-color: var(--blue-mid); }
+  .s-atend .status-dot  { background: var(--blue); }
+  .s-aguar  { background: var(--violet-soft); color: var(--violet); border-color: var(--violet-mid); }
+  .s-aguar .status-dot  { background: var(--violet); }
+  .s-sep    { background: var(--amber-soft);  color: var(--amber);  border-color: var(--amber-mid); }
+  .s-sep .status-dot    { background: var(--amber); }
+  .s-exped  { background: var(--teal-soft);   color: var(--teal);   border-color: var(--teal-mid); }
+  .s-exped .status-dot  { background: var(--teal); }
+  .s-rec    { background: var(--green-soft);  color: var(--green);  border-color: var(--green-mid); }
+  .s-rec .status-dot    { background: var(--green); }
+  .s-can    { background: var(--red-soft);    color: var(--red);    border-color: var(--red-mid); }
+  .s-can .status-dot    { background: var(--red); }
 
-.tracking-step.is-current .tracking-title{
-    color: #212529;
-}
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+  .btn-ghost-dark {
+    background: rgba(255,255,255,.09);
+    border-color: rgba(255,255,255,.14);
+    color: rgba(220,235,255,.9);
+  }
+  .btn-ghost-dark:hover { background: rgba(255,255,255,.16); color: #fff; }
 
-.tracking-step.is-current .tracking-subtitle{
-    color: #6c757d;
-}
+  .btn-accent {
+    background: var(--accent);
+    border-color: var(--accent-dark);
+    color: #fff;
+    box-shadow: 0 2px 10px var(--accent-glow);
+  }
+  .btn-accent:hover { background: var(--accent-dark); color: #fff; }
 
-/* etapas pendentes */
-.tracking-step.is-pending .tracking-dot{
-    background: #fff;
-    border: 2px solid #d9dee5;
-}
+  .btn-ghost {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--ink-2);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
-.tracking-step.is-pending .tracking-line{
-    background: #e5e9ee;
-}
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: .8rem;
+    border-radius: 8px;
+  }
 
-.tracking-step.is-pending .tracking-title{
-    color: #d0d4d9;
-}
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+  }
 
-.tracking-step.is-pending .tracking-subtitle{
-    color: #c0c5cb;
-}
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: fadeUp .3s ease both;
+  }
+  .card:last-child { margin-bottom: 0; }
+  .card:nth-child(2) { animation-delay: .05s; }
+  .card:nth-child(3) { animation-delay: .10s; }
 
+  .card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .card-head-left { display: flex; align-items: center; gap: 9px; }
+
+  .card-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .ci-blue   { background: var(--blue-soft); }
+  .ci-green  { background: var(--green-soft); }
+  .ci-amber  { background: var(--amber-soft); }
+  .ci-violet { background: var(--violet-soft); }
+
+  .card-title { font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .card-body  { padding: 18px 20px; }
+
+  /* ─── INFO GRID ─── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .info-item {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+  }
+
+  .info-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+
+  .info-value {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  /* ─── NOTE BOX ─── */
+  .note-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px 16px;
+    color: var(--ink-2);
+    font-size: .9rem;
+    line-height: 1.7;
+    white-space: pre-line;
+    min-height: 72px;
+  }
+
+  /* ─── TABLE ─── */
+  .items-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  .items-table thead th {
+    padding: 10px 14px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .items-table tbody td {
+    padding: 12px 14px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-weight: 500;
+  }
+  .items-table tbody tr:last-child td { border-bottom: none; }
+  .items-table tbody tr:hover td { background: var(--blue-soft); }
+
+  .efisco-link {
+    font-family: var(--mono);
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  .efisco-link:hover { background: #dbeafe; }
+
+  .qty-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 3px 10px;
+    font-family: var(--mono);
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--ink);
+    min-width: 40px;
+  }
+
+  /* ─── TRACKING TIMELINE ─── */
+  .timeline { display: flex; flex-direction: column; }
+
+  .t-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+  }
+
+  .t-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 32px;
+  }
+
+  .t-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    background: var(--surface-2);
+    display: grid;
+    place-items: center;
+    z-index: 1;
+    flex-shrink: 0;
+    transition: all .2s;
+  }
+
+  .t-dot-inner {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border-strong);
+    transition: all .2s;
+  }
+
+  .t-line {
+    flex: 1;
+    width: 2px;
+    background: var(--border);
+    margin: 4px 0;
+    min-height: 20px;
+  }
+
+  .t-step:last-child .t-line { display: none; }
+
+  .t-body {
+    flex: 1;
+    padding-bottom: 24px;
+  }
+
+  .t-step:last-child .t-body { padding-bottom: 0; }
+
+  .t-label {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    margin-bottom: 3px;
+    line-height: 1.2;
+    padding-top: 1px;
+  }
+
+  .t-sub {
+    font-size: .78rem;
+    color: var(--ink-3);
+    opacity: .6;
+  }
+
+  /* DONE */
+  .t-step.is-done .t-dot {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .t-step.is-done .t-dot-inner { background: #fff; }
+  .t-step.is-done .t-line { background: var(--ink); }
+  .t-step.is-done .t-label { color: var(--ink-2); }
+
+  /* CURRENT */
+  .t-step.is-current .t-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+    animation: pulse 2s ease infinite;
+  }
+  .t-step.is-current .t-dot-inner { background: #fff; }
+  .t-step.is-current .t-line { background: linear-gradient(to bottom, var(--ink) 0%, var(--border) 100%); }
+  .t-step.is-current .t-label { color: var(--accent); font-weight: 800; }
+
+  /* PENDING */
+  .t-step.is-pending .t-label { color: var(--border-strong); }
+  .t-step.is-pending .t-dot-inner { background: var(--border); }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 4px var(--accent-glow); }
+    50% { box-shadow: 0 0 0 7px rgba(37,99,235,.06); }
+  }
+
+  /* EVENT CARD */
+  .t-event {
+    margin-top: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 13px 15px;
+  }
+
+  .t-event-text {
+    font-size: .87rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .t-event-meta {
+    font-size: .76rem;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+
+  .t-event-note {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: .85rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--accent);
+  }
+
+  .t-event-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ─── CURRENT BADGE ─── */
+  .current-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    background: var(--blue-soft);
+    color: var(--blue);
+    border: 1px solid var(--blue-mid);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ─── CANCELADO BANNER ─── */
+  .cancel-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--red-soft);
+    border: 1px solid var(--red-mid);
+    border-radius: var(--r-sm);
+    padding: 14px 16px;
+    color: var(--red);
+    font-size: .9rem;
+    font-weight: 600;
+  }
+  .cancel-banner-icon { font-size: 1.4rem; }
+
+  /* ─── EMPTY ─── */
+  .empty-state {
+    padding: 28px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: .88rem;
+  }
+  .empty-icon { font-size: 1.8rem; margin-bottom: 8px; opacity: .4; }
+
+  /* ─── DOCUMENT CARD ─── */
+  .doc-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px 16px;
+  }
+  .doc-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .doc-meta { flex: 1; }
+  .doc-meta-title { font-weight: 700; color: var(--ink); font-size: .9rem; }
+  .doc-meta-sub   { font-size: .8rem; color: var(--ink-3); margin-top: 2px; }
+
+  /* ─── QUICK SUMMARY (SIDE) ─── */
+  .summary-rows { display: flex; flex-direction: column; }
+  .summary-row {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .summary-row:first-child { padding-top: 0; }
+
+  .summary-key {
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .summary-val {
+    font-size: .87rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: right;
+  }
+  .summary-val.mono { font-family: var(--mono); font-size: .82rem; }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: 1fr; }
+    .hero-right { align-items: flex-start; }
+  }
+  @media (max-width: 640px) {
+    .dpage { padding: 14px 12px; }
+    .hero { padding: 20px; }
+    .hero-code { font-size: 1.6rem; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
 </style>
 
+<div class="dpage">
 
-<div class="page-wrap">
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:processing' %}">Tramitações</a>
+    <span>›</span>
+    {{ solicitacao.request_code }}
+  </nav>
 
-<div class="d-flex justify-content-between mb-4">
-
-<div>
-<h2>📦 Solicitação {{ solicitacao.request_code }}</h2>
-<p class="text-muted">Detalhes da tramitação</p>
-</div>
-
-<div>
-
-<a href="{% url 'dimms:processing' %}" class="btn btn-outline-secondary">
-Voltar
-</a>
-
-<a href="#" class="btn btn-primary">
-Atualizar Status
-</a>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-header">
-Informações da Solicitação
-</div>
-
-<div class="card-body">
-
-<div class="row">
-
-<div class="col-md-4">
-<div class="label">Código</div>
-<div class="value">{{ solicitacao.request_code }}</div>
-</div>
-
-<div class="col-md-4">
-<div class="label">Solicitante</div>
-<div class="value">{{ solicitacao.ua_order }}</div>
-</div>
-
-<div class="col-md-4">
-<div class="label">Usuário Solicitante</div>
-<div class="value">{{ solicitacao.user_order|default:"-" }}</div>
-</div>
-
-<div class="col-md-4 mt-3">
-<div class="label">Responsável</div>
-<div class="value">
-{% if solicitacao.user_responsible %}
-{{ solicitacao.user_responsible }}
-{% else %}
--
-{% endif %}
-</div>
-</div>
-
-<div class="col-md-4 mt-3">
-<div class="label">Data</div>
-<div class="value">{{ solicitacao.data_order|date:"d/m/Y H:i" }}</div>
-</div>
-
-<div class="col-md-4 mt-3">
-<div class="label">Status</div>
-
-{% if solicitacao.situation == "PROCESSAMENTO" %}
-<span class="status status-processamento">Processamento</span>
-
-{% elif solicitacao.situation == "SEPARADA" %}
-<span class="status status-separada">Separada</span>
-
-{% elif solicitacao.situation == "ENVIO" %}
-<span class="status status-envio">Envio</span>
-
-{% elif solicitacao.situation == "TRAMITACAO" %}
-<span class="status status-tramitacao">Tramitação</span>
-
-{% elif solicitacao.situation == "RECEBIDA" %}
-<span class="status status-recebida">Recebida</span>
-
-{% elif solicitacao.situation == "CANCELADA" %}
-<span class="status status-cancelada">Cancelada</span>
-
-{% endif %}
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-header">
-Observação
-</div>
-
-<div class="card-body">
-
-{{ solicitacao.observation_order|default:"Sem observação." }}
-
-</div>
-
-</div>
-
-<div class="card">
-    <div class="card-header">
-        Itens da Solicitação
-    </div>
-
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>E-Fisco</th>
-                        <th>Descrição</th>
-                        <th>Grupo</th>
-                        <th class="text-center">Quantidade</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in itens_solicitados %}
-                        <tr>
-                            <td>
-                                {% if item.item_order %}
-                                    <a href="{% url 'dimms:overview' item.item_order.pk %}"
-                                    class="text-decoration-none text-primary">
-                                        {{ item.item_order.item_shock.efisco|default:"-" }}
-                                    </a>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ item.item_order.description_manual|default:"-" }}</td>
-                            <td>{{ item.item_order.item_shock.get_grupo_consumo_display|default:"-" }}</td>
-                            <td class="text-center">{{ item.amount_order|default:"-" }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-3">
-                                Nenhum item vinculado a esta solicitação.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Detalhes da Solicitação</div>
+      <div class="hero-code">{{ solicitacao.request_code }}</div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Solicitante</div>
+          <div class="hero-meta-value">{{ solicitacao.ua_order }}</div>
         </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Usuário</div>
+          <div class="hero-meta-value">{{ solicitacao.user_order|default:"—" }}</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Data</div>
+          <div class="hero-meta-value" style="font-family:var(--mono); font-size:.85rem;">
+            {{ solicitacao.data_order|date:"d/m/Y H:i" }}
+          </div>
+        </div>
+      </div>
     </div>
-</div>
 
+    <div class="hero-right">
+      {% if solicitacao.situation == "ATENDIMENTO" %}
+        <span class="status-pill s-atend"><span class="status-dot"></span>Em Atendimento</span>
+      {% elif solicitacao.situation == "AGUAR_SEPARACAO" %}
+        <span class="status-pill s-aguar"><span class="status-dot"></span>Aguardando Separação</span>
+      {% elif solicitacao.situation == "SEPARADA" %}
+        <span class="status-pill s-sep"><span class="status-dot"></span>Separada</span>
+      {% elif solicitacao.situation == "EXPEDICAO" %}
+        <span class="status-pill s-exped"><span class="status-dot"></span>Em Expedição</span>
+      {% elif solicitacao.situation == "RECEBIDA" %}
+        <span class="status-pill s-rec"><span class="status-dot"></span>Recebida</span>
+      {% elif solicitacao.situation == "CANCELADA" %}
+        <span class="status-pill s-can"><span class="status-dot"></span>Cancelada</span>
+      {% endif %}
 
-<div class="card mb-4">
-    <div class="card-header">
-        Andamento da Solicitação
+      <div class="hero-actions">
+        <a href="{% url 'dimms:processing' %}" class="btn btn-ghost-dark">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Voltar
+        </a>
+        <a href="#" class="btn btn-accent">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          Atualizar Status
+        </a>
+      </div>
     </div>
+  </div>
 
-    <div class="card-body">
-        {% if solicitacao.situation == "CANCELADA" %}
-            <div class="alert alert-danger mb-0">
-                Esta solicitação foi cancelada.
+  <!-- LAYOUT PRINCIPAL -->
+  <div class="layout">
+
+    <!-- COLUNA ESQUERDA -->
+    <div>
+
+      <!-- ITENS DA SOLICITAÇÃO -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">📋</div>
+            <div class="card-title">Itens da Solicitação</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>E-Fisco</th>
+                <th>Descrição</th>
+                <th>Grupo</th>
+                <th style="text-align:center;">Qtd.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in itens_solicitados %}
+              <tr>
+                <td>
+                  {% if item.item_order %}
+                    <a href="{% url 'dimms:overview' item.item_order.pk %}" class="efisco-link">
+                      {{ item.item_order.item_shock.efisco|default:"—" }}
+                    </a>
+                  {% else %}—{% endif %}
+                </td>
+                <td style="font-weight:600; color:var(--ink);">{{ item.item_order.description_manual|default:"—" }}</td>
+                <td>{{ item.item_order.item_shock.get_grupo_consumo_display|default:"—" }}</td>
+                <td style="text-align:center;"><span class="qty-badge">{{ item.amount_order|default:"—" }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">
+                <div class="empty-state">
+                  <div class="empty-icon">📦</div>
+                  Nenhum item vinculado a esta solicitação.
+                </div>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANDAMENTO / TRACKING -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-green">🛣️</div>
+            <div class="card-title">Andamento da Solicitação</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          {% if solicitacao.situation == "CANCELADA" %}
+            <div class="cancel-banner">
+              <div class="cancel-banner-icon">🚫</div>
+              <div>
+                <div style="font-weight:700; margin-bottom:2px;">Solicitação Cancelada</div>
+                <div style="font-size:.85rem; opacity:.8;">Esta solicitação foi encerrada antes de ser concluída.</div>
+              </div>
             </div>
-        {% else %}
-            {% if historico_tramitacao %}
-                <div class="tracking-wrapper">
 
-                    {% for etapa in etapas_fluxo %}
-                        <div class="tracking-step
-                            {% if etapa.concluida %}is-done{% endif %}
-                            {% if etapa.atual %}is-current{% endif %}
-                            {% if etapa.pendente %}is-pending{% endif %}">
+          {% elif historico_tramitacao %}
+            <div class="timeline">
+              {% for etapa in etapas_fluxo %}
+              <div class="t-step
+                {% if etapa.concluida %}is-done
+                {% elif etapa.atual %}is-current
+                {% else %}is-pending{% endif %}">
 
-                            <div class="tracking-marker">
-                                <span class="tracking-dot"></span>
-                                {% if not forloop.last %}
-                                    <span class="tracking-line"></span>
-                                {% endif %}
-                            </div>
+                <div class="t-spine">
+                  <div class="t-dot"><div class="t-dot-inner"></div></div>
+                  <div class="t-line"></div>
+                </div>
 
-                            <div class="tracking-content">
-                                <div class="tracking-title">
-                                    {{ etapa.label }}
-                                </div>
+                <div class="t-body">
+                  <div class="t-label">
+                    {{ etapa.label }}
+                    {% if etapa.atual %}<span class="current-tag">● Atual</span>{% endif %}
+                  </div>
 
-                                {% if etapa.atual %}
-                                    <div class="tracking-subtitle">
-                                        Etapa atual da solicitação.
-                                    </div>
+                  {% if etapa.concluida or etapa.atual %}
+                    <div class="t-sub">
+                      {% if etapa.concluida %}Etapa concluída{% else %}Etapa em andamento{% endif %}
+                    </div>
 
-                                    {% for h in historico_tramitacao %}
-                                        {% if h.update == etapa.codigo %}
-                                            <div class="tracking-event">
-
-                                                <div class="tracking-event-text">
-                                                    {% if h.update == "PROCESSAMENTO" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} iniciou o processamento da solicitação.
-                                                        {% else %}
-                                                            O processamento da solicitação foi iniciado.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "SEPARADA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} separou os itens da solicitação.
-                                                        {% else %}
-                                                            Os itens da solicitação foram separados.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "ENVIO" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} liberou a solicitação para envio.
-                                                        {% else %}
-                                                            A solicitação foi liberada para envio.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "TRAMITACAO" %}
-                                                        {% if h.user_update %}
-                                                            O motorista {{ h.user_update.get_full_name|default:h.user_update.username }} recolheu a solicitação e está em trânsito.
-                                                        {% else %}
-                                                            A solicitação foi recolhida e está em trânsito.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "RECEBIDA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} recebeu a solicitação no destino.
-                                                        {% else %}
-                                                            A solicitação foi recebida no destino.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "CANCELADA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} cancelou a solicitação.
-                                                        {% else %}
-                                                            A solicitação foi cancelada.
-                                                        {% endif %}
-
-                                                    {% else %}
-                                                        {{ h.observation_update|default:"Atualização registrada sem observação." }}
-                                                    {% endif %}
-                                                </div>
-
-                                                <div class="tracking-event-meta">
-                                                    {% if h.user_update %}
-                                                        {{ h.user_update.get_full_name|default:h.user_update.username }}
-                                                    {% else %}
-                                                        Sistema
-                                                    {% endif %}
-                                                    • {{ h.date_update|date:"d/m/Y H:i" }}
-                                                </div>
-
-                                                {% if h.observation_update %}
-                                                    <div class="tracking-event-note mt-2">
-                                                        {{ h.observation_update }}
-                                                    </div>
-                                                {% endif %}
-
-                                                <div class="mt-2 d-flex gap-2 flex-wrap">
-                                                    <a href="{% url 'dimms:course' solicitacao.pk h.pk %}"
-                                                       class="btn btn-sm btn-outline-secondary">
-                                                        Ver detalhes
-                                                    </a>
-
-                                                    {% if h.documents_update %}
-                                                        <a href="{{ h.documents_update.url }}"
-                                                           target="_blank"
-                                                           class="btn btn-sm btn-outline-primary">
-                                                            Abrir documento
-                                                        </a>
-                                                    {% endif %}
-                                                </div>
-
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-
-                                {% if etapa.concluida %}
-                                    <div class="tracking-subtitle">
-                                        Etapa concluída.
-                                    </div>
-
-                                    {% for h in historico_tramitacao %}
-                                        {% if h.update == etapa.codigo %}
-                                            <div class="tracking-event">
-
-                                                <div class="tracking-event-text">
-                                                    {% if h.update == "PROCESSAMENTO" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} iniciou o processamento da solicitação.
-                                                        {% else %}
-                                                            O processamento da solicitação foi iniciado.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "SEPARADA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} separou os itens da solicitação.
-                                                        {% else %}
-                                                            Os itens da solicitação foram separados.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "ENVIO" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} liberou a solicitação para envio.
-                                                        {% else %}
-                                                            A solicitação foi liberada para envio.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "TRAMITACAO" %}
-                                                        {% if h.user_update %}
-                                                            O motorista {{ h.user_update.get_full_name|default:h.user_update.username }} recolheu a solicitação e está em trânsito.
-                                                        {% else %}
-                                                            A solicitação foi recolhida e está em trânsito.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "RECEBIDA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} recebeu a solicitação no destino.
-                                                        {% else %}
-                                                            A solicitação foi recebida no destino.
-                                                        {% endif %}
-
-                                                    {% elif h.update == "CANCELADA" %}
-                                                        {% if h.user_update %}
-                                                            {{ h.user_update.get_full_name|default:h.user_update.username }} cancelou a solicitação.
-                                                        {% else %}
-                                                            A solicitação foi cancelada.
-                                                        {% endif %}
-
-                                                    {% else %}
-                                                        {{ h.observation_update|default:"Etapa registrada." }}
-                                                    {% endif %}
-                                                </div>
-
-                                                <div class="tracking-event-meta">
-                                                    {% if h.user_update %}
-                                                        {{ h.user_update.get_full_name|default:h.user_update.username }}
-                                                    {% else %}
-                                                        Sistema
-                                                    {% endif %}
-                                                    • {{ h.date_update|date:"d/m/Y H:i" }}
-                                                </div>
-
-                                                <div class="mt-2">
-                                                    <a href="{% url 'dimms:course' solicitacao.pk h.pk %}"
-                                                       class="btn btn-sm btn-outline-secondary">
-                                                        Ver detalhes
-                                                    </a>
-                                                </div>
-
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-
-                            </div>
+                    {% for h in historico_tramitacao %}
+                      {% if h.update == etapa.codigo %}
+                      <div class="t-event">
+                        <div class="t-event-text">
+                          {% if h.update == "ATENDIMENTO" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} iniciou o atendimento da solicitação.
+                            {% else %}O atendimento da solicitação foi iniciado.{% endif %}
+                          {% elif h.update == "AGUAR_SEPARACAO" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} informou que os itens estão aguardando separação.
+                            {% else %}Os itens estão aguardando separação.{% endif %}
+                          {% elif h.update == "SEPARADA" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} separou os itens da solicitação.
+                            {% else %}Os itens foram separados.{% endif %}
+                          {% elif h.update == "EXPEDICAO" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} liberou para expedição.
+                            {% else %}A solicitação foi liberada para expedição.{% endif %}
+                          {% elif h.update == "RECEBIDA" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} confirmou o recebimento.
+                            {% else %}A solicitação foi recebida no destino.{% endif %}
+                          {% elif h.update == "CANCELADA" %}
+                            {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }} cancelou a solicitação.
+                            {% else %}A solicitação foi cancelada.{% endif %}
+                          {% else %}
+                            {{ h.observation_update|default:"Atualização registrada." }}
+                          {% endif %}
                         </div>
+
+                        <div class="t-event-meta">
+                          {% if h.user_update %}{{ h.user_update.get_full_name|default:h.user_update.username }}{% else %}Sistema{% endif %}
+                          &nbsp;·&nbsp;{{ h.date_update|date:"d/m/Y H:i" }}
+                        </div>
+
+                        {% if h.observation_update %}
+                        <div class="t-event-note">{{ h.observation_update }}</div>
+                        {% endif %}
+
+                        <div class="t-event-actions">
+                          <a href="{% url 'dimms:course' solicitacao.pk h.pk %}" class="btn btn-ghost btn-sm">
+                            Ver detalhes
+                          </a>
+                          {% if h.documents_update %}
+                          <a href="{{ h.documents_update.url }}" target="_blank" class="btn btn-accent btn-sm">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            Documento
+                          </a>
+                          {% endif %}
+                        </div>
+                      </div>
+                      {% endif %}
                     {% endfor %}
 
+                  {% else %}
+                    <div class="t-sub">Aguardando</div>
+                  {% endif %}
                 </div>
-            {% else %}
-                <div class="alert alert-light border text-muted mb-0">
-                    Nenhuma atualização de tramitação registrada até o momento.
-                </div>
-            {% endif %}
-        {% endif %}
+
+              </div>
+              {% endfor %}
+            </div>
+
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">🕐</div>
+              Nenhuma atualização de tramitação registrada ainda.
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- DOCUMENTO DA SOLICITAÇÃO -->
+      {% if solicitacao.documents_order %}
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-violet">📎</div>
+            <div class="card-title">Documento Anexado</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="doc-row">
+            <div class="doc-icon">📄</div>
+            <div class="doc-meta">
+              <div class="doc-meta-title">Documento da solicitação</div>
+              <div class="doc-meta-sub">Anexo vinculado ao pedido original.</div>
+            </div>
+            <a href="{{ solicitacao.documents_order.url }}" target="_blank" class="btn btn-ghost btn-sm">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Abrir
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
+
+    <!-- COLUNA DIREITA -->
+    <div>
+
+      <!-- RESUMO -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">⚡</div>
+            <div class="card-title">Resumo Rápido</div>
+          </div>
+        </div>
+        <div class="card-body" style="padding-top:14px; padding-bottom:14px;">
+          <div class="summary-rows">
+            <div class="summary-row">
+              <div class="summary-key">Código</div>
+              <div class="summary-val mono">{{ solicitacao.request_code }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-key">Status</div>
+              <div class="summary-val">
+                {% if solicitacao.situation == "ATENDIMENTO" %}<span class="status-pill s-atend" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Em Atendimento</span>
+                {% elif solicitacao.situation == "AGUAR_SEPARACAO" %}<span class="status-pill s-aguar" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Ag. Separação</span>
+                {% elif solicitacao.situation == "SEPARADA" %}<span class="status-pill s-sep" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Separada</span>
+                {% elif solicitacao.situation == "EXPEDICAO" %}<span class="status-pill s-exped" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Em Expedição</span>
+                {% elif solicitacao.situation == "RECEBIDA" %}<span class="status-pill s-rec" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Recebida</span>
+                {% elif solicitacao.situation == "CANCELADA" %}<span class="status-pill s-can" style="font-size:.72rem; padding:4px 10px;"><span class="status-dot"></span>Cancelada</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-key">UA Solicitante</div>
+              <div class="summary-val">{{ solicitacao.ua_order }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-key">Usuário</div>
+              <div class="summary-val">{{ solicitacao.user_order|default:"—" }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-key">Responsável</div>
+              <div class="summary-val">{{ solicitacao.user_responsible|default:"—" }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-key">Data</div>
+              <div class="summary-val mono">{{ solicitacao.data_order|date:"d/m/Y H:i" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AÇÕES -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-green">⚙️</div>
+            <div class="card-title">Ações</div>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:8px;">
+          <a href="#" class="btn btn-accent" style="justify-content:center;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Atualizar Status
+          </a>
+          <a href="{% url 'dimms:processing' %}" class="btn btn-ghost" style="justify-content:center;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Voltar à lista
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
-
-
-
-{% if solicitacao.documents_order %}
-
-<div class="card">
-
-<div class="card-header">
-Documento anexado
-</div>
-
-<div class="card-body">
-
-<a href="{{ solicitacao.documents_order.url }}" target="_blank" class="btn btn-outline-primary">
-Abrir Documento
-</a>
-
-</div>
-
-</div>
-
-{% endif %}
-
-</div>
-
 {% endblock %}
