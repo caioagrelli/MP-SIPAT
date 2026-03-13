@@ -1,0 +1,576 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Atualizar Solicitação{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
+    --violet: #6d28d9;
+    --violet-soft: #f5f3ff;
+    --violet-mid: #ddd6fe;
+    --teal: #0f766e;
+    --teal-soft: #f0fdfa;
+    --teal-mid: #99f6e4;
+    --slate: #475569;
+    --slate-soft: #f1f5f9;
+    --slate-mid: #cbd5e1;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.13);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 16px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .upage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px 40px;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .78rem; color: var(--ink-3); margin-bottom: 18px; font-weight: 500;
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { opacity: .4; }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .topbar-title { font-size: 1.7rem; font-weight: 800; color: var(--ink); letter-spacing: -.035em; line-height: 1.1; }
+  .topbar-sub   { margin-top: 5px; font-size: .875rem; color: var(--ink-3); font-weight: 500; }
+
+  /* ─── HERO INFO ─── */
+  .hero {
+    background: linear-gradient(135deg, #1e2d42 0%, #243451 100%);
+    border-radius: var(--r-lg);
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    animation: fadeUp .3s ease both;
+  }
+  .hero-left { display: flex; align-items: center; gap: 16px; }
+  .hero-icon {
+    width: 48px; height: 48px; border-radius: 13px;
+    background: rgba(255,255,255,.10);
+    display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
+  }
+  .hero-code {
+    font-family: var(--mono); font-size: 1.35rem; font-weight: 700;
+    color: #ffffff; letter-spacing: -.02em;
+  }
+  .hero-meta { margin-top: 4px; font-size: .82rem; color: rgba(160,175,210,.8); font-weight: 500; }
+
+  .hero-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .info-chips { display: flex; gap: 20px; flex-wrap: wrap; }
+  .info-chip { display: flex; flex-direction: column; gap: 2px; }
+  .chip-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(160,175,210,.65); }
+  .chip-val   { font-size: .84rem; font-weight: 600; color: rgba(255,255,255,.9); }
+  .chip-val.mono { font-family: var(--mono); }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 292px;
+    gap: 20px;
+    align-items: start;
+  }
+  .main-col > * + * { margin-top: 16px; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: fadeUp .32s ease both;
+  }
+  .card:nth-child(2) { animation-delay: .06s; }
+
+  .card-head {
+    padding: 13px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 9px;
+    background: var(--surface-2);
+  }
+  .card-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 13px; flex-shrink: 0;
+  }
+  .ci-blue   { background: var(--blue-soft); }
+  .ci-teal   { background: var(--teal-soft); }
+  .ci-amber  { background: var(--amber-soft); }
+  .ci-violet { background: var(--violet-soft); }
+
+  .card-title { font-size: .875rem; font-weight: 700; color: var(--ink); }
+  .card-body  { padding: 22px; }
+
+  /* ─── STATUS ARROW ─── */
+  .status-transition {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+  }
+  .st-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin-bottom: 4px; }
+  .st-arrow { color: var(--ink-3); font-size: 1.2rem; flex-shrink: 0; transition: color .2s; }
+
+  /* ─── FORM ─── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-label {
+    font-size: .71rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-3);
+  }
+  .label-opt { font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-3); opacity: .7; margin-left: 4px; }
+
+  .upage select,
+  .upage input[type="text"],
+  .upage input[type="file"],
+  .upage textarea {
+    width: 100%;
+    font-family: var(--font); font-size: .875rem; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm); padding: 10px 13px; outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .upage select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+  }
+  .upage select:focus, .upage input:focus, .upage textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: #fdfdff;
+  }
+  .upage textarea { resize: vertical; min-height: 88px; line-height: 1.65; }
+  .upage input[type="file"] { padding: 8px 12px; color: var(--ink-3); cursor: pointer; font-size: .82rem; }
+  .upage input:disabled { background: var(--surface-2); color: var(--ink-3); cursor: not-allowed; }
+
+  .field-error { font-size: .78rem; color: var(--red); font-weight: 600; margin-top: 4px; }
+  .error-box {
+    padding: 13px 15px; background: var(--red-soft); border: 1.5px solid var(--red-mid);
+    border-radius: var(--r-sm); color: var(--red); font-size: .85rem; font-weight: 600;
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px;
+  }
+
+  /* ─── STATUS PILLS ─── */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 999px;
+    font-size: .75rem; font-weight: 700; border: 1px solid; white-space: nowrap;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .pill-atendimento { background: var(--blue-soft);   color: var(--blue);   border-color: var(--blue-mid); }
+  .pill-atendimento .pill-dot { background: var(--blue); }
+  .pill-aguarsep    { background: var(--teal-soft);   color: var(--teal);   border-color: var(--teal-mid); }
+  .pill-aguarsep .pill-dot    { background: var(--teal); }
+  .pill-separada    { background: var(--violet-soft); color: var(--violet); border-color: var(--violet-mid); }
+  .pill-separada .pill-dot    { background: var(--violet); }
+  .pill-expedicao   { background: var(--amber-soft);  color: var(--amber);  border-color: var(--amber-mid); }
+  .pill-expedicao .pill-dot   { background: var(--amber); }
+  .pill-recebida    { background: var(--green-soft);  color: var(--green);  border-color: var(--green-mid); }
+  .pill-recebida .pill-dot    { background: var(--green); }
+  .pill-cancelada   { background: var(--red-soft);    color: var(--red);    border-color: var(--red-mid); }
+  .pill-cancelada .pill-dot   { background: var(--red); }
+  .pill-rascunho    { background: var(--slate-soft);  color: var(--slate);  border-color: var(--slate-mid); }
+  .pill-rascunho .pill-dot    { background: var(--slate); }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 17px;
+    border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem;
+    font-weight: 600; cursor: pointer; text-decoration: none;
+    border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-accent { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 10px var(--accent-glow); }
+  .btn-accent:hover { background: var(--accent-dark); color: #fff; transform: translateY(-1px); }
+  .btn-ghost  { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .form-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* ─── SIDEBAR ─── */
+  .side-col { display: flex; flex-direction: column; gap: 16px; }
+  .side-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden;
+    animation: fadeUp .32s .08s ease both;
+  }
+
+  .summary-list { display: flex; flex-direction: column; }
+  .summary-row {
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .summary-row:first-child { padding-top: 0; }
+  .summary-row:last-child  { border-bottom: none; padding-bottom: 0; }
+  .s-key { font-size: .71rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .s-val { font-family: var(--mono); font-size: .85rem; font-weight: 700; color: var(--ink); }
+  .s-val.text { font-family: var(--font); font-size: .82rem; }
+
+  /* ─── HISTORICO TABLE ─── */
+  .hist-wrap { overflow-x: auto; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .hist-table thead th {
+    padding: 10px 16px; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--ink-3); background: var(--surface-2);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .hist-table tbody td {
+    padding: 12px 16px; color: var(--ink-2);
+    border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  .hist-table tbody tr:last-child td { border-bottom: none; }
+  .hist-table tbody tr:hover td { background: #f5f8ff; }
+  .td-mono { font-family: var(--mono); font-size: .78rem; color: var(--ink-3); }
+  .td-obs  { color: var(--ink-3); font-size: .82rem; max-width: 220px; }
+  .hist-empty { padding: 32px; text-align: center; color: var(--ink-3); font-size: .88rem; }
+  .hist-empty-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; opacity: .3; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .upage { padding: 14px 12px 32px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .hero { padding: 18px; }
+    .info-chips { gap: 12px; }
+  }
+</style>
+
+<div class="upage">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:processing' %}">Tramitações</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'dimms:details_processing' solicitacao.pk %}">{{ solicitacao.request_code }}</a>
+    <span class="breadcrumb-sep">›</span>
+    Atualizar Status
+  </nav>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Atualizar Solicitação</div>
+      <div class="topbar-sub">Registre a mudança de status e adicione informações da etapa.</div>
+    </div>
+    <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn btn-ghost">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar
+    </a>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-icon">✏️</div>
+      <div>
+        <div class="hero-code">{{ solicitacao.request_code }}</div>
+        <div class="hero-meta">{{ solicitacao.ua_order|default:"—" }}</div>
+      </div>
+    </div>
+    <div class="info-chips">
+      <div class="info-chip">
+        <div class="chip-label">Aberta em</div>
+        <div class="chip-val mono">{{ solicitacao.data_order|date:"d/m/Y" }}</div>
+      </div>
+      <div class="info-chip">
+        <div class="chip-label">Status atual</div>
+        <div class="chip-val">
+          {% with s=solicitacao.situation %}
+            {% if s == "ATENDIMENTO" %}<span class="pill pill-atendimento"><span class="pill-dot"></span>Em Atendimento</span>
+            {% elif s == "AGUAR_SEPARACAO" %}<span class="pill pill-aguarsep"><span class="pill-dot"></span>Aguard. Separação</span>
+            {% elif s == "SEPARADA" %}<span class="pill pill-separada"><span class="pill-dot"></span>Separada</span>
+            {% elif s == "EXPEDICAO" %}<span class="pill pill-expedicao"><span class="pill-dot"></span>Em Expedição</span>
+            {% elif s == "RECEBIDA" %}<span class="pill pill-recebida"><span class="pill-dot"></span>Recebida</span>
+            {% elif s == "CANCELADA" %}<span class="pill pill-cancelada"><span class="pill-dot"></span>Cancelada</span>
+            {% elif s == "RASCUNHO" %}<span class="pill pill-rascunho"><span class="pill-dot"></span>Rascunho</span>
+            {% else %}<span style="color:rgba(255,255,255,.6);">{{ s|default:"—" }}</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="error-box">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ form.non_field_errors }}</span>
+    </div>
+    {% endif %}
+
+    <div class="layout">
+
+      <!-- ══ COLUNA PRINCIPAL ══ -->
+      <div class="main-col">
+
+        <!-- ATUALIZAÇÃO DE STATUS -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon ci-teal">🔄</div>
+            <span class="card-title">Atualização de Status</span>
+          </div>
+          <div class="card-body">
+
+            <!-- TRANSIÇÃO VISUAL -->
+            <div class="status-transition">
+              <div>
+                <div class="st-label">Status atual</div>
+                <div id="st-from">
+                  {% with s=solicitacao.situation %}
+                    {% if s == "ATENDIMENTO" %}<span class="pill pill-atendimento"><span class="pill-dot"></span>Em Atendimento</span>
+                    {% elif s == "AGUAR_SEPARACAO" %}<span class="pill pill-aguarsep"><span class="pill-dot"></span>Aguard. Separação</span>
+                    {% elif s == "SEPARADA" %}<span class="pill pill-separada"><span class="pill-dot"></span>Separada</span>
+                    {% elif s == "EXPEDICAO" %}<span class="pill pill-expedicao"><span class="pill-dot"></span>Em Expedição</span>
+                    {% elif s == "RECEBIDA" %}<span class="pill pill-recebida"><span class="pill-dot"></span>Recebida</span>
+                    {% elif s == "CANCELADA" %}<span class="pill pill-cancelada"><span class="pill-dot"></span>Cancelada</span>
+                    {% elif s == "RASCUNHO" %}<span class="pill pill-rascunho"><span class="pill-dot"></span>Rascunho</span>
+                    {% else %}<span style="color:var(--ink-3)">{{ s|default:"—" }}</span>
+                    {% endif %}
+                  {% endwith %}
+                </div>
+              </div>
+              <div class="st-arrow" id="st-arrow">→</div>
+              <div>
+                <div class="st-label">Novo status</div>
+                <div id="st-to"><span style="color:var(--ink-3); font-size:.82rem;">Selecione abaixo</span></div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label">Novo Status</label>
+                {{ form.situation }}
+                {% if form.situation.errors %}<div class="field-error">{{ form.situation.errors|join:", " }}</div>{% endif %}
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label">Observação <span class="label-opt">(opcional)</span></label>
+                {{ form.observacao_tramitacao }}
+                {% if form.observacao_tramitacao.errors %}<div class="field-error">{{ form.observacao_tramitacao.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANEXOS -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon ci-blue">📎</div>
+            <span class="card-title">Anexos <span style="font-weight:400; color:var(--ink-3); font-size:.8rem;">(opcionais)</span></span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Documento</label>
+                {{ form.documents_update }}
+                {% if form.documents_update.errors %}<div class="field-error">{{ form.documents_update.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label">Foto do Item</label>
+                {{ form.photo_update }}
+                {% if form.photo_update.errors %}<div class="field-error">{{ form.photo_update.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon ci-violet">🧾</div>
+            <span class="card-title">Histórico de Tramitações</span>
+          </div>
+          <div class="hist-wrap">
+            <table class="hist-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Responsável</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in historico %}
+                <tr>
+                  <td class="td-mono">{{ item.date_update|date:"d/m/Y H:i" }}</td>
+                  <td>
+                    {% with s=item.update %}
+                      {% if s == "ATENDIMENTO" %}<span class="pill pill-atendimento"><span class="pill-dot"></span>Em Atendimento</span>
+                      {% elif s == "AGUAR_SEPARACAO" %}<span class="pill pill-aguarsep"><span class="pill-dot"></span>Aguard. Separação</span>
+                      {% elif s == "SEPARADA" %}<span class="pill pill-separada"><span class="pill-dot"></span>Separada</span>
+                      {% elif s == "EXPEDICAO" %}<span class="pill pill-expedicao"><span class="pill-dot"></span>Em Expedição</span>
+                      {% elif s == "RECEBIDA" %}<span class="pill pill-recebida"><span class="pill-dot"></span>Recebida</span>
+                      {% elif s == "CANCELADA" %}<span class="pill pill-cancelada"><span class="pill-dot"></span>Cancelada</span>
+                      {% elif s == "RASCUNHO" %}<span class="pill pill-rascunho"><span class="pill-dot"></span>Rascunho</span>
+                      {% else %}<span style="color:var(--ink-3)">{{ s|default:"—" }}</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td style="font-weight:600; color:var(--ink);">{{ item.responsible_update|default:"—" }}</td>
+                  <td class="td-obs">{{ item.observation_update|default:"—"|truncatechars:60 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4">
+                    <div class="hist-empty">
+                      <span class="hist-empty-icon">🧾</span>
+                      Nenhuma tramitação registrada ainda.
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-accent">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Salvar Alteração
+          </button>
+          <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+
+      </div>
+
+      <!-- ══ SIDEBAR ══ -->
+      <div class="side-col">
+
+        <div class="side-card">
+          <div class="card-head">
+            <div class="card-icon ci-amber">⚡</div>
+            <span class="card-title">Resumo</span>
+          </div>
+          <div class="card-body" style="padding-top:14px; padding-bottom:14px;">
+            <div class="summary-list">
+              <div class="summary-row">
+                <span class="s-key">Código</span>
+                <span class="s-val">{{ solicitacao.request_code }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Solicitante</span>
+                <span class="s-val text">{{ solicitacao.ua_order|default:"—" }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Data</span>
+                <span class="s-val">{{ solicitacao.data_order|date:"d/m/Y" }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Tramitações</span>
+                <span class="s-val">{{ historico|length }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Novo status</span>
+                <span class="s-val text" id="side-status"><span style="color:var(--ink-3)">—</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,var(--teal-soft),var(--green-soft)); border:1px solid var(--teal-mid); border-radius:var(--r-md); padding:17px; animation:fadeUp .32s .12s ease both;">
+          <div style="font-size:.71rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--teal); margin-bottom:11px;">💡 Dicas</div>
+          <div style="font-size:.81rem; color:var(--ink-2); display:flex; gap:8px; line-height:1.5; margin-bottom:8px;"><span style="color:var(--teal); font-weight:800; flex-shrink:0;">→</span><span>Cada atualização fica registrada no histórico abaixo.</span></div>
+          <div style="font-size:.81rem; color:var(--ink-2); display:flex; gap:8px; line-height:1.5; margin-bottom:8px;"><span style="color:var(--teal); font-weight:800; flex-shrink:0;">→</span><span>Anexe foto ou documento para evidenciar a etapa.</span></div>
+          <div style="font-size:.81rem; color:var(--ink-2); display:flex; gap:8px; line-height:1.5;"><span style="color:var(--teal); font-weight:800; flex-shrink:0;">→</span><span>Cancelamentos não podem ser revertidos.</span></div>
+        </div>
+
+      </div>
+
+    </div>
+  </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const select     = document.querySelector('[name="situation"]');
+  const stTo       = document.getElementById('st-to');
+  const stArrow    = document.getElementById('st-arrow');
+  const sideStatus = document.getElementById('side-status');
+
+  const PILL_MAP = {
+    'ATENDIMENTO':    { cls: 'pill-atendimento', label: 'Em Atendimento'       },
+    'AGUAR_SEPARACAO':{ cls: 'pill-aguarsep',    label: 'Aguard. Separação'    },
+    'SEPARADA':       { cls: 'pill-separada',    label: 'Separada'             },
+    'EXPEDICAO':      { cls: 'pill-expedicao',   label: 'Em Expedição'         },
+    'RECEBIDA':       { cls: 'pill-recebida',    label: 'Recebida'             },
+    'CANCELADA':      { cls: 'pill-cancelada',   label: 'Cancelada'            },
+    'RASCUNHO':       { cls: 'pill-rascunho',    label: 'Rascunho'             },
+  };
+
+  function sync() {
+    if (!select) return;
+    const val  = select.value;
+    const info = PILL_MAP[val];
+    const html = info
+      ? `<span class="pill ${info.cls}"><span class="pill-dot"></span>${info.label}</span>`
+      : `<span style="color:var(--ink-3); font-size:.82rem;">Selecione abaixo</span>`;
+
+    stTo.innerHTML       = html;
+    sideStatus.innerHTML = info ? html : `<span style="color:var(--ink-3)">—</span>`;
+    stArrow.style.color  = info ? 'var(--accent)' : 'var(--ink-3)';
+  }
+
+  if (select) { select.addEventListener('change', sync); sync(); }
+});
+</script>
+
+{% endblock %}

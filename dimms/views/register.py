@@ -55,30 +55,70 @@ def create_request(request):
     }
     return render(request, 'dimms/create_request.html', context)
 
-@login_required
-def create_update(request, pk):
-    solicitacao = get_object_or_404(Solicitacao, pk=pk)
 
+@login_required
+def create_update(request):
     if request.method == 'POST':
-        form = TramitacaoForm(request.POST, request.FILES)
+        form = TramitacaoCreateForm(request.POST, request.FILES)
 
         if form.is_valid():
             tramitacao = form.save(commit=False)
-            tramitacao.request_update = solicitacao
             tramitacao.user_update = request.user
 
             if not tramitacao.responsible_update:
-                tramitacao.responsible_update = request.user.get_full_name() or request.user.username
+                tramitacao.responsible_update = (
+                    request.user.get_full_name() or request.user.username
+                )
 
             tramitacao.save()
 
             messages.success(request, 'Tramitação registrada com sucesso.')
-            return redirect('dimms:processing_detail', pk=solicitacao.pk)
+            return redirect('dimms:processing')
     else:
-        form = TramitacaoForm()
+        form = TramitacaoCreateForm()
+
+    ultimas_solicitacoes = Solicitacao.objects.select_related('ua_order').order_by('-data_order')[:8]
+
+    context = {
+        'form': form,
+        'ultimas_solicitacoes': ultimas_solicitacoes,
+    }
+    return render(request, 'dimms/create_update.html', context)
+
+@login_required
+def update_request(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    if request.method == 'POST':
+        form = SolicitacaoStatusUpdateForm(request.POST, request.FILES, instance=solicitacao)
+
+        if form.is_valid():
+            solicitacao_atualizada = form.save()
+
+            observacao = form.cleaned_data.get('observacao_tramitacao')
+            documento = form.cleaned_data.get('documents_update')
+            foto = form.cleaned_data.get('photo_update')
+
+            Tramitacao.objects.create(
+                request_update=solicitacao_atualizada,
+                update=solicitacao_atualizada.situation,
+                responsible_update=request.user.get_full_name() or request.user.username,
+                observation_update=observacao,
+                documents_update=documento,
+                photo_update=foto,
+                user_update=request.user,
+            )
+
+            messages.success(request, 'Solicitação atualizada com sucesso.')
+            return redirect('dimms:details_processing', pk=solicitacao.pk)
+    else:
+        form = SolicitacaoStatusUpdateForm(instance=solicitacao)
+
+    historico = solicitacao.tramitacao.order_by('-date_update', '-id')[:10]
 
     context = {
         'form': form,
         'solicitacao': solicitacao,
+        'historico': historico,
     }
-    return render(request, 'dimms/create_update.html', context)
+    return render(request, 'dimms/update_request.html', context)

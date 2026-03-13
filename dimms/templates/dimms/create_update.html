@@ -1,92 +1,448 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Nova Tramitação{% endblock %}
+{% block title %}SIPAT — Registrar Atualização{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">🔄 Nova Tramitação</h4>
-                <small class="text-muted">
-                    Solicitação: {{ solicitacao.request_code }}
-                </small>
-            </div>
-        </div>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-        <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
+<style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
+    --teal: #0f766e;
+    --teal-soft: #f0fdfa;
+    --teal-mid: #99f6e4;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.13);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 16px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
 
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Status</label>
-                        {{ form.update }}
-                        {% if form.update.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.update.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
+  .tpage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px 40px;
+    color: var(--ink);
+    min-height: 100vh;
+  }
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Responsável pela Atualização</label>
-                        {{ form.responsible_update }}
-                        {% if form.responsible_update.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.responsible_update.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .78rem; color: var(--ink-3); margin-bottom: 18px; font-weight: 500;
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { opacity: .4; }
 
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Observação</label>
-                        {{ form.observation_update }}
-                        {% if form.observation_update.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.observation_update.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .topbar-title { font-size: 1.7rem; font-weight: 800; color: var(--ink); letter-spacing: -.035em; line-height: 1.1; }
+  .topbar-sub   { margin-top: 5px; font-size: .875rem; color: var(--ink-3); font-weight: 500; }
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Documento Anexado</label>
-                        {{ form.documents_update }}
-                        {% if form.documents_update.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.documents_update.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 288px;
+    gap: 20px;
+    align-items: start;
+  }
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Foto do Item</label>
-                        {{ form.photo_update }}
-                        {% if form.photo_update.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.photo_update.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: fadeUp .32s ease both;
+  }
+  .card:last-child { margin-bottom: 0; }
+  .card:nth-child(2) { animation-delay: .06s; }
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        Salvar Tramitação
-                    </button>
+  .card-head {
+    padding: 13px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 9px;
+    background: var(--surface-2);
+  }
+  .card-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 13px; flex-shrink: 0;
+  }
+  .ci-blue  { background: var(--blue-soft); }
+  .ci-teal  { background: var(--teal-soft); }
+  .ci-amber { background: var(--amber-soft); }
 
-                    <a href="{% url 'dimms:processing_detail' solicitacao.pk %}" class="btn btn-outline-secondary">
-                        Cancelar
-                    </a>
-                </div>
-            </form>
-        </div>
+  .card-title { font-size: .875rem; font-weight: 700; color: var(--ink); }
+  .card-body  { padding: 22px; }
+
+  /* ─── FORM ─── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-label {
+    font-size: .71rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-3);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .label-opt { font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-3); opacity: .7; }
+
+  .tpage select,
+  .tpage input[type="text"],
+  .tpage input[type="number"],
+  .tpage input[type="file"],
+  .tpage textarea {
+    width: 100%;
+    font-family: var(--font); font-size: .875rem; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm); padding: 10px 13px; outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .tpage select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+  }
+  .tpage select:focus, .tpage input:focus, .tpage textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: #fdfdff;
+  }
+  .tpage textarea { resize: vertical; min-height: 92px; line-height: 1.65; }
+  .tpage input[type="file"] { padding: 8px 12px; color: var(--ink-3); cursor: pointer; font-size: .82rem; }
+
+  /* ─── FIELD ERROR ─── */
+  .field-error { font-size: .78rem; color: var(--red); font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+
+  /* ─── ERROR BOX ─── */
+  .error-box {
+    margin-bottom: 18px; padding: 13px 15px;
+    background: var(--red-soft); border: 1.5px solid var(--red-mid);
+    border-radius: var(--r-sm); color: var(--red);
+    font-size: .85rem; font-weight: 600;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 17px;
+    border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem;
+    font-weight: 600; cursor: pointer; text-decoration: none;
+    border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-teal {
+    background: var(--teal); border-color: #0d5e57; color: #fff;
+    box-shadow: 0 2px 10px rgba(15,118,110,.22);
+  }
+  .btn-teal:hover { background: #0d5e57; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15,118,110,.28); }
+  .btn-ghost {
+    background: var(--surface); border-color: var(--border-strong);
+    color: var(--ink-2); box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+
+  /* ─── SIDE PANEL ─── */
+  .side-col { display: flex; flex-direction: column; gap: 16px; }
+
+  .side-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden;
+    animation: fadeUp .32s .08s ease both;
+  }
+
+  .summary-list { display: flex; flex-direction: column; }
+  .summary-row {
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .summary-row:first-child { padding-top: 0; }
+  .summary-row:last-child  { border-bottom: none; padding-bottom: 0; }
+  .s-key { font-size: .71rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .s-val { font-family: var(--mono); font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .s-val.text { font-family: var(--font); font-size: .82rem; font-weight: 600; }
+
+  /* status pill */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: .74rem; font-weight: 700; border: 1px solid;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill-atendimento { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .pill-atendimento .pill-dot { background: var(--blue); }
+  .pill-separada    { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+  .pill-separada .pill-dot    { background: #6d28d9; }
+  .pill-expedicao   { background: var(--amber-soft); color: var(--amber); border-color: #fde68a; }
+  .pill-expedicao .pill-dot   { background: var(--amber); }
+  .pill-recebida    { background: var(--green-soft); color: var(--green); border-color: #bbf7d0; }
+  .pill-recebida .pill-dot    { background: var(--green); }
+  .pill-cancelada   { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+  .pill-cancelada .pill-dot   { background: var(--red); }
+  .pill-rascunho    { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  .pill-rascunho .pill-dot    { background: #475569; }
+  .pill-aguarsep    { background: var(--teal-soft);  color: var(--teal);  border-color: var(--teal-mid); }
+  .pill-aguarsep .pill-dot    { background: var(--teal); }
+
+  /* ─── TIPS ─── */
+  .tip-card {
+    background: linear-gradient(135deg, var(--teal-soft) 0%, #f0fdf4 100%);
+    border: 1px solid var(--teal-mid); border-radius: var(--r-md);
+    padding: 17px; animation: fadeUp .32s .12s ease both;
+  }
+  .tip-title { font-size: .71rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--teal); margin-bottom: 11px; }
+  .tip-item { font-size: .81rem; color: var(--ink-2); display: flex; gap: 8px; line-height: 1.5; }
+  .tip-item + .tip-item { margin-top: 8px; }
+  .tip-arrow { color: var(--teal); font-weight: 800; flex-shrink: 0; }
+
+  @keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    .side-col { flex-direction: row; flex-wrap: wrap; }
+    .side-card, .tip-card { flex: 1; min-width: 240px; }
+  }
+  @media (max-width: 640px) {
+    .tpage { padding: 14px 12px 32px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .side-col { flex-direction: column; }
+  }
+</style>
+
+<div class="tpage">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:processing' %}">Tramitações</a>
+    <span class="breadcrumb-sep">›</span>
+    Registrar Tramitação
+  </nav>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Registrar Atualização</div>
+      <div class="topbar-sub">Selecione a solicitação e informe a atualização de status.</div>
     </div>
+    <a href="{% url 'dimms:processing' %}" class="btn btn-ghost">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar
+    </a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="layout">
+
+      <!-- ══ COLUNA PRINCIPAL ══ -->
+      <div>
+
+        <!-- ERROS GERAIS -->
+        {% if form.non_field_errors %}
+        <div class="error-box">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <!-- SOLICITAÇÃO + STATUS -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon ci-teal">🔄</div>
+            <span class="card-title">Dados da Tramitação</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">Solicitação</label>
+                {{ form.request_update }}
+                {% if form.request_update.errors %}
+                  <div class="field-error">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.request_update.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Novo Status</label>
+                {{ form.update }}
+                {% if form.update.errors %}
+                  <div class="field-error">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.update.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label">Responsável <span class="label-opt">(opcional)</span></label>
+                {{ form.responsible_update }}
+                {% if form.responsible_update.errors %}
+                  <div class="field-error">{{ form.responsible_update.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label">Observação <span class="label-opt">(opcional)</span></label>
+                {{ form.observation_update }}
+                {% if form.observation_update.errors %}
+                  <div class="field-error">{{ form.observation_update.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ANEXOS -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon ci-blue">📎</div>
+            <span class="card-title">Anexos <span style="font-weight:400; color:var(--ink-3); margin-left:4px; font-size:.8rem;">(opcionais)</span></span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">Documento</label>
+                {{ form.documents_update }}
+                {% if form.documents_update.errors %}
+                  <div class="field-error">{{ form.documents_update.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Foto do Item</label>
+                {{ form.photo_update }}
+                {% if form.photo_update.errors %}
+                  <div class="field-error">{{ form.photo_update.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-teal">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Salvar Tramitação
+          </button>
+          <a href="{% url 'dimms:processing' %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+
+      </div>
+
+      <!-- ══ COLUNA LATERAL ══ -->
+      <div class="side-col">
+
+        <!-- RESUMO AO VIVO -->
+        <div class="side-card">
+          <div class="card-head">
+            <div class="card-icon ci-amber">⚡</div>
+            <span class="card-title">Resumo</span>
+          </div>
+          <div class="card-body" style="padding-top:14px; padding-bottom:14px;">
+            <div class="summary-list">
+              <div class="summary-row">
+                <span class="s-key">Solicitação</span>
+                <span class="s-val text" id="s-req">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Novo Status</span>
+                <span class="s-val text" id="s-status">
+                  <span style="color:var(--ink-3);">—</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DICAS -->
+        <div class="tip-card">
+          <div class="tip-title">💡 Sobre Tramitações</div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>Cada tramitação registra um avanço no fluxo da solicitação.</span></div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>O status atualiza a situação da solicitação imediatamente.</span></div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>Anexe foto ou documento para evidenciar a etapa concluída.</span></div>
+        </div>
+
+      </div>
+
+    </div>
+  </form>
+
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const reqField    = document.querySelector('[name="request_update"]');
+  const statusField = document.querySelector('[name="update"]');
+  const sReq        = document.getElementById('s-req');
+  const sStatus     = document.getElementById('s-status');
+
+  const PILL_MAP = {
+    'ATENDIMENTO':    { cls: 'pill-atendimento', label: 'Em Atendimento'        },
+    'AGUAR_SEPARACAO':{ cls: 'pill-aguarsep',    label: 'Aguardando Separação'  },
+    'SEPARADA':       { cls: 'pill-separada',    label: 'Separada'              },
+    'EXPEDICAO':      { cls: 'pill-expedicao',   label: 'Em Expedição'          },
+    'RECEBIDA':       { cls: 'pill-recebida',    label: 'Recebida'              },
+    'CANCELADA':      { cls: 'pill-cancelada',   label: 'Cancelada'             },
+    'RASCUNHO':       { cls: 'pill-rascunho',    label: 'Rascunho'              },
+  };
+
+  function syncReq() {
+    if (!reqField) return;
+    const opt = reqField.options[reqField.selectedIndex];
+    sReq.textContent = (opt && opt.value) ? opt.text : '—';
+  }
+
+  function syncStatus() {
+    if (!statusField) return;
+    const val  = statusField.value;
+    const info = PILL_MAP[val];
+    if (info) {
+      sStatus.innerHTML = `<span class="pill ${info.cls}"><span class="pill-dot"></span>${info.label}</span>`;
+    } else {
+      sStatus.innerHTML = `<span style="color:var(--ink-3)">—</span>`;
+    }
+  }
+
+  if (reqField)    { reqField.addEventListener('change', syncReq);       syncReq();    }
+  if (statusField) { statusField.addEventListener('change', syncStatus); syncStatus(); }
+});
+</script>
+
 {% endblock %}
