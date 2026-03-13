@@ -1,0 +1,430 @@
+{% extends "global/base.html" %}
+{% block content %}
+
+<style>
+  :root{
+    --mppe-red:#b5121b;
+    --mppe-red-dark:#8f0e15;
+    --mppe-blue:#0d6efd;
+    --mppe-green:#198754;
+    --mppe-yellow:#ffc107;
+    --mppe-purple:#6f42c1;
+    --soft-bg:#f6f8fb;
+  }
+
+  .page-bg{
+    background: linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
+    border-radius: 20px;
+    padding: 8px;
+  }
+
+  .hero-card{
+    border:0;
+    border-radius:18px;
+    background: linear-gradient(135deg, var(--mppe-red) 0%, #d11d28 100%);
+    color:#fff;
+    box-shadow:0 18px 40px rgba(181,18,27,.18);
+  }
+
+  .hero-card .btn-light,
+  .hero-card .btn-outline-light{
+    border-radius:12px;
+    font-weight:600;
+  }
+
+  .summary-card{
+    border:0;
+    border-radius:16px;
+    box-shadow:0 10px 24px rgba(15,23,42,.07);
+    transition:all .25s ease;
+  }
+
+  .summary-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 32px rgba(15,23,42,.11);
+  }
+
+  .summary-icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+  }
+
+  .bg-soft-blue{background:#e9f2ff;color:#0d6efd;}
+  .bg-soft-green{background:#e9f7ef;color:#198754;}
+  .bg-soft-yellow{background:#fff6db;color:#b58b00;}
+  .bg-soft-purple{background:#f2eaff;color:#6f42c1;}
+  .bg-soft-red{background:#ffe5e7;color:#b5121b;}
+  .bg-soft-gray{background:#eef2f7;color:#475569;}
+
+  .panel-card{
+    border:0;
+    border-radius:18px;
+    box-shadow:0 10px 28px rgba(15,23,42,.08);
+    overflow:hidden;
+  }
+
+  .panel-card .card-header{
+    background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-bottom:1px solid rgba(17,24,39,.06);
+    padding:18px 20px;
+  }
+
+  .filter-btn{
+    border-radius:12px;
+    font-weight:600;
+  }
+
+  .service-card{
+    border:0;
+    border-radius:16px;
+    box-shadow:0 10px 24px rgba(15,23,42,.07);
+    transition:all .25s ease;
+    background:#fff;
+    height:100%;
+  }
+
+  .service-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 16px 32px rgba(15,23,42,.12);
+  }
+
+  .service-icon{
+    width:58px;
+    height:58px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    margin-bottom:12px;
+  }
+
+  .table thead th{
+    font-size:.9rem;
+    color:#4b5563;
+    border-bottom:0;
+    white-space:nowrap;
+  }
+
+  .table tbody td{
+    vertical-align:middle;
+  }
+
+  .badge-priority{
+    font-size:.75rem;
+    padding:.5em .7em;
+    border-radius:999px;
+  }
+
+  .mini-text{
+    font-size:.86rem;
+    color:#6b7280;
+  }
+
+  .status-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:8px;
+  }
+
+  .dot-green{background:#198754;}
+  .dot-yellow{background:#ffc107;}
+  .dot-red{background:#dc3545;}
+  .dot-blue{background:#0d6efd;}
+
+  .section-title{
+    color:#1f2937;
+  }
+
+  @media (max-width: 768px){
+    .hero-content{
+      flex-direction:column;
+      align-items:flex-start !important;
+      gap:16px;
+    }
+  }
+</style>
+
+<div class="container-fluid py-4">
+  <div class="page-bg">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h1 class="h4 fw-bold mb-1 section-title">Demandas</h1>
+        <small class="text-secondary">Painel provisório para acompanhamento de solicitações</small>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="#" class="btn btn-outline-primary filter-btn">📋 Nova demanda</a>
+        <a href="#" class="btn btn-primary filter-btn">⚙️ Gerenciar</a>
+      </div>
+    </div>
+
+
+
+    <!-- Resumo -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-md-3">
+        <div class="card summary-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Total de demandas</small>
+              <h4 class="fw-bold mb-0">32</h4>
+              <div class="mini-text mt-1">Solicitações registradas</div>
+            </div>
+            <div class="summary-icon bg-soft-blue">📑</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card summary-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Em andamento</small>
+              <h4 class="fw-bold mb-0">11</h4>
+              <div class="mini-text mt-1">Demandas em execução</div>
+            </div>
+            <div class="summary-icon bg-soft-yellow">⏳</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card summary-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Concluídas</small>
+              <h4 class="fw-bold mb-0">18</h4>
+              <div class="mini-text mt-1">Atendimentos finalizados</div>
+            </div>
+            <div class="summary-icon bg-soft-green">✅</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card summary-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Alta prioridade</small>
+              <h4 class="fw-bold text-danger mb-0">3</h4>
+              <div class="mini-text mt-1">Exigem atenção imediata</div>
+            </div>
+            <div class="summary-icon bg-soft-red">🚨</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Especialidades -->
+    <div class="card panel-card mb-4">
+      <div class="card-header">
+        <h6 class="fw-bold mb-0">Demandas por especialidade</h6>
+        <small class="text-secondary">Atalhos provisórios para áreas de atendimento</small>
+      </div>
+
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-red mx-auto">🪚</div>
+                <strong class="d-block">Marceneiro</strong>
+                <small class="text-secondary">Móveis e ajustes</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-yellow mx-auto">💡</div>
+                <strong class="d-block">Eletricista</strong>
+                <small class="text-secondary">Rede e energia</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-blue mx-auto">🚰</div>
+                <strong class="d-block">Hidráulica</strong>
+                <small class="text-secondary">Água e vazamentos</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-purple mx-auto">🖥️</div>
+                <strong class="d-block">TI</strong>
+                <small class="text-secondary">Equipamentos e suporte</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-green mx-auto">🧹</div>
+                <strong class="d-block">Serviços Gerais</strong>
+                <small class="text-secondary">Apoio operacional</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-2 col-sm-6">
+            <a href="#" class="text-decoration-none text-dark">
+              <div class="service-card p-3 text-center">
+                <div class="service-icon bg-soft-gray mx-auto">🛠️</div>
+                <strong class="d-block">Manutenção</strong>
+                <small class="text-secondary">Demandas diversas</small>
+              </div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card panel-card">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h6 class="fw-bold mb-0">Lista de demandas</h6>
+          <small class="text-secondary">Dados provisórios para demonstração</small>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="#" class="btn btn-sm btn-outline-secondary filter-btn">Filtrar</a>
+          <a href="#" class="btn btn-sm btn-outline-primary filter-btn">Ver mais</a>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Usuário</th>
+                <th>Demanda</th>
+                <th>Setor</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Responsável</th>
+                <th>Data</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <td>#001</td>
+                <td>João Silva</td>
+                <td>Troca de tomada na sala 04</td>
+                <td>Administrativo</td>
+                <td><span class="badge bg-danger badge-priority">Alta</span></td>
+                <td>
+                  <span class="status-dot dot-yellow"></span>
+                  <span class="badge bg-warning text-dark">Em andamento</span>
+                </td>
+                <td>Eletricista</td>
+                <td>10/03/2026</td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>#002</td>
+                <td>Maria Oliveira</td>
+                <td>Ajuste de armário da recepção</td>
+                <td>Recepção</td>
+                <td><span class="badge bg-warning text-dark badge-priority">Média</span></td>
+                <td>
+                  <span class="status-dot dot-blue"></span>
+                  <span class="badge bg-info text-dark">Aguardando</span>
+                </td>
+                <td>Marceneiro</td>
+                <td>09/03/2026</td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>#003</td>
+                <td>Pedro Santos</td>
+                <td>Vazamento no banheiro do térreo</td>
+                <td>Infraestrutura</td>
+                <td><span class="badge bg-danger badge-priority">Alta</span></td>
+                <td>
+                  <span class="status-dot dot-yellow"></span>
+                  <span class="badge bg-warning text-dark">Em andamento</span>
+                </td>
+                <td>Hidráulica</td>
+                <td>08/03/2026</td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>#004</td>
+                <td>Ana Costa</td>
+                <td>Computador sem acesso à rede</td>
+                <td>TI</td>
+                <td><span class="badge bg-warning text-dark badge-priority">Média</span></td>
+                <td>
+                  <span class="status-dot dot-green"></span>
+                  <span class="badge bg-success">Concluído</span>
+                </td>
+                <td>TI</td>
+                <td>07/03/2026</td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>#005</td>
+                <td>Lucas Andrade</td>
+                <td>Reposição de luminária no corredor</td>
+                <td>Bloco B</td>
+                <td><span class="badge bg-secondary badge-priority">Baixa</span></td>
+                <td>
+                  <span class="status-dot dot-blue"></span>
+                  <span class="badge bg-info text-dark">Aberto</span>
+                </td>
+                <td>Eletricista</td>
+                <td>06/03/2026</td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
