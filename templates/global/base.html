@@ -2,141 +2,364 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}SIPAT{% endblock %}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SIPAT{% endblock %}</title>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <style>
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 280px;
-            padding: 20px;
-            background-color: #343a40;
-            color: #fff;
-            z-index: 100;
-        }
+  <style>
+    :root {
+      --sidebar-w: 260px;
+      --sidebar-bg: #111827;
+      --sidebar-border: rgba(255,255,255,.07);
+      --nav-hover: rgba(255,255,255,.07);
+      --nav-active-bg: #1d4ed8;
+      --nav-active-glow: rgba(29,78,216,.35);
+      --text-muted-side: rgba(160,175,210,.65);
+      --font: 'Sora', 'Segoe UI', sans-serif;
+    }
 
-        .sidebar h3 a {
-            color: #fff;
-            text-decoration: none;
-        }
+    *, *::before, *::after { box-sizing: border-box; }
 
-        .sidebar-header {
-            border-bottom: 1px solid #495057;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
+    body {
+      font-family: var(--font);
+      background: #f0f2f7;
+      margin: 0;
+    }
 
-        .sidebar .nav-link {
-            color: #adb5bd;
-            font-size: 1.05em;
-            padding: 10px 15px;
-            border-radius: 8px;
-        }
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+      border-right: 1px solid var(--sidebar-border);
+    }
 
-        .sidebar .nav-link:hover {
-            color: #fff;
-            background-color: #495057;
-        }
+    /* Logo area */
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
 
-        .sidebar .nav-link.active {
-            color: #fff;
-            background-color: #8B0000;
-        }
+    .sidebar-brand a {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .main-content {
-            margin-left: 280px;
-            padding: 30px;
-            background: #f6f7fb;
-            min-height: 100vh;
-        }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--nav-active-bg);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px var(--nav-active-glow);
+    }
 
-        .sidebar .user-info {
-            position: absolute;
-            bottom: 20px;
-            width: calc(100% - 40px);
-        }
-    </style>
+    .brand-text-main {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+    }
+
+    .brand-text-sub {
+      font-size: .68rem;
+      color: var(--text-muted-side);
+      font-weight: 500;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* Nav area */
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.08) transparent;
+    }
+
+    .nav-section-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-muted-side);
+      padding: 10px 10px 6px;
+      margin-top: 8px;
+    }
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: rgba(210,220,240,.8);
+      font-size: .875rem;
+      font-weight: 500;
+      transition: background .15s, color .15s;
+      margin-bottom: 2px;
+    }
+
+    .nav-item-link:hover {
+      background: var(--nav-hover);
+      color: #fff;
+    }
+
+    .nav-item-link.active {
+      background: var(--nav-active-bg);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 3px 10px var(--nav-active-glow);
+    }
+
+    .nav-item-icon {
+      font-size: 16px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* Admin — escondido, discreto */
+    .nav-divider {
+      border: none;
+      border-top: 1px solid var(--sidebar-border);
+      margin: 10px 10px;
+    }
+
+    .nav-item-link.admin-link {
+      color: rgba(160,175,210,.45);
+      font-size: .78rem;
+      padding: 7px 11px;
+    }
+
+    .nav-item-link.admin-link:hover {
+      background: rgba(255,255,255,.04);
+      color: rgba(210,220,240,.7);
+    }
+
+    /* User footer */
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .footer-user {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .footer-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #6d28d9);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .footer-username {
+      font-size: .82rem;
+      font-weight: 600;
+      color: rgba(220,230,250,.85);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      border-radius: 8px;
+      background: rgba(185,28,28,.15);
+      border: 1px solid rgba(185,28,28,.3);
+      color: #f87171;
+      font-family: var(--font);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-logout:hover {
+      background: rgba(185,28,28,.28);
+      color: #fca5a5;
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      padding: 28px 26px;
+      min-height: 100vh;
+      background: #f0f2f7;
+    }
+
+    /* ─── FLASH MESSAGES ─── */
+    .flash-wrap { margin-bottom: 20px; }
+
+    .flash-msg {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: .88rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      border: 1px solid transparent;
+    }
+
+    .flash-msg.success { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .flash-msg.error   { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+    .flash-msg.warning { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+    .flash-msg.info    { background: #eff4ff; border-color: #c7d7fd; color: #1d4ed8; }
+
+    .flash-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: inherit;
+      opacity: .6;
+      font-size: 1rem;
+      padding: 0;
+      line-height: 1;
+    }
+    .flash-close:hover { opacity: 1; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform .2s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 16px 14px; }
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="sidebar">
-    <div class="sidebar-header">
-        <h3 class="m-0">
-            <a href="{% url 'home' %}">SIPAT | MPPE</a>
-        </h3>
-        <small class="text-secondary">Sistema Interno Patrimonial</small>
-    </div>
+
+  <!-- BRAND -->
+  <div class="sidebar-brand">
+    <a href="{% url 'home' %}">
+      <div class="brand-icon">⚖️</div>
+      <div>
+        <div class="brand-text-main">SIPAT</div>
+        <div class="brand-text-sub">Sistema Integrado Patrimonial</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="sidebar-nav">
 
     {% if user.is_authenticated %}
-        <ul class="nav flex-column">
 
-            <!-- HOME -->
-            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-            href="{% url 'home' %}">
-            🏠 Painel Principal
-            </a>
-            
-            <!-- BENS PERMANENTES (DIMRCBP) -->
-            <a class="nav-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
-            href="{% url 'dimrcbp:homepage' %}">
-            📦 Bens Permanentes
-            </a>
+      <div class="nav-section-label">Principal</div>
 
-            <!-- BENS DE CONSUMO (DIMMS) -->
-            <a class="nav-link {% if request.resolver_match.namespace == 'dimms' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
-            href="{% url 'dimms:homepage' %}">
-            📝 Bens de Consumo
-            </a>
+      <a class="nav-item-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+         href="{% url 'home' %}">
+        <span class="nav-item-icon">🏠</span> Painel Principal
+      </a>
 
-            <!-- GERENCIAL (DEMPAM) -->
-            <a class="nav-link {% if request.resolver_match.namespace == 'dempam' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
-            href="{% url 'dempam:homepage' %}">
-            🏢 Painel Gerencial
-            </a>
+      <div class="nav-section-label">Patrimônio Interno</div>
 
-            <!-- ADMIN (SIPAT) -->
-            <a class="nav-link"
-            href="{% url 'admin:index' %}">
-            ⚙ Painel Administrativo
-            </a>
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
+         href="{% url 'dimrcbp:homepage' %}">
+        <span class="nav-item-icon">📦</span> Bens Permanentes
+      </a>
 
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'dimms' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
+         href="{% url 'dimms:homepage' %}">
+        <span class="nav-item-icon">📝</span> Bens de Consumo
+      </a>
 
-        </ul>
+      <div class="nav-section-label">Gestão</div>
 
-        <div class="user-info">
-            <hr class="text-secondary">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="small">Olá, {{ user.username }}!</span>
+      <a class="nav-item-link {% if request.resolver_match.url_name == 'demands' %}active{% endif %}"
+         href="{% url 'dempam:demands' %}">
+        <span class="nav-item-icon">🎯</span> Demandas
+      </a>
 
-                <form action="{% url 'logout' %}" method="post" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Sair</button>
-                </form>
-            </div>
-        </div>
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'dempam' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
+         href="{% url 'dempam:homepage' %}">
+        <span class="nav-item-icon">🏢</span> Painel Gerencial
+      </a>
+
+      <!-- Admin: discreto, no fundo -->
+      <hr class="nav-divider">
+
+      <a class="nav-item-link admin-link" href="{% url 'admin:index' %}" title="Painel Administrativo">
+        <span class="nav-item-icon">⚙</span> Administrativo
+      </a>
+
     {% endif %}
+  </nav>
+
+  <!-- FOOTER -->
+  {% if user.is_authenticated %}
+  <div class="sidebar-footer">
+    <div class="footer-user">
+      <div class="footer-avatar">{{ user.username|slice:":1"|upper }}</div>
+      <div class="footer-username">{{ user.username }}</div>
+    </div>
+
+    <form action="{% url 'logout' %}" method="post" class="m-0">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout">
+        ↩ Sair
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
 </div>
 
+<!-- MAIN -->
 <div class="main-content">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
 
-    {% block content %}{% endblock %}
+  {% if messages %}
+  <div class="flash-wrap">
+    {% for message in messages %}
+    <div class="flash-msg {{ message.tags }}">
+      <span>{{ message }}</span>
+      <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -70,15 +70,16 @@ class Status(models.TextChoices):
     analise = 'EM ANÁLISE', 'Em análise'
     
 class StatusTramitacao(models.TextChoices):
-    processamento = 'PROCESSAMENTO', 'EM Processamento'
-    separada = 'SEPARADA', 'Separada'
-    em_tramitacao = 'TRAMITACAO', 'Em Tramitação'
+    atendimento = 'ATENDIMENTO', 'Em Atendimento'
+    aguar_separada = 'AGUAR_SEPARACAO', 'Aguardando Separação'
+    separada = 'SEPARADA', 'Separada'   
+    em_expedicao = 'EXPEDICAO', 'Em Expedicação'
     recebida = 'RECEBIDA', 'Recebida'
     cancelada = 'CANCELADA', 'Cancelada'
+    rascunho = 'RASCUNHO', 'Rascunho'
     
-    
-    # --- Utils ---
-    
+
+# --- Utils ---
 def calcular_duracao(amount_shock, monthly_consumption):
     if amount_shock is None or monthly_consumption in (None, 0):
         return None

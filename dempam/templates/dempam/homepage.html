@@ -1,111 +1,391 @@
 {% extends "global/base.html" %}
 {% block content %}
 
+<style>
+  :root{
+    --mppe-red:#b5121b;
+    --mppe-red-dark:#8f0e15;
+    --mppe-blue:#0d6efd;
+    --mppe-green:#198754;
+    --mppe-yellow:#ffc107;
+    --mppe-purple:#6f42c1;
+    --soft-bg:#f6f8fb;
+  }
+
+  .dashboard-bg{
+    background: linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
+    min-height: 100%;
+    border-radius: 20px;
+    padding: 8px;
+  }
+
+  .section-title{
+    color:#1f2937;
+  }
+
+  .section-subtitle{
+    color:#6b7280;
+  }
+
+  .hero-card{
+    border:0;
+    border-radius:18px;
+    background: linear-gradient(135deg, var(--mppe-red) 0%, #d11d28 100%);
+    color:#fff;
+    box-shadow:0 18px 40px rgba(181,18,27,.18);
+  }
+
+  .hero-card .btn-light{
+    font-weight:600;
+    border-radius:12px;
+  }
+
+  .kpi-card{
+    border:0;
+    border-radius:16px;
+    box-shadow:0 10px 24px rgba(15,23,42,.07);
+    transition:all .25s ease;
+  }
+
+  .kpi-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 32px rgba(15,23,42,.11);
+  }
+
+  .kpi-icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    flex-shrink:0;
+  }
+
+  .bg-soft-blue{background:#e9f2ff;color:#0d6efd;}
+  .bg-soft-green{background:#e9f7ef;color:#198754;}
+  .bg-soft-yellow{background:#fff6db;color:#b58b00;}
+  .bg-soft-purple{background:#f2eaff;color:#6f42c1;}
+
+  .hover-card{
+    transition:all .25s ease;
+    cursor:pointer;
+  }
+
+  .hover-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 16px 32px rgba(15,23,42,.12);
+  }
+
+  .action-card{
+    border:0;
+    border-radius:16px;
+    box-shadow:0 10px 24px rgba(15,23,42,.07);
+    background:#fff;
+  }
+
+  .action-icon{
+    width:56px;
+    height:56px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    margin:0 auto 12px;
+  }
+
+  .icon-red{background:#ffe5e7;color:#b5121b;}
+  .icon-blue{background:#e9f2ff;color:#0d6efd;}
+  .icon-green{background:#e9f7ef;color:#198754;}
+  .icon-yellow{background:#fff6db;color:#b58b00;}
+  .icon-purple{background:#f2eaff;color:#6f42c1;}
+
+  .panel-card{
+    border:0;
+    border-radius:18px;
+    box-shadow:0 10px 28px rgba(15,23,42,.08);
+    overflow:hidden;
+  }
+
+  .panel-card .card-header{
+    background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-bottom:1px solid rgba(17,24,39,.06);
+    padding:18px 20px;
+  }
+
+  .table thead th{
+    font-size:.9rem;
+    color:#4b5563;
+    border-bottom:0;
+  }
+
+  .table tbody td{
+    vertical-align:middle;
+  }
+
+  .status-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:8px;
+  }
+
+  .dot-green{background:#198754;}
+  .dot-yellow{background:#ffc107;}
+  .dot-gray{background:#6c757d;}
+
+  .toolbar-btn{
+    border-radius:12px;
+    font-weight:600;
+  }
+
+  .mini-note{
+    font-size:.85rem;
+    color:#6b7280;
+  }
+
+  @media (max-width: 768px){
+    .hero-card .d-flex{
+      flex-direction:column;
+      align-items:flex-start !important;
+      gap:16px;
+    }
+  }
+</style>
+
 <div class="container-fluid py-4">
+  <div class="dashboard-bg">
 
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h4 fw-bold mb-1">Painel Gerencial — DEMPAM</h1>
-      <small class="text-secondary">Visão geral administrativa (modo demonstração)</small>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h1 class="h4 fw-bold mb-1 section-title">Painel Gerencial — DEMPAM</h1>
+        <small class="section-subtitle">Visão geral administrativa do sistema</small>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="#" class="btn btn-outline-primary toolbar-btn">📌 Gerenciar Setores</a>
+        <a href="#" class="btn btn-primary toolbar-btn">⚙️ Admin</a>
+      </div>
     </div>
 
-    <div>
-      <a href="#" class="btn btn-outline-primary me-2">📌 Gerenciar Setores</a>
-      <a href="#" class="btn btn-primary">⚙️ Admin</a>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-md-3">
+        <div class="card kpi-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Setores cadastrados</small>
+              <h4 class="fw-bold mb-0">12</h4>
+              <div class="mini-note mt-1">Estrutura organizacional ativa</div>
+            </div>
+            <div class="kpi-icon bg-soft-blue">🏢</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card kpi-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Bens permanentes</small>
+              <h4 class="fw-bold mb-0">248</h4>
+              <div class="mini-note mt-1">Inventário patrimonial</div>
+            </div>
+            <div class="kpi-icon bg-soft-green">💻</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card kpi-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Bens de consumo</small>
+              <h4 class="fw-bold mb-0">89</h4>
+              <div class="mini-note mt-1">Itens de uso recorrente</div>
+            </div>
+            <div class="kpi-icon bg-soft-purple">📦</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card kpi-card h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-secondary">Pendências</small>
+              <h4 class="fw-bold text-warning mb-0">5</h4>
+              <div class="mini-note mt-1">Demandas em acompanhamento</div>
+            </div>
+            <div class="kpi-icon bg-soft-yellow">⚠️</div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- Ações -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon icon-red">🏢</div>
+              <strong class="d-block">UAs</strong>
+              <small class="text-secondary">Gerenciar unidades</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon icon-blue">📍</div>
+              <strong class="d-block">Salas / Setores</strong>
+              <small class="text-secondary">Organização física</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon icon-purple">🔐</div>
+              <strong class="d-block">Permissões</strong>
+              <small class="text-secondary">Perfis de acesso</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon icon-green">🎯</div>
+              <strong class="d-block">Demandas</strong>
+              <small class="text-secondary">Atribuir Demanda</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon icon-yellow">📊</div>
+              <strong class="d-block">Relatórios</strong>
+              <small class="text-secondary">Gerar indicadores</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <a href="#" class="text-decoration-none text-dark">
+          <div class="card action-card h-100 hover-card">
+            <div class="card-body text-center py-4">
+              <div class="action-icon bg-soft-blue">🗂️</div>
+              <strong class="d-block">Cadastros</strong>
+              <small class="text-secondary">Base administrativa</small>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Resumo Operacional -->
+    <div class="card panel-card">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h6 class="fw-bold mb-0">Resumo Operacional</h6>
+          <small class="text-secondary">Dados fictícios para demonstração</small>
+        </div>
+
+        <a href="#" class="btn btn-sm btn-outline-secondary toolbar-btn">Ver mais</a>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Status</th>
+                <th class="text-end">Atualização</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge bg-primary-subtle text-primary">Setor</span></td>
+                <td>Almoxarifado Central</td>
+                <td>
+                  <span class="status-dot dot-green"></span>
+                  <span class="badge bg-success">OK</span>
+                </td>
+                <td class="text-end">Hoje</td>
+              </tr>
+
+              <tr>
+                <td><span class="badge bg-success-subtle text-success">Permanente</span></td>
+                <td>Notebook Dell</td>
+                <td>
+                  <span class="status-dot dot-yellow"></span>
+                  <span class="badge bg-warning text-dark">Pendente</span>
+                </td>
+                <td class="text-end">Ontem</td>
+              </tr>
+
+              <tr>
+                <td><span class="badge bg-secondary-subtle text-secondary">Consumo</span></td>
+                <td>Caixa de papel A4</td>
+                <td>
+                  <span class="status-dot dot-gray"></span>
+                  <span class="badge bg-secondary">Estoque baixo</span>
+                </td>
+                <td class="text-end">2 dias atrás</td>
+              </tr>
+
+              <tr>
+                <td><span class="badge bg-danger-subtle text-danger">Permissão</span></td>
+                <td>Solicitação de acesso pendente</td>
+                <td>
+                  <span class="status-dot dot-yellow"></span>
+                  <span class="badge bg-warning text-dark">Em análise</span>
+                </td>
+                <td class="text-end">Hoje</td>
+              </tr>
+
+              <tr>
+                <td><span class="badge bg-info-subtle text-info">Atividade</span></td>
+                <td>Conferência de inventário do setor TI</td>
+                <td>
+                  <span class="status-dot dot-green"></span>
+                  <span class="badge bg-success">Concluído</span>
+                </td>
+                <td class="text-end">3 horas atrás</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <!-- KPIs Fake -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <small class="text-secondary">Setores cadastrados</small>
-          <h4 class="fw-bold">12</h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <small class="text-secondary">Bens permanentes</small>
-          <h4 class="fw-bold">248</h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <small class="text-secondary">Bens de consumo</small>
-          <h4 class="fw-bold">89</h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <small class="text-secondary">Pendências</small>
-          <h4 class="fw-bold text-warning">5</h4>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tabela Fake -->
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-white border-0">
-      <h6 class="fw-bold mb-0">Resumo Operacional</h6>
-      <small class="text-secondary">Dados fictícios para demonstração</small>
-    </div>
-
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Categoria</th>
-              <th>Descrição</th>
-              <th>Status</th>
-              <th class="text-end">Atualização</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Setor</td>
-              <td>Almoxarifado Central</td>
-              <td><span class="badge bg-success">OK</span></td>
-              <td class="text-end">Hoje</td>
-            </tr>
-
-            <tr>
-              <td>Permanente</td>
-              <td>Notebook Dell</td>
-              <td><span class="badge bg-warning text-dark">Pendente</span></td>
-              <td class="text-end">Ontem</td>
-            </tr>
-
-            <tr>
-              <td>Consumo</td>
-              <td>Caixa de papel A4</td>
-              <td><span class="badge bg-secondary">Estoque baixo</span></td>
-              <td class="text-end">2 dias atrás</td>
-            </tr>
-
-          </tbody>
-        </table>
-      </div>
-
-      <div class="text-end">
-        <a href="#" class="btn btn-sm btn-outline-secondary">Ver mais</a>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
 {% endblock %}

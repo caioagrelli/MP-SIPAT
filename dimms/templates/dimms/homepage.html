@@ -1,702 +1,754 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT{% endblock %}
+{% block title %}SIPAT — Bens de Consumo{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
 
-/* =========================
-   VARIÁVEIS DE CORES
-========================= */
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
 
-:root{
-    --cinza-fundo:#f9fafc;
-    --cinza-card:#ffffff;
-    --cinza-texto:#444;
-    --cinza-borda:#e2e6ea;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
 
-    --azul-suave:#2f4f6f;
-    --azul-botao:#406080;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
 
-    --verde-suave:#5cb85c;
-    --vermelho-suave:#d9534f;
-}
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
 
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
 
-/* =========================
-   LAYOUT BASE
-========================= */
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.12);
 
-.page-wrap{
-    background:var(--cinza-fundo);
-    color:var(--cinza-texto);
-    font-family:"Inter","Segoe UI",sans-serif;
-    padding:18px;
-    border-radius:12px;
-}
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
 
-h1,h4{
-    color:var(--azul-suave);
-    font-weight:600;
-}
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
 
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
 
-/* =========================
-   CARDS
-========================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.card{
-    background:var(--cinza-card);
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-}
+  .bpage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px;
+    min-height: 100vh;
+    color: var(--ink);
+  }
 
-.card-header{
-    background:transparent;
-    border-bottom:1px solid var(--cinza-borda);
-    color:var(--azul-suave);
-    font-weight:600;
-}
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .topbar-title {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -.03em;
+    line-height: 1.2;
+  }
+  .topbar-sub {
+    margin-top: 5px;
+    font-size: .88rem;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
 
+  /* ─── ALERT CARDS TOPO ─── */
+  .alert-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 
-/* =========================
-   BOTÕES
-========================= */
+  .alert-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp .3s ease both;
+  }
+  .alert-card:nth-child(2) { animation-delay: .05s; }
+  .alert-card:nth-child(3) { animation-delay: .10s; }
 
-.btn-primary{
-    background-color:var(--azul-botao);
-    border:none;
-    border-radius:8px;
-    font-weight:500;
-    padding:8px 18px;
-}
+  .alert-card-head {
+    padding: 13px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
 
-.btn-primary:hover{
-    background:#324b66;
-}
+  .alert-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
 
-.btn-action{
-    border-radius:6px;
-    padding:5px 10px;
-    font-size:.85rem;
-    font-weight:500;
-    margin-right:6px;
-}
+  .alert-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .ab-blue { background: var(--blue-soft); color: var(--blue); border: 1px solid var(--blue-mid); }
+  .ab-amber { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-mid); }
+  .ab-red   { background: var(--red-soft);   color: var(--red);   border: 1px solid var(--red-mid); }
 
-.btn-edit{
-    background:var(--verde-suave);
-    color:#fff;
-    border:none;
-}
+  .alert-card-link {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .alert-card-link:hover { text-decoration: underline; }
 
-.btn-edit:hover{
-    background:#4cae4c;
-}
+  .mini-table-wrap {
+    max-height: 210px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
 
-.btn-delete{
-    background:var(--vermelho-suave);
-    color:#fff;
-    border:none;
-}
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+  }
 
-.btn-delete:hover{
-    background:#c9302c;
-}
+  .mini-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-2);
+    padding: 8px 14px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
 
+  .mini-table tbody td {
+    padding: 9px 14px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .mini-table tbody tr:last-child td { border-bottom: none; }
+  .mini-table tbody tr:hover td { background: var(--blue-soft); }
 
-/* =========================
-   INPUT PESQUISA
-========================= */
+  .mini-table a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    display: block;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mini-table a:hover { color: var(--accent); }
 
-.input-group{
-    border:1px solid var(--cinza-borda);
-    border-radius:8px;
-    overflow:hidden;
-}
+  .mini-table .center { text-align: center; font-family: var(--mono); font-size: .78rem; }
 
-.form-control{
-    border:none;
-    padding:10px 14px;
-}
+  .mini-empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: .85rem;
+    font-style: italic;
+  }
 
-.input-group-append .btn{
-    background:var(--azul-botao);
-    border:none;
-    color:#fff;
-    padding:10px 18px;
-}
+  /* ─── QUICK ACTIONS ─── */
+  .qa-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
 
-.input-group-append .btn:hover{
-    background:#324b66;
-}
+  .qa-tile {
+    background: #1e2d42;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-md);
+    padding: 16px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-height: 76px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    box-shadow: 0 4px 14px rgba(15,23,42,.18);
+    animation: fadeUp .3s ease both;
+  }
+  .qa-tile:nth-child(2) { animation-delay: .04s; }
+  .qa-tile:nth-child(3) { animation-delay: .08s; }
+  .qa-tile:nth-child(4) { animation-delay: .12s; }
 
+  .qa-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(37,99,235,.22);
+    background: #263650;
+  }
 
-/* =========================
-   TABELAS
-========================= */
+  .qa-icon {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    background: rgba(255,255,255,.09);
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
 
-table thead{
-    background:#f0f2f5;
-    color:var(--azul-suave);
-    font-weight:600;
-}
+  .qa-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #f0f4ff;
+    line-height: 1.2;
+  }
 
-.table td,
-.table th{
-    vertical-align:middle;
-}
+  .qa-sub {
+    font-size: .78rem;
+    color: rgba(160,175,210,.75);
+    margin-top: 2px;
+  }
 
-table tbody tr:hover{
-    background:#f9f9f9;
-}
+  /* ─── MAIN TABLE CARD ─── */
+  .main-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: fadeUp .3s .15s ease both;
+  }
 
+  .main-card-head {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: var(--surface);
+  }
 
-/* =========================
-   TABELA ITENS ESSENCIAIS
-========================= */
+  .main-card-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-.table-essenciais th,
-.table-essenciais td{
-    padding:.45rem .6rem;
-    vertical-align:middle;
-    white-space:nowrap;
-}
+  .total-badge {
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    color: var(--blue);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: .78rem;
+    font-family: var(--mono);
+    font-weight: 700;
+  }
 
-.essenciais-scroll{
-    max-height:220px;   /* altura máxima do card */
-    overflow-y:auto;    /* ativa scroll vertical */
-}
+  /* ─── FILTER BAR ─── */
+  .filter-bar {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
 
-.table-essenciais th:first-child,
+  .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 180px; }
 
-.table-essenciais td:first-child{
-    white-space:normal;
-}
+  .filter-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+  }
 
-.table-essenciais .col-qtd,
-.table-essenciais .col-consumo,
-.table-essenciais .col-duracao{
-    width:110px;
-    text-align:center;
-}
+  .filter-input,
+  .filter-select {
+    height: 40px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 0 13px;
+    font-family: var(--font);
+    font-size: .87rem;
+    color: var(--ink);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+  }
+  .filter-input:focus,
+  .filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
 
-.table-essenciais thead th{
-    border-bottom:1px solid var(--cinza-borda);
-}
+  .filter-actions { display: flex; gap: 8px; align-self: flex-end; }
 
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+    height: 40px;
+    white-space: nowrap;
+  }
 
-/* =========================
-   Botões de Ação
-========================= */
-.quick-actions{
-  margin: 6px 0 18px;
-}
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent-dark);
+    color: #fff;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .btn-primary:hover { background: var(--accent-dark); }
 
-.quick-actions .qa-grid{
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
+  .btn-ghost {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--ink-2);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
-@media (max-width: 992px){
-  .quick-actions .qa-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 576px){
-  .quick-actions .qa-grid{ grid-template-columns: 1fr; }
-}
+  /* ─── MAIN TABLE ─── */
+  .main-table-wrap { overflow-x: auto; }
 
-.qa-tile{
-  background: #343a40; //principal
-  border: 1px solid var(--cinza-borda);
-  border-radius: 12px;
-  padding: 14px 14px;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.04);
-  transition: transform .08s ease, box-shadow .08s ease, border-color .08s ease;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 74px;
-}
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .87rem;
+  }
 
-.qa-tile:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(47,79,111,.35);
-  border-color: rgba(47,79,111,.35);
-}
+  .main-table thead th {
+    padding: 12px 16px;
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
 
-.qa-icon{
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(32, 29, 29, 0.35); //botao emoji
-  color: var(--azul-suave);
-  font-size: 20px;
-  flex: 0 0 auto;
-}
+  .main-table tbody td {
+    padding: 12px 16px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .main-table tbody tr:last-child td { border-bottom: none; }
+  .main-table tbody tr:hover td { background: #f5f8ff; }
 
-.qa-text{
-  min-width: 0;
-}
+  .main-table a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-family: var(--mono);
+    font-size: .82rem;
+  }
+  .main-table a:hover { text-decoration: underline; }
 
-.qa-title{
-  font-weight: 700;
-  color:  rgb(255, 246, 246);
-  margin: 0;
-  font-size: .98rem;
-  line-height: 1.1;
-}
+  .mono-cell {
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: var(--ink);
+  }
 
-.qa-sub{
-  margin: 2px 0 0;
-  color: #6c757d;
-  font-size: .82rem;
-  line-height: 1.1;
-}
+  /* ─── GRUPO BADGES ─── */
+  .grupo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+    white-space: nowrap;
+  }
 
+  .grupo-ALIMENTO       { background: #16a34a; }
+  .grupo-CONFECCAO      { background: #7c3aed; }
+  .grupo-COPA_COZINHA   { background: #ea580c; }
+  .grupo-DOMISSANITARIO { background: #0d9488; }
+  .grupo-ELETRICA       { background: #d97706; color: #1a1a1a; }
+  .grupo-EPI            { background: #dc2626; }
+  .grupo-HIDROSANITARIO { background: #2563eb; }
+  .grupo-INFORMATICA    { background: #1e293b; }
+  .grupo-LIMPEZA        { background: #0891b2; }
+  .grupo-MANUTENCAO     { background: #64748b; }
+  .grupo-MARCENARIA     { background: #92400e; }
+  .grupo-PINTURA        { background: #c2410c; }
+  .grupo-PAPEIS_EXPEDIENTE { background: #3b82f6; }
+  .grupo-PAPEIS_LIMPEZA { background: #06b6d4; }
+  .grupo-REFRIGERACAO   { background: #38bdf8; color: #0c4a6e; }
+  .grupo-TONER          { background: #334155; }
+  .grupo-None           { background: #94a3b8; }
 
-/* =========================
-   BADGES DE GRUPO
-========================= */
+  /* ─── EMPTY & ALERT ─── */
+  .table-empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: .9rem;
+  }
+  .table-empty-icon { font-size: 2.2rem; margin-bottom: 8px; }
 
-.badge-grupo{
-    padding:6px 12px;
-    border-radius:18px;
-    font-size:.75rem;
-    font-weight:600;
-    letter-spacing:.4px;
-    color:#fff;
-    display:inline-block;
-}
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-/* grupos */
-
-.grupo-ALIMENTO{background:#27ae60;}
-.grupo-CONFECCAO{background:#8e44ad;}
-.grupo-COPA_COZINHA{background:#e67e22;}
-.grupo-DOMISSANITARIO{background:#16a085;}
-.grupo-ELETRICA{background:#f39c12;color:#000;}
-.grupo-EPI{background:#c0392b;}
-.grupo-HIDROSANITARIO{background:#2980b9;}
-.grupo-INFORMATICA{background:#2c3e50;}
-.grupo-LIMPEZA{background:#1abc9c;}
-.grupo-MANUTENCAO{background:#7f8c8d;}
-.grupo-MARCENARIA{background:#6d4c41;}
-.grupo-PINTURA{background:#d35400;}
-.grupo-PAPEIS_EXPEDIENTE{background:#3498db;}
-.grupo-PAPEIS_LIMPEZA{background:#48c9b0;}
-.grupo-REFRIGERACAO{background:#5dade2;}
-.grupo-TONER{background:#34495e;}
-.grupo-None{background:#95a5a6;}
-
-
-/* =========================
-   GRÁFICOS
-========================= */
-
-.chart-box{
-    height:260px;
-}
-
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 960px) {
+    .alert-strip { grid-template-columns: 1fr; }
+    .qa-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .bpage { padding: 14px 12px; }
+    .qa-grid { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; }
+    .topbar { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 
-<div class="page-wrap">
+<div class="bpage">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-          <h1 class="mb-0">Bens de Consumo</h1>
-          <p class="text-muted mb-0">Análise e acompanhamento dos itens de consumo cadastrados.</p>
-      </div>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Bens de Consumo</div>
+      <div class="topbar-sub">Análise e acompanhamento dos itens de consumo cadastrados.</div>
+    </div>
   </div>
 
-    <!-- LINHA 1: 3 cards -->
-    <div class="row mb-4">
+  <!-- ALERT STRIP: 3 cards de monitoramento -->
+  <div class="alert-strip">
 
-    <!-- CARD: Itens Essenciais -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100">
-
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span>Itens Essenciais ✨</span>
-            <a href="{% url 'dimms:essential' %}" 
-            class="btn btn-sm btn-outline-primary">
-            Ver todos
-            </a>
+    <!-- Itens Essenciais -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-blue">✨ Essenciais</span>
         </div>
-
-        <div class="card-body p-0">
-            <div class="table-responsive essenciais-scroll">
-            <table class="table table-hover mb-0 w-100 table-essenciais">
-
-                <thead class="table-light">
-                <tr>
-                    <th>Descrição</th>
-                    <th class="col-qtd text-center">Quantidade</th>
-                    <th class="col-consumo text-center">Consumo Mensal</th>
-                    <th class="col-duracao text-center">Duração</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                {% for item in item_essential %}
-                <tr>
-                    <td>
-                    <a href="{% url 'dimms:overview' item.pk %}"
-                        class="text-decoration-none fw-semibold">
-                        {{ item.description_manual|default:"-" }}
-                    </a>
-                    </td>
-
-                    <td class="col-qtd text-center">
-                    {{ item.amount_shock|default:"-" }}
-                    </td>
-
-                    <td class="col-consumo text-center">
-                    {{ item.monthly_consumption|default:"-" }}
-                    </td>
-
-                    <td class="col-duracao text-center">
-                    {{ item.duration|default:"—" }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-3">
-                    Nenhum item essencial cadastrado
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-            </div>
-        </div>
-
-        </div>
-    </div>
-
-    <!-- CARD: Estoque Baixo -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100">
-
-            <div class="card-header d-flex align-items-center justify-content-between">
-            <span> Estoque Baixo ⚠️</span>
-            <a href="{% url 'dimms:low_stock' %}" 
-            class="btn btn-sm btn-outline-primary">
-            Ver todos
-            </a>
-        </div>
-
-        <div class="card-body p-0">
-            <div class="table-responsive essenciais-scroll">
-            <table class="table table-hover mb-0 w-100 table-essenciais">
-
-                <thead class="table-light">
-                <tr>
-                    <th>Descrição</th>
-                    <th class="col-qtd text-center">Quantidade</th>
-                    <th class="col-consumo text-center">Consumo Mensal</th>
-                    <th class="col-duracao text-center">Duração</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                {% for item in estoque_baixo %}
-                <tr>
-                    <td>
-                    <a href="{% url 'dimms:overview' item.pk %}"
-                        class="text-decoration-none fw-semibold">
-                        {{ item.description_manual|default:"-" }}
-                    </a>
-                    </td>
-
-                    <td class="col-qtd text-center">
-                    {{ item.amount_shock|default:"-" }}
-                    </td>
-
-                    <td class="col-consumo text-center">
-                    {{ item.monthly_consumption|default:"-" }}
-                    </td>
-
-                    <td class="col-duracao text-center">
-                    {{ item.duration|default:"—" }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-3">
-                    Nenhum item com baixo estoque
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-            </div>
-        </div>
-
-        </div>
-    </div>
-
-    <!-- CARD: Alerta de Vencimento -->
-    <div class="col-lg-4 mb-3">
-        <div class="card h-100">
-
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span> Alerta de Vencimento ⏱️</span>
-            <a href="{% url 'dimms:expiration_alert' %}" 
-            class="btn btn-sm btn-outline-primary">
-            Ver todos
-            </a>
-        </div>
-
-        <div class="card-body p-0">
-            <div class="table-responsive essenciais-scroll">
-            <table class="table table-hover mb-0 w-100 table-essenciais">
-
-                <thead class="table-light">
-                <tr>
-                    <th>Descrição</th>
-                    <th class="col-qtd text-center">Quantidade</th>
-                    <th class="col-duracao text-center">Validade</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                {% for item in alerta_vencimento %}
-                <tr>
-                    <td>
-                    <a href="{% url 'dimms:overview' item.pk %}"
-                        class="text-decoration-none fw-semibold">
-                        {{ item.description_manual|default:"-" }}
-                    </a>
-                    </td>
-
-                    <td class="col-qtd text-center">
-                    {{ item.amount_shock|default:"-" }}
-                    </td>
-
-
-                    <td class="col-duracao text-center">
-                    {{ item.validity|date:"d/m/Y" }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-3">
-                    Nenhum item com alerta de vencimento
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-            </div>
-        </div>
-
-        </div>
-    </div>
-
-    </div>
-
-    <!-- LINHA 2: atalhos (fora do row de cards) -->
-    <div class="quick-actions mb-4">
-    <div class="qa-grid">
-
-        <a href="{% url 'dimms:processing' %}" class="qa-tile">
-        <div class="qa-icon">🚚</div>
-        <div class="qa-text">
-            <p class="qa-title mb-0">Solicitações</p>
-        </div>
-        </a>
-
-        <a href="#" class="qa-tile">
-        <div class="qa-icon">🙋</div>
-        <div class="qa-text">
-            <p class="qa-title mb-0">Registrar Solicitações</p>
-            <p class="qa-sub mb-0">Provisório</p>
-        </div>
-        </a>
-
-        <a href="#" class="qa-tile">
-        <div class="qa-icon">💰</div>
-        <div class="qa-text">
-            <p class="qa-title mb-0">Saldo Ativo</p>
-            <p class="qa-sub mb-0">Provisório</p>
-        </div>
-        </a>
-
-        <a href="#" class="qa-tile">
-        <div class="qa-icon">📊</div>
-        <div class="qa-text">
-            <p class="qa-title mb-0">Relatórios</p>
-            <p class="qa-sub mb-0">Provisório</p>
-        </div>
-        </a>
-
-    </div>
-    </div>
-
-  <div class="card shadow-sm">
-      <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">🌍 Todos os Bens de Consumo ({{ total_itens|default:0 }})</h4>
+        <a href="{% url 'dimms:essential' %}" class="alert-card-link">Ver todos →</a>
       </div>
-
-      <div class="card-body">
-          <form method="get" class="mb-4">
-              <div class="input-group shadow-sm">
-                  <input class="form-control" type="text" name="q"
-                         value="{{ query|default_if_none:'' }}"
-                         placeholder="Pesquisar por nome, marca ou localização...">
-                  <div class="input-group-append">
-                      <button class="btn" type="submit">🔍 Pesquisar</button>
-                  </div>
-              </div>
-            <div class="row mt-3 g-2">
-                <div class="col-md-4">
-                <label class="form-label small text-muted mb-1">Filtrar por grupo</label>
-                <select name="grupo" class="form-select">
-                    <option value="">Todos</option>
-
-                    {% for value,label in grupos %}
-                    <option value="{{ value }}" {% if grupo_selected == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                    {% endfor %}
-                </select>
-                </div>
-
-                <div class="col-md-3 d-flex align-items-end">
-                <button class="btn btn-primary w-100" type="submit">Aplicar filtro</button>
-                </div>
-
-                <div class="col-md-3 d-flex align-items-end">
-                <a class="btn btn-outline-secondary w-100"
-                    href="{% url 'dimms:homepage' %}">
-                    Limpar
-                </a>
-                </div>
-          </form>
-
-{% if itens %}
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead>
             <tr>
-                <th>Grupo</th>
-                <th>E-fisco</th>
-                <th>Descrição</th>
-                <th>Marca</th>
-                <th>Unidade</th>
-                <th>Quantidade</th>
-                <th>Consumo Mensal</th>
-                <th>Duração</th>
-                <th>Validade</th>
-
+              <th>Descrição</th>
+              <th class="center">Qtd.</th>
+              <th class="center">Consumo</th>
+              <th class="center">Duração</th>
             </tr>
-        </thead>
-
-        <tbody>
-            {% for item in itens %}
+          </thead>
+          <tbody>
+            {% for item in item_essential %}
             <tr>
-                <!-- Grupo (vem do BensConsumo) -->
-                <td>
-                {% if item.item_shock.grupo_consumo %}
-                    <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
-                    {{ item.item_shock.get_grupo_consumo_display }}
-                    </span>
-                {% else %}
-                    <span class="badge-grupo grupo-None">-</span>
-                {% endif %}
-                </td>
-
-                <!-- Código E-fisco (vem do BensConsumo) -->
-                <td>
-                    <a href="{% url 'dimms:overview' item.pk %}"
-                          class="text-decoration-none text-primary">    
-                        {{ item.item_shock.efisco}}
-                    </a>
-                </td>
-
-                <!-- Descrição -->
-                <td>{{ item.description_manual }}</td>
-
-                <!-- Marca -->
-                <td>{{ item.mark }}</td>
-
-                <!-- Medida -->
-                <td>{{ item.item_shock.medida }}</td>
-
-                <!-- Quantidade -->
-                <td>{{ item.amount_shock }}</td>
-
-                <!-- Consumo Mensal -->
-                <td>{{ item.monthly_consumption|default:"-" }}</td>
-
-                <!-- Duração -->   
-                <td>{{ item.duration|default:"—" }}</td>
-
-                <!-- Validade -->
-                <td>{{ item.validity|date:"d/m/Y" }}</td>
-
-
+              <td><a href="{% url 'dimms:overview' item.pk %}">{{ item.description_manual|default:"-" }}</a></td>
+              <td class="center">{{ item.amount_shock|default:"-" }}</td>
+              <td class="center">{{ item.monthly_consumption|default:"-" }}</td>
+              <td class="center">{{ item.duration|default:"—" }}</td>
             </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="mini-empty">Nenhum item essencial cadastrado.</div></td></tr>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-<div class="alert alert-info text-center mb-0">
-    Nenhum item encontrado no estoque.
-</div>
-{% endif %}
-
-        </div>
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Estoque Baixo -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-amber">⚠️ Estoque Baixo</span>
+        </div>
+        <a href="{% url 'dimms:low_stock' %}" class="alert-card-link">Ver todos →</a>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th class="center">Qtd.</th>
+              <th class="center">Consumo</th>
+              <th class="center">Duração</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in estoque_baixo %}
+            <tr>
+              <td><a href="{% url 'dimms:overview' item.pk %}">{{ item.description_manual|default:"-" }}</a></td>
+              <td class="center">{{ item.amount_shock|default:"-" }}</td>
+              <td class="center">{{ item.monthly_consumption|default:"-" }}</td>
+              <td class="center">{{ item.duration|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="mini-empty">Nenhum item com estoque baixo.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Alerta de Vencimento -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-red">⏱️ Vencimento</span>
+        </div>
+        <a href="{% url 'dimms:expiration_alert' %}" class="alert-card-link">Ver todos →</a>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th class="center">Qtd.</th>
+              <th class="center">Validade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in alerta_vencimento %}
+            <tr>
+              <td><a href="{% url 'dimms:overview' item.pk %}">{{ item.description_manual|default:"-" }}</a></td>
+              <td class="center">{{ item.amount_shock|default:"-" }}</td>
+              <td class="center mono-cell">{{ item.validity|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3"><div class="mini-empty">Nenhum alerta de vencimento.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="qa-grid">
+
+    <a href="{% url 'dimms:processing' %}" class="qa-tile">
+      <div class="qa-icon">🚚</div>
+      <div>
+        <div class="qa-title">Solicitações</div>
+      </div>
+    </a>
+
+    <a href="{% url 'dimms:create_request' %}" class="qa-tile">
+      <div class="qa-icon">🙋</div>
+      <div>
+        <div class="qa-title">Registrar Solicitações</div>
+      </div>
+    </a>
+
+    <a href="{% url 'dimms:create_update' %}" class="qa-tile">
+      <div class="qa-icon">✏️</div>
+      <div>
+        <div class="qa-title">Atualizar Solicitações</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📊</div>
+      <div>
+        <div class="qa-title">Relatórios</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="{% url 'dimms:contracts' %}" class="qa-tile">
+      <div class="qa-icon">📝</div>
+      <div>
+        <div class="qa-title">Contratações</div>
+        <div class="qa-sub">Em Desenvolvimento</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">💰</div>
+      <div>
+        <div class="qa-title">Saldo Ativo</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🛒</div>
+      <div>
+        <div class="qa-title">Compra Individual / Direta</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+
+
+
+  </div>
+
+  <!-- MAIN TABLE CARD -->
+  <div class="main-card">
+
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🌍 Todos os Bens de Consumo
+        <span class="total-badge">{{ total_itens|default:0 }} itens</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <form method="get">
+      <div class="filter-bar">
+        <div class="filter-group" style="flex:2; min-width:220px;">
+          <label class="filter-label">Pesquisar</label>
+          <input
+            class="filter-input"
+            type="text"
+            name="q"
+            value="{{ query|default_if_none:'' }}"
+            placeholder="Nome, marca ou localização…">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Filtrar por grupo</label>
+          <select name="grupo" class="filter-select">
+            <option value="">Todos os grupos</option>
+            {% for value, label in grupos %}
+            <option value="{{ value }}" {% if grupo_selected == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Pesquisar
+          </button>
+          <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">Limpar</a>
+        </div>
+      </div>
+    </form>
+
+    <!-- TABLE -->
+    {% if itens %}
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Grupo</th>
+            <th>E-fisco</th>
+            <th>Descrição</th>
+            <th>Marca</th>
+            <th>Unidade</th>
+            <th>Quantidade</th>
+            <th>Consumo Mensal</th>
+            <th>Duração</th>
+            <th>Validade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in itens %}
+          <tr>
+            <td>
+              {% if item.item_shock.grupo_consumo %}
+                <span class="grupo-badge grupo-{{ item.item_shock.grupo_consumo }}">
+                  {{ item.item_shock.get_grupo_consumo_display }}
+                </span>
+              {% else %}
+                <span class="grupo-badge grupo-None">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <a href="{% url 'dimms:overview' item.pk %}">{{ item.item_shock.efisco }}</a>
+            </td>
+
+            <td style="font-weight:600; color:var(--ink);">{{ item.description_manual }}</td>
+            <td>{{ item.mark }}</td>
+            <td>{{ item.item_shock.medida }}</td>
+            <td class="mono-cell">{{ item.amount_shock }}</td>
+            <td class="mono-cell">{{ item.monthly_consumption|default:"—" }}</td>
+            <td class="mono-cell">{{ item.duration|default:"—" }}</td>
+            <td class="mono-cell">{{ item.validity|date:"d/m/Y" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="table-empty">
+      <div class="table-empty-icon">📦</div>
+      Nenhum item encontrado no estoque.
+    </div>
+    {% endif %}
+
+  </div>
+
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  function safeParse(jsonStr, fallback) {
-    try { return JSON.parse(jsonStr); } catch(e) { return fallback; }
-  }
-
-  function criarGrafico(ctx, tipo, labels, data, titulo) {
-      new Chart(ctx, {
-          type: tipo,
-          data: {
-              labels: labels,
-              datasets: [{
-                  label: titulo,
-                  data: data,
-                  backgroundColor: [
-                      '#7b1e1e', '#d35400', '#f4d03f',
-                      '#27ae60', '#3498db', '#884ea0',
-                      '#95a5a6', '#ffb347'
-                  ],
-                  hoverOffset: 6
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                  legend: {
-                      position: 'bottom',
-                      labels: { color: '#444', font: { size: 13 } }
-                  }
-              },
-              scales: (tipo === 'bar') ? {
-                  y: { beginAtZero: true, grid: { color: '#eaeaea' } },
-                  x: { grid: { color: '#fff' } }
-              } : {}
-          }
-      });
-  }
-
-</script>
 {% endblock %}

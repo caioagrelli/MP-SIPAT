@@ -1,407 +1,660 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT{% endblock %}
+{% block title %}SIPAT — Tramitações{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
 
-:root{
---bg-page:#f7f9fc;
---card:#ffffff;
---border:#e2e8f0;
---text:#334155;
---muted:#64748b;
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
 
---primary:#2f4f6f;
---primary-dark:#243b53;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
 
-/* cores fortes */
---proc:#2166b1;
---sep:#7d4ab5;
---env:#a66300;
---tram:#0f766e;
---rec:#2f7d32;
---can:#a94442;
-}
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
 
-.page-wrap{
-background:var(--bg-page);
-padding:20px;
-border-radius:16px;
-font-family:"Segoe UI", sans-serif;
-}
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
 
-/* HEADER */
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --red-mid: #fecaca;
 
-.page-header{
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
-gap:16px;
-flex-wrap:wrap;
-margin-bottom:24px;
-}
+    --violet: #6d28d9;
+    --violet-soft: #f5f3ff;
+    --violet-mid: #ddd6fe;
 
-.page-header h2{
-margin:0 0 4px 0;
-color:var(--primary);
-font-weight:700;
-}
+    --teal: #0f766e;
+    --teal-soft: #f0fdfa;
+    --teal-mid: #99f6e4;
 
-.page-header p{
-margin:0;
-color:var(--muted);
-}
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-glow: rgba(37,99,235,.12);
 
-.page-actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
 
-/* CARDS */
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
 
-.card{
-background:var(--card);
-border:1px solid var(--border);
-border-radius:16px;
-box-shadow:0 6px 18px rgba(15,23,42,.04);
-}
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
 
-.card-header{
-background:#f8fbff;
-color:var(--primary);
-font-weight:700;
-border-bottom:1px solid var(--border);
-border-radius:16px 16px 0 0 !important;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* KPI */
+  .ppage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px;
+    color: var(--ink);
+  }
 
-.kpi-card{
-background:#fff;
-border-radius:14px;
-padding:14px 16px;
-border:1px solid var(--border);
-box-shadow:0 4px 12px rgba(15,23,42,.03);
-height:100%;
-}
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .topbar-title {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -.03em;
+  }
+  .topbar-sub {
+    margin-top: 4px;
+    font-size: .88rem;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.kpi-card-title{
-font-size:.92rem;
-color:var(--muted);
-margin-bottom:6px;
-}
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent-dark);
+    color: #fff;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
 
-.kpi-value{
-font-size:1.6rem;
-font-weight:800;
-line-height:1;
-color:var(--text);
-}
+  .btn-teal {
+  background: var(--teal);
+  border-color: #0d5e57;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(15,118,110,.2);
+  }
 
-/* cores dos cards */
+  .btn-teal:hover { background: #0d5e57; color: #fff; }
 
-.kpi-processamento{ border-left:5px solid var(--proc); }
-.kpi-separada{ border-left:5px solid var(--sep); }
-.kpi-envio{ border-left:5px solid var(--env); }
-.kpi-tramitacao{ border-left:5px solid var(--tram); }
-.kpi-recebida{ border-left:5px solid var(--rec); }
-.kpi-cancelada{ border-left:5px solid var(--can); }
+  .btn-ghost {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--ink-2);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
-/* filtros */
+  /* ─── KPI STRIP ─── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
 
-.filters-card{
-margin-bottom:22px;
-}
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp .3s ease both;
+    cursor: default;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
 
-.filter-label{
-font-size:.83rem;
-color:var(--muted);
-margin-bottom:6px;
-font-weight:600;
-}
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--r-md) var(--r-md) 0 0;
+  }
 
-.form-control,
-.form-select{
-border-radius:12px;
-border:1px solid var(--border);
-padding:10px 12px;
-}
+  .kpi-proc::before  { background: #2563eb; }
+  .kpi-sep::before   { background: #7c3aed; }
+  .kpi-env::before   { background: #d97706; }
+  .kpi-aguard::before { background: #1459ec; }
+  .kpi-tram::before  { background: #0f766e; }
+  .kpi-rec::before   { background: #15803d; }
+  .kpi-can::before   { background: #b91c1c; }
 
-.form-control:focus,
-.form-select:focus{
-border-color:#bfd3ea;
-box-shadow:0 0 0 .2rem rgba(47,79,111,.08);
-}
+  .kpi-icon { font-size: 1.3rem; margin-bottom: 10px; }
+  .kpi-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: var(--mono);
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
 
-/* BOTÕES */
+  .kpi-proc .kpi-value  { color: #2563eb; }
+  .kpi-sep .kpi-value   { color: #7c3aed; }
+  .kpi-aguard .kpi-value { color: #0953f1; }
+  .kpi-env .kpi-value   { color: #d97706; }
+  .kpi-tram .kpi-value  { color: #0f766e; }
+  .kpi-rec .kpi-value   { color: #15803d; }
+  .kpi-can .kpi-value   { color: #b91c1c; }
 
-.btn{
-border-radius:12px;
-font-weight:600;
-}
+  /* ─── FILTER CARD ─── */
+  .filter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp .3s .1s ease both;
+  }
 
-.btn-primary{
-background:var(--primary);
-border-color:var(--primary);
-}
+  .filter-card-head {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface-2);
+  }
 
-.btn-primary:hover{
-background:var(--primary-dark);
-border-color:var(--primary-dark);
-}
+  .filter-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--blue-soft);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+  }
 
-/* TABELA */
+  .filter-title {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
 
-.table{
-margin-bottom:0;
-}
+  .filter-body {
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
 
-.table thead th{
-background:#f8fafc;
-color:var(--primary);
-font-size:.88rem;
-font-weight:700;
-border-bottom:1px solid var(--border);
-white-space:nowrap;
-}
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
 
-.table td{
-vertical-align:middle;
-color:var(--text);
-}
+  .filter-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+  }
 
-.table tbody tr:hover{
-background:#fbfdff;
-}
+  .filter-input,
+  .filter-select {
+    height: 40px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 0 13px;
+    font-family: var(--font);
+    font-size: .87rem;
+    color: var(--ink);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .filter-input:focus,
+  .filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
 
-/* LINKS */
+  .filter-actions { display: flex; gap: 8px; align-self: flex-end; }
 
-.link-numero{
-font-weight:700;
-text-decoration:none;
-color:#2c6ed5;
-}
+  /* ─── MAIN TABLE CARD ─── */
+  .main-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: fadeUp .3s .15s ease both;
+  }
 
-.link-numero:hover{
-text-decoration:underline;
-color:#1f57ab;
-}
+  .main-card-head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--surface);
+  }
 
-/* STATUS */
+  .main-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-.badge-status{
-display:inline-flex;
-align-items:center;
-padding:7px 14px;
-border-radius:999px;
-font-size:.76rem;
-font-weight:700;
-color:white;
-box-shadow:0 2px 6px rgba(0,0,0,0.12);
-}
+  .total-badge {
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    color: var(--blue);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: .78rem;
+    font-family: var(--mono);
+    font-weight: 700;
+  }
 
-/* cores vivas */
+  /* ─── TABLE ─── */
+  .main-table-wrap { overflow-x: auto; }
 
-.status-processamento{background:var(--proc);}
-.status-separada{background:var(--sep);}
-.status-envio{background:var(--env);}
-.status-tramitacao{background:var(--tram);}
-.status-recebida{background:var(--rec);}
-.status-cancelada{background:var(--can);}
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .87rem;
+  }
 
-.table-empty{
-padding:28px 12px !important;
-color:var(--muted) !important;
-}
+  .main-table thead th {
+    padding: 11px 16px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
 
-@media (max-width:768px){
-.page-wrap{
-padding:14px;
-}
-}
+  .main-table tbody td {
+    padding: 13px 16px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .main-table tbody tr:last-child td { border-bottom: none; }
+  .main-table tbody tr:hover td { background: #f5f8ff; }
 
+  /* ─── CÓDIGO LINK ─── */
+  .code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: .83rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    border-radius: 7px;
+    padding: 4px 10px;
+    transition: background .12s;
+  }
+  .code-link:hover { background: #dbeafe; color: var(--accent-dark); }
+
+  /* ─── STATUS PILLS ─── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .s-proc  { background: var(--blue-soft);   color: var(--blue);   border-color: var(--blue-mid); }
+  .s-proc .status-dot  { background: var(--blue); }
+
+  .s-sep   { background: var(--violet-soft); color: var(--violet); border-color: var(--violet-mid); }
+  .s-sep .status-dot   { background: var(--violet); }
+
+  .s-env   { background: var(--amber-soft);  color: var(--amber);  border-color: var(--amber-mid); }
+  .s-env .status-dot   { background: var(--amber); }
+
+  .s-tram  { background: var(--teal-soft);   color: var(--teal);   border-color: var(--teal-mid); }
+  .s-tram .status-dot  { background: var(--teal); }
+
+  .s-rec   { background: var(--green-soft);  color: var(--green);  border-color: var(--green-mid); }
+  .s-rec .status-dot   { background: var(--green); }
+
+  .s-can   { background: var(--red-soft);    color: var(--red);    border-color: var(--red-mid); }
+  .s-can .status-dot   { background: var(--red); }
+
+  /* ─── EMPTY ─── */
+  .table-empty {
+    padding: 44px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: .9rem;
+  }
+  .table-empty-icon { font-size: 2.2rem; margin-bottom: 8px; opacity: .4; }
+
+  /* ─── DATE / USER CELL ─── */
+  .cell-mono { font-family: var(--mono); font-size: .8rem; color: var(--ink); }
+  .cell-user { font-weight: 600; color: var(--ink); }
+  .cell-ua   { font-weight: 600; color: var(--ink-2); }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .kpi-card:nth-child(2) { animation-delay: .03s; }
+  .kpi-card:nth-child(3) { animation-delay: .06s; }
+  .kpi-card:nth-child(4) { animation-delay: .09s; }
+  .kpi-card:nth-child(5) { animation-delay: .12s; }
+  .kpi-card:nth-child(6) { animation-delay: .15s; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1100px) {
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .ppage { padding: 14px 12px; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .topbar-actions { width: 100%; }
+    .topbar-actions .btn { flex: 1; justify-content: center; }
+    .filter-body { flex-direction: column; }
+    .filter-input, .filter-select { width: 100%; }
+  }
 </style>
 
-<div class="page-wrap">
+<div class="ppage">
 
-  <!-- TOPO -->
-  <div class="page-header">
+  <!-- TOPBAR -->
+  <div class="topbar">
     <div>
-      <h2>🚚 Tramitações</h2>
-      <p>Acompanhamento visual das solicitações e suas etapas.</p>
+      <div class="topbar-title">Tramitações</div>
+      <div class="topbar-sub">Acompanhamento visual das solicitações e suas etapas.</div>
     </div>
-
-    <div class="page-actions">
-      <a href="#" class="btn btn-outline-primary">Atualizar</a>
-      <a href="#" class="btn btn-primary">Nova Solicitação</a>
+    <div class="topbar-actions">
+      <a href="{% url 'dimms:processing' %}" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        Atualizar
+      </a>
+      <a href="{% url 'dimms:create_update' %}" class="btn btn-teal">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Atualizar Status
+      </a>
+      <a href="{% url 'dimms:create_request' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova Solicitação
+      </a>
     </div>
   </div>
 
   <!-- KPIs -->
-  <div class="row mb-4 g-3">
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-processamento">
-        <div class="kpi-card-title">⚙️ Processamento</div>
-        <div class="kpi-value">{{ total_processamento }}</div>
-      </div>
+  <div class="kpi-strip">
+
+    <div class="kpi-card kpi-proc">
+      <div class="kpi-icon">⚙️</div>
+      <div class="kpi-label">Em Atendimento</div>
+      <div class="kpi-value">{{ total_atendimento }}</div>
     </div>
 
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-separada">
-        <div class="kpi-card-title">📦 Separada</div>
-        <div class="kpi-value">{{ total_separada }}</div>
-      </div>
+    <div class="kpi-card kpi-aguard">
+      <div class="kpi-icon">⏳</div>
+      <div class="kpi-label">Aguardando Separação</div>
+      <div class="kpi-value">{{ total_aguardando_separacao }}</div>
     </div>
 
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-envio">
-        <div class="kpi-card-title">🚚 Envio</div>
-        <div class="kpi-value">{{ total_envio }}</div>
-      </div>
+    <div class="kpi-card kpi-sep">
+      <div class="kpi-icon">📦</div>
+      <div class="kpi-label">Separada</div>
+      <div class="kpi-value">{{ total_separada }}</div>
     </div>
 
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-tramitacao">
-        <div class="kpi-card-title">🛣️ Tramitação</div>
-        <div class="kpi-value">{{ total_tramitacao }}</div>
-      </div>
+    <div class="kpi-card kpi-tram">
+      <div class="kpi-icon">🚚</div>
+      <div class="kpi-label">Em Expedição</div>
+      <div class="kpi-value">{{ total_expedicao }}</div>
     </div>
 
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-recebida">
-        <div class="kpi-card-title">✅ Recebida</div>
-        <div class="kpi-value">{{ total_recebida }}</div>
-      </div>
+    <div class="kpi-card kpi-rec">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Recebida</div>
+      <div class="kpi-value">{{ total_recebida }}</div>
     </div>
 
-    <div class="col-lg-2 col-md-4 col-sm-6">
-      <div class="kpi-card kpi-cancelada">
-        <div class="kpi-card-title">❌ Cancelada</div>
-        <div class="kpi-value">{{ total_cancelada }}</div>
-      </div>
+    <div class="kpi-card kpi-can">
+      <div class="kpi-icon">❌</div>
+      <div class="kpi-label">Cancelada</div>
+      <div class="kpi-value">{{ total_cancelada }}</div>
     </div>
+
   </div>
 
-  <!-- PESQUISA / FILTROS -->
-  <div class="card filters-card">
-    <div class="card-header">
-      Pesquisa e filtros
+  <!-- FILTROS -->
+  <div class="filter-card">
+    <div class="filter-card-head">
+      <div class="filter-icon">🔍</div>
+      <div class="filter-title">Pesquisa e filtros</div>
     </div>
-    <div class="card-body">
-      <form method="get" class="row g-3">
-        <div class="col-md-6">
-          <div class="filter-label">Pesquisar</div>
+
+    <form method="get">
+      <div class="filter-body">
+
+        <div class="filter-group" style="flex:2; min-width:220px;">
+          <label class="filter-label">Pesquisar</label>
           <input
             type="text"
             name="q"
-            class="form-control"
+            class="filter-input"
             value="{{ query|default_if_none:'' }}"
-            placeholder="Buscar por código, UA ou solicitante">
+            placeholder="Código, UA ou solicitante…">
         </div>
 
-        <div class="col-md-3">
-          <div class="filter-label">Status</div>
-          <select name="status" class="form-select">
-            <option value="">Todos</option>
-            <option value="PROCESSAMENTO" {% if filtro_status == "PROCESSAMENTO" %}selected{% endif %}>Processamento</option>
-            <option value="SEPARADA" {% if filtro_status == "SEPARADA" %}selected{% endif %}>Separada</option>
-            <option value="ENVIO" {% if filtro_status == "ENVIO" %}selected{% endif %}>Envio</option>
-            <option value="TRAMITACAO" {% if filtro_status == "TRAMITACAO" %}selected{% endif %}>Tramitação</option>
-            <option value="RECEBIDA" {% if filtro_status == "RECEBIDA" %}selected{% endif %}>Recebida</option>
-            <option value="CANCELADA" {% if filtro_status == "CANCELADA" %}selected{% endif %}>Cancelada</option>
+        <div class="filter-group" style="min-width:180px;">
+          <label class="filter-label">Status</label>
+          <select name="status" class="filter-select">
+
+            <option value="" {% if not filtro_status %}selected{% endif %}>
+              Todos os status
+            </option>
+
+            <option value="ATENDIMENTO" {% if filtro_status == "ATENDIMENTO" %}selected{% endif %}>
+              ⚙️ Em Atendimento
+            </option>
+
+            <option value="AGUAR_SEPARACAO" {% if filtro_status == "AGUAR_SEPARACAO" %}selected{% endif %}>
+              ⏳ Aguardando Separação
+            </option>
+
+            <option value="SEPARADA" {% if filtro_status == "SEPARADA" %}selected{% endif %}>
+              📦 Separada
+            </option>
+
+            <option value="EXPEDICAO" {% if filtro_status == "EXPEDICAO" %}selected{% endif %}>
+              🚚 Em Expedição
+            </option>
+
+            <option value="RECEBIDA" {% if filtro_status == "RECEBIDA" %}selected{% endif %}>
+              ✅ Recebida
+            </option>
+
+            <option value="CANCELADA" {% if filtro_status == "CANCELADA" %}selected{% endif %}>
+              ❌ Cancelada
+            </option>
+
           </select>
         </div>
-
-        <div class="col-md-3 d-flex align-items-end gap-2">
-          <button type="submit" class="btn btn-primary w-100">🔎 Pesquisar</button>
-          <a href="{% url 'dimms:processing' %}" class="btn btn-outline-secondary w-100">Limpar</a>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Pesquisar
+          </button>
+          <a href="{% url 'dimms:processing' %}" class="btn btn-ghost">Limpar</a>
         </div>
-      </form>
-    </div>
+
+      </div>
+    </form>
   </div>
 
   <!-- TABELA -->
-  <div class="card">
-    <div class="card-header">
-    🌍 Todas as Solicitações ({{ total_tramitacoes }})
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🌍 Todas as Solicitações
+        <span class="total-badge">{{ total_tramitacoes }}</span>
+      </div>
     </div>
 
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Solicitação</th>
-              <th>UA</th>
-              <th>Solicitante</th>
-              <th>Status</th>
-              <th>Data Atualização</th>
-              <th>Responsável Atualização</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for t in tramitacoes %}
-            <tr>
-              <td>
-                <a href="{% url 'dimms:details_processing' t.pk %}" class="link-numero">
-                  {{ t.request_code }}
-                </a>
-              </td>
-
-              <td>{{ t.ua_order }}</td>
-
-              <td>{{ t.user_order|default:"-" }}</td>
-
-              <td>
-                {% if t.situation == "PROCESSAMENTO" %}
-                  <span class="badge-status status-processamento">Processamento</span>
-                {% elif t.situation == "SEPARADA" %}
-                  <span class="badge-status status-separada">Separada</span>
-                {% elif t.situation == "ENVIO" %}
-                  <span class="badge-status status-envio">Envio</span>
-                {% elif t.situation == "TRAMITACAO" %}
-                  <span class="badge-status status-tramitacao">Tramitação</span>
-                {% elif t.situation == "RECEBIDA" %}
-                  <span class="badge-status status-recebida">Recebida</span>
-                {% elif t.situation == "CANCELADA" %}
-                  <span class="badge-status status-cancelada">Cancelada</span>
-                {% else %}
-                  <span class="text-muted">-</span>
-                {% endif %}
-              </td>
-
-             <td>
-            {% if t.ultima_tramitacao %}
-                {{ t.ultima_tramitacao.date_update|date:"d/m/Y H:i" }}
-            {% else %}
-                -
-            {% endif %}
-            </td>
-
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Solicitação</th>
+            <th>UA</th>
+            <th>Solicitante</th>
+            <th>Status</th>
+            <th>Data da Atualização</th>
+            <th>Responsável da Atualização</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tramitacoes %}
+          <tr>
             <td>
-            {% if t.ultima_tramitacao and t.ultima_tramitacao.user_update %}
-                {{ t.ultima_tramitacao.user_update.get_full_name|default:t.ultima_tramitacao.user_update.username }}
-            {% else %}
-                -
-            {% endif %}
+              <a href="{% url 'dimms:details_processing' t.pk %}" class="code-link">
+                {{ t.request_code }}
+              </a>
             </td>
 
-            {% empty %}
-            <tr>
-              <td colspan="6" class="text-center table-empty">
+            <td class="cell-ua">{{ t.ua_order }}</td>
+
+            <td class="cell-user">{{ t.user_order|default:"—" }}</td>
+            <td>
+              {% if t.situation == "ATENDIMENTO" %}
+                <span class="status-pill s-proc">
+                  <span class="status-dot"></span>Em Atendimento
+                </span>
+
+              {% elif t.situation == "AGUAR_SEPARACAO" %}
+                <span class="status-pill s-sep">
+                  <span class="status-dot"></span>Aguardando Separação
+                </span>
+
+              {% elif t.situation == "SEPARADA" %}
+                <span class="status-pill s-sep">
+                  <span class="status-dot"></span>Separada
+                </span>
+
+              {% elif t.situation == "EXPEDICAO" %}
+                <span class="status-pill s-tram">
+                  <span class="status-dot"></span>Em Expedição
+                </span>
+
+              {% elif t.situation == "RECEBIDA" %}
+                <span class="status-pill s-rec">
+                  <span class="status-dot"></span>Recebida
+                </span>
+
+              {% elif t.situation == "CANCELADA" %}
+                <span class="status-pill s-can">
+                  <span class="status-dot"></span>Cancelada
+                </span>
+
+              {% else %}
+                <span style="color:var(--ink-3); font-size:.82rem;">—</span>
+              {% endif %}
+            </td>
+
+            <td class="cell-mono">
+              {% if t.ultima_tramitacao %}
+                {{ t.ultima_tramitacao.date_update|date:"d/m/Y H:i" }}
+              {% else %}—{% endif %}
+            </td>
+
+            <td class="cell-user">
+              {% if t.ultima_tramitacao and t.ultima_tramitacao.user_update %}
+                {{ t.ultima_tramitacao.user_update.get_full_name|default:t.ultima_tramitacao.user_update.username }}
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="table-empty">
+                <div class="table-empty-icon">📋</div>
                 Nenhuma solicitação encontrada.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
-
 {% endblock %}

@@ -160,12 +160,10 @@ class Contrato(models.Model): #PRONTO
         null=True,
     )
     
-    
     contrato = models.CharField(
         max_length=30,
         verbose_name='N° Contrato'
     )
-    
     
     inicio_vigencia = models.DateField(
         blank=True,
@@ -173,20 +171,17 @@ class Contrato(models.Model): #PRONTO
         verbose_name='Início da Vigência',
     )
     
-    
     final_vigencia = models.DateField(
         blank=True,
         null=True,
         verbose_name='Final da Vigência',
     )
-    
-    
+     
     homologacao = models.DateField(
         blank=True,
         null=True,
         verbose_name='Homologação',
     )
-    
     
     cs = models.IntegerField(
         blank=True,
@@ -194,14 +189,18 @@ class Contrato(models.Model): #PRONTO
         verbose_name='N° CS',
     )
     
-    
     cod_liquidacao = models.IntegerField(
         blank=True,
         null=True,
         verbose_name='Código de Licitação',
     )
 
-
+    status = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Status do Contrato',
+    )
     class Meta():
         verbose_name='Contrato'
         verbose_name_plural='03 - Contratos'
@@ -690,6 +689,7 @@ class Tramitacao(models.Model):
     update = models.CharField(
         max_length=30,
         choices=StatusTramitacao,
+        default=StatusTramitacao.atendimento,
         blank=True,
         null=True,
         verbose_name='Status',
@@ -701,7 +701,6 @@ class Tramitacao(models.Model):
         null=True,
         verbose_name='Responsável pela Atualização',
     )
-    
     
     observation_update = models.TextField(
         blank=True,
