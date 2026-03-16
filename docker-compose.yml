@@ -1,26 +1,20 @@
-services:
-  web:
-    image: harbor.mppe.mp.br/dempam/sipat:2026.3.16102254-6c9c05c
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    depends_on:
-      - db
+FROM python:3.12-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: sipat
-      POSTGRES_USER: sipat
-      POSTGRES_PASSWORD: sipat
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+WORKDIR /app
 
-volumes:
-  postgres_data:
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
