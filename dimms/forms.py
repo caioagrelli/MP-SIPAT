@@ -1,5 +1,6 @@
 from django import forms
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, BaseInlineFormSet
+from django.core.exceptions import ValidationError
 from .models import Solicitacao, SolicitacaoItens, Tramitacao
 
 
@@ -23,19 +24,80 @@ class SolicitacaoItemForm(forms.ModelForm):
         model = SolicitacaoItens
         fields = ['item_order', 'amount_order']
         widgets = {
-            'amount_order': forms.NumberInput(attrs={
-                'min': 1
-            }),
+            'amount_order': forms.NumberInput(attrs={'min': 1}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        item = cleaned_data.get('item_order')
+        quantidade = cleaned_data.get('amount_order')
+
+        if not item or quantidade is None:
+            return cleaned_data
+
+        if quantidade <= 0:
+            self.add_error('amount_order', 'A quantidade deve ser maior que zero.')
+            return cleaned_data
+
+        if quantidade > item.amount_shock:
+            self.add_error(
+                'amount_order',
+                f'A quantidade solicitada ({quantidade}) é maior que o estoque atual ({item.amount_shock}).'
+            )
+
+        return cleaned_data
+
+
+class SolicitacaoItemBaseFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        totais_por_item = {}
+
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data'):
+                continue
+
+            if form.cleaned_data.get('DELETE'):
+                continue
+
+            item = form.cleaned_data.get('item_order')
+            quantidade = form.cleaned_data.get('amount_order')
+
+            if not item or quantidade is None:
+                continue
+
+            if quantidade <= 0:
+                raise ValidationError('A quantidade deve ser maior que zero.')
+
+            if item.pk not in totais_por_item:
+                totais_por_item[item.pk] = {
+                    'item': item,
+                    'total': 0,
+                }
+
+            totais_por_item[item.pk]['total'] += quantidade
+
+        for dados in totais_por_item.values():
+            item = dados['item']
+            total = dados['total']
+
+            if total > item.amount_shock:
+                raise ValidationError(
+                    f'O item "{item}" foi solicitado em quantidade total de {total}, '
+                    f'mas o estoque atual é {item.amount_shock}.'
+                )
 
 
 SolicitacaoItemFormSet = inlineformset_factory(
     Solicitacao,
     SolicitacaoItens,
     form=SolicitacaoItemForm,
+    formset=SolicitacaoItemBaseFormSet,
     extra=1,
     can_delete=True
 )
+
 
 class TramitacaoCreateForm(forms.ModelForm):
     class Meta:
@@ -66,7 +128,6 @@ class TramitacaoCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.fields['request_update'].queryset = Solicitacao.objects.order_by('-id')
         self.fields['request_update'].empty_label = 'Selecione uma solicitação'
 
