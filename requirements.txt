@@ -6,3 +6,4 @@ python-stdnum==2.2                      # 25/02/2026
 psycopg2-binary==2.9.9                  # 26/02/2026
 qrcode ==7.4.2                          # 04/02/2026
 reportlab==4.0.9                        # 12/03/2026
+gunicorn==23.0.0                        # 16/03/2026
