@@ -57,6 +57,9 @@ class BensConsumo(models.Model):
     def __str__(self):
         return self.efisco
 
+
+
+""" Artefatos """
 # Campo usado para o cadastro de fornecedores
 class Fornecedor(models.Model): #PRONTO
     fornecedor = models.CharField(
@@ -209,6 +212,9 @@ class Contrato(models.Model): #PRONTO
     def __str__(self):
         return str(self.contrato)
 
+
+
+""" Saldo Ativo """
 # Campo usado para cadastro de Itens (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
     contrato_saldo = models.ForeignKey(
@@ -450,6 +456,9 @@ class BensEnviados(models.Model):
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
 
+
+
+""" Estoque """
 # Campo usado para armazenar os Itens em Estoque
 class Estoque(models.Model): 
     item_shock = models.ForeignKey(
@@ -560,6 +569,9 @@ class Estoque(models.Model):
     def __str__(self):
         return str(self.item_shock)
 
+
+
+""" Parte de Solicitações """
 # Campo usado para criar uma Solicitação de Materiais
 class Solicitacao(models.Model):  
     request_code = models.CharField(
