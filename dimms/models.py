@@ -119,13 +119,25 @@ class Artifacts(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.artifacts_code
+        return str(self.artifacts_code)
     
     class Meta():
         verbose_name ='Artefato'
         verbose_name_plural ='Artefatos'  
     
+class ItensArtifacts(models.Model):
+    artifacts = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Itens do Artefato')
+    efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, blank=True,verbose_name='Efisco')
+    details = models.TextField(blank=True, verbose_name='Detalhamento do Item')
+    amount = models.PositiveIntegerField(blank=True, verbose_name='Quantidade')
+    value_max = amount = models.PositiveIntegerField(blank=True, verbose_name='Valor Máximo')
     
+    class Meta():
+        verbose_name ='Item Artefato'
+        verbose_name_plural ='Itens Artefatos'  
+
+
+
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
     supplier_contract = models.ForeignKey(
