@@ -1,5 +1,6 @@
 import os 
 from django.db import models
+from django.utils import timezone
 
 # --- Paths ---
 
@@ -30,6 +31,32 @@ def caminho_consum_update(instance, filename):
     nome_aquivo = f'{n_update}{ext}'
     
     return f'documentos/consumo/anexo_atualizacao/{nome_aquivo}'
+
+# documentação dos artefatos
+def path_documents_artifacts(instance, filename, tipo):
+    code = instance.artifacts_code
+    ext = os.path.splitext(filename)[1].lower()
+
+    return f'artefatos/{code}/{tipo}{ext}'
+
+
+def path_tr(instance, filename):
+    return path_documents_artifacts(instance, filename, 'tr')
+
+def path_etp(instance, filename):
+    return path_documents_artifacts(instance, filename, 'etp')
+
+def path_rgpp(instance, filename):
+    return path_documents_artifacts(instance, filename, 'rgpp')
+
+def path_dode(instance, filename):
+    return path_documents_artifacts(instance, filename, 'dode')
+
+def path_tapp(instance, filename):
+    return path_documents_artifacts(instance, filename, 'tapp')
+
+def path_risk_analysis(instance, filename):
+    return path_documents_artifacts(instance, filename, 'risk_analysis')
 
 
 # --- Choices ---
