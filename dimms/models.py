@@ -119,7 +119,11 @@ class Artifacts(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.artifacts_code    
+        return self.artifacts_code
+    
+    class Meta():
+        verbose_name ='Artefato'
+        verbose_name_plural ='Artefatos'  
     
     
 # Campo usado para criação de Contratos
