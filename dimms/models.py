@@ -61,21 +61,19 @@ class BensConsumo(models.Model):
 
 """ Artefatos """
 # Campo usado para o cadastro de fornecedores
-class Fornecedor(models.Model): #PRONTO
-    fornecedor = models.CharField(
+class Supplier(models.Model): #PRONTO
+    supplier = models.CharField(
         max_length=40,
         verbose_name='Fornecedor'
     )
 
-
-    cnpj_fornecedor = BRCNPJField(
+    cnpj_supplier = BRCNPJField(
         blank=True,
         null=True,
         verbose_name='CNPJ do Fornecedor',
     )
     
-    
-    contato_fornecedor = models.CharField(
+    contact_supplier = models.CharField(
     max_length=15,
     validators=[Complementos.validator_contato],
     blank=True,
@@ -83,87 +81,29 @@ class Fornecedor(models.Model): #PRONTO
     verbose_name='Contato do Fornecedor',
     )
     
-    
-    email_fornecedor = models.EmailField(
+    email_supplier = models.EmailField(
     blank=True,
     null=True,
     verbose_name='Email do Fornecedor'
     )
-
     
     class Meta():
         verbose_name='Fornecedor'
         verbose_name_plural='02 - Fonecedores'
         
     def __str__(self):
-        return str(self.fornecedor)
+        return str(self.supplier)
 
-# Campo Usado para formulário de cadastro de compra Individual
-class CompraIndividual(models.Model): #PRONTO
-    efisco = models.ForeignKey(
-        BensConsumo,
-        on_delete=models.PROTECT,
-        related_name='compras_individuais',
-        blank=True,
-        null=True,
-        verbose_name='Efisco'
-    )
-    
-    
-    bem = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Bem',
-    )
-    
-    
-    quantidade = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name='Quantidade'
-    )
-    
-    
-    valor = models.PositiveIntegerField(
-        verbose_name='Valor'
-    )
-    
-    
-    nf = models.FileField(
-        upload_to=caminho_nf_compraindividual,
-        blank=True,
-        null=True,
-        verbose_name='Nota Fiscal'
-    )
-    
-    
-    data_compra = models.DateField(
-        blank=True,
-        null=True,
-        verbose_name='Data da Compra'
-    
-    )
-    
-    
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name='usuario_compraindividual',
-        verbose_name='Usuário Responsável',
-    )
-    
+
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
-    fornecedor = models.ForeignKey(
-        Fornecedor,
+    supplier_contract = models.ForeignKey(
+        Supplier,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
     )
-    
+ 
     contrato = models.CharField(
         max_length=30,
         verbose_name='N° Contrato'
