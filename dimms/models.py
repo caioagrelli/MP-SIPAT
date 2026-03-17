@@ -107,7 +107,7 @@ class Artifacts(models.Model):
     #PA AJEITAR
     state = models.CharField(blank=True, verbose_name='Estado') 
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): #pra ajeitar
         if not self.artifacts_code:
             ano = timezone.now().year
             ultimo = Artifacts.objects.filter(
@@ -159,9 +159,18 @@ class Proposal(models.Model):
     class Meta():
         verbose_name ='Proposta'
         verbose_name_plural ='Propostas'  
+
+class ItensProposal(models.Model):
+    proposal_item = models.ForeignKey(Proposal, on_delete=models.PROTECT, verbose_name='Proposta')
+    efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, verbose_name='Efisco')
+    details_proposal = models.TextField(verbose_name='Detalhes da Proposta')
+    amount = models.PositiveIntegerField(verbose_name='Quantidade')
+    value = models.PositiveIntegerField(verbose_name='Valor')
+    state = models.CharField(max_length=50, blank=True, verbose_name='Status')
     
-
-
+    class Meta():
+        verbose_name ='Item Proposta'
+        verbose_name_plural ='Itens Propostas'  
 
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
