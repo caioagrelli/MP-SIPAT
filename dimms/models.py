@@ -94,7 +94,34 @@ class Supplier(models.Model): #PRONTO
     def __str__(self):
         return str(self.supplier)
 
+class Artifacts(models.Model):
+    artifacts_code = models.CharField(max_length=50, blank=True, unique=True, editable=False, verbose_name='Artefato')
+    description = models.CharField(max_length=100, blank=True, verbose_name='Descrição')
+    tr = models.FileField(upload_to=path_tr,blank=True,verbose_name='(TR) Termo de Referência')
+    etp = models.FileField(upload_to=path_etp,blank=True,verbose_name='(ETP) Estudo Técnico Preeliminar')
+    rgpp = models.FileField(upload_to=path_rgpp,blank=True,verbose_name='(RGPP) Registro de Preço')
+    dode = models.FileField(upload_to=path_dode,blank=True,verbose_name='(DODE)Documento de Oficialização de Demanda')
+    tapp = models.FileField(upload_to=path_tapp,blank=True,verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO')
+    risk_analysis = models.FileField(upload_to=path_risk_analysis,blank=True,verbose_name='Análise de Risco')
 
+    #PA AJEITAR
+    state = models.CharField(blank=True, verbose_name='Estado') 
+
+    def save(self, *args, **kwargs):
+        if not self.artifacts_code:
+            ano = timezone.now().year
+            ultimo = Artifacts.objects.filter(
+                artifacts_code__startswith=f'ART-{ano}'
+            ).count() + 1
+
+            self.artifacts_code = f'ART-{ano}-{ultimo:02d}'
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.artifacts_code    
+    
+    
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO
     supplier_contract = models.ForeignKey(
