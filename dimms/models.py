@@ -136,6 +136,31 @@ class ItensArtifacts(models.Model):
         verbose_name ='Item Artefato'
         verbose_name_plural ='Itens Artefatos'  
 
+class Proposal(models.Model):
+    proposal_code = models.CharField(max_length=50, unique=True, verbose_name='Proposta')
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Fornecedor')
+    artifacts_proposal = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Artefato')
+    state = models.CharField(max_length=30, blank=True, verbose_name='Estado') #pa arrumar
+
+    def save(self, *args, **kwargs): #pra arrumar
+        if not self.proposal_code:
+            ano = timezone.now().year
+            ultimo = Artifacts.objects.filter(
+                proposal_code=f'Proposta-{ano}'
+            ).count() + 1
+
+            self.proposal_code = f'Proposta-{ano}-{ultimo:02d}'
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.proposal_code)
+    
+    class Meta():
+        verbose_name ='Proposta'
+        verbose_name_plural ='Propostas'  
+    
+
 
 
 # Campo usado para criação de Contratos
