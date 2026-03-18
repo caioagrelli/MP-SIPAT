@@ -130,7 +130,7 @@ class ItensArtifacts(models.Model):
     efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, blank=True,verbose_name='Efisco')
     details = models.TextField(blank=True, verbose_name='Detalhamento do Item')
     amount = models.PositiveIntegerField(blank=True, verbose_name='Quantidade')
-    value_max = amount = models.PositiveIntegerField(blank=True, verbose_name='Valor Máximo')
+    value_max = models.PositiveIntegerField(blank=True, verbose_name='Valor Máximo')
     
     class Meta():
         verbose_name ='Item Artefato'
