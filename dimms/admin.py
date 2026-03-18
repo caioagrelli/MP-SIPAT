@@ -43,36 +43,134 @@ class BensConsumoAdmin(admin.ModelAdmin):
         }),
     )
 
-@admin.register(Fornecedor)
-class FornecedorAdmin(admin.ModelAdmin):
-    list_display=(
-        'fornecedor',
-        'cnpj_fornecedor',
-        'contato_fornecedor',
-        'email_fornecedor',
+
+
+# --- Admin dos Artefatos ---
+class ItensArtifactsInline(admin.TabularInline):
+    model = ItensArtifacts
+    extra = 1
+    autocomplete_fields = ['efisco']
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'supplier',
+        'cnpj_supplier',
+        'contact_supplier',
+        'email_supplier',
     )
-    
-    search_fields=(
-        'fornecedor',
-        'cnpj_fornecedor',
+    search_fields = (
+        'supplier',
+        'cnpj_supplier',
+        'contact_supplier',
+        'email_supplier',
+    )
+    ordering = ('supplier',)
+
+@admin.register(Artifacts)
+class ArtifactsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'artifacts_code',
+        'description',
+        'state',
+    )
+    search_fields = (
+        'artifacts_code',
+        'description',
+        'state',
+    )
+    list_filter = (
+        'state',
+    )
+    readonly_fields = (
+        'artifacts_code',
+    )
+    inlines = [ItensArtifactsInline]
+
+@admin.register(ItensArtifacts)
+class ItensArtifactsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'artifacts',
+        'efisco',
+        'amount',
+        'value_max',
+    )
+    search_fields = (
+        'artifacts__artifacts_code',
+        'efisco__item_shock',
+        'details',
+    )
+    list_filter = (
+        'artifacts',
+    )
+    autocomplete_fields = (
+        'artifacts',
+        'efisco',
     )
 
-    fieldsets=(
-        ('Fornecedor', {
-            'fields': (
-                'fornecedor',
-            )
-        }),
+class ItensProposalInline(admin.TabularInline):
+    model = ItensProposal
+    extra = 1
+    autocomplete_fields = ['efisco']
+@admin.register(Proposal)
+class ProposalAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'proposal_code',
+        'supplier',
+        'artifacts_proposal',
+        'state',
+    )
+    search_fields = (
+        'proposal_code',
+        'supplier__supplier',
+        'artifacts_proposal__artifacts_code',
+        'state',
+    )
+    list_filter = (
+        'state',
+        'supplier',
+    )
+    readonly_fields = (
+        'proposal_code',
+    )
+    autocomplete_fields = (
+        'supplier',
+        'artifacts_proposal',
+    )
+    inlines = [ItensProposalInline]
 
-        ('Dados do Fornecedor', {
-            'fields': (
-                'cnpj_fornecedor',
-                'contato_fornecedor',
-                'email_fornecedor',
-            )
-        }),
+@admin.register(ItensProposal)
+class ItensProposalAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'proposal_item',
+        'efisco',
+        'amount',
+        'value',
+        'state',
+    )
+    search_fields = (
+        'proposal_item__proposal_code',
+        'efisco__item_shock',
+        'details_proposal',
+        'reason',
+    )
+    list_filter = (
+        'state',
+        'proposal_item',
+    )
+    autocomplete_fields = (
+        'proposal_item',
+        'efisco',
     )
 
+
+
+# --- Admin dos Saldos Ativos ---
 @admin.register(Contrato)
 class ContratoAdmin(admin.ModelAdmin):
     list_display=(
@@ -241,6 +339,8 @@ class BensEnviadosAdmin(admin.ModelAdmin):
     )
 
  
+ 
+# --- Admin do Estoque ---
 @admin.register(Estoque)
 class EstoqueAdmin(admin.ModelAdmin):
     list_display=(
@@ -283,7 +383,10 @@ class EstoqueAdmin(admin.ModelAdmin):
             )
         }), 
         )
-    
+
+
+
+# --- Admin Das Tramitações ---
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(admin.ModelAdmin):
     list_display=(
