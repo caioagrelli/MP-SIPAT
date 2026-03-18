@@ -20,7 +20,7 @@ urlpatterns = [
     path('processing/create_update/',create_update,name= 'create_update'),
     path('processing/<int:pk>/update_request/', update_request, name='update_request'),
     
-    path('contracts/', contracts, name='contracts'),
+    path('artifacts/', artifacts, name='artifacts'),
 
     # path('active_balance/', active_balance, name='active_balance'), #inativa    
     ]
