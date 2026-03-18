@@ -171,11 +171,11 @@ class ItensProposalAdmin(admin.ModelAdmin):
 
 
 # --- Admin dos Saldos Ativos ---
-@admin.register(Contrato)
+'''@admin.register(Contrato)
 class ContratoAdmin(admin.ModelAdmin):
     list_display=(
         'contrato',
-        'fornecedor',
+        'supplier',
         'homologacao',
         'cs',
         'cod_liquidacao',
@@ -185,18 +185,18 @@ class ContratoAdmin(admin.ModelAdmin):
  
     search_fields=(
         'contrato',
-        'fornecedor__fornecedor',
+        'supplier__supplier',
         'homologacao',
         'cs',
         'cod_liquidacao',        
     )
 
     list_select_related =(
-        'fornecedor',
+        'supplier',
         )
 
     autocomplete_fields =(
-        'fornecedor',
+        'supplier',
         )
     
     ordering =(
@@ -226,7 +226,7 @@ class ContratoAdmin(admin.ModelAdmin):
             )
         })
     )
-
+'''
 @admin.register(SaldoAtivo)
 class SaldoAtivoAdmin(admin.ModelAdmin):
     list_display=(
