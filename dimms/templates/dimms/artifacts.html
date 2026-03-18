@@ -1,0 +1,163 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Artefatos{% endblock %}
+
+{% block content %}
+<style>
+  .artifacts-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .artifacts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .artifacts-header h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .artifacts-header p {
+    margin: 6px 0 0;
+    color: #666;
+  }
+
+  .btn-main {
+    display: inline-block;
+    padding: 10px 16px;
+    background: #0d6efd;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .btn-main:hover {
+    background: #0b5ed7;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card-info {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .card-info h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: #444;
+  }
+
+  .card-info .number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .section-box {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .section-box h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table th,
+  table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+
+  table th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    padding: 20px;
+    text-align: center;
+    color: #777;
+  }
+</style>
+
+<div class="artifacts-page">
+  <div class="artifacts-header">
+    <div>
+      <h1>Painel de Artefatos</h1>
+      <p>Página inicial provisória para gerenciamento e acompanhamento dos artefatos.</p>
+    </div>
+
+    <a href="/admin/dimms/artifacts/add/" class="btn-main">
+      Novo Artefato
+    </a>
+  </div>
+
+  <div class="cards">
+    <div class="card-info">
+      <h3>Total de Artefatos</h3>
+      <div class="number">{{ total_artifacts }}</div>
+    </div>
+
+    <div class="card-info">
+      <h3>Últimos Cadastrados</h3>
+      <div class="number">{{ recent_artifacts|length }}</div>
+    </div>
+  </div>
+
+  <div class="section-box">
+    <h2>Artefatos Recentes</h2>
+
+    {% if recent_artifacts %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Artefato</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_artifacts %}
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.artifacts_code }}</td>
+              <td>{{ item.description }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        Nenhum artefato cadastrado até o momento.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
