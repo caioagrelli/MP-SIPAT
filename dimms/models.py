@@ -103,9 +103,7 @@ class Artifacts(models.Model):
     dode = models.FileField(upload_to=path_dode,blank=True,verbose_name='(DODE)Documento de Oficialização de Demanda')
     tapp = models.FileField(upload_to=path_tapp,blank=True,verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO')
     risk_analysis = models.FileField(upload_to=path_risk_analysis,blank=True,verbose_name='Análise de Risco')
-
-    #PA AJEITAR
-    state = models.CharField(blank=True, verbose_name='Estado') 
+    state = models.CharField(max_length=40, choices=StatusArtifacts,blank=True,  verbose_name='Estado') 
 
     def save(self, *args, **kwargs): #pra ajeitar
         if not self.artifacts_code:
@@ -140,7 +138,7 @@ class Proposal(models.Model):
     proposal_code = models.CharField(max_length=50, unique=True, blank=True, editable=False ,verbose_name='Proposta')
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Fornecedor')
     artifacts_proposal = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Artefato')
-    state = models.CharField(max_length=30, blank=True, verbose_name='Estado') #pa arrumar
+    state = models.CharField(max_length=30, choices=StatusProposal, blank=True, verbose_name='Estado') #pa arrumar
 
     def save(self, *args, **kwargs):
         if not self.proposal_code:
@@ -174,7 +172,7 @@ class ItensProposal(models.Model):
     amount = models.PositiveIntegerField(verbose_name='Quantidade')
     value = models.PositiveIntegerField(verbose_name='Valor')
     state = models.CharField(max_length=50, choices=StatusProposal ,blank=True, verbose_name='Status')
-    reason = models.TextField(verbose_name='Motivo da Reprovação')
+    reason = models.TextField(blank=True, verbose_name='Motivo da Reprovação')
     
     class Meta():
         verbose_name ='Item Proposta'
