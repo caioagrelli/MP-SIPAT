@@ -61,7 +61,7 @@ class BensConsumo(models.Model):
 
 """ Artefatos """
 # Campo usado para o cadastro de fornecedores
-class Supplier(models.Model): #PRONTO
+class Supplier(models.Model): 
     supplier = models.CharField(
         max_length=40,
         verbose_name='Fornecedor'
@@ -137,19 +137,26 @@ class ItensArtifacts(models.Model):
         verbose_name_plural ='Itens Artefatos'  
 
 class Proposal(models.Model):
-    proposal_code = models.CharField(max_length=50, unique=True, verbose_name='Proposta')
+    proposal_code = models.CharField(max_length=50, unique=True, blank=True, editable=False ,verbose_name='Proposta')
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Fornecedor')
     artifacts_proposal = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Artefato')
     state = models.CharField(max_length=30, blank=True, verbose_name='Estado') #pa arrumar
 
-    def save(self, *args, **kwargs): #pra arrumar
+    def save(self, *args, **kwargs):
         if not self.proposal_code:
             ano = timezone.now().year
-            ultimo = Artifacts.objects.filter(
-                proposal_code=f'Proposta-{ano}'
-            ).count() + 1
 
-            self.proposal_code = f'Proposta-{ano}-{ultimo:02d}'
+            ultima_proposta = Proposal.objects.filter(
+                proposal_code__startswith=f'Proposta-{ano}-'
+            ).order_by('-proposal_code').first()
+
+            if ultima_proposta:
+                ultimo_numero = int(ultima_proposta.proposal_code.split('-')[-1])
+                proximo_numero = ultimo_numero + 1
+            else:
+                proximo_numero = 1
+
+            self.proposal_code = f'Proposta-{ano}-{proximo_numero:04d}'
 
         super().save(*args, **kwargs)
 
@@ -166,7 +173,8 @@ class ItensProposal(models.Model):
     details_proposal = models.TextField(verbose_name='Detalhes da Proposta')
     amount = models.PositiveIntegerField(verbose_name='Quantidade')
     value = models.PositiveIntegerField(verbose_name='Valor')
-    state = models.CharField(max_length=50, blank=True, verbose_name='Status')
+    state = models.CharField(max_length=50, choices=StatusProposal ,blank=True, verbose_name='Status')
+    reason = models.TextField(verbose_name='Motivo da Reprovação')
     
     class Meta():
         verbose_name ='Item Proposta'
