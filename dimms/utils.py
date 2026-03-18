@@ -110,6 +110,15 @@ class StatusProposal(models.TextChoices):
     aprovado = 'APROVADO', 'Aprovado'
     recusado = 'RECUSADO', 'Recusado'
     
+class StatusArtifacts(models.TextChoices):
+    elaboracao = 'ELABORACAO', 'Em Elaboração'
+    compras = 'COMPRAS', 'Encaminhado para GMEC'
+    reencaminhado = 'REENCAMINHADO', 'Reencaminhado para Elaboração'
+    licitacao = 'LICITACAO', 'Em Licitação'
+    analise = 'ANALISE', 'Em Análise das Propostas'
+    vencedora = 'VENCEDORA', 'Encaminhado Vencedora'
+    homologado = 'HOMOLOGADO', 'Homologado'
+
 
 # --- Utils ---
 def calcular_duracao(amount_shock, monthly_consumption):
