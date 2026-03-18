@@ -105,6 +105,11 @@ class StatusTramitacao(models.TextChoices):
     cancelada = 'CANCELADA', 'Cancelada'
     rascunho = 'RASCUNHO', 'Rascunho'
     
+class StatusProposal(models.TextChoices):
+    analise = 'ANALISE', 'Em Análise'
+    aprovado = 'APROVADO', 'Aprovado'
+    recusado = 'RECUSADO', 'Recusado'
+    
 
 # --- Utils ---
 def calcular_duracao(amount_shock, monthly_consumption):
