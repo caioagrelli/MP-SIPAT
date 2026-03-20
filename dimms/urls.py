@@ -21,6 +21,11 @@ urlpatterns = [
     path('processing/<int:pk>/update_request/', update_request, name='update_request'),
     
     path('artifacts/', artifacts, name='artifacts'),
+    path('artifacts/<int:pk>/', artifacts_details, name='artifacts_details'),
+    path('artifacts/<int:pk>/edit', artifacts_edit, name='artifacts_edit'),
+    path('artifacts/<int:pk>/new/', artifacts_add, name='artifacts_add'),
+    path('artifacts/<int:pk>/documents/', artifacts_documents, name='artifacts_documents'),
+    path('artifacts/new/', artifacts_create, name='artifacts_create'),
 
     # path('active_balance/', active_balance, name='active_balance'), #inativa    
     ]

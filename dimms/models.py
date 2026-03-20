@@ -97,13 +97,17 @@ class Supplier(models.Model):
 class Artifacts(models.Model):
     artifacts_code = models.CharField(max_length=50, blank=True, unique=True, editable=False, verbose_name='Artefato')
     description = models.CharField(max_length=100, blank=True, verbose_name='Descrição')
+    sei = models.CharField(max_length=50, blank=True, verbose_name='SEI')
     tr = models.FileField(upload_to=path_tr,blank=True,verbose_name='(TR) Termo de Referência')
     etp = models.FileField(upload_to=path_etp,blank=True,verbose_name='(ETP) Estudo Técnico Preeliminar')
     rgpp = models.FileField(upload_to=path_rgpp,blank=True,verbose_name='(RGPP) Registro de Preço')
     dode = models.FileField(upload_to=path_dode,blank=True,verbose_name='(DODE)Documento de Oficialização de Demanda')
     tapp = models.FileField(upload_to=path_tapp,blank=True,verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO')
     risk_analysis = models.FileField(upload_to=path_risk_analysis,blank=True,verbose_name='Análise de Risco')
-    state = models.CharField(max_length=40, choices=StatusArtifacts,blank=True,  verbose_name='Estado') 
+    state = models.CharField(max_length=40, choices=StatusArtifacts, blank=True,  verbose_name='Estado')
+    updated_at = models.DateTimeField(auto_now=True,verbose_name='Última modificação')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,
+        related_name='artifacts_updated',verbose_name='Última edição por')
 
     def save(self, *args, **kwargs): #pra ajeitar
         if not self.artifacts_code:
@@ -177,6 +181,78 @@ class ItensProposal(models.Model):
     class Meta():
         verbose_name ='Item Proposta'
         verbose_name_plural ='Itens Propostas'  
+
+#desabilitado
+'''class Notes(models.Model):
+    note_proposal = models.ForeignKey(
+        Proposal,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notes',
+        verbose_name='Proposta',
+    )
+
+    note_artifacts = models.ForeignKey(
+        Artifacts,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notes',
+        verbose_name='Artefato')
+
+    note = models.TextField(
+        verbose_name='Nota',
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Última modificação',
+    )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='artifacts_updated',
+        verbose_name='Última edição por',
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Criado em',
+    )
+
+    class Meta:
+        verbose_name = 'Nota'
+        verbose_name_plural = 'Notas'
+        ordering = ['-updated_at']
+
+    def clean(self):
+        super().clean()
+
+        if not self.note_artifacts and not self.note_proposal:
+            raise ValidationError(
+                'A nota precisa estar vinculada a um artefato ou a uma proposta.'
+            )
+
+        if self.note_artifacts and self.note_proposal:
+            raise ValidationError(
+                'A nota não pode estar vinculada a artefato e proposta ao mesmo tempo.'
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.note_artifacts:
+            return f'Nota do artefato {self.note_artifacts}'
+        if self.note_proposal:
+            return f'Nota da proposta {self.note_proposal}'
+        return 'Nota sem vínculo'
+'''
 
 # Campo usado para criação de Contratos
 class Contrato(models.Model): #PRONTO

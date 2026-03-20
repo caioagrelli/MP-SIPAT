@@ -1,0 +1,109 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Detalhes do Artefato{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Detalhes do Artefato</h1>
+
+  <div class="mb-3">
+    <a href="{% url 'dimms:artifacts' %}" class="btn btn-secondary">Voltar</a>
+    <a href="{% url 'dimms:artifacts_documents' artifact.pk %}" class="btn btn-primary">Gerenciar documentos</a>
+  </div>
+
+  <div class="card p-3 mb-4">
+    <p><strong>Código:</strong> {{ artifact.artifacts_code|default:"—" }}</p>
+    <p><strong>Descrição:</strong> {{ artifact.description|default:"—" }}</p>
+    <p><strong>SEI:</strong> {{ artifact.sei|default:"—" }}</p>
+    <p><strong>Estado:</strong> {{ artifact.state|default:"—" }}</p>
+
+    <hr>
+
+    <p><strong>TR:</strong>
+      {% if artifact.tr %}
+        <a href="{{ artifact.tr.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+
+    <p><strong>ETP:</strong>
+      {% if artifact.etp %}
+        <a href="{{ artifact.etp.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+
+    <p><strong>RGPP:</strong>
+      {% if artifact.rgpp %}
+        <a href="{{ artifact.rgpp.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+
+    <p><strong>DODE:</strong>
+      {% if artifact.dode %}
+        <a href="{{ artifact.dode.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+
+    <p><strong>TAPP:</strong>
+      {% if artifact.tapp %}
+        <a href="{{ artifact.tapp.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+
+    <p><strong>Análise de Risco:</strong>
+      {% if artifact.risk_analysis %}
+        <a href="{{ artifact.risk_analysis.url }}" target="_blank">Abrir arquivo</a>
+      {% else %}
+        —
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="card p-3">
+    <h3>Itens do Artefato</h3>
+
+    <a href="{% url 'dimms:artifacts_add' artifact.pk %}" class="btn btn-primary mb-3">
+    Adicionar novo item</a>
+
+    <table class="table table-bordered table-striped mt-3">
+      <thead>
+        <tr>
+          <th>Efisco</th>
+          <th>Detalhamento</th>
+          <th>Quantidade</th>
+          <th>Valor Máximo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in itens_artifact %}
+          <tr>
+            <td>{{ item.efisco|default:"—" }}</td>
+            <td>{{ item.details|default:"—" }}</td>
+            <td>{{ item.amount|default:"—" }}</td>
+            <td>{{ item.value_max|default:"—" }}</td>
+            <td>
+              <a href="{% url 'dimms:artifacts_edit' item.pk %}" class="btn btn-sm btn-primary">
+                Editar
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5">Nenhum item vinculado a este artefato.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

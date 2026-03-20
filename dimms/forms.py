@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
-from .models import Solicitacao, SolicitacaoItens, Tramitacao
+from .models import *
 
 
 class SolicitacaoForm(forms.ModelForm):
@@ -175,4 +175,60 @@ class SolicitacaoStatusUpdateForm(forms.ModelForm):
         }
         labels = {
             'situation': 'Novo Status',
+        }
+        
+
+class ItensArtifactsForm(forms.ModelForm):
+    class Meta:
+        model = ItensArtifacts
+        fields = [
+            'efisco',
+            'details',
+            'amount',
+            'value_max',
+        ]
+        widgets = {
+            'details': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class ArtifactDocumentsForm(forms.ModelForm):
+    class Meta:
+        model = Artifacts
+        fields = [
+            'tr',
+            'etp',
+            'rgpp',
+            'dode',
+            'tapp',
+            'risk_analysis',
+        ]
+        
+
+class ArtifactsCreateForm(forms.ModelForm):
+    class Meta:
+        model = Artifacts
+        fields = [
+            'description',
+            'sei',
+            'tr',
+            'etp',
+            'rgpp',
+            'dode',
+            'tapp',
+            'risk_analysis',
+            'state',
+        ]
+        widgets = {
+            'description': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite a descrição do artefato',
+            }),
+            'sei': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número SEI',
+            }),
+            'state': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Estado do artefato',
+            }),
         }
