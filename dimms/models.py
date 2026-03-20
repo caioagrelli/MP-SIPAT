@@ -554,32 +554,20 @@ class BensEnviados(models.Model):
 
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
-
-
-
+    
 """ Estoque """
 # Campo usado para armazenar os Itens em Estoque
 class Estoque(models.Model): 
-    item_shock = models.ForeignKey(
-        BensConsumo,
+    item_shock = models.ForeignKey(BensConsumo,
         on_delete=models.PROTECT,
         related_name='bem_estoque',
-        verbose_name='Bem no Estoque',
-    )
+        verbose_name='Bem no Estoque',)
     
-    description_manual = models.CharField(
-        max_length=90,
-        verbose_name='Descrição Manual',
-    )
+    description_manual = models.CharField(max_length=90,verbose_name='Descrição Manual',)
     
-    mark = models.CharField(
-        max_length=40,
-        verbose_name='Marca',
-    )
+    mark = models.CharField(max_length=40,verbose_name='Marca',)
         
-    amount_shock = models.PositiveIntegerField(
-        verbose_name='Quantidade',
-    )
+    amount_shock = models.PositiveIntegerField(verbose_name='Quantidade',)
     
     locate = models.ForeignKey(
         LocalizacaoDEMPAM,
@@ -587,35 +575,28 @@ class Estoque(models.Model):
         blank=True,
         null=True,
         related_name='localizacao_consumo',
-        verbose_name='Localização',
-        )
+        verbose_name='Localização',)
     
-    monthly_consumption = models.PositiveIntegerField(
-        blank=True,
+    monthly_consumption = models.PositiveIntegerField(blank=True,null=True,verbose_name='Consumo Mensal',)
+    
+    essential = models.BooleanField(default=False,blank=True,null=True,verbose_name='Essencial',)
+    
+    validity = models.DateField(blank=True,null=True,verbose_name='Validade',)
+    
+    photo = models.ImageField(upload_to=caminho_bensconsumo,blank=True,null=True, verbose_name='Foto do Item',)
+    
+    form_input = models.CharField(max_length=30, blank=True, verbose_name='Forma de Entrada')
+
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Última modificação')
+    
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         null=True,
-        verbose_name='Consumo Mensal',
-    )
-    
-    essential = models.BooleanField(
-        default=False,
         blank=True,
-        null=True,
-        verbose_name='Essencial',
-    )
-    
-    validity = models.DateField(
-        blank=True,
-        null=True,
-        verbose_name='Validade',
-    )
-    
-    photo = models.ImageField(
-        upload_to=caminho_bensconsumo,
-        blank=True,
-        null=True,      
-        verbose_name='Foto do Item',
-    )
-    
+        related_name='stock_updated',
+        verbose_name='Última edição por')
+
     @property
     def duration(self):
         if self.amount_shock is not None and self.monthly_consumption not in (None, 0):
