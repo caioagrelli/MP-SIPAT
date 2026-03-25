@@ -38,11 +38,6 @@ WORKDIR /app
 # Copy project source
 COPY . .
 
-# Collect static assets (dummy secret key is safe here — build-time only)
-RUN DJANGO_SECRET_KEY=build-time-placeholder \
-    DJANGO_ALLOWED_HOSTS=localhost \
-    python manage.py collectstatic --noinput
-
 # Non-root user for safety
 RUN addgroup --system django && adduser --system --ingroup django django
 USER django

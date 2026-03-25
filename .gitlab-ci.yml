@@ -20,7 +20,7 @@ generate-tag-job:
     reports:
       dotenv: variables.env
 
-build:
+build-backend:
   stage: build
   tags: ["docker"]
   needs:
@@ -37,15 +37,41 @@ build:
     - echo "{\"auths\":{\"${HARBOR_URL}\":{\"auth\":\"${HARBOR_TOKEN}\"}}}" > /kaniko/.docker/config.json
     - cat /kaniko/.docker/config.json
   script:
-    - echo "Building..."
+    - echo "Building backend..."
     - echo ""
-    - cd ${CI_PROJECT_DIR}
     - >-
       /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --build-arg "VERSION=${VERSION}"
       --destination "harbor.mppe.mp.br/dempam/sipat:${VERSION}"
+    - echo "--------------------------------------------------"
+
+build-frontend:
+  stage: build
+  tags: ["docker"]
+  needs:
+    - job: generate-tag-job
+      artifacts: true
+    - job: test
+  image:
+    name: harbor.mppe.mp.br/googlegcrhub/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo "Preparing..."
+    - echo ""
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${HARBOR_URL}\":{\"auth\":\"${HARBOR_TOKEN}\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+  script:
+    - echo "Building frontend..."
+    - echo ""
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile.frontend"
+      --build-arg "VERSION=${VERSION}"
+      --destination "harbor.mppe.mp.br/dempam/sipat-frontend:${VERSION}"
     - echo "--------------------------------------------------"
 
 
