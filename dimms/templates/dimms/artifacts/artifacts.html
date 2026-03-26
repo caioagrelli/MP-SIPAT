@@ -715,5 +715,72 @@
     </div>
   </div>
 
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        📋 Propostas Cadastradas
+        <span class="total-badge">{{ proposals|length }} itens</span>
+      </div>
+    </div>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Proposta</th>
+            <th>Fornecedor</th>
+            <th>Artefato</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for prop in proposals %}
+          <tr>
+            <td>
+              <a href="{% url 'dimms:proposal_details' prop.pk %}" class="artifact-code">
+                {{ prop.proposal_code }}
+              </a>
+            </td>
+
+            <td>
+              <span style="font-size:.9rem;">{{ prop.supplier.name }}</span>
+            </td>
+
+            <td>
+              <a href="{% url 'dimms:artifacts_details' prop.artifacts_proposal.pk %}" class="artifact-code">
+                {{ prop.artifacts_proposal.artifacts_code }}
+              </a>
+            </td>
+
+            <td>
+              {% with s=prop.state %}
+                {% if s == "ANALISE" %}
+                  <span class="pill p-analise"><span class="pill-dot"></span>{{ prop.get_state_display }}</span>
+                {% elif s == "APROVADO" %}
+                  <span class="pill p-homologado"><span class="pill-dot"></span>{{ prop.get_state_display }}</span>
+                {% elif s == "RECUSADO" %}
+                  <span class="pill" style="background:#fde8e8; color:#c53030;"><span class="pill-dot" style="background:#c53030;"></span>{{ prop.get_state_display }}</span>
+                {% else %}
+                  <span style="color:var(--ink-3); font-size:.82rem;">—</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4">
+              <div class="table-empty">
+                <span class="table-empty-icon">📋</span>
+                <div class="table-empty-title">Nenhuma proposta encontrada</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

@@ -1,22 +1,36 @@
+# Importações do Jungle     Welcome to the jungle, we got fun and games - Guns N' Roses
 from django.db import models
-from django.conf import settings
-from django.utils import timezone
-from datetime import date
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from localflavor.br.models import BRCNPJField
-from django.core.validators import RegexValidator
 from django.db.models import F
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from datetime import date
+
+# Importações de validação
+from localflavor.br.models import BRCNPJField, BRCPFField
+from django.core.validators import RegexValidator
+
+# Importações do código
 from .utils import *
 from dempam.models import InfoUA, LocalizacaoDEMPAM
 
-# Recursos Usados pelo Banco de Dados
+# ===============================
+# MODELS DA DIMMS (BENS CONSUMO)
+# ===============================
+
+
+
+''' Recursos Usados pelo Banco de Dados '''
+# Validador de números
 class Complementos(): #Temporário
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
 
-''' --- Informações Bens de Consumo DIMMS --- '''   
-# Campo Usado para o cadastro de Bens de acordo com o EFISCO 
+
+
+'''  Informações Bens de Consumo DIMMS  '''   
+# Bens de acordo com o EFISCO
 class BensConsumo(models.Model): 
     efisco = models.CharField(
         max_length=20,
@@ -60,7 +74,7 @@ class BensConsumo(models.Model):
 
 
 """ Artefatos """
-# Campo usado para o cadastro de fornecedores
+# Fornecedores
 class Supplier(models.Model): 
     supplier = models.CharField(
         max_length=40,
@@ -72,6 +86,10 @@ class Supplier(models.Model):
         null=True,
         verbose_name='CNPJ do Fornecedor',
     )
+    
+    name_responsible = models.CharField(max_length=90, blank=True, verbose_name='Nome do Responsável')
+    
+    cpf_responsible = BRCPFField(blank=True, verbose_name='Cpf do Responsável')
     
     contact_supplier = models.CharField(
     max_length=15,
@@ -94,6 +112,7 @@ class Supplier(models.Model):
     def __str__(self):
         return str(self.supplier)
 
+# Artefatos
 class Artifacts(models.Model):
     artifacts_code = models.CharField(max_length=50, blank=True, unique=True, editable=False, verbose_name='Artefato')
     description = models.CharField(max_length=100, blank=True, verbose_name='Descrição')
@@ -126,18 +145,26 @@ class Artifacts(models.Model):
     class Meta():
         verbose_name ='Artefato'
         verbose_name_plural ='Artefatos'  
-    
+
+# Itens dos Artefatos
 class ItensArtifacts(models.Model):
     artifacts = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Itens do Artefato')
     efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, blank=True,verbose_name='Efisco')
     details = models.TextField(blank=True, verbose_name='Detalhamento do Item')
     amount = models.PositiveIntegerField(blank=True, verbose_name='Quantidade')
     value_max = models.PositiveIntegerField(blank=True, verbose_name='Valor Máximo')
+
+    def __str__(self):
+        return str(self.efisco)
     
     class Meta():
         verbose_name ='Item Artefato'
         verbose_name_plural ='Itens Artefatos'  
 
+
+
+''' Propostas '''
+# Propostas
 class Proposal(models.Model):
     proposal_code = models.CharField(max_length=50, unique=True, blank=True, editable=False ,verbose_name='Proposta')
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Fornecedor')
@@ -169,20 +196,43 @@ class Proposal(models.Model):
         verbose_name ='Proposta'
         verbose_name_plural ='Propostas'  
 
+# Itens das Propostas
 class ItensProposal(models.Model):
     proposal_item = models.ForeignKey(Proposal, on_delete=models.PROTECT, verbose_name='Proposta')
-    efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, verbose_name='Efisco')
+    item = models.ForeignKey(ItensArtifacts, null=True, on_delete=models.PROTECT, verbose_name='Item')
     details_proposal = models.TextField(verbose_name='Detalhes da Proposta')
     amount = models.PositiveIntegerField(verbose_name='Quantidade')
     value = models.PositiveIntegerField(verbose_name='Valor')
     state = models.CharField(max_length=50, choices=StatusProposal ,blank=True, verbose_name='Status')
     reason = models.TextField(blank=True, verbose_name='Motivo da Reprovação')
     
+    @property
+    def total_value(self):
+        return self.amount * self.value
+
+    def clean(self):
+        super().clean()
+
+        if self.proposal_item and self.item:
+            if self.item.artifacts_id != self.proposal_item.artifacts_proposal_id:
+                raise ValidationError({
+                    'item': 'Este item não pertence ao artefato vinculado à proposta selecionada.'
+                })
+
+        if self.state == 'RECUSADO' and not (self.reason or '').strip():
+            raise ValidationError({
+                'reason': 'Informe o motivo da reprovação para itens recusados.'
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
     class Meta():
         verbose_name ='Item Proposta'
         verbose_name_plural ='Itens Propostas'  
 
-#desabilitado
+# Notas/ Observações (Desabilitada)
 '''class Notes(models.Model):
     note_proposal = models.ForeignKey(
         Proposal,
@@ -254,7 +304,10 @@ class ItensProposal(models.Model):
         return 'Nota sem vínculo'
 '''
 
-# Campo usado para criação de Contratos
+
+
+''' Contratos '''
+# Contratos
 class Contrato(models.Model): #PRONTO
     supplier_contract = models.ForeignKey(
         Supplier,
@@ -314,7 +367,7 @@ class Contrato(models.Model): #PRONTO
 
 
 """ Saldo Ativo """
-# Campo usado para cadastro de Itens (Baseado em um Contrato)
+# Itens do saldo ativo (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
     contrato_saldo = models.ForeignKey(
         Contrato,
@@ -381,7 +434,7 @@ class SaldoAtivo(models.Model): #PRONTO
     def __str__(self):
         return f'{self.contrato_saldo} | {self.efisco}'
 
-# Campo usado para solicitações de Itens com base em um Contrato
+# solicitações de Itens do saldo ativo
 class SolicitacoesSaldoAtivo(models.Model):
     codigo = models.CharField(
         max_length=30,
@@ -447,7 +500,7 @@ class SolicitacoesSaldoAtivo(models.Model):
     def __str__(self):
         return self.codigo
 
-# Campo usado para Inserir os itens solicitados
+# Itens que foram solicitados
 class ItensSolicitados(models.Model):
     solicitacao = models.ForeignKey(
         SolicitacoesSaldoAtivo,
@@ -502,7 +555,7 @@ class ItensSolicitados(models.Model):
             )
         ]
 
-# Campo usado para Inserir os Bens que foram enviados a partir da solicitação 
+# Itens que realmente foram enviados
 class BensEnviados(models.Model):
     item_enviado = models.OneToOneField(
         ItensSolicitados,
@@ -555,8 +608,10 @@ class BensEnviados(models.Model):
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
     
+
+
 """ Estoque """
-# Campo usado para armazenar os Itens em Estoque
+# Itens em Estoque
 class Estoque(models.Model): 
     item_shock = models.ForeignKey(BensConsumo,
         on_delete=models.PROTECT,
@@ -579,11 +634,11 @@ class Estoque(models.Model):
     
     monthly_consumption = models.PositiveIntegerField(blank=True,null=True,verbose_name='Consumo Mensal',)
     
-    essential = models.BooleanField(default=False,blank=True,null=True,verbose_name='Essencial',)
+    essential = models.BooleanField(default=False,blank=True, verbose_name='Essencial',)
     
     validity = models.DateField(blank=True,null=True,verbose_name='Validade',)
     
-    photo = models.ImageField(upload_to=caminho_bensconsumo,blank=True,null=True, verbose_name='Foto do Item',)
+    photo = models.ImageField(upload_to=path_photo_bens,blank=True,null=True, verbose_name='Foto do Item',)
     
     form_input = models.CharField(max_length=30, blank=True, verbose_name='Forma de Entrada')
 
@@ -597,6 +652,7 @@ class Estoque(models.Model):
         related_name='stock_updated',
         verbose_name='Última edição por')
 
+    method = models.CharField(max_length=60, blank=True, verbose_name='Método de Entrada' )
     @property
     def duration(self):
         if self.amount_shock is not None and self.monthly_consumption not in (None, 0):
@@ -651,8 +707,8 @@ class Estoque(models.Model):
 
 
 
-""" Parte de Solicitações """
-# Campo usado para criar uma Solicitação de Materiais
+""" Solicitações """
+# Solicitação de Materiais
 class Solicitacao(models.Model):  
     request_code = models.CharField(
         max_length=30,
@@ -689,7 +745,7 @@ class Solicitacao(models.Model):
     )
     
     documents_order = models.FileField(
-        upload_to=caminho_movimentacao_consumo,
+        upload_to=path_solicitation,
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
@@ -733,7 +789,7 @@ class Solicitacao(models.Model):
     def __str__(self):
        return str(self.request_code)  
 
-# Campo usado para adicionar os itens solicitados
+# Itens solicitados
 class SolicitacaoItens(models.Model):
     request_defendant = models.ForeignKey(
         Solicitacao,
@@ -788,7 +844,7 @@ class SolicitacaoItens(models.Model):
     def __str__(self):
         return str(self.request_defendant) 
 
-# Campo usado para atualizar o status da entrega do material
+# Atualizações de cada solicitação
 class Tramitacao(models.Model):
     request_update = models.ForeignKey(
         Solicitacao,
@@ -822,14 +878,14 @@ class Tramitacao(models.Model):
     )   
     
     documents_update = models.FileField(
-        upload_to=caminho_consum_update,
+        upload_to=path_solicitation_update,
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
     )
     
     photo_update = models.ImageField(
-        upload_to=caminho_consum_update,
+        upload_to=path_solicitation_photo,
         blank=True,
         null=True,
         verbose_name='Foto do Item',

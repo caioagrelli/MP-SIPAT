@@ -1,11 +1,18 @@
-from datetime import timedelta
-
+# Importações do Django
 from django.db.models import Sum
 from django.utils import timezone
+from datetime import timedelta
 
+# Importações do código
 from .models import Estoque, SolicitacaoItens
 
+# ====================================
+# SERVICES DA DIMMS (BENS DE CONSUMO)
+# ====================================
 
+
+
+# função para calcular o consumo mensal de um bem
 def recalcular_consumo(days=30):
     """
     Recalcula o consumo mensal de cada item de estoque com base

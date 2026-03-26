@@ -1,9 +1,63 @@
+# Importações do Django
 from django import forms
 from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
-from .models import *
+
+# Importações do código 
+from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts
+
+# =================================
+# FORMS DA DIMMS (BENS DE CONSUMO)
+# =================================
 
 
+
+''' Estoque '''
+# Estoque 
+class EstoqueForm(forms.ModelForm):
+    class Meta:
+        model = Estoque
+        fields = [
+            'item_shock',
+            'description_manual',
+            'mark',
+            'amount_shock',
+            'locate',
+            'monthly_consumption',
+            'essential',
+            'validity',
+            'photo',
+            'form_input',
+        ]
+        widgets = {
+            'item_shock': forms.Select(attrs={'class': 'form-control'}),
+            'description_manual': forms.TextInput(attrs={'class': 'form-control'}),
+            'mark': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount_shock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'locate': forms.Select(attrs={'class': 'form-control'}),
+            'monthly_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
+            'essential': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'validity': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'photo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'form_input': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'item_shock': 'Bem no Estoque',
+            'description_manual': 'Descrição Manual',
+            'mark': 'Marca',
+            'amount_shock': 'Quantidade',
+            'locate': 'Localização',
+            'monthly_consumption': 'Consumo Mensal',
+            'essential': 'Essencial',
+            'validity': 'Validade',
+            'photo': 'Foto do Item',
+            'form_input': 'Forma de Entrada',
+        }
+
+
+
+''' Solicitaçoes '''
+# Criar nova solicitação
 class SolicitacaoForm(forms.ModelForm):
     class Meta:
         model = Solicitacao
@@ -18,7 +72,7 @@ class SolicitacaoForm(forms.ModelForm):
             'observation_order': forms.Textarea(attrs={'rows': 4}),
         }
 
-
+# Adicionar itens as solicitações
 class SolicitacaoItemForm(forms.ModelForm):
     class Meta:
         model = SolicitacaoItens
@@ -47,7 +101,7 @@ class SolicitacaoItemForm(forms.ModelForm):
 
         return cleaned_data
 
-
+# Extenção de SolicitacaoForm (para adicionar no momento da criação)
 class SolicitacaoItemBaseFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
@@ -88,7 +142,6 @@ class SolicitacaoItemBaseFormSet(BaseInlineFormSet):
                     f'mas o estoque atual é {item.amount_shock}.'
                 )
 
-
 SolicitacaoItemFormSet = inlineformset_factory(
     Solicitacao,
     SolicitacaoItens,
@@ -99,6 +152,9 @@ SolicitacaoItemFormSet = inlineformset_factory(
 )
 
 
+
+''' Tramitações '''
+# Atualizar a tramitação da solicitação (pode escolher)
 class TramitacaoCreateForm(forms.ModelForm):
     class Meta:
         model = Tramitacao
@@ -143,7 +199,7 @@ class TramitacaoCreateForm(forms.ModelForm):
 
         return cleaned_data
     
-    
+# Atualizar a tramitação da solicitação a partir dela mesma (não pode escolher)
 class SolicitacaoStatusUpdateForm(forms.ModelForm):
     observacao_tramitacao = forms.CharField(
         required=False,
@@ -176,8 +232,11 @@ class SolicitacaoStatusUpdateForm(forms.ModelForm):
         labels = {
             'situation': 'Novo Status',
         }
-        
 
+
+
+''' Artefatos '''
+# Adicionat itens aos artefatos
 class ItensArtifactsForm(forms.ModelForm):
     class Meta:
         model = ItensArtifacts
@@ -191,6 +250,7 @@ class ItensArtifactsForm(forms.ModelForm):
             'details': forms.Textarea(attrs={'rows': 4}),
         }
 
+# Gerenciar documentos dos artefatos
 class ArtifactDocumentsForm(forms.ModelForm):
     class Meta:
         model = Artifacts
@@ -203,7 +263,7 @@ class ArtifactDocumentsForm(forms.ModelForm):
             'risk_analysis',
         ]
         
-
+# Criar um novo artefato
 class ArtifactsCreateForm(forms.ModelForm):
     class Meta:
         model = Artifacts
@@ -232,3 +292,33 @@ class ArtifactsCreateForm(forms.ModelForm):
                 'placeholder': 'Estado do artefato',
             }),
         }
+
+
+
+''' Estoque '''
+# Adicionar um item ao estoque 
+class EstoqueForm(forms.ModelForm):
+    class Meta:
+        model = Estoque
+        fields = [
+            'item_shock',
+            'description_manual',
+            'mark',
+            'amount_shock',
+            'locate',
+            'monthly_consumption',
+            'essential',
+            'validity',
+            'photo',
+            'form_input',
+            'method',
+        ]
+        widgets = {
+            'validity': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean_amount_shock(self):
+        value = self.cleaned_data.get('amount_shock')
+        if value is None or value <= 0:
+            raise forms.ValidationError('A quantidade deve ser maior que zero.')
+        return value

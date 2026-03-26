@@ -1,29 +1,368 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Documentos do Artefato{% endblock %}
+{% block title %}SIPAT — Documentos do Artefato{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h1>Gerenciar Documentos do Artefato</h1>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-  <div class="mb-3">
-    <a href="{% url 'dimms:artifacts_details' artifact.pk %}" class="btn btn-secondary">Voltar</a>
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --teal: #0f766e; --teal-soft: #f0fdfa; --teal-mid: #99f6e4;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .ppage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--ink-3); margin-bottom:18px; font-weight:500; }
+  .breadcrumb a { color:var(--accent); text-decoration:none; }
+  .breadcrumb a:hover { text-decoration:underline; }
+  .breadcrumb-sep { opacity:.4; }
+
+  /* ─── TOPBAR ─── */
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+  .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
+  .topbar-sub   { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
+
+  /* ─── HERO ─── */
+  .hero {
+    background: linear-gradient(135deg, #1e2d42 0%, #243451 100%);
+    border-radius: var(--r-lg); padding: 22px 28px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md); animation: fadeUp .3s ease both;
+  }
+  .hero-icon { width:48px; height:48px; border-radius:13px; background:rgba(255,255,255,.10); display:grid; place-items:center; font-size:22px; flex-shrink:0; }
+  .hero-code { font-family:var(--mono); font-size:1.15rem; font-weight:700; color:#fff; letter-spacing:-.02em; }
+  .hero-sub  { margin-top:4px; font-size:.82rem; color:rgba(160,175,210,.75); font-weight:500; }
+
+  /* ─── BUTTONS ─── */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; border:1.5px solid transparent; transition:all .15s ease; white-space:nowrap; }
+  .btn-ghost   { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
+  .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; box-shadow:0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background:var(--accent-dark); }
+
+  /* ─── CARD ─── */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:16px; animation:fadeUp .32s ease both; }
+
+  .card-head { padding:13px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; background:var(--surface-2); }
+  .card-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:13px; flex-shrink:0; }
+  .ci-teal { background:var(--teal-soft); }
+  .card-title { font-size:.875rem; font-weight:700; color:var(--ink); }
+
+  /* ─── DOC UPLOAD GRID ─── */
+  .doc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .doc-field {
+    padding: 18px 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .doc-field:nth-child(2n)   { border-right: none; }
+  .doc-field:nth-last-child(-n+2) { border-bottom: none; }
+  .doc-field.span-2 { grid-column: 1 / -1; border-right: none; border-bottom: none; }
+
+  /* cabeçalho do campo */
+  .doc-field-head { display: flex; align-items: center; gap: 10px; }
+  .doc-field-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--teal-soft); border: 1px solid var(--teal-mid);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .doc-field-badge svg { color: var(--teal); }
+  .doc-field-name { font-size: .8rem; font-weight: 700; color: var(--ink); }
+  .doc-field-hint { font-size: .72rem; color: var(--ink-3); margin-top: 1px; }
+
+  /* estado atual do arquivo */
+  .doc-current {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 8px;
+    background: var(--green-soft); border: 1px solid var(--green-mid);
+    font-size: .75rem; font-weight: 600; color: var(--green);
+    text-decoration: none;
+  }
+  .doc-current:hover { background: #dcfce7; }
+  .doc-current-none {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: .75rem; color: var(--ink-3); font-style: italic;
+  }
+
+  /* input de arquivo customizado */
+  .file-wrap { position: relative; }
+  .file-wrap input[type="file"] {
+    font-family: var(--font);
+    font-size: .8rem;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 9px 12px;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color .15s;
+    outline: none;
+  }
+  .file-wrap input[type="file"]:hover,
+  .file-wrap input[type="file"]:focus { border-color: var(--accent); }
+
+  /* erros */
+  .field-error { font-size:.72rem; color:var(--red); font-weight:600; display:flex; align-items:center; gap:4px; margin-top:2px; }
+
+  /* ─── FORM ACTIONS ─── */
+  .form-actions {
+    display: flex; justify-content: flex-end; align-items: center;
+    gap: 10px; padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 640px) {
+    .ppage { padding: 14px 12px 32px; }
+    .hero  { padding: 18px; }
+    .doc-grid { grid-template-columns: 1fr; }
+    .doc-field { border-right: none; }
+    .doc-field:not(:last-child) { border-bottom: 1px solid var(--border); }
+    .doc-field:last-child { border-bottom: none; }
+  }
+</style>
+
+<div class="ppage">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:artifacts' %}">Artefatos</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'dimms:artifacts_details' artifact.pk %}">{{ artifact.artifacts_code }}</a>
+    <span class="breadcrumb-sep">›</span>
+    Documentos
+  </nav>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Gerenciar Documentos</div>
+      <div class="topbar-sub">Anexe ou substitua os documentos vinculados ao artefato.</div>
+    </div>
+    <a href="{% url 'dimms:artifacts_details' artifact.pk %}" class="btn btn-ghost">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar ao Artefato
+    </a>
   </div>
 
-  <div class="card p-3">
-    <p><strong>Artefato:</strong> {{ artifact.artifacts_code }}</p>
-    <p><strong>Descrição:</strong> {{ artifact.description|default:"—" }}</p>
-
-    <hr>
-
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ form.as_p }}
-
-      <button type="submit" class="btn btn-primary">
-        Salvar documentos
-      </button>
-    </form>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-icon">📁</div>
+    <div>
+      <div class="hero-code">{{ artifact.artifacts_code }}</div>
+      <div class="hero-sub">{{ artifact.description|default:"Sem descrição informada" }}</div>
+    </div>
   </div>
+
+  <!-- FORMULÁRIO -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-teal">📄</div>
+        <span class="card-title">Documentos do Artefato</span>
+      </div>
+
+      <div class="doc-grid">
+
+        <!-- TR -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">TR — Termo de Referência</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.tr %}
+          <a href="{{ artifact.tr.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.tr }}</div>
+          {% if form.tr.errors %}<div class="field-error">⚠ {{ form.tr.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- ETP -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">ETP — Estudo Técnico Preliminar</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.etp %}
+          <a href="{{ artifact.etp.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.etp }}</div>
+          {% if form.etp.errors %}<div class="field-error">⚠ {{ form.etp.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- RGPP -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="13" width="8" height="5" rx="1"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">RGPP — Relatório de Gestão</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.rgpp %}
+          <a href="{{ artifact.rgpp.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.rgpp }}</div>
+          {% if form.rgpp.errors %}<div class="field-error">⚠ {{ form.rgpp.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- DODE -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="8 17 10 19 14 15"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">DODE — Documento de Demanda</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.dode %}
+          <a href="{{ artifact.dode.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.dode }}</div>
+          {% if form.dode.errors %}<div class="field-error">⚠ {{ form.dode.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- TAPP -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">TAPP — Termo de Aceite</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.tapp %}
+          <a href="{{ artifact.tapp.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.tapp }}</div>
+          {% if form.tapp.errors %}<div class="field-error">⚠ {{ form.tapp.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <!-- ANÁLISE DE RISCO -->
+        <div class="doc-field">
+          <div class="doc-field-head">
+            <div class="doc-field-badge" style="background:var(--amber-soft); border-color:var(--amber-mid);">
+              <svg width="15" height="15" fill="none" stroke="var(--amber)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="doc-field-name">Análise de Risco</div>
+              <div class="doc-field-hint">PDF ou DOCX, máx. 20 MB</div>
+            </div>
+          </div>
+          {% if artifact.risk_analysis %}
+          <a href="{{ artifact.risk_analysis.url }}" target="_blank" class="doc-current">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Arquivo atual — clique para abrir
+          </a>
+          {% else %}
+          <div class="doc-current-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nenhum arquivo anexado
+          </div>
+          {% endif %}
+          <div class="file-wrap">{{ form.risk_analysis }}</div>
+          {% if form.risk_analysis.errors %}<div class="field-error">⚠ {{ form.risk_analysis.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'dimms:artifacts_details' artifact.pk %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Salvar documentos
+        </button>
+      </div>
+    </div>
+
+  </form>
+
 </div>
 {% endblock %}

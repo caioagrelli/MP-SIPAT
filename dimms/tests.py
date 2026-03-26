@@ -1,3 +1,10 @@
+# Importações do Django
 from django.test import TestCase
 
-# Create your tests here.
+# =================================
+# TESTS DA DIMMS (BENS DE CONSUMO)
+# =================================
+
+
+
+''' PÁ FAZER DEPOIS '''

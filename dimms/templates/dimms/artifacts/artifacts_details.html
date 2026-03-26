@@ -1,80 +1,408 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Detalhes do Artefato{% endblock %}
+{% block title %}SIPAT — Detalhes do Artefato{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h1>Detalhes do Artefato</h1>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-  <div class="mb-3">
-    <a href="{% url 'dimms:artifacts' %}" class="btn btn-secondary">Voltar</a>
-    <a href="{% url 'dimms:artifacts_documents' artifact.pk %}" class="btn btn-primary">Gerenciar documentos</a>
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #3C3489; --violet-soft: #EEEDFE; --violet-mid: #AFA9EC;
+    --teal: #0f766e; --teal-soft: #f0fdfa; --teal-mid: #99f6e4;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .ppage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--ink-3); margin-bottom:18px; font-weight:500; }
+  .breadcrumb a { color:var(--accent); text-decoration:none; }
+  .breadcrumb a:hover { text-decoration:underline; }
+  .breadcrumb-sep { opacity:.4; }
+
+  /* ─── TOPBAR ─── */
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+  .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
+  .topbar-sub   { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
+  .topbar-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* ─── HERO ─── */
+  .hero {
+    background: linear-gradient(135deg, #1e2d42 0%, #243451 100%);
+    border-radius: var(--r-lg); padding: 22px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap; margin-bottom: 20px;
+    box-shadow: var(--shadow-md); animation: fadeUp .3s ease both;
+  }
+  .hero-left { display:flex; align-items:center; gap:16px; }
+  .hero-icon { width:48px; height:48px; border-radius:13px; background:rgba(255,255,255,.10); display:grid; place-items:center; font-size:22px; flex-shrink:0; }
+  .hero-code { font-family:var(--mono); font-size:1.35rem; font-weight:700; color:#fff; letter-spacing:-.02em; }
+  .hero-meta { margin-top:4px; font-size:.82rem; color:rgba(160,175,210,.8); font-weight:500; }
+  .hero-chips { display:flex; gap:20px; flex-wrap:wrap; }
+  .hero-chip { display:flex; flex-direction:column; gap:2px; }
+  .hc-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:rgba(160,175,210,.65); }
+  .hc-val   { font-size:.84rem; font-weight:600; color:rgba(255,255,255,.9); }
+
+  /* ─── BUTTONS ─── */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; border:1.5px solid transparent; transition:all .15s ease; white-space:nowrap; }
+  .btn-ghost   { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
+  .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; box-shadow:0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background:var(--accent-dark); color:#fff; }
+
+  .btn-xs { display:inline-flex; align-items:center; gap:4px; padding:5px 11px; border-radius:7px; font-family:var(--font); font-size:.72rem; font-weight:600; cursor:pointer; border:1px solid transparent; transition:all .13s; white-space:nowrap; text-decoration:none; }
+  .btn-xs-blue  { background:var(--blue-soft); border-color:var(--blue-mid); color:var(--blue); }
+  .btn-xs-blue:hover { background:#dbeafe; }
+  .btn-xs-violet { background:var(--violet-soft); border-color:var(--violet-mid); color:var(--violet); }
+  .btn-xs-violet:hover { background:#CECBF6; }
+
+  /* ─── PROPOSALS GRID ─── */
+  .proposals-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(255px, 1fr)); gap:12px; padding:16px 20px; }
+
+  .proposal-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--r-md); overflow:hidden;
+    transition:border-color .15s, box-shadow .15s;
+    text-decoration:none; display:block;
+  }
+  .proposal-card:hover { border-color:var(--border-strong); box-shadow:var(--shadow-md); }
+
+  .pc-accent { height:4px; width:100%; }
+  .accent-analise  { background:#BA7517; }
+  .accent-aprovado { background:#3B6D11; }
+  .accent-recusado { background:#A32D2D; }
+  .accent-default  { background:var(--ink-3); }
+
+  .pc-body { padding:14px 16px 13px; }
+  .pc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .pc-left { min-width:0; }
+  .pc-code { font-family:var(--mono); font-size:.75rem; font-weight:700; color:var(--accent); }
+  .pc-supplier { font-size:.875rem; font-weight:700; color:var(--ink); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:175px; }
+
+  .pc-right { display:flex; flex-direction:column; align-items:flex-end; gap:7px; flex-shrink:0; }
+  .pc-initials {
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0;
+  }
+  .pi-green  { background:#EAF3DE; color:#27500A; }
+  .pi-amber  { background:#FAEEDA; color:#633806; }
+  .pi-red    { background:#FCEBEB; color:#791F1F; }
+  .pi-gray   { background:var(--surface-2); color:var(--ink-3); }
+
+  .pc-divider { height:1px; background:var(--border); margin:0 0 12px; }
+  .pc-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .pc-items { display:flex; align-items:center; gap:5px; font-size:.75rem; color:var(--ink-3); font-weight:500; }
+
+  .pc-btn {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:5px 11px; border-radius:7px; font-family:var(--font);
+    font-size:.72rem; font-weight:600; text-decoration:none;
+    background:var(--violet-soft); border:1px solid var(--violet-mid);
+    color:var(--violet); transition:background .13s;
+  }
+  .pc-btn:hover { background:#CECBF6; }
+
+  .proposals-empty {
+    margin:16px 20px; padding:36px; text-align:center;
+    border:1px dashed var(--border-strong); border-radius:var(--r-md);
+    color:var(--ink-3); font-size:.875rem;
+  }
+
+  /* ─── CARDS ─── */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:16px; animation:fadeUp .32s ease both; }
+  .card:nth-child(2) { animation-delay:.05s; }
+  .card:nth-child(3) { animation-delay:.10s; }
+  .card:nth-child(4) { animation-delay:.15s; }
+
+  .card-head { padding:13px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-2); }
+  .card-head-left { display:flex; align-items:center; gap:9px; }
+  .card-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:13px; flex-shrink:0; }
+  .ci-blue   { background:var(--blue-soft); }
+  .ci-green  { background:var(--green-soft); }
+  .ci-violet { background:var(--violet-soft); }
+  .ci-teal   { background:var(--teal-soft); }
+  .card-title { font-size:.875rem; font-weight:700; color:var(--ink); }
+
+  .total-badge { background:var(--blue-soft); border:1px solid var(--blue-mid); color:var(--blue); border-radius:999px; padding:3px 10px; font-size:.78rem; font-family:var(--mono); font-weight:700; }
+
+  /* ─── INFO GRID (dados do artefato) ─── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .info-cell {
+    padding: 14px 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .info-cell:nth-child(2n) { border-right: none; }
+  .info-cell.span-2 { grid-column: 1 / -1; border-right: none; }
+  .info-cell:last-child,
+  .info-cell:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+  .info-cell.span-2:last-child { border-bottom: none; }
+
+  .info-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--ink-3); margin-bottom: 5px;
+  }
+  .info-value {
+    font-size: .88rem; font-weight: 600; color: var(--ink);
+  }
+  .info-value.mono { font-family: var(--mono); font-size: .83rem; color: var(--accent); }
+
+  /* ─── STATUS PILLS ─── */
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.73rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .p-analise    { background:var(--amber-soft); color:var(--amber); border-color:var(--amber-mid); }
+  .p-analise .pill-dot { background:var(--amber); }
+  .p-aprovado   { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
+  .p-aprovado .pill-dot { background:var(--green); }
+  .p-recusado   { background:var(--red-soft);   color:var(--red);   border-color:var(--red-mid); }
+  .p-recusado .pill-dot { background:var(--red); }
+  .p-default    { background:var(--surface-2);  color:var(--ink-3); border-color:var(--border); }
+  .p-default .pill-dot { background:var(--ink-3); }
+
+  /* ─── DOCUMENTOS ─── */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 16px 20px;
+  }
+  .doc-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    transition: border-color .14s, background .14s;
+  }
+  .doc-chip.has-file { border-color: var(--blue-mid); background: var(--blue-soft); }
+  .doc-chip.has-file:hover { background: #dbeafe; }
+  .doc-chip-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 14px; flex-shrink: 0;
+    background: rgba(255,255,255,.7);
+  }
+  .doc-chip.has-file .doc-chip-icon { background: #fff; }
+  .doc-chip-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .doc-chip-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .doc-chip.has-file .doc-chip-label { color: var(--blue); }
+  .doc-chip-link { font-size: .78rem; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .doc-chip-none { font-size: .78rem; color: var(--ink-3); font-style: italic; }
+
+  /* ─── TABELAS ─── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { border-bottom: 2px solid var(--border); }
+  .data-table th {
+    padding: 10px 16px; text-align: left;
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--ink-3);
+    background: var(--surface-2);
+  }
+  .data-table td {
+    padding: 12px 16px; font-size: .855rem; color: var(--ink-2);
+    border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--surface-2); }
+
+  .td-mono { font-family: var(--mono); font-size: .8rem; color: var(--accent); font-weight: 700; }
+  .td-value { font-family: var(--mono); font-size: .85rem; font-weight: 700; color: var(--green); }
+
+  .empty-row td {
+    padding: 36px 16px; text-align: center; color: var(--ink-3);
+    font-size: .875rem; border-bottom: none;
+  }
+  .empty-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; opacity: .3; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 768px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .info-cell { border-right: none; }
+    .info-cell.span-2 { grid-column: 1; }
+    .docs-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .ppage { padding: 14px 12px 32px; }
+    .hero { padding: 18px; }
+    .docs-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="ppage">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:artifacts' %}">Artefatos</a>
+    <span class="breadcrumb-sep">›</span>
+    {{ artifact.artifacts_code|default:"Detalhes" }}
+  </nav>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{{ artifact.artifacts_code|default:"Artefato" }}</div>
+      <div class="topbar-sub">Detalhes, documentos, itens e propostas do artefato.</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="{% url 'dimms:artifacts' %}" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Voltar
+      </a>
+      <a href="{% url 'dimms:artifacts_documents' artifact.pk %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Gerenciar documentos
+      </a>
+    </div>
   </div>
 
-  <div class="card p-3 mb-4">
-    <p><strong>Código:</strong> {{ artifact.artifacts_code|default:"—" }}</p>
-    <p><strong>Descrição:</strong> {{ artifact.description|default:"—" }}</p>
-    <p><strong>SEI:</strong> {{ artifact.sei|default:"—" }}</p>
-    <p><strong>Estado:</strong> {{ artifact.state|default:"—" }}</p>
-
-    <hr>
-
-    <p><strong>TR:</strong>
-      {% if artifact.tr %}
-        <a href="{{ artifact.tr.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
-
-    <p><strong>ETP:</strong>
-      {% if artifact.etp %}
-        <a href="{{ artifact.etp.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
-
-    <p><strong>RGPP:</strong>
-      {% if artifact.rgpp %}
-        <a href="{{ artifact.rgpp.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
-
-    <p><strong>DODE:</strong>
-      {% if artifact.dode %}
-        <a href="{{ artifact.dode.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
-
-    <p><strong>TAPP:</strong>
-      {% if artifact.tapp %}
-        <a href="{{ artifact.tapp.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
-
-    <p><strong>Análise de Risco:</strong>
-      {% if artifact.risk_analysis %}
-        <a href="{{ artifact.risk_analysis.url }}" target="_blank">Abrir arquivo</a>
-      {% else %}
-        —
-      {% endif %}
-    </p>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-icon">📁</div>
+      <div>
+        <div class="hero-code">{{ artifact.artifacts_code|default:"—" }}</div>
+        <div class="hero-meta">{{ artifact.description|default:"Sem descrição" }}</div>
+      </div>
+    </div>
+    <div class="hero-chips">
+      <div class="hero-chip">
+        <div class="hc-label">SEI</div>
+        <div class="hc-val" style="font-family:var(--mono);">{{ artifact.sei|default:"—" }}</div>
+      </div>
+      <div class="hero-chip">
+        <div class="hc-label">Estado</div>
+        <div class="hc-val">
+          {% with s=artifact.state %}
+            {% if s == "ANALISE" %}<span class="pill p-analise"><span class="pill-dot"></span>{{ artifact.get_state_display }}</span>
+            {% elif s == "APROVADO" %}<span class="pill p-aprovado"><span class="pill-dot"></span>{{ artifact.get_state_display }}</span>
+            {% elif s == "RECUSADO" %}<span class="pill p-recusado"><span class="pill-dot"></span>{{ artifact.get_state_display }}</span>
+            {% else %}<span class="pill p-default"><span class="pill-dot"></span>{{ artifact.get_state_display|default:artifact.state|default:"—" }}</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      <div class="hero-chip">
+        <div class="hc-label">Itens</div>
+        <div class="hc-val">{{ itens_artifact|length }}</div>
+      </div>
+      <div class="hero-chip">
+        <div class="hc-label">Propostas</div>
+        <div class="hc-val">{{ proposals|length }}</div>
+      </div>
+    </div>
   </div>
 
-  <div class="card p-3">
-    <h3>Itens do Artefato</h3>
+  <!-- CARD: DOCUMENTOS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-teal">📄</div>
+        <span class="card-title">Documentos</span>
+      </div>
+    </div>
+    <div class="docs-grid">
 
-    <a href="{% url 'dimms:artifacts_add' artifact.pk %}" class="btn btn-primary mb-3">
-    Adicionar novo item</a>
+      {% with docs=artifact.tr %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">📋</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">TR</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
 
-    <table class="table table-bordered table-striped mt-3">
+      {% with docs=artifact.etp %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">📑</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">ETP</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
+
+      {% with docs=artifact.rgpp %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">📝</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">RGPP</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
+
+      {% with docs=artifact.dode %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">🗂️</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">DODE</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
+
+      {% with docs=artifact.tapp %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">📌</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">TAPP</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
+
+      {% with docs=artifact.risk_analysis %}
+      <div class="doc-chip {% if docs %}has-file{% endif %}">
+        <div class="doc-chip-icon">⚠️</div>
+        <div class="doc-chip-body">
+          <div class="doc-chip-label">Análise de Risco</div>
+          {% if docs %}<a href="{{ docs.url }}" target="_blank" class="doc-chip-link">Abrir arquivo</a>
+          {% else %}<span class="doc-chip-none">Não anexado</span>{% endif %}
+        </div>
+      </div>
+      {% endwith %}
+
+    </div>
+  </div>
+
+  <!-- CARD: ITENS DO ARTEFATO -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-blue">📋</div>
+        <span class="card-title">Itens do Artefato</span>
+        <span class="total-badge">{{ itens_artifact|length }} itens</span>
+      </div>
+      <a href="{% url 'dimms:artifacts_add' artifact.pk %}" class="btn-xs btn-xs-blue">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar item
+      </a>
+    </div>
+
+    <table class="data-table">
       <thead>
         <tr>
           <th>Efisco</th>
@@ -86,24 +414,101 @@
       </thead>
       <tbody>
         {% for item in itens_artifact %}
-          <tr>
-            <td>{{ item.efisco|default:"—" }}</td>
-            <td>{{ item.details|default:"—" }}</td>
-            <td>{{ item.amount|default:"—" }}</td>
-            <td>{{ item.value_max|default:"—" }}</td>
-            <td>
-              <a href="{% url 'dimms:artifacts_edit' item.pk %}" class="btn btn-sm btn-primary">
-                Editar
-              </a>
-            </td>
-          </tr>
+        <tr>
+          <td><span class="td-mono">{{ item.efisco|default:"—" }}</span></td>
+          <td>{{ item.details|default:"—" }}</td>
+          <td>{{ item.amount|default:"—" }}</td>
+          <td><span class="td-value">R$ {{ item.value_max|default:"0"|floatformat:2 }}</span></td>
+          <td>
+            <a href="{% url 'dimms:artifacts_edit' item.pk %}" class="btn-xs btn-xs-blue">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editar
+            </a>
+          </td>
+        </tr>
         {% empty %}
-          <tr>
-            <td colspan="5">Nenhum item vinculado a este artefato.</td>
-          </tr>
+        <tr class="empty-row">
+          <td colspan="5">
+            <span class="empty-icon">📦</span>
+            <strong style="color:var(--ink-2); display:block; margin-bottom:3px;">Nenhum item vinculado</strong>
+            Adicione itens a este artefato usando o botão acima.
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
+  <!-- CARD: PROPOSTAS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-violet">🏷️</div>
+        <span class="card-title">Propostas Relacionadas</span>
+        <span class="total-badge">{{ proposals|length }} propostas</span>
+      </div>
+    </div>
+
+    {% if proposals %}
+    <div class="proposals-grid">
+      {% for proposal in proposals %}
+      {% with s=proposal.state supplier_name=proposal.supplier.supplier|default:"—" %}
+      <a href="{% url 'dimms:proposal_details' proposal.pk %}" class="proposal-card">
+
+        <div class="pc-accent
+          {% if s == 'ANALISE' %}accent-analise
+          {% elif s == 'APROVADO' %}accent-aprovado
+          {% elif s == 'RECUSADO' %}accent-recusado
+          {% else %}accent-default{% endif %}
+        "></div>
+
+        <div class="pc-body">
+          <div class="pc-top">
+            <div class="pc-left">
+              <div class="pc-code">{{ proposal.proposal_code|default:"—" }}</div>
+              <div class="pc-supplier">{{ supplier_name }}</div>
+            </div>
+            <div class="pc-right">
+              <div class="pc-initials
+                {% if s == 'APROVADO' %}pi-green
+                {% elif s == 'ANALISE' %}pi-amber
+                {% elif s == 'RECUSADO' %}pi-red
+                {% else %}pi-gray{% endif %}
+              ">{{ supplier_name|slice:":2"|upper }}</div>
+              {% if s == "ANALISE" %}<span class="pill p-analise"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+              {% elif s == "APROVADO" %}<span class="pill p-homologado"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+              {% elif s == "RECUSADO" %}<span class="pill p-recusado"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+              {% else %}<span class="pill p-default"><span class="pill-dot"></span>{{ proposal.get_state_display|default:s|default:"—" }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="pc-divider"></div>
+
+          <div class="pc-footer">
+            <div class="pc-items">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              {{ proposal.items.count|default:"0" }} itens
+            </div>
+            <span class="pc-btn">
+              Ver proposta
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </span>
+          </div>
+        </div>
+
+      </a>
+      {% endwith %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="proposals-empty">
+      <div style="font-size:1.8rem; margin-bottom:8px; opacity:.25;">📭</div>
+      <div style="font-weight:700; color:var(--ink-2); margin-bottom:4px;">Nenhuma proposta vinculada</div>
+      <div>As propostas relacionadas a este artefato aparecerão aqui.</div>
+    </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

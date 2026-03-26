@@ -1,33 +1,21 @@
-# BIBLIOTECAS PADRÃO PYTHON
-import os
-import urllib.request
-from io import BytesIO
-
-# DJANGO
-from django.conf import settings
+# Importações do Django     - D(Artocarpus heterophyllus)o
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.contrib import messages
-from django.http import HttpResponse
-from django.urls import reverse
-from datetime import datetime
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from django.contrib.staticfiles import finders
+from django.views.decorators.http import require_POST
 
-# BIBLIOTECAS EXTERNAS
-import qrcode
-from qrcode.constants import ERROR_CORRECT_M
+# Importações do Projeto
+from ..models import Artifacts, Proposal, ItensArtifacts, ItensProposal
+from ..forms import ItensArtifactsForm, ArtifactDocumentsForm, ArtifactsCreateForm
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import mm
-from reportlab.lib.utils import ImageReader
+# ==============================================================
+# CAMPOS DESTINADOS PARA GERENCIAR OS ARTEFATOS E AS PROPOSTAS
+# ==============================================================
 
-# MODELOS DO PROJETO
-from ..models import *
-from ..utils import *
-from ..forms import *
 
+''' Artefatos '''
+# Página principal dos artefatos
 @login_required
 def artifacts(request):
     query = request.GET.get('q', '').strip()
@@ -44,8 +32,11 @@ def artifacts(request):
     if state_selected:
         artifacts_list = artifacts_list.filter(state=state_selected)
 
+    proposals = Proposal.objects.all().select_related('supplier', 'artifacts_proposal').order_by('-id')
+
     context = {
         'artifacts': artifacts_list,
+        'proposals': proposals,
         'query': query,
         'state_selected': state_selected,
         'state_choices': Artifacts._meta.get_field('state').choices,
@@ -54,18 +45,33 @@ def artifacts(request):
 
     return render(request, 'dimms/artifacts/artifacts.html', context)
 
+# Detalhes dos artefatos (pagina individual)
 @login_required
 def artifacts_details(request, pk):
     artifact = get_object_or_404(Artifacts, pk=pk)
-    itens_artifact = ItensArtifacts.objects.filter(artifacts=artifact).select_related('efisco')
+
+    itens_artifact = (
+        ItensArtifacts.objects
+        .filter(artifacts=artifact)
+        .select_related('efisco')
+        .order_by('id')
+    )
+
+    proposals = (
+        Proposal.objects
+        .filter(artifacts_proposal=artifact)
+        .select_related('supplier')
+        .order_by('-id')
+    )
 
     context = {
         'artifact': artifact,
         'itens_artifact': itens_artifact,
+        'proposals': proposals,
     }
     return render(request, 'dimms/artifacts/artifacts_details.html', context)
 
-
+# Editar itens dos artefatos
 @login_required
 def artifacts_edit(request, pk):
     item = get_object_or_404(ItensArtifacts, pk=pk)
@@ -86,7 +92,7 @@ def artifacts_edit(request, pk):
     }
     return render(request, 'dimms/artifacts/artifacts_edit.html', context)
 
-
+# Adicionar novos Itens para os artefatos
 @login_required
 def artifacts_add(request, pk):
     artifact = get_object_or_404(Artifacts, pk=pk)
@@ -109,7 +115,7 @@ def artifacts_add(request, pk):
     }
     return render(request, 'dimms/artifacts/artifacts_add.html', context)
 
-
+# Gerenciar documentos dos artefatos
 @login_required
 def artifacts_documents(request, pk):
     artifact = get_object_or_404(Artifacts, pk=pk)
@@ -129,6 +135,7 @@ def artifacts_documents(request, pk):
     }
     return render(request, 'dimms/artifacts/artifacts_documents.html', context)
 
+# Criar um novo artefato
 @login_required
 def artifacts_create(request):
     if request.method == 'POST':
@@ -144,3 +151,64 @@ def artifacts_create(request):
         'form': form,
     }
     return render(request, 'dimms/artifacts/artifacts_create.html', context)
+
+
+''' Propostas '''
+# ver os detalhes de cada proposta (página individual)
+def proposal_details(request, pk):
+    proposal = get_object_or_404(
+        Proposal.objects.select_related('supplier', 'artifacts_proposal'),
+        pk=pk
+    )
+
+    proposal_items = (
+        ItensProposal.objects
+        .filter(proposal_item=proposal)
+        .select_related(
+            'proposal_item',
+            'item',
+            'item__artifacts',
+            'item__efisco',
+        )
+        .order_by('id')
+    )
+
+    total_geral = sum(item.total_value for item in proposal_items)
+    artifact = proposal.artifacts_proposal
+
+    context = {
+        'proposal': proposal,
+        'artifact': artifact,
+        'proposal_items': proposal_items,
+        'total_geral': total_geral,
+    }
+    return render(request, 'dimms/artifacts/proposal_details.html', context)
+
+# Aprovar ou recusar Itens da proposta
+@login_required
+@require_POST
+def proposal_status(request, pk):
+    proposal_item = get_object_or_404(ItensProposal, pk=pk)
+    action = request.POST.get('action')
+    reason = request.POST.get('reason', '').strip()
+
+    if action == 'approve':
+        proposal_item.state = 'APROVADO'
+        proposal_item.reason = ''
+        proposal_item.save(update_fields=['state', 'reason'])
+        messages.success(request, 'Item aprovado com sucesso.')
+
+    elif action == 'reject':
+        if not reason:
+            messages.error(request, 'Para recusar, é obrigatório informar o motivo da reprovação.')
+            return redirect('dimms:proposal_details', pk=proposal_item.proposal_item.pk)
+
+        proposal_item.state = 'RECUSADO'
+        proposal_item.reason = reason
+        proposal_item.save(update_fields=['state', 'reason'])
+        messages.success(request, 'Item recusado com sucesso.')
+
+    else:
+        messages.error(request, 'Ação inválida.')
+
+    return redirect('dimms:proposal_details', pk=proposal_item.proposal_item.pk)
