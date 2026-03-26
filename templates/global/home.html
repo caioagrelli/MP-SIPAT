@@ -1,74 +1,141 @@
 {% extends 'global/base.html' %}
 {% load static %}
 
-{% block title %}SIPAT{% endblock %}
+{% block title %}SIPAT | Em Desenvolvimento{% endblock %}
 
 {% block content %}
 
 <style>
-    .bg-bordo {
-        background-color: #800000 !important;
-        color: #fff !important;
+    :root {
+        --azul-principal: #1a4ed5;
+        --azul-escuro: #0f1728;
+        --azul-hover: #143fb0;
+        --azul-claro: #eef4ff;
+        --azul-borda: rgba(26, 78, 213, 0.22);
+        --texto: #1f2937;
+        --texto-suave: #5b6b84;
+        --branco: #ffffff;
     }
 
-    .btn-bordo {
-        background-color: #800000;
-        color: #fff;
+    .pagina-dev {
+        padding: 40px 0;
+    }
+
+    .card-dev {
+        background: var(--branco);
         border: none;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 14px 35px rgba(15, 23, 40, 0.10);
     }
 
-    .btn-bordo:hover {
-        background-color: #660000;
-        color: #fff;
+    .topo-dev {
+        background: linear-gradient(135deg, var(--azul-escuro), var(--azul-principal));
+        color: white;
+        padding: 42px 30px;
+        text-align: center;
+    }
+
+    .topo-dev h1 {
+        font-weight: 800;
+        margin-bottom: 10px;
+        font-size: 2.2rem;
+    }
+
+    .topo-dev p {
+        margin: 0;
+        font-size: 1.08rem;
+        opacity: 0.95;
+    }
+
+    .conteudo-dev {
+        padding: 35px 30px;
+        text-align: center;
+        background: linear-gradient(180deg, #f8fbff 0%, var(--azul-claro) 100%);
+    }
+
+    .mensagem-dev {
+        font-size: 1.08rem;
+        color: var(--texto);
+        margin-bottom: 30px;
+    }
+
+    .foto-equipe {
+        width: 100%;
+        min-height: 630px;
+        border: 3px dashed var(--azul-borda);
+        border-radius: 20px;
+        background:
+            linear-gradient(to top, rgba(15, 23, 40, 0.45), rgba(15, 23, 40, 0.10)),
+            url("{% static 'img/equipe.jpeg' %}") center/cover no-repeat,
+            linear-gradient(135deg, #dbe7ff, #c7d8ff);
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .foto-legenda {
+        position: relative;
+        z-index: 1;
+        color: white;
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-align: center;
+        background: rgba(26, 78, 213, 0.35);
+        padding: 10px 18px;
+        border-radius: 12px;
+        backdrop-filter: blur(3px);
+    }
+
+    .observacao {
+        margin-top: 18px;
+        color: var(--texto-suave);
+        font-size: 0.96rem;
+    }
+
+    .observacao strong {
+        color: var(--azul-principal);
+    }
+
+    @media (max-width: 768px) {
+        .foto-equipe {
+            min-height: 300px;
+        }
+
+        .topo-dev {
+            padding: 30px 20px;
+        }
+
+        .topo-dev h1 {
+            font-size: 1.7rem;
+        }
+
+        .conteudo-dev {
+            padding: 25px 20px;
+        }
     }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-5">
-    <h1 class="mb-0 fw-bold text-dark d-flex align-items-center">
-        Sistema Patrimonial do DEMPAM
-    </h1>
-</div>
-
-
-<div class="row mb-5">
-    <div class="col-md-6 mb-3">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body text-center d-flex flex-column">
-                <h5 class="card-title">📦 Bens Permanentes</h5>
-                <p class="card-text text-muted flex-grow-1">
-                    Itens de longa duração, como móveis e veículos.
-                </p>
-                <a href="#" class="btn btn-bordo btn-lg mt-auto shadow-sm">
-                    Solicitar
-                </a>
-            </div>
+<div class="container pagina-dev">
+    <div class="card-dev">
+        <div class="topo-dev">
+            <h1>🚧 SIPAT em Desenvolvimento</h1>
+            <p>DEMPAM</p>
         </div>
-    </div>
 
-    <div class="col-md-6 mb-3">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body text-center d-flex flex-column">
-                <h5 class="card-title">📝 Bens de Consumo</h5>
-                <p class="card-text text-muted flex-grow-1">
-                    Materiais de escritório e produtos de uso diário.
-                </p>
-                <a href="#" class="btn btn-bordo btn-lg mt-auto shadow-sm">
-                    Solicitar
-                </a>
+        <div class="conteudo-dev">
+            <p class="mensagem-dev">
+                Estamos trabalhando para disponibilizar um sistema mais organizado,
+                moderno e fácil de usar. Em breve teremos novidades por aqui.
+            </p>
+
+            <div class="foto-equipe">
+                <div class="foto-legenda"></div>
             </div>
-        </div>
-    </div>
-</div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-bordo">
-        <h4 class="mb-0">
-            <i class="bi bi-list-check me-2"></i>🌎 Todas as Solicitações
-        </h4>
-    </div>
-    <div class="card-body">
-        <div class="alert alert-info">
-            Listagem... OSS 🥋
 
         </div>
     </div>
