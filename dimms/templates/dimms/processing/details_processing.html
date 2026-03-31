@@ -956,8 +956,68 @@
         </div>
       </div>
 
+      <!-- QR CODE -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-head-left">
+      <div class="card-icon ci-blue">📸</div>
+      <div class="card-title">QR Code das Atualizações</div>
     </div>
   </div>
+
+  <div class="card-body" style="display:flex; flex-direction:column; align-items:center; gap:14px; padding:20px;">
+
+    <div style="
+      background:#fff;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    ">
+      <img
+        src="{% url 'dimms:qrcode_update' solicitacao.pk %}"
+        alt="QR Code"
+        style="width:160px; height:160px;"
+      >
+    </div>
+
+    <div style="
+      font-size:.78rem;
+      color:var(--ink-3);
+      text-align:center;
+      line-height:1.4;
+      max-width:220px;
+    ">
+      Escaneie para abrir diretamente a tela de atualização desta solicitação.
+    </div>
+
+    <!-- BOTÃO gerar etiqueta -->
+    <a
+      href="{% url 'dimms:label_update' solicitacao.pk %}"
+      class="btn btn-ghost"
+      style="width:100%; justify-content:center;"
+    >
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M6 9V2h12v7"/>
+        <path d="M6 18h12"/>
+        <path d="M6 14h12v4H6z"/>
+      </svg>
+      Gerar etiqueta
+    </a>
+
+  </div>
+</div>
+    </div>
+
+    
+
+
+  </div>
+
+
 
 </div>
 {% endblock %}

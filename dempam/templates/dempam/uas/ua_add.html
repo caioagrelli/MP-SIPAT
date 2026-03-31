@@ -1,0 +1,100 @@
+{% extends 'global/base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div style="max-width:900px; margin:0 auto; padding:24px;">
+  <div style="margin-bottom:20px;">
+    <h1 style="margin:0; font-size:1.6rem;">{{ page_title }}</h1>
+    <p style="margin:6px 0 0; color:#6b7280;">
+      Preencha os dados da unidade administrativa.
+    </p>
+  </div>
+
+  <form method="post"
+        style="background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:24px;">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div style="margin-bottom:16px; padding:12px; border-radius:10px; background:#fef2f2; color:#991b1b;">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+      <div style="grid-column:span 2;">
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Circunscrição / Prédio</label>
+        {{ form.circunscricao_predio }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.circunscricao_predio.errors }}</div>
+      </div>
+
+      <div style="grid-column:span 2;">
+        <label style="display:block; margin-bottom:6px; font-weight:600;">UA</label>
+        {{ form.ua }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.ua.errors }}</div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Contato da UA</label>
+        {{ form.contato_ua }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.contato_ua.errors }}</div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Email da UA</label>
+        {{ form.email_ua }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.email_ua.errors }}</div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Responsável da UA</label>
+        {{ form.responsavel_ua }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.responsavel_ua.errors }}</div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Matrícula do Responsável</label>
+        {{ form.mat_resp_ua }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.mat_resp_ua.errors }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:24px;">
+      <button type="submit"
+              style="padding:10px 16px; border:none; border-radius:10px; background:#2563eb; color:#fff; font-weight:600;">
+        {{ button_label }}
+      </button>
+
+      <a href="{% url 'dempam:ua_homepage' %}"
+         style="padding:10px 16px; border:1px solid #d1d5db; border-radius:10px; text-decoration:none; color:#111827; font-weight:600;">
+        Voltar
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    outline: none;
+  }
+
+  .form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+
+  @media (max-width: 768px) {
+    form > div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    form > div[style*="grid-template-columns:1fr 1fr"] > div {
+      grid-column: span 1 !important;
+    }
+  }
+</style>
+{% endblock %}

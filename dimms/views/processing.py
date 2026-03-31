@@ -1,8 +1,24 @@
+# bibliotecas padrões do Python
+import os
+
 # Importações padrões do Django Unchained   'What kind of dentist are you?' - Quentin Tarantino 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.urls import reverse
+from django.contrib.staticfiles import finders
+
+#bibliotecas externas
+import qrcode
+from io import BytesIO
+from qrcode.constants import ERROR_CORRECT_M
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.units import mm
+
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 # Importações do Código
 from ..models import Solicitacao, Tramitacao
@@ -250,3 +266,137 @@ def update_request(request, pk):
     }
     return render(request, 'dimms/processing/update_request.html', context)
 
+# qrcode da página de update geral (sendo a partir de uma solicitação)
+@login_required
+def qrcode_update(request, pk):
+    url = request.build_absolute_uri(
+        reverse('dimms:update_request', args=[pk])
+    )
+
+    img = qrcode.make(url)
+
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+# Qr code da página de update específica da solicitação
+@login_required
+def label_update(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    url = request.build_absolute_uri(
+        reverse("dimms:update_request", args=[solicitacao.pk])
+    )
+
+    # --- QR ---
+    qr = qrcode.QRCode(
+        error_correction=ERROR_CORRECT_M,
+        box_size=10,
+        border=1
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+
+    qr_buf = BytesIO()
+    qr_img.save(qr_buf, format="PNG")
+    qr_buf.seek(0)
+    qr_reader = ImageReader(qr_buf)
+
+    # --- Logo ---
+    logo_reader = None
+    logo_path = finders.find("img/brasao-mppe.png")
+    if logo_path and os.path.exists(logo_path):
+        logo_reader = ImageReader(logo_path)
+
+    # --- Dados ---
+    request_code = solicitacao.request_code or f"SOL-{solicitacao.pk}"
+    safe_code = "".join(
+        ch for ch in str(request_code) if ch.isalnum() or ch in ("-", "_")
+    ) or f"solicitacao_{solicitacao.pk}"
+
+    # --- PDF A4 paisagem ---
+    w, h = landscape(A4)
+
+    resp = HttpResponse(content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="etiqueta_{safe_code}.pdf"'
+
+    c = canvas.Canvas(resp, pagesize=landscape(A4))
+
+    # Fundo
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(0, 0, w, h, fill=1, stroke=0)
+
+    # Margem geral
+    m = 22 * mm
+
+    # Área útil
+    inner_x = m
+    inner_y = m
+    inner_w = w - (2 * m)
+    inner_h = h - (2 * m)
+
+
+    # =========================
+    # BLOCO SUPERIOR
+    # =========================
+    logo_x = inner_x + 18 * mm
+    logo_y = h - m - 40 * mm
+    logo_w = 34 * mm
+    logo_h = 34 * mm
+
+    if logo_reader:
+        c.drawImage(
+            logo_reader,
+            logo_x,
+            logo_y,
+            width=logo_w,
+            height=logo_h,
+            mask="auto"
+        )
+
+    text_x = logo_x + logo_w + 12 * mm
+    title_y = h - m - 18 * mm
+    code_y = h - m - 38 * mm
+
+    # Título
+    c.setFillColorRGB(0, 0, 0)
+    c.setFont("Helvetica", 24)
+    c.drawString(text_x, title_y, "Etiqueta da Solicitação")
+
+    # Código
+    c.setFont("Helvetica-Bold", 38)
+    c.drawString(text_x, code_y, str(request_code))
+
+    # =========================
+    # BLOCO INFERIOR
+    # =========================
+    qr_size = 78 * mm
+    qr_x = inner_x + 28 * mm
+    qr_y = inner_y + 22 * mm
+
+    c.drawImage(
+        qr_reader,
+        qr_x,
+        qr_y,
+        width=qr_size,
+        height=qr_size,
+        mask="auto"
+    )
+
+    # Texto auxiliar ao lado do QR
+    info_x = qr_x + qr_size + 15 * mm
+    info_y_top = qr_y + qr_size - 30 * mm
+
+    c.setFont("Helvetica", 18)
+    c.drawString(info_x, info_y_top, "Escaneie para abrir")
+    c.drawString(info_x, info_y_top - 12 * mm, "a tela de atualização")
+
+
+
+
+    c.showPage()
+    c.save()
+    return resp

@@ -4,7 +4,7 @@ from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 
 # Importações do código 
-from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts
+from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo
 
 # =================================
 # FORMS DA DIMMS (BENS DE CONSUMO)
@@ -322,3 +322,35 @@ class EstoqueForm(forms.ModelForm):
         if value is None or value <= 0:
             raise forms.ValidationError('A quantidade deve ser maior que zero.')
         return value
+    
+
+
+''' Bens de Consumo '''
+# Cadastrar Bem de Consumo
+class BensConsumoForm(forms.ModelForm):
+    class Meta:
+        model = BensConsumo
+        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo']
+        widgets = {
+            'efisco': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite o código E-Fisco'
+            }),
+            'descricao_efisco': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite a descrição do bem de consumo',
+                'rows': 4
+            }),
+            'medida': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'grupo_consumo': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+        labels = {
+            'efisco': 'E-Fisco',
+            'descricao_efisco': 'Descrição Efisco',
+            'medida': 'Unidade de Medida',
+            'grupo_consumo': 'Grupo',
+        } 

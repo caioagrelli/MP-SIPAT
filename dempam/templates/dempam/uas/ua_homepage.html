@@ -1,0 +1,73 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Gerenciar UAs{% endblock %}
+
+{% block content %}
+<div style="padding: 24px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:16px; flex-wrap:wrap;">
+    <div>
+      <h1 style="margin:0; font-size:1.6rem;">Gerenciar UAs</h1>
+      <p style="margin:6px 0 0; color:#6b7280;">Visualize, cadastre e edite unidades administrativas.</p>
+    </div>
+
+    <a href="{% url 'dempam:ua_add' %}"
+       style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#2563eb; color:#fff; padding:10px 16px; border-radius:10px; font-weight:600;">
+      + Nova UA
+    </a>
+  </div>
+
+  <form method="get" style="margin-bottom:18px; display:flex; gap:10px; flex-wrap:wrap;">
+    <input
+      type="text"
+      name="q"
+      value="{{ query }}"
+      placeholder="Buscar por UA, responsável, email ou prédio..."
+      style="flex:1; min-width:280px; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px;"
+    >
+    <button type="submit"
+            style="padding:10px 16px; border:none; border-radius:10px; background:#111827; color:#fff; font-weight:600;">
+      Buscar
+    </button>
+  </form>
+
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:14px; overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:#f9fafb;">
+          <tr>
+            <th style="text-align:left; padding:14px; font-size:.78rem;">UA</th>
+            <th style="text-align:left; padding:14px; font-size:.78rem;">Circunscrição / Prédio</th>
+            <th style="text-align:left; padding:14px; font-size:.78rem;">Responsável</th>
+            <th style="text-align:left; padding:14px; font-size:.78rem;">Contato</th>
+            <th style="text-align:left; padding:14px; font-size:.78rem;">Email</th>
+            <th style="text-align:center; padding:14px; font-size:.78rem;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ua in uas %}
+          <tr style="border-top:1px solid #e5e7eb;">
+            <td style="padding:14px; font-weight:600;">{{ ua.ua }}</td>
+            <td style="padding:14px;">{{ ua.circunscricao_predio }}</td>
+            <td style="padding:14px;">{{ ua.responsavel_ua|default:"—" }}</td>
+            <td style="padding:14px;">{{ ua.contato_ua|default:"—" }}</td>
+            <td style="padding:14px;">{{ ua.email_ua|default:"—" }}</td>
+            <td style="padding:14px; text-align:center;">
+              <a href="#"
+                 style="text-decoration:none; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; color:#111827; font-weight:600;">
+                Editar
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="padding:24px; text-align:center; color:#6b7280;">
+              Nenhuma UA encontrada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

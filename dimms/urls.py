@@ -32,7 +32,10 @@ urlpatterns = [
     path('processing/create_request/', create_request, name='create_request'), 
     path('processing/create_update/',create_update,name= 'create_update'),
     path('processing/<int:pk>/update_request/', update_request, name='update_request'),
+    path('processing/<int:pk>/update_request/qrcode/', qrcode_update, name='qrcode_update'),
+    path('processing/<int:pk>/update_request/label/', label_update, name='label_update'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
+    
     
     # Url's dos Artefatos e das Propostas
     path('artifacts/', artifacts, name='artifacts'),
@@ -47,6 +50,10 @@ urlpatterns = [
 
     # Url's das Ações no estoque 
     path('stock_add/', stock_add, name='stock_add'),
+    path('bensconsumo/', bensconsumo, name='bensconsumo'),
+    path('bensconsumo/add/', bensconsumo_add, name='bensconsumo_add'),
+    path('bensconsumo/<int:pk>/edit/', bensconsumo_edit, name='bensconsumo_edit'),
+    path('bensconsumo/<int:pk>/delete/', bensconsumo_delete, name='bensconsumo_delete'),
       
     ]
 

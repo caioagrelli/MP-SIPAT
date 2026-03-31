@@ -35,14 +35,12 @@ class BensConsumo(models.Model):
     efisco = models.CharField(
         max_length=20,
         default='Não Consta',
-        blank=True,
+        unique=True,
         verbose_name='E-Fisco',
     )
     
 
     descricao_efisco= models.TextField(
-        blank=True,
-        null=True,
         verbose_name='Descrição Efisco'
     )    
     
@@ -50,20 +48,19 @@ class BensConsumo(models.Model):
     medida = models.CharField(
         max_length=20,
         choices=UnidadesMedida.choices,
-        blank=True,
-        null=True,
+        default=UnidadesMedida.unidade,
         verbose_name='Unidade de Medida',
     )
 
     
     grupo_consumo = models.CharField(
+        max_length=50,
         choices=GrupoConsumo.choices,
-        blank=True,
-        null=True,
+        default=GrupoConsumo.alimento,
         verbose_name='Grupo',
     )
-    
-    
+
+
     class Meta():
         verbose_name='Bem de Consumo'
         verbose_name_plural='01 - Bens de Consumo'
@@ -83,25 +80,28 @@ class Supplier(models.Model):
 
     cnpj_supplier = BRCNPJField(
         blank=True,
-        null=True,
         verbose_name='CNPJ do Fornecedor',
     )
     
-    name_responsible = models.CharField(max_length=90, blank=True, verbose_name='Nome do Responsável')
+    name_responsible = models.CharField(
+        max_length=90,
+        verbose_name='Nome do Responsável'
+        )
     
-    cpf_responsible = BRCPFField(blank=True, verbose_name='Cpf do Responsável')
+    cpf_responsible = BRCPFField(
+        blank=True,
+        verbose_name='Cpf do Responsável'
+        )
     
     contact_supplier = models.CharField(
     max_length=15,
     validators=[Complementos.validator_contato],
     blank=True,
-    null=True,
     verbose_name='Contato do Fornecedor',
     )
     
     email_supplier = models.EmailField(
     blank=True,
-    null=True,
     verbose_name='Email do Fornecedor'
     )
     
@@ -114,19 +114,82 @@ class Supplier(models.Model):
 
 # Artefatos
 class Artifacts(models.Model):
-    artifacts_code = models.CharField(max_length=50, blank=True, unique=True, editable=False, verbose_name='Artefato')
-    description = models.CharField(max_length=100, blank=True, verbose_name='Descrição')
-    sei = models.CharField(max_length=50, blank=True, verbose_name='SEI')
-    tr = models.FileField(upload_to=path_tr,blank=True,verbose_name='(TR) Termo de Referência')
-    etp = models.FileField(upload_to=path_etp,blank=True,verbose_name='(ETP) Estudo Técnico Preeliminar')
-    rgpp = models.FileField(upload_to=path_rgpp,blank=True,verbose_name='(RGPP) Registro de Preço')
-    dode = models.FileField(upload_to=path_dode,blank=True,verbose_name='(DODE)Documento de Oficialização de Demanda')
-    tapp = models.FileField(upload_to=path_tapp,blank=True,verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO')
-    risk_analysis = models.FileField(upload_to=path_risk_analysis,blank=True,verbose_name='Análise de Risco')
-    state = models.CharField(max_length=40, choices=StatusArtifacts, blank=True,  verbose_name='Estado')
-    updated_at = models.DateTimeField(auto_now=True,verbose_name='Última modificação')
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,
-        related_name='artifacts_updated',verbose_name='Última edição por')
+    artifacts_code = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        verbose_name='Artefato'
+        )
+
+    description = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Descrição'
+        )
+
+    sei = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='SEI'
+        )
+
+    tr = models.FileField(
+        upload_to=path_tr,
+        blank=True,
+        verbose_name='(TR) Termo de Referência'
+        )
+
+    etp = models.FileField(
+        upload_to=path_etp,
+        blank=True,
+        verbose_name='(ETP) Estudo Técnico Preeliminar'
+        )
+
+    rgpp = models.FileField(
+        upload_to=path_rgpp,
+        blank=True,
+        verbose_name='(RGPP) Registro de Preço'
+        )
+
+    dode = models.FileField(
+        upload_to=path_dode,
+        blank=True,
+        verbose_name='(DODE)Documento de Oficialização de Demanda'
+        )
+
+    tapp = models.FileField(
+        upload_to=path_tapp,
+        blank=True,
+        verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO'
+        )
+
+    risk_analysis = models.FileField(
+        upload_to=path_risk_analysis,
+        blank=True,
+        verbose_name='Análise de Risco'
+        )
+
+    state = models.CharField(
+        max_length=40,
+        choices=StatusArtifacts,
+        blank=True,
+        verbose_name='Estado'
+        )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        verbose_name='Última modificação'
+        )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='artifacts_updated',
+        verbose_name='Última edição por'
+        )
 
     def save(self, *args, **kwargs): #pra ajeitar
         if not self.artifacts_code:
@@ -148,11 +211,32 @@ class Artifacts(models.Model):
 
 # Itens dos Artefatos
 class ItensArtifacts(models.Model):
-    artifacts = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Itens do Artefato')
-    efisco = models.ForeignKey(BensConsumo, on_delete=models.PROTECT, blank=True,verbose_name='Efisco')
-    details = models.TextField(blank=True, verbose_name='Detalhamento do Item')
-    amount = models.PositiveIntegerField(blank=True, verbose_name='Quantidade')
-    value_max = models.PositiveIntegerField(blank=True, verbose_name='Valor Máximo')
+    artifacts = models.ForeignKey(
+        Artifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Itens do Artefato'
+        )
+    
+    efisco = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        verbose_name='Efisco'
+        )
+    
+    details = models.TextField(
+        blank=True,
+        verbose_name='Detalhamento do Item'
+        )
+    
+    amount = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Quantidade'
+        )
+    
+    value_max = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Valor Máximo'
+        )
 
     def __str__(self):
         return str(self.efisco)
@@ -166,10 +250,29 @@ class ItensArtifacts(models.Model):
 ''' Propostas '''
 # Propostas
 class Proposal(models.Model):
-    proposal_code = models.CharField(max_length=50, unique=True, blank=True, editable=False ,verbose_name='Proposta')
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, verbose_name='Fornecedor')
-    artifacts_proposal = models.ForeignKey(Artifacts, on_delete=models.PROTECT, verbose_name='Artefato')
-    state = models.CharField(max_length=30, choices=StatusProposal, blank=True, verbose_name='Estado') #pa arrumar
+    proposal_code = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True, editable=False ,verbose_name='Proposta')
+    
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        verbose_name='Fornecedor',
+        )
+    
+    artifacts_proposal = models.ForeignKey(
+        Artifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Artefato'
+        )
+    
+    state = models.CharField(
+        max_length=30,
+        choices=StatusProposal,
+        blank=True,
+        verbose_name='Estado'
+        ) #pa arrumar
 
     def save(self, *args, **kwargs):
         if not self.proposal_code:
@@ -198,13 +301,44 @@ class Proposal(models.Model):
 
 # Itens das Propostas
 class ItensProposal(models.Model):
-    proposal_item = models.ForeignKey(Proposal, on_delete=models.PROTECT, verbose_name='Proposta')
-    item = models.ForeignKey(ItensArtifacts, null=True, on_delete=models.PROTECT, verbose_name='Item')
-    details_proposal = models.TextField(verbose_name='Detalhes da Proposta')
-    amount = models.PositiveIntegerField(verbose_name='Quantidade')
-    value = models.PositiveIntegerField(verbose_name='Valor')
-    state = models.CharField(max_length=50, choices=StatusProposal ,blank=True, verbose_name='Status')
-    reason = models.TextField(blank=True, verbose_name='Motivo da Reprovação')
+    proposal_item = models.ForeignKey(
+        Proposal,
+        on_delete=models.PROTECT,
+        verbose_name='Proposta'
+        )
+    
+    item = models.ForeignKey(
+        ItensArtifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Item'
+        )
+    
+    details_proposal = models.TextField(
+        blank=True,
+        verbose_name='Detalhes da Proposta'
+        )
+    
+    amount = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Quantidade'
+        )
+    
+    value = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Valor'
+        )
+    
+    state = models.CharField(
+        max_length=50,
+        choices=StatusProposal,
+        blank=True,
+        verbose_name='Status'
+        )
+    
+    reason = models.TextField(
+        blank=True,
+        verbose_name='Motivo da Reprovação'
+        )
     
     @property
     def total_value(self):
