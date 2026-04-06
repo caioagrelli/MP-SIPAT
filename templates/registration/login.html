@@ -120,6 +120,49 @@
     .btn-login:hover  { background: var(--accent-dark); }
     .btn-login:active { transform: scale(.98); }
 
+    /* ── DIVISOR / OIDC ── */
+    .login-divider {
+      position: relative;
+      text-align: center;
+      margin: 18px 0 16px;
+    }
+    .login-divider::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      border-top: 1px solid var(--border);
+    }
+    .login-divider span {
+      position: relative;
+      background: var(--surface);
+      padding: 0 10px;
+      font-size: .78rem;
+      color: var(--ink-3);
+    }
+
+    .btn-oidc {
+      width: 100%;
+      display: block;
+      text-align: center;
+      padding: 12px;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--r);
+      font-family: var(--font);
+      font-size: .9rem;
+      font-weight: 800;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .btn-oidc:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: #fff;
+    }
+
     .login-note { text-align: center; margin-top: 14px; font-size: .73rem; color: var(--ink-3); }
 
     /* ── FOOTER ── */
@@ -205,9 +248,17 @@
         {% endif %}
 
         <button type="submit" class="btn-login">Entrar</button>
-
-        <div class="login-note">Acesso restrito · Uso institucional</div>
       </form>
+
+      <div class="login-divider">
+        <span>ou</span>
+      </div>
+
+      <a href="{% url 'oidc_authentication_init' %}" class="btn-oidc">
+        Entrar com conta institucional
+      </a>
+
+      <div class="login-note">Acesso restrito · Uso institucional</div>
 
     </div>
   </div>
