@@ -18,6 +18,12 @@ INSTALLED_APPS = [
     "dimms",
     "dimrcbp",
     "dempam",
+    "mozilla_django_oidc",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 MIDDLEWARE = [
@@ -78,3 +84,9 @@ LOGOUT_REDIRECT_URL = "/login/"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# comportamento comum do OIDC
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_RP_SCOPES = "openid email profile"
+OIDC_USE_PKCE = True
+OIDC_CREATE_USER = True
