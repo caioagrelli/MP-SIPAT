@@ -8,7 +8,7 @@ from django.contrib import messages
 
 # Importação do código
 from ..models import Estoque, BensConsumo            # Models do Estoque 
-from ..forms import EstoqueForm, BensConsumoForm     # Forms para adicionar bens no Estoque 
+from ..forms import EstoqueForm, BensConsumoForm , stock_up  # Forms para adicionar bens no Estoque 
 
 # ========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR PARTES/AÇÕES DO ESTOQUE
@@ -68,9 +68,43 @@ def stock_add(request):
     return render(request, 'dimms/stock/stock_add.html', {
         'form': form
     })
+
+@login_required
+def stock_up(request):
+    if request.method == "POST":
+        form = stock_up(request.POST)
+        if form.is_valid():
+            item = form.cleaned_data["item_estoque"]
+            quantidade = form.cleaned_data["quantidade_entrada"]
+            forma_entrada = form.cleaned_data["form_input"]
+            metodo = form.cleaned_data["method"]
+
+            item.amount_shock += quantidade
+
+            if forma_entrada:
+                item.form_input = forma_entrada
+
+            if metodo:
+                item.method = metodo
+
+            item.updated_by = request.user
+            item.save()
+
+            messages.success(
+                request,
+                f"Foram adicionadas {quantidade} unidades ao item {item}."
+            )
+            return redirect("dimms:homepage")  # troque se quiser
+    else:
+        form = stock_up()
+
+    return render(
+        request,
+        "dimms/stock/stock_up.html",
+        {"form": form}
+    )
     
-
-
+    
 ''' Bem de Consumo '''
 # Página para visualizar bens de consumo
 @login_required

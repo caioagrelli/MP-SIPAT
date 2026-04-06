@@ -776,6 +776,8 @@ class Estoque(models.Model):
     
     form_input = models.CharField(max_length=30, blank=True, verbose_name='Forma de Entrada')
 
+    created_at = models.DateTimeField(auto_now_add=True, blank=True ,verbose_name="Data de Cadastro")  
+    
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Última modificação')
     
     updated_by = models.ForeignKey(

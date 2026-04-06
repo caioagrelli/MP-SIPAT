@@ -54,6 +54,37 @@ class EstoqueForm(forms.ModelForm):
             'form_input': 'Forma de Entrada',
         }
 
+# Adicionar um item ao estoque já existente no estoque
+class stock_up(forms.Form):
+    item_estoque = forms.ModelChoiceField(
+        queryset=Estoque.objects.select_related("item_shock").all().order_by("item_shock"),
+        label="Item em Estoque",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+
+    quantidade_entrada = forms.IntegerField(
+        label="Quantidade a adicionar",
+        min_value=1,
+        widget=forms.NumberInput(attrs={"class": "form-control", "min": 1})
+    )
+
+    form_input = forms.CharField(
+        label="Forma de Entrada",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    method = forms.CharField(
+        label="Método de Entrada",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    def clean_quantidade_entrada(self):
+        quantidade = self.cleaned_data.get("quantidade_entrada")
+        if quantidade is None or quantidade <= 0:
+            raise forms.ValidationError("Informe uma quantidade maior que zero.")
+        return quantidade
 
 
 ''' Solicitaçoes '''
@@ -292,37 +323,6 @@ class ArtifactsCreateForm(forms.ModelForm):
                 'placeholder': 'Estado do artefato',
             }),
         }
-
-
-
-''' Estoque '''
-# Adicionar um item ao estoque 
-class EstoqueForm(forms.ModelForm):
-    class Meta:
-        model = Estoque
-        fields = [
-            'item_shock',
-            'description_manual',
-            'mark',
-            'amount_shock',
-            'locate',
-            'monthly_consumption',
-            'essential',
-            'validity',
-            'photo',
-            'form_input',
-            'method',
-        ]
-        widgets = {
-            'validity': forms.DateInput(attrs={'type': 'date'}),
-        }
-
-    def clean_amount_shock(self):
-        value = self.cleaned_data.get('amount_shock')
-        if value is None or value <= 0:
-            raise forms.ValidationError('A quantidade deve ser maior que zero.')
-        return value
-    
 
 
 ''' Bens de Consumo '''

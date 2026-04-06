@@ -50,10 +50,10 @@ urlpatterns = [
 
     # Url's das Ações no estoque 
     path('stock_add/', stock_add, name='stock_add'),
+    path('stock_up/', stock_up, name='stock_up'),
     path('bensconsumo/', bensconsumo, name='bensconsumo'),
     path('bensconsumo/add/', bensconsumo_add, name='bensconsumo_add'),
     path('bensconsumo/<int:pk>/edit/', bensconsumo_edit, name='bensconsumo_edit'),
-    path('bensconsumo/<int:pk>/delete/', bensconsumo_delete, name='bensconsumo_delete'),
-      
+    path('bensconsumo/<int:pk>/delete/', bensconsumo_delete, name='bensconsumo_delete'),      
     ]
 
