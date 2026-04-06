@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
 
 app_name = 'dempam'
@@ -6,7 +6,7 @@ app_name = 'dempam'
 urlpatterns = [
     # Url's da Homepage 
     path('', homepage, name='homepage'),
-    
+
     # Url's das UAs (Unidades Administrativas)
     path("uas/", ua_homepage, name="ua_homepage"),
     path("uas/add/", ua_add, name="ua_add"),
