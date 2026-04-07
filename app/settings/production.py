@@ -22,4 +22,5 @@ SESSION_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = "/app/data/static"
+MEDIA_ROOT = "/app/data/media"
