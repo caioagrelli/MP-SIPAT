@@ -37,6 +37,7 @@ COPY --from=staticbuilder /app/staticfiles /srv/static
 
 # Empty media directory — mount a persistent volume here at runtime
 RUN mkdir -p /srv/media
+VOLUME /srv/media
 
 EXPOSE 80
 
