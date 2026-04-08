@@ -1,50 +1,43 @@
-from datetime import timedelta
-
+# Importações do Django
 from django.db.models import Sum
 from django.utils import timezone
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import timedelta
 
+# Importações do código
 from .models import Estoque, SolicitacaoItens
 
+# ====================================
+# SERVICES DA DIMMS (BENS DE CONSUMO)
+# ====================================
 
-def recalcular_consumo(days=30):
-    """
-    Recalcula o consumo mensal de cada item de estoque com base
-    nas solicitações dos últimos `days` dias.
-    """
+
+
+# função para calcular o consumo mensal de um bem
+def recalcular_consumo():
     hoje = timezone.now()
-    limite = hoje - timedelta(days=days)
-
-    # soma as quantidades por item de estoque
-    consumos = (
-        SolicitacaoItens.objects
-        .filter(
-            request_defendant__data_order__gte=limite,
-            item_order__isnull=False,
-            amount_order__isnull=False,
-        )
-        .values("item_order")
-        .annotate(total=Sum("amount_order"))
-    )
-
-    # transforma em dicionário: {id_do_estoque: total}
-    mapa_consumo = {
-        item["item_order"]: item["total"] or 0
-        for item in consumos
-    }
-
-    estoques_atualizados = []
 
     for estoque in Estoque.objects.all():
-        novo_consumo = mapa_consumo.get(estoque.id, 0)
+        if not estoque.created_at:
+            estoque.monthly_consumption = 0
+            estoque.save(update_fields=["monthly_consumption"])
+            continue
 
-        if estoque.monthly_consumption != novo_consumo:
-            estoque.monthly_consumption = novo_consumo
-            estoques_atualizados.append(estoque)
+        dias_desde_cadastro = max((hoje.date() - estoque.created_at.date()).days, 1)
 
-    if estoques_atualizados:
-        Estoque.objects.bulk_update(
-            estoques_atualizados,
-            ["monthly_consumption"]
+        total_saida = (
+            SolicitacaoItens.objects
+            .filter(
+                item_order=estoque,
+                request_defendant__stock_deducted=True,
+            )
+            .aggregate(total=Sum("amount_order"))
+            .get("total") or 0
         )
 
-    return len(estoques_atualizados)
+        consumo_mensal = (
+            Decimal(total_saida) / Decimal(dias_desde_cadastro) * Decimal("30")
+        ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+        estoque.monthly_consumption = int(consumo_mensal)
+        estoque.save(update_fields=["monthly_consumption"])

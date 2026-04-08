@@ -1,0 +1,199 @@
+
+{% extends 'global/base.html' %}
+
+{% block title %}Editar Bem de Consumo{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0f1728;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
+        margin: 6px 0 0;
+    }
+
+    .btn-custom {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: .2s ease;
+        border: none;
+    }
+
+    .btn-ghost {
+        background: #fff;
+        color: #111827;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .btn-primary-custom {
+        background: #1a4ed5;
+        color: #fff;
+    }
+
+    .btn-primary-custom:hover {
+        background: #143fb0;
+        color: #fff;
+    }
+
+    .card-form {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-top {
+        background: linear-gradient(135deg, #0f1728, #1a4ed5);
+        color: #fff;
+        padding: 24px 30px;
+    }
+
+    .card-top h2 {
+        margin: 0 0 6px;
+        font-weight: 800;
+    }
+
+    .card-top p {
+        margin: 0;
+        opacity: .92;
+    }
+
+    .info-box {
+        background: #f8fbff;
+        border: 1px solid #dbe7ff;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 22px;
+        color: #334155;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        min-height: 46px;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    .errorlist {
+        color: #dc2626;
+        margin: 6px 0 0;
+        padding-left: 18px;
+        font-size: 0.92rem;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Editar Bem de Consumo</h1>
+        <p class="page-subtitle">Atualize as informações do item cadastrado.</p>
+    </div>
+
+    <a href="{% url 'dimms:bensconsumo' %}" class="btn-custom btn-ghost">
+        Voltar para listagem
+    </a>
+</div>
+
+<div class="container mt-4">
+    <div class="card card-form">
+        <div class="card-top">
+            <h2>Edição do item</h2>
+            <p>Revise os dados abaixo e salve as alterações.</p>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="info-box">
+                <strong>E-Fisco atual:</strong> {{ item.efisco }}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.efisco.id_for_label }}" class="form-label">
+                            {{ form.efisco.label }}
+                        </label>
+                        {{ form.efisco }}
+                        {{ form.efisco.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.medida.id_for_label }}" class="form-label">
+                            {{ form.medida.label }}
+                        </label>
+                        {{ form.medida }}
+                        {{ form.medida.errors }}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.descricao_efisco.id_for_label }}" class="form-label">
+                            {{ form.descricao_efisco.label }}
+                        </label>
+                        {{ form.descricao_efisco }}
+                        {{ form.descricao_efisco.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.grupo_consumo.id_for_label }}" class="form-label">
+                            {{ form.grupo_consumo.label }}
+                        </label>
+                        {{ form.grupo_consumo }}
+                        {{ form.grupo_consumo.errors }}
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-custom btn-primary-custom">
+                        Salvar alterações
+                    </button>
+
+                    <a href="{% url 'dimms:bensconsumo' %}" class="btn-custom btn-ghost">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

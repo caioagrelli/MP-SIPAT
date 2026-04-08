@@ -1,31 +1,18 @@
-# BIBLIOTECAS PADRÃO PYTHON
-import os
-import urllib.request
-from io import BytesIO
-
-# DJANGO
-from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
-from django.http import HttpResponse
-from django.urls import reverse
-from datetime import datetime
+# Importação Django (acabaram as minhas piadas - Desculpa)
+from django.shortcuts import render
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from django.contrib.staticfiles import finders
 
-# BIBLIOTECAS EXTERNAS
-import qrcode
-from qrcode.constants import ERROR_CORRECT_M
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import mm
-from reportlab.lib.utils import ImageReader
+# Importações do código
+from ..models import Estoque, BensConsumo
 
-# MODELOS DO PROJETO
-from ..models import *
-from ..utils import *
+# ===================================================
+# CAMPOS DESTINADOS PARA GERENCIAR PÁGINAS INICIAIS
+# ===================================================
 
+
+''' Homepage '''
 # Página Principail
 def homepage(request):
 
@@ -74,7 +61,9 @@ def homepage(request):
 
     return render(request, 'dimms/homepage.html', context)
 
-# Detalhes das listas (low stock, essential, vencimento)
+
+''' Páginas de Alertas '''
+# Estoque Baixo
 @login_required
 def low_stock(request):
     itens = (
@@ -94,8 +83,9 @@ def low_stock(request):
         'estoque_baixo': estoque_baixo,
     }
 
-    return render(request, 'dimms/low_stock.html', context)
+    return render(request, 'dimms/alerts/low_stock.html', context)
 
+# Itens Essenciais 
 @login_required 
 def essential(request):
 
@@ -111,10 +101,11 @@ def essential(request):
 
     return render(
         request,
-        'dimms/essential.html',
+        'dimms/alerts/essential.html',
         context
     )
 
+# Itens perto do vencimento
 @login_required    
 def expiration_alert(request):
     itens = (
@@ -134,4 +125,4 @@ def expiration_alert(request):
         'alerta_vencimento': alerta_vencimento,
     }
 
-    return render(request, 'dimms/expiration_alert.html', context)
+    return render(request, 'dimms/alerts/expiration_alert.html', context)

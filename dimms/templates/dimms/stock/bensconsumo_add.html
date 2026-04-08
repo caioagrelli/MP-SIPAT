@@ -1,0 +1,115 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Cadastrar Bem de Consumo{% endblock %}
+
+{% block content %}
+
+<style>
+    .bg-azul {
+        background: linear-gradient(135deg, #0f1728, #1a4ed5);
+        color: #fff;
+    }
+
+    .btn-azul {
+        background-color: #1a4ed5;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-azul:hover {
+        background-color: #143fb0;
+        color: #fff;
+    }
+
+    .card-form {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="card card-form">
+        <div class="card-header bg-azul py-4">
+            <h2 class="mb-1 fw-bold">Cadastro de Bem de Consumo</h2>
+            <p class="mb-0">Preencha as informações abaixo para cadastrar um novo item.</p>
+        </div>
+
+        <div class="card-body p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.efisco.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.efisco.label }}
+                        </label>
+                        {{ form.efisco }}
+                        {% if form.efisco.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.efisco.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.medida.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.medida.label }}
+                        </label>
+                        {{ form.medida }}
+                        {% if form.medida.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.medida.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.descricao_efisco.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.descricao_efisco.label }}
+                        </label>
+                        {{ form.descricao_efisco }}
+                        {% if form.descricao_efisco.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.descricao_efisco.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.grupo_consumo.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.grupo_consumo.label }}
+                        </label>
+                        {{ form.grupo_consumo }}
+                        {% if form.grupo_consumo.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.grupo_consumo.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-azul px-4">
+                        Salvar
+                    </button>
+                    <a href="{%  url 'dimms:bensconsumo' %}" class="btn btn-outline-secondary px-4">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

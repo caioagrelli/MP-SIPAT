@@ -1,8 +1,17 @@
+# Importações do Django
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+
+# importações código (Todo o models de uma vez)
 from .models import *
 
-# --- Informações Bens de Consumo DIMMS ---   
+# =================================
+# ADMIN DA DIMMS (BENS DE CONSUMO)
+# =================================
+
+
+
+''' Informações dos Bens de Consumo''' 
 @admin.register(BensConsumo)
 class BensConsumoAdmin(admin.ModelAdmin):
     list_display=(
@@ -43,41 +52,168 @@ class BensConsumoAdmin(admin.ModelAdmin):
         }),
     )
 
-@admin.register(Fornecedor)
-class FornecedorAdmin(admin.ModelAdmin):
-    list_display=(
-        'fornecedor',
-        'cnpj_fornecedor',
-        'contato_fornecedor',
-        'email_fornecedor',
+
+
+''' Admin dos Artefatos '''
+# Itens dos Artefatos (Tabela nos Artefatos)
+class ItensArtifactsInline(admin.TabularInline):
+    model = ItensArtifacts
+    extra = 1
+    autocomplete_fields = ['efisco']
+
+# Fornecedores
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'supplier',
+        'cnpj_supplier',
+        'contact_supplier',
+        'email_supplier',
     )
-    
-    search_fields=(
-        'fornecedor',
-        'cnpj_fornecedor',
+    search_fields = (
+        'supplier',
+        'cnpj_supplier',
+        'contact_supplier',
+        'email_supplier',
+    )
+    ordering = ('supplier',)
+
+# Artefatos 
+@admin.register(Artifacts)
+class ArtifactsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'artifacts_code',
+        'description',
+        'state',
+        'updated_at',
+        'updated_by',
+    )
+    search_fields = (
+        'artifacts_code',
+        'description',
+        'sei',
+        'state',
+    )
+    list_filter = (
+        'state',
+        'updated_at',
+    )
+    readonly_fields = (
+        'artifacts_code',
+        'updated_at',
+        'updated_by',
+    )
+    inlines = [ItensArtifactsInline]
+
+# Itens dos Artefatos (Geral)
+@admin.register(ItensArtifacts)
+class ItensArtifactsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'artifacts',
+        'efisco',
+        'amount',
+        'value_max',
+    )
+    search_fields = (
+        'artifacts__artifacts_code',
+        'efisco__item_shock',
+        'details',
+    )
+    list_filter = (
+        'artifacts',
+    )
+    autocomplete_fields = (
+        'artifacts',
+        'efisco',
     )
 
-    fieldsets=(
-        ('Fornecedor', {
-            'fields': (
-                'fornecedor',
-            )
-        }),
 
-        ('Dados do Fornecedor', {
-            'fields': (
-                'cnpj_fornecedor',
-                'contato_fornecedor',
-                'email_fornecedor',
-            )
-        }),
+''' Propostas '''
+# Itens das Propostas
+class ItensProposalInline(admin.TabularInline):
+    model = ItensProposal
+    extra = 1
+    autocomplete_fields = ['item']
+    fields = (
+        'item',
+        'details_proposal',
+        'amount',
+        'value',
+        'state',
+        'reason',
     )
 
-@admin.register(Contrato)
+
+@admin.register(Proposal)
+class ProposalAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'proposal_code',
+        'supplier',
+        'artifacts_proposal',
+        'state',
+    )
+    search_fields = (
+        'proposal_code',
+        'supplier__supplier',
+        'artifacts_proposal__artifacts_code',
+        'state',
+    )
+    list_filter = (
+        'state',
+        'supplier',
+        'artifacts_proposal',
+    )
+    readonly_fields = (
+        'proposal_code',
+    )
+    autocomplete_fields = (
+        'supplier',
+        'artifacts_proposal',
+    )
+    inlines = [ItensProposalInline]
+
+
+@admin.register(ItensProposal)
+class ItensProposalAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'proposal_item',
+        'item',
+        'amount',
+        'value',
+        'state',
+        'total_value',
+    )
+    search_fields = (
+        'proposal_item__proposal_code',
+        'item__efisco__item_shock',
+        'details_proposal',
+    )
+    list_filter = (
+        'state',
+        'proposal_item',
+    )
+    autocomplete_fields = (
+        'proposal_item',
+        'item',
+    )
+
+    @admin.display(description='Valor Total')
+    def total_value(self, obj):
+        return obj.total_value
+
+
+''' Saldo Ativo '''     # Desativado Temporariamente
+# Contratos
+'''@admin.register(Contrato)
 class ContratoAdmin(admin.ModelAdmin):
     list_display=(
         'contrato',
-        'fornecedor',
+        'supplier',
         'homologacao',
         'cs',
         'cod_liquidacao',
@@ -87,18 +223,18 @@ class ContratoAdmin(admin.ModelAdmin):
  
     search_fields=(
         'contrato',
-        'fornecedor__fornecedor',
+        'supplier__supplier',
         'homologacao',
         'cs',
         'cod_liquidacao',        
     )
 
     list_select_related =(
-        'fornecedor',
+        'supplier',
         )
 
     autocomplete_fields =(
-        'fornecedor',
+        'supplier',
         )
     
     ordering =(
@@ -128,7 +264,9 @@ class ContratoAdmin(admin.ModelAdmin):
             )
         })
     )
+'''
 
+# Saldo ativo
 @admin.register(SaldoAtivo)
 class SaldoAtivoAdmin(admin.ModelAdmin):
     list_display=(
@@ -164,6 +302,7 @@ class SaldoAtivoAdmin(admin.ModelAdmin):
         }),
     )
 
+# Solicitações do saldo ativo
 @admin.register(SolicitacoesSaldoAtivo)
 class SolicitacoesSaldoAtivoAdmin(admin.ModelAdmin):
     list_display=(
@@ -192,6 +331,7 @@ class SolicitacoesSaldoAtivoAdmin(admin.ModelAdmin):
         }),
     )
 
+# Itens solicitados por cada solcitação 
 @admin.register(ItensSolicitados)
 class ItensSolicitadosAdmin(admin.ModelAdmin):
     list_display=(
@@ -220,6 +360,7 @@ class ItensSolicitadosAdmin(admin.ModelAdmin):
         }),
     )
 
+# Bens que realmente foram enviados 
 @admin.register(BensEnviados)
 class BensEnviadosAdmin(admin.ModelAdmin):
     list_display=(
@@ -241,6 +382,8 @@ class BensEnviadosAdmin(admin.ModelAdmin):
     )
 
  
+''' Estoque '''
+#estoque principal
 @admin.register(Estoque)
 class EstoqueAdmin(admin.ModelAdmin):
     list_display=(
@@ -283,7 +426,10 @@ class EstoqueAdmin(admin.ModelAdmin):
             )
         }), 
         )
-    
+
+
+''' Tramitações do estoque  '''
+# Solicitação
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(admin.ModelAdmin):
     list_display=(
@@ -322,6 +468,7 @@ class SolicitacaoAdmin(admin.ModelAdmin):
 
     )
 
+# Itens de cada Solicitação
 @admin.register(SolicitacaoItens)
 class SolicitacaoItensAdmin(admin.ModelAdmin):
     list_display=(
@@ -355,6 +502,7 @@ class SolicitacaoItensAdmin(admin.ModelAdmin):
                 obj.user_responsible = request.user
             super().save_model(request, obj, form, change)
 
+# Atualizações em cada solicitação
 @admin.register(Tramitacao)
 class TramitacaoAdmin(admin.ModelAdmin):
     list_display=(

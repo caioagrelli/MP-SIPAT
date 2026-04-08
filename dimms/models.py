@@ -1,34 +1,46 @@
+# Importações do Jungle     Welcome to the jungle, we got fun and games - Guns N' Roses
 from django.db import models
-from django.conf import settings
-from django.utils import timezone
-from datetime import date
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from localflavor.br.models import BRCNPJField
-from django.core.validators import RegexValidator
 from django.db.models import F
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from datetime import date
+
+# Importações de validação
+from localflavor.br.models import BRCNPJField, BRCPFField
+from django.core.validators import RegexValidator
+
+# Importações do código
 from .utils import *
 from dempam.models import InfoUA, LocalizacaoDEMPAM
 
-# Recursos Usados pelo Banco de Dados
+# ===============================
+# MODELS DA DIMMS (BENS CONSUMO)
+# ===============================
+
+
+
+''' Recursos Usados pelo Banco de Dados '''
+# Validador de números
 class Complementos(): #Temporário
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
 
-''' --- Informações Bens de Consumo DIMMS --- '''   
-# Campo Usado para o cadastro de Bens de acordo com o EFISCO 
+
+
+'''  Informações Bens de Consumo DIMMS  '''   
+# Bens de acordo com o EFISCO
 class BensConsumo(models.Model): 
     efisco = models.CharField(
         max_length=20,
         default='Não Consta',
-        blank=True,
+        unique=True,
         verbose_name='E-Fisco',
     )
     
 
     descricao_efisco= models.TextField(
-        blank=True,
-        null=True,
         verbose_name='Descrição Efisco'
     )    
     
@@ -36,20 +48,19 @@ class BensConsumo(models.Model):
     medida = models.CharField(
         max_length=20,
         choices=UnidadesMedida.choices,
-        blank=True,
-        null=True,
+        default=UnidadesMedida.unidade,
         verbose_name='Unidade de Medida',
     )
 
     
     grupo_consumo = models.CharField(
+        max_length=50,
         choices=GrupoConsumo.choices,
-        blank=True,
-        null=True,
+        default=GrupoConsumo.alimento,
         verbose_name='Grupo',
     )
-    
-    
+
+
     class Meta():
         verbose_name='Bem de Consumo'
         verbose_name_plural='01 - Bens de Consumo'
@@ -60,110 +71,385 @@ class BensConsumo(models.Model):
 
 
 """ Artefatos """
-# Campo usado para o cadastro de fornecedores
-class Fornecedor(models.Model): #PRONTO
-    fornecedor = models.CharField(
+# Fornecedores
+class Supplier(models.Model): 
+    supplier = models.CharField(
         max_length=40,
         verbose_name='Fornecedor'
     )
 
-
-    cnpj_fornecedor = BRCNPJField(
+    cnpj_supplier = BRCNPJField(
         blank=True,
-        null=True,
         verbose_name='CNPJ do Fornecedor',
     )
     
+    name_responsible = models.CharField(
+        max_length=90,
+        verbose_name='Nome do Responsável'
+        )
     
-    contato_fornecedor = models.CharField(
+    cpf_responsible = BRCPFField(
+        blank=True,
+        verbose_name='Cpf do Responsável'
+        )
+    
+    contact_supplier = models.CharField(
     max_length=15,
     validators=[Complementos.validator_contato],
     blank=True,
-    null=True,
     verbose_name='Contato do Fornecedor',
     )
     
-    
-    email_fornecedor = models.EmailField(
+    email_supplier = models.EmailField(
     blank=True,
-    null=True,
     verbose_name='Email do Fornecedor'
     )
-
     
     class Meta():
         verbose_name='Fornecedor'
         verbose_name_plural='02 - Fonecedores'
         
     def __str__(self):
-        return str(self.fornecedor)
+        return str(self.supplier)
 
-# Campo Usado para formulário de cadastro de compra Individual
-class CompraIndividual(models.Model): #PRONTO
+# Artefatos
+class Artifacts(models.Model):
+    artifacts_code = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        verbose_name='Artefato'
+        )
+
+    description = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Descrição'
+        )
+
+    sei = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='SEI'
+        )
+
+    tr = models.FileField(
+        upload_to=path_tr,
+        blank=True,
+        verbose_name='(TR) Termo de Referência'
+        )
+
+    etp = models.FileField(
+        upload_to=path_etp,
+        blank=True,
+        verbose_name='(ETP) Estudo Técnico Preeliminar'
+        )
+
+    rgpp = models.FileField(
+        upload_to=path_rgpp,
+        blank=True,
+        verbose_name='(RGPP) Registro de Preço'
+        )
+
+    dode = models.FileField(
+        upload_to=path_dode,
+        blank=True,
+        verbose_name='(DODE)Documento de Oficialização de Demanda'
+        )
+
+    tapp = models.FileField(
+        upload_to=path_tapp,
+        blank=True,
+        verbose_name='(TAPP) TERMO DE ANALISE PREELIMINAR DO PLANEJAMENTO DA CONTRATAÇÃO'
+        )
+
+    risk_analysis = models.FileField(
+        upload_to=path_risk_analysis,
+        blank=True,
+        verbose_name='Análise de Risco'
+        )
+
+    state = models.CharField(
+        max_length=40,
+        choices=StatusArtifacts,
+        blank=True,
+        verbose_name='Estado'
+        )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        verbose_name='Última modificação'
+        )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='artifacts_updated',
+        verbose_name='Última edição por'
+        )
+
+    def save(self, *args, **kwargs): #pra ajeitar
+        if not self.artifacts_code:
+            ano = timezone.now().year
+            ultimo = Artifacts.objects.filter(
+                artifacts_code__startswith=f'ART-{ano}'
+            ).count() + 1
+
+            self.artifacts_code = f'ART-{ano}-{ultimo:02d}'
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.artifacts_code)
+    
+    class Meta():
+        verbose_name ='Artefato'
+        verbose_name_plural ='Artefatos'  
+
+# Itens dos Artefatos
+class ItensArtifacts(models.Model):
+    artifacts = models.ForeignKey(
+        Artifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Itens do Artefato'
+        )
+    
     efisco = models.ForeignKey(
         BensConsumo,
         on_delete=models.PROTECT,
-        related_name='compras_individuais',
-        blank=True,
-        null=True,
         verbose_name='Efisco'
-    )
+        )
     
-    
-    bem = models.CharField(
-        max_length=50,
+    details = models.TextField(
         blank=True,
-        null=True,
-        verbose_name='Bem',
-    )
+        verbose_name='Detalhamento do Item'
+        )
     
-    
-    quantidade = models.PositiveIntegerField(
+    amount = models.PositiveIntegerField(
         blank=True,
-        null=True,
         verbose_name='Quantidade'
-    )
+        )
     
+    value_max = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Valor Máximo'
+        )
+
+    def __str__(self):
+        return str(self.efisco)
     
-    valor = models.PositiveIntegerField(
+    class Meta():
+        verbose_name ='Item Artefato'
+        verbose_name_plural ='Itens Artefatos'  
+
+
+
+''' Propostas '''
+# Propostas
+class Proposal(models.Model):
+    proposal_code = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True, editable=False ,verbose_name='Proposta')
+    
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        verbose_name='Fornecedor',
+        )
+    
+    artifacts_proposal = models.ForeignKey(
+        Artifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Artefato'
+        )
+    
+    state = models.CharField(
+        max_length=30,
+        choices=StatusProposal,
+        blank=True,
+        verbose_name='Estado'
+        ) #pa arrumar
+
+    def save(self, *args, **kwargs):
+        if not self.proposal_code:
+            ano = timezone.now().year
+
+            ultima_proposta = Proposal.objects.filter(
+                proposal_code__startswith=f'Proposta-{ano}-'
+            ).order_by('-proposal_code').first()
+
+            if ultima_proposta:
+                ultimo_numero = int(ultima_proposta.proposal_code.split('-')[-1])
+                proximo_numero = ultimo_numero + 1
+            else:
+                proximo_numero = 1
+
+            self.proposal_code = f'Proposta-{ano}-{proximo_numero:04d}'
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.proposal_code)
+    
+    class Meta():
+        verbose_name ='Proposta'
+        verbose_name_plural ='Propostas'  
+
+# Itens das Propostas
+class ItensProposal(models.Model):
+    proposal_item = models.ForeignKey(
+        Proposal,
+        on_delete=models.PROTECT,
+        verbose_name='Proposta'
+        )
+    
+    item = models.ForeignKey(
+        ItensArtifacts,
+        on_delete=models.PROTECT,
+        verbose_name='Item'
+        )
+    
+    details_proposal = models.TextField(
+        blank=True,
+        verbose_name='Detalhes da Proposta'
+        )
+    
+    amount = models.PositiveIntegerField(
+        blank=True,
+        verbose_name='Quantidade'
+        )
+    
+    value = models.PositiveIntegerField(
+        blank=True,
         verbose_name='Valor'
-    )
+        )
     
-    
-    nf = models.FileField(
-        upload_to=caminho_nf_compraindividual,
+    state = models.CharField(
+        max_length=50,
+        choices=StatusProposal,
         blank=True,
-        null=True,
-        verbose_name='Nota Fiscal'
-    )
+        verbose_name='Status'
+        )
     
-    
-    data_compra = models.DateField(
+    reason = models.TextField(
         blank=True,
+        verbose_name='Motivo da Reprovação'
+        )
+    
+    @property
+    def total_value(self):
+        return self.amount * self.value
+
+    def clean(self):
+        super().clean()
+
+        if self.proposal_item and self.item:
+            if self.item.artifacts_id != self.proposal_item.artifacts_proposal_id:
+                raise ValidationError({
+                    'item': 'Este item não pertence ao artefato vinculado à proposta selecionada.'
+                })
+
+        if self.state == 'RECUSADO' and not (self.reason or '').strip():
+            raise ValidationError({
+                'reason': 'Informe o motivo da reprovação para itens recusados.'
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
+    class Meta():
+        verbose_name ='Item Proposta'
+        verbose_name_plural ='Itens Propostas'  
+
+# Notas/ Observações (Desabilitada)
+'''class Notes(models.Model):
+    note_proposal = models.ForeignKey(
+        Proposal,
+        on_delete=models.CASCADE,
         null=True,
-        verbose_name='Data da Compra'
-    
+        blank=True,
+        related_name='notes',
+        verbose_name='Proposta',
     )
-    
-    
-    usuario = models.ForeignKey(
+
+    note_artifacts = models.ForeignKey(
+        Artifacts,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notes',
+        verbose_name='Artefato')
+
+    note = models.TextField(
+        verbose_name='Nota',
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Última modificação',
+    )
+
+    updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
-        blank=True,
         null=True,
-        related_name='usuario_compraindividual',
-        verbose_name='Usuário Responsável',
+        blank=True,
+        related_name='artifacts_updated',
+        verbose_name='Última edição por',
     )
-    
-# Campo usado para criação de Contratos
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Criado em',
+    )
+
+    class Meta:
+        verbose_name = 'Nota'
+        verbose_name_plural = 'Notas'
+        ordering = ['-updated_at']
+
+    def clean(self):
+        super().clean()
+
+        if not self.note_artifacts and not self.note_proposal:
+            raise ValidationError(
+                'A nota precisa estar vinculada a um artefato ou a uma proposta.'
+            )
+
+        if self.note_artifacts and self.note_proposal:
+            raise ValidationError(
+                'A nota não pode estar vinculada a artefato e proposta ao mesmo tempo.'
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.note_artifacts:
+            return f'Nota do artefato {self.note_artifacts}'
+        if self.note_proposal:
+            return f'Nota da proposta {self.note_proposal}'
+        return 'Nota sem vínculo'
+'''
+
+
+
+''' Contratos '''
+# Contratos
 class Contrato(models.Model): #PRONTO
-    fornecedor = models.ForeignKey(
-        Fornecedor,
+    supplier_contract = models.ForeignKey(
+        Supplier,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
     )
-    
+ 
     contrato = models.CharField(
         max_length=30,
         verbose_name='N° Contrato'
@@ -215,7 +501,7 @@ class Contrato(models.Model): #PRONTO
 
 
 """ Saldo Ativo """
-# Campo usado para cadastro de Itens (Baseado em um Contrato)
+# Itens do saldo ativo (Baseado em um Contrato)
 class SaldoAtivo(models.Model): #PRONTO
     contrato_saldo = models.ForeignKey(
         Contrato,
@@ -282,7 +568,7 @@ class SaldoAtivo(models.Model): #PRONTO
     def __str__(self):
         return f'{self.contrato_saldo} | {self.efisco}'
 
-# Campo usado para solicitações de Itens com base em um Contrato
+# solicitações de Itens do saldo ativo
 class SolicitacoesSaldoAtivo(models.Model):
     codigo = models.CharField(
         max_length=30,
@@ -348,7 +634,7 @@ class SolicitacoesSaldoAtivo(models.Model):
     def __str__(self):
         return self.codigo
 
-# Campo usado para Inserir os itens solicitados
+# Itens que foram solicitados
 class ItensSolicitados(models.Model):
     solicitacao = models.ForeignKey(
         SolicitacoesSaldoAtivo,
@@ -403,7 +689,7 @@ class ItensSolicitados(models.Model):
             )
         ]
 
-# Campo usado para Inserir os Bens que foram enviados a partir da solicitação 
+# Itens que realmente foram enviados
 class BensEnviados(models.Model):
     item_enviado = models.OneToOneField(
         ItensSolicitados,
@@ -455,32 +741,22 @@ class BensEnviados(models.Model):
 
     def __str__(self):
         return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
-
+    
 
 
 """ Estoque """
-# Campo usado para armazenar os Itens em Estoque
+# Itens em Estoque
 class Estoque(models.Model): 
-    item_shock = models.ForeignKey(
-        BensConsumo,
+    item_shock = models.ForeignKey(BensConsumo,
         on_delete=models.PROTECT,
         related_name='bem_estoque',
-        verbose_name='Bem no Estoque',
-    )
+        verbose_name='Bem no Estoque',)
     
-    description_manual = models.CharField(
-        max_length=90,
-        verbose_name='Descrição Manual',
-    )
+    description_manual = models.CharField(max_length=90,verbose_name='Descrição Manual',)
     
-    mark = models.CharField(
-        max_length=40,
-        verbose_name='Marca',
-    )
+    mark = models.CharField(max_length=40,verbose_name='Marca',)
         
-    amount_shock = models.PositiveIntegerField(
-        verbose_name='Quantidade',
-    )
+    amount_shock = models.PositiveIntegerField(verbose_name='Quantidade',)
     
     locate = models.ForeignKey(
         LocalizacaoDEMPAM,
@@ -488,35 +764,31 @@ class Estoque(models.Model):
         blank=True,
         null=True,
         related_name='localizacao_consumo',
-        verbose_name='Localização',
-        )
+        verbose_name='Localização',)
     
-    monthly_consumption = models.PositiveIntegerField(
-        blank=True,
+    monthly_consumption = models.PositiveIntegerField(blank=True,null=True,verbose_name='Consumo Mensal',)
+    
+    essential = models.BooleanField(default=False,blank=True, verbose_name='Essencial',)
+    
+    validity = models.DateField(blank=True,null=True,verbose_name='Validade',)
+    
+    photo = models.ImageField(upload_to=path_photo_bens,blank=True,null=True, verbose_name='Foto do Item',)
+    
+    form_input = models.CharField(max_length=30, blank=True, verbose_name='Forma de Entrada')
+
+    created_at = models.DateTimeField(auto_now_add=True, blank=True ,verbose_name="Data de Cadastro")  
+    
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Última modificação')
+    
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         null=True,
-        verbose_name='Consumo Mensal',
-    )
-    
-    essential = models.BooleanField(
-        default=False,
         blank=True,
-        null=True,
-        verbose_name='Essencial',
-    )
-    
-    validity = models.DateField(
-        blank=True,
-        null=True,
-        verbose_name='Validade',
-    )
-    
-    photo = models.ImageField(
-        upload_to=caminho_bensconsumo,
-        blank=True,
-        null=True,      
-        verbose_name='Foto do Item',
-    )
-    
+        related_name='stock_updated',
+        verbose_name='Última edição por')
+
+    method = models.CharField(max_length=60, blank=True, verbose_name='Método de Entrada' )
     @property
     def duration(self):
         if self.amount_shock is not None and self.monthly_consumption not in (None, 0):
@@ -571,8 +843,8 @@ class Estoque(models.Model):
 
 
 
-""" Parte de Solicitações """
-# Campo usado para criar uma Solicitação de Materiais
+""" Solicitações """
+# Solicitação de Materiais
 class Solicitacao(models.Model):  
     request_code = models.CharField(
         max_length=30,
@@ -609,7 +881,7 @@ class Solicitacao(models.Model):
     )
     
     documents_order = models.FileField(
-        upload_to=caminho_movimentacao_consumo,
+        upload_to=path_solicitation,
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
@@ -653,7 +925,7 @@ class Solicitacao(models.Model):
     def __str__(self):
        return str(self.request_code)  
 
-# Campo usado para adicionar os itens solicitados
+# Itens solicitados
 class SolicitacaoItens(models.Model):
     request_defendant = models.ForeignKey(
         Solicitacao,
@@ -708,7 +980,7 @@ class SolicitacaoItens(models.Model):
     def __str__(self):
         return str(self.request_defendant) 
 
-# Campo usado para atualizar o status da entrega do material
+# Atualizações de cada solicitação
 class Tramitacao(models.Model):
     request_update = models.ForeignKey(
         Solicitacao,
@@ -742,14 +1014,14 @@ class Tramitacao(models.Model):
     )   
     
     documents_update = models.FileField(
-        upload_to=caminho_consum_update,
+        upload_to=path_solicitation_update,
         blank=True,
         null=True,
         verbose_name='Documento Anexado'
     )
     
     photo_update = models.ImageField(
-        upload_to=caminho_consum_update,
+        upload_to=path_solicitation_photo,
         blank=True,
         null=True,
         verbose_name='Foto do Item',

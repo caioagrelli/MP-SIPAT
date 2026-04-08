@@ -11,7 +11,6 @@ def caminho_benspermanentes(instance, filename):
     return f'bens/permanentes/{nome_aquivo}'
 
 # --- Choices ---
-
 class AcaoPermanente(models.TextChoices):
     solicitacao = 'SOLICITACAO', 'Solicitação'
     devolucao = 'DEVOLUCAO', 'Devolução'

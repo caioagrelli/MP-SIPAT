@@ -19,6 +19,18 @@ class CircunscricaoPredio(models.Model):
         verbose_name='Local',
     )
     
+    meso = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Mesorregião',
+    )
+    
+    micro = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='Microrregião',
+    )   
+    
     class Meta:
         verbose_name = 'Circunscrição/Prédio'
         verbose_name_plural = '01 - Circunscrições/Prédios'
@@ -70,6 +82,12 @@ class InfoUA(models.Model):
         null=True,
         verbose_name='Email da UA'
     )
+
+    sede = models.BooleanField(
+        default=False,
+        blank=True,
+        verbose_name='Sede',
+    )   
 
     class Meta():
         verbose_name='UA'

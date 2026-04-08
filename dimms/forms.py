@@ -1,9 +1,94 @@
+# Importações do Django
 from django import forms
 from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
-from .models import Solicitacao, SolicitacaoItens, Tramitacao
+
+# Importações do código 
+from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo
+
+# =================================
+# FORMS DA DIMMS (BENS DE CONSUMO)
+# =================================
 
 
+
+''' Estoque '''
+# Estoque 
+class EstoqueForm(forms.ModelForm):
+    class Meta:
+        model = Estoque
+        fields = [
+            'item_shock',
+            'description_manual',
+            'mark',
+            'amount_shock',
+            'locate',
+            'monthly_consumption',
+            'essential',
+            'validity',
+            'photo',
+            'form_input',
+        ]
+        widgets = {
+            'item_shock': forms.Select(attrs={'class': 'form-control'}),
+            'description_manual': forms.TextInput(attrs={'class': 'form-control'}),
+            'mark': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount_shock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'locate': forms.Select(attrs={'class': 'form-control'}),
+            'monthly_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
+            'essential': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'validity': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'photo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'form_input': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'item_shock': 'Bem no Estoque',
+            'description_manual': 'Descrição Manual',
+            'mark': 'Marca',
+            'amount_shock': 'Quantidade',
+            'locate': 'Localização',
+            'monthly_consumption': 'Consumo Mensal',
+            'essential': 'Essencial',
+            'validity': 'Validade',
+            'photo': 'Foto do Item',
+            'form_input': 'Forma de Entrada',
+        }
+
+# Adicionar um item ao estoque já existente no estoque
+class stock_up(forms.Form):
+    item_estoque = forms.ModelChoiceField(
+        queryset=Estoque.objects.select_related("item_shock").all().order_by("item_shock"),
+        label="Item em Estoque",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+
+    quantidade_entrada = forms.IntegerField(
+        label="Quantidade a adicionar",
+        min_value=1,
+        widget=forms.NumberInput(attrs={"class": "form-control", "min": 1})
+    )
+
+    form_input = forms.CharField(
+        label="Forma de Entrada",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    method = forms.CharField(
+        label="Método de Entrada",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    def clean_quantidade_entrada(self):
+        quantidade = self.cleaned_data.get("quantidade_entrada")
+        if quantidade is None or quantidade <= 0:
+            raise forms.ValidationError("Informe uma quantidade maior que zero.")
+        return quantidade
+
+
+''' Solicitaçoes '''
+# Criar nova solicitação
 class SolicitacaoForm(forms.ModelForm):
     class Meta:
         model = Solicitacao
@@ -18,7 +103,7 @@ class SolicitacaoForm(forms.ModelForm):
             'observation_order': forms.Textarea(attrs={'rows': 4}),
         }
 
-
+# Adicionar itens as solicitações
 class SolicitacaoItemForm(forms.ModelForm):
     class Meta:
         model = SolicitacaoItens
@@ -47,7 +132,7 @@ class SolicitacaoItemForm(forms.ModelForm):
 
         return cleaned_data
 
-
+# Extenção de SolicitacaoForm (para adicionar no momento da criação)
 class SolicitacaoItemBaseFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
@@ -88,7 +173,6 @@ class SolicitacaoItemBaseFormSet(BaseInlineFormSet):
                     f'mas o estoque atual é {item.amount_shock}.'
                 )
 
-
 SolicitacaoItemFormSet = inlineformset_factory(
     Solicitacao,
     SolicitacaoItens,
@@ -99,6 +183,9 @@ SolicitacaoItemFormSet = inlineformset_factory(
 )
 
 
+
+''' Tramitações '''
+# Atualizar a tramitação da solicitação (pode escolher)
 class TramitacaoCreateForm(forms.ModelForm):
     class Meta:
         model = Tramitacao
@@ -143,7 +230,7 @@ class TramitacaoCreateForm(forms.ModelForm):
 
         return cleaned_data
     
-    
+# Atualizar a tramitação da solicitação a partir dela mesma (não pode escolher)
 class SolicitacaoStatusUpdateForm(forms.ModelForm):
     observacao_tramitacao = forms.CharField(
         required=False,
@@ -176,3 +263,94 @@ class SolicitacaoStatusUpdateForm(forms.ModelForm):
         labels = {
             'situation': 'Novo Status',
         }
+
+
+
+''' Artefatos '''
+# Adicionat itens aos artefatos
+class ItensArtifactsForm(forms.ModelForm):
+    class Meta:
+        model = ItensArtifacts
+        fields = [
+            'efisco',
+            'details',
+            'amount',
+            'value_max',
+        ]
+        widgets = {
+            'details': forms.Textarea(attrs={'rows': 4}),
+        }
+
+# Gerenciar documentos dos artefatos
+class ArtifactDocumentsForm(forms.ModelForm):
+    class Meta:
+        model = Artifacts
+        fields = [
+            'tr',
+            'etp',
+            'rgpp',
+            'dode',
+            'tapp',
+            'risk_analysis',
+        ]
+        
+# Criar um novo artefato
+class ArtifactsCreateForm(forms.ModelForm):
+    class Meta:
+        model = Artifacts
+        fields = [
+            'description',
+            'sei',
+            'tr',
+            'etp',
+            'rgpp',
+            'dode',
+            'tapp',
+            'risk_analysis',
+            'state',
+        ]
+        widgets = {
+            'description': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite a descrição do artefato',
+            }),
+            'sei': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número SEI',
+            }),
+            'state': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Estado do artefato',
+            }),
+        }
+
+
+''' Bens de Consumo '''
+# Cadastrar Bem de Consumo
+class BensConsumoForm(forms.ModelForm):
+    class Meta:
+        model = BensConsumo
+        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo']
+        widgets = {
+            'efisco': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite o código E-Fisco'
+            }),
+            'descricao_efisco': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Digite a descrição do bem de consumo',
+                'rows': 4
+            }),
+            'medida': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'grupo_consumo': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+        labels = {
+            'efisco': 'E-Fisco',
+            'descricao_efisco': 'Descrição Efisco',
+            'medida': 'Unidade de Medida',
+            'grupo_consumo': 'Grupo',
+        } 

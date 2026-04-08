@@ -1,20 +1,15 @@
-# BIBLIOTECAS PADRÃO PYTHON
+# Importações do Python 
 import os
-import urllib.request
 from io import BytesIO
 
-# DJANGO
-from django.conf import settings
+# Importações do Dj Ango
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.urls import reverse
-from datetime import datetime
-from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles import finders
 
-# BIBLIOTECAS EXTERNAS
+# Bibliotecas externas
 import qrcode
 from qrcode.constants import ERROR_CORRECT_M
 
@@ -22,26 +17,24 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import mm
 from reportlab.lib.utils import ImageReader
 
-# MODELOS DO PROJETO
-from ..models import *
-from ..utils import *
+# Importações do Código
+from .. models import Estoque
 
+# =============================================================
+# CAMPOS DESTINADOS PARA A VISUALIZAÇÃO/MANUTENÇÃO DE CADA BEM
+# =============================================================
+
+
+''' Overview (Visualização dos bens)'''
+# Página Principal do bem
 @login_required
 def overview(request, pk):
     item = get_object_or_404(Estoque.objects.select_related("item_shock", "locate"), pk=pk)
     return render(request, 'dimms/overview.html', {
         'item': item
     })
-
-@login_required
-def details(request, pk):
-    item = get_object_or_404(Estoque.objects.select_related("item_shock", "locate"), pk=pk)
-    return render(request, 'dimms/details.html', {
-      'item': item
-    })
-
     
-# Gerar QR Code para o item
+# Gerar QR Code da página da Overview
 @login_required
 def qrcode_view(request, pk):
     item = get_object_or_404(Estoque, pk=pk)
@@ -60,8 +53,8 @@ def qrcode_view(request, pk):
     img.save(buf, format="PNG")
     return HttpResponse(buf.getvalue(), content_type="image/png")
 
-# Gerar PDF da etiqueta (QR + E-FISCO + Logo)
 
+''' Etiquetas dos Bem '''   # Pra terminar
 # Grande
 @login_required
 def label(request, pk):
@@ -148,7 +141,8 @@ def label(request, pk):
     c.showPage()
     c.save()
     return resp
-# Pequeno (Pra fazer)
+
+# Pequeno
 @login_required
 def label_mini(request):
     return redirect('dimms:homepage')

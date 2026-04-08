@@ -1,0 +1,200 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Lista de Bens de Consumo{% endblock %}
+
+{% block content %}
+
+<style>
+    .card-lista {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .topbar-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #0f1728;
+    }
+
+    .topbar-sub {
+        font-size: 0.98rem;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+
+    .topbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .btn-ghost {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #111827;
+    }
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .btn-primary-custom {
+        background: #1a4ed5;
+        color: #fff;
+        border: 1px solid #1a4ed5;
+    }
+
+    .btn-primary-custom:hover {
+        background: #143fb0;
+        color: #fff;
+    }
+
+    .topo-lista {
+        background: linear-gradient(135deg, #0f1728, #1a4ed5);
+        color: white;
+        padding: 24px 30px;
+    }
+
+    .table thead th {
+        background-color: #eef4ff;
+        color: #1a4ed5;
+        font-weight: 700;
+        border-bottom: none;
+        vertical-align: middle;
+    }
+
+    .badge-vazio {
+        background: #f8f9fa;
+        color: #6c757d;
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #eef4ff;
+        color: #1a4ed5;
+        border: 1px solid #cfe0ff;
+        padding: 6px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .btn-edit:hover {
+        background: #dbe7ff;
+        color: #143fb0;
+    }
+</style>
+
+<div class="topbar">
+    <div>
+        <div class="topbar-title">Bens de Consumo</div>
+        <div class="topbar-sub">Visualização de todos os itens cadastrados no sistema.</div>
+    </div>
+
+    <div class="topbar-actions">
+        <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
+            Voltar
+        </a>
+
+        <a href="{% url 'dimms:bensconsumo_add' %}" class="btn btn-primary-custom">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Adicionar Bem
+        </a>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="card card-lista">
+        <div class="topo-lista">
+            <h2 class="mb-1 fw-bold">Bens de Consumo</h2>
+            <p class="mb-0">Visualização de todos os itens cadastrados</p>
+        </div>
+
+        <div class="card-body p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if itens %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>E-Fisco</th>
+                                <th>Descrição</th>
+                                <th>Unidade de Medida</th>
+                                <th>Grupo</th>
+                                <th style="width: 120px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in itens %}
+                                <tr>
+                                    <td>{{ item.efisco }}</td>
+                                    <td>{{ item.descricao_efisco }}</td>
+                                    <td>{{ item.get_medida_display }}</td>
+                                    <td>
+                                        {% if item.grupo_consumo %}
+                                            {{ item.get_grupo_consumo_display }}
+                                        {% else %}
+                                            <span class="badge-vazio">Não informado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'dimms:bensconsumo_edit' item.pk %}" class="btn-edit">
+                                            Editar
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    Nenhum bem de consumo cadastrado até o momento.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,391 +1,298 @@
-{% extends "global/base.html" %}
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Painel Gerencial{% endblock %}
+
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-  :root{
-    --mppe-red:#b5121b;
-    --mppe-red-dark:#8f0e15;
-    --mppe-blue:#0d6efd;
-    --mppe-green:#198754;
-    --mppe-yellow:#ffc107;
-    --mppe-purple:#6f42c1;
-    --soft-bg:#f6f8fb;
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --teal: #0f766e; --teal-soft: #f0fdfa; --teal-mid: #99f6e4;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
   }
 
-  .dashboard-bg{
-    background: linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
-    min-height: 100%;
-    border-radius: 20px;
-    padding: 8px;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .gpage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; }
+
+  /* TOPBAR */
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+  .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
+  .topbar-sub   { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
+  .topbar-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* BUTTONS */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; border:1.5px solid transparent; transition:all .15s ease; white-space:nowrap; }
+  .btn-ghost   { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
+  .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; box-shadow:0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background:var(--accent-dark); color:#fff; }
+  .btn-sm-ghost { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:8px; font-family:var(--font); font-size:.78rem; font-weight:600; cursor:pointer; text-decoration:none; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2); transition:all .13s; white-space:nowrap; }
+  .btn-sm-ghost:hover { background:var(--surface-2); color:var(--ink); }
+
+  /* KPI STRIP */
+  .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  .kpi-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm); padding:16px 18px; position:relative; overflow:hidden;
+    transition:box-shadow .15s, transform .15s; animation:fadeUp .3s ease both;
   }
+  .kpi-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-card:nth-child(1)::before { background:var(--blue); }
+  .kpi-card:nth-child(2)::before { background:var(--green); }
+  .kpi-card:nth-child(3)::before { background:var(--violet); }
+  .kpi-card:nth-child(4)::before { background:var(--amber); }
+  .kpi-card:nth-child(2) { animation-delay:.04s; }
+  .kpi-card:nth-child(3) { animation-delay:.08s; }
+  .kpi-card:nth-child(4) { animation-delay:.12s; }
 
-  .section-title{
-    color:#1f2937;
+  .kpi-inner { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .kpi-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:6px; }
+  .kpi-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
+  .kpi-sub   { font-size:.76rem; color:var(--ink-3); margin-top:5px; }
+  .kpi-card:nth-child(1) .kpi-value { color:var(--blue); }
+  .kpi-card:nth-child(2) .kpi-value { color:var(--green); }
+  .kpi-card:nth-child(3) .kpi-value { color:var(--violet); }
+  .kpi-card:nth-child(4) .kpi-value { color:var(--amber); }
+  .kpi-icon { width:42px; height:42px; border-radius:11px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+  .ki-blue   { background:var(--blue-soft); }
+  .ki-green  { background:var(--green-soft); }
+  .ki-violet { background:var(--violet-soft); }
+  .ki-amber  { background:var(--amber-soft); }
+
+  /* QUICK ACTIONS */
+  .qa-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:28px; }
+  .qa-tile {
+    background:#1e2d42; border:1px solid rgba(255,255,255,.07); border-radius:var(--r-md);
+    padding:16px 12px; text-decoration:none; display:flex; flex-direction:column;
+    align-items:center; text-align:center; gap:8px; min-height:96px;
+    transition:transform .15s,box-shadow .15s,background .15s;
+    box-shadow:0 4px 14px rgba(15,23,42,.18); animation:fadeUp .3s ease both;
   }
+  .qa-tile:nth-child(2) { animation-delay:.03s; }
+  .qa-tile:nth-child(3) { animation-delay:.06s; }
+  .qa-tile:nth-child(4) { animation-delay:.09s; }
+  .qa-tile:nth-child(5) { animation-delay:.12s; }
+  .qa-tile:nth-child(6) { animation-delay:.15s; }
+  .qa-tile:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(37,99,235,.22); background:#263650; }
+  .qa-icon  { width:40px; height:40px; border-radius:11px; background:rgba(255,255,255,.09); display:grid; place-items:center; font-size:19px; }
+  .qa-title { font-size:.83rem; font-weight:700; color:#f0f4ff; line-height:1.2; }
+  .qa-sub   { font-size:.7rem; color:rgba(160,175,210,.65); }
 
-  .section-subtitle{
-    color:#6b7280;
-  }
+  /* MAIN CARD */
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; animation:fadeUp .3s .15s ease both; }
+  .main-card-head { padding:16px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; background:var(--surface-2); }
+  .main-card-title { font-size:.95rem; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px; }
 
-  .hero-card{
-    border:0;
-    border-radius:18px;
-    background: linear-gradient(135deg, var(--mppe-red) 0%, #d11d28 100%);
-    color:#fff;
-    box-shadow:0 18px 40px rgba(181,18,27,.18);
-  }
+  /* TABLE */
+  .main-table-wrap { overflow-x:auto; }
+  .main-table { width:100%; border-collapse:collapse; font-size:.87rem; }
+  .main-table thead th { padding:11px 18px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); background:var(--surface-2); border-bottom:1px solid var(--border); white-space:nowrap; text-align:left; }
+  .main-table tbody td { padding:13px 18px; color:var(--ink-2); border-bottom:1px solid var(--border); vertical-align:middle; }
+  .main-table tbody tr:last-child td { border-bottom:none; }
+  .main-table tbody tr:hover td { background:#f5f8ff; }
 
-  .hero-card .btn-light{
-    font-weight:600;
-    border-radius:12px;
-  }
+  /* CATEGORY CHIPS */
+  .cat-chip { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:.72rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .cc-blue   { background:var(--blue-soft);   color:var(--blue);   border-color:var(--blue-mid); }
+  .cc-green  { background:var(--green-soft);  color:var(--green);  border-color:var(--green-mid); }
+  .cc-slate  { background:#f1f5f9; color:#475569; border-color:#cbd5e1; }
+  .cc-red    { background:var(--red-soft);    color:var(--red);    border-color:var(--red-mid); }
+  .cc-teal   { background:var(--teal-soft);   color:var(--teal);   border-color:var(--teal-mid); }
 
-  .kpi-card{
-    border:0;
-    border-radius:16px;
-    box-shadow:0 10px 24px rgba(15,23,42,.07);
-    transition:all .25s ease;
-  }
+  /* STATUS PILLS */
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.73rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .p-ok       { background:var(--green-soft);  color:var(--green);  border-color:var(--green-mid); }
+  .p-ok .pill-dot       { background:var(--green); }
+  .p-pending  { background:var(--amber-soft);  color:var(--amber);  border-color:var(--amber-mid); }
+  .p-pending .pill-dot  { background:var(--amber); }
+  .p-low      { background:#f1f5f9; color:#475569; border-color:#cbd5e1; }
+  .p-low .pill-dot      { background:#475569; }
+  .p-analysis { background:var(--blue-soft);   color:var(--blue);   border-color:var(--blue-mid); }
+  .p-analysis .pill-dot { background:var(--blue); }
+  .p-done     { background:var(--teal-soft);   color:var(--teal);   border-color:var(--teal-mid); }
+  .p-done .pill-dot     { background:var(--teal); }
 
-  .kpi-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 16px 32px rgba(15,23,42,.11);
-  }
+  .mono-cell { font-family:var(--mono); font-size:.78rem; color:var(--ink-3); }
 
-  .kpi-icon{
-    width:48px;
-    height:48px;
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    flex-shrink:0;
-  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  .bg-soft-blue{background:#e9f2ff;color:#0d6efd;}
-  .bg-soft-green{background:#e9f7ef;color:#198754;}
-  .bg-soft-yellow{background:#fff6db;color:#b58b00;}
-  .bg-soft-purple{background:#f2eaff;color:#6f42c1;}
-
-  .hover-card{
-    transition:all .25s ease;
-    cursor:pointer;
-  }
-
-  .hover-card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 16px 32px rgba(15,23,42,.12);
-  }
-
-  .action-card{
-    border:0;
-    border-radius:16px;
-    box-shadow:0 10px 24px rgba(15,23,42,.07);
-    background:#fff;
-  }
-
-  .action-icon{
-    width:56px;
-    height:56px;
-    border-radius:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:24px;
-    margin:0 auto 12px;
-  }
-
-  .icon-red{background:#ffe5e7;color:#b5121b;}
-  .icon-blue{background:#e9f2ff;color:#0d6efd;}
-  .icon-green{background:#e9f7ef;color:#198754;}
-  .icon-yellow{background:#fff6db;color:#b58b00;}
-  .icon-purple{background:#f2eaff;color:#6f42c1;}
-
-  .panel-card{
-    border:0;
-    border-radius:18px;
-    box-shadow:0 10px 28px rgba(15,23,42,.08);
-    overflow:hidden;
-  }
-
-  .panel-card .card-header{
-    background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-    border-bottom:1px solid rgba(17,24,39,.06);
-    padding:18px 20px;
-  }
-
-  .table thead th{
-    font-size:.9rem;
-    color:#4b5563;
-    border-bottom:0;
-  }
-
-  .table tbody td{
-    vertical-align:middle;
-  }
-
-  .status-dot{
-    width:10px;
-    height:10px;
-    border-radius:50%;
-    display:inline-block;
-    margin-right:8px;
-  }
-
-  .dot-green{background:#198754;}
-  .dot-yellow{background:#ffc107;}
-  .dot-gray{background:#6c757d;}
-
-  .toolbar-btn{
-    border-radius:12px;
-    font-weight:600;
-  }
-
-  .mini-note{
-    font-size:.85rem;
-    color:#6b7280;
-  }
-
-  @media (max-width: 768px){
-    .hero-card .d-flex{
-      flex-direction:column;
-      align-items:flex-start !important;
-      gap:16px;
-    }
-  }
+  @media (max-width:1100px) { .kpi-strip { grid-template-columns:repeat(2,1fr); } .qa-grid { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:640px)  { .gpage { padding:14px 12px 32px; } .kpi-strip { grid-template-columns:repeat(2,1fr); } .qa-grid { grid-template-columns:repeat(2,1fr); } }
 </style>
 
-<div class="container-fluid py-4">
-  <div class="dashboard-bg">
+<div class="gpage">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-      <div>
-        <h1 class="h4 fw-bold mb-1 section-title">Painel Gerencial — DEMPAM</h1>
-        <small class="section-subtitle">Visão geral administrativa do sistema</small>
-      </div>
-
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="#" class="btn btn-outline-primary toolbar-btn">📌 Gerenciar Setores</a>
-        <a href="#" class="btn btn-primary toolbar-btn">⚙️ Admin</a>
-      </div>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Painel Gerencial</div>
+      <div class="topbar-sub">Visão geral administrativa do sistema — DEMPAM.</div>
     </div>
-
-
-    <!-- KPIs -->
-    <div class="row g-3 mb-4">
-
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <small class="text-secondary">Setores cadastrados</small>
-              <h4 class="fw-bold mb-0">12</h4>
-              <div class="mini-note mt-1">Estrutura organizacional ativa</div>
-            </div>
-            <div class="kpi-icon bg-soft-blue">🏢</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <small class="text-secondary">Bens permanentes</small>
-              <h4 class="fw-bold mb-0">248</h4>
-              <div class="mini-note mt-1">Inventário patrimonial</div>
-            </div>
-            <div class="kpi-icon bg-soft-green">💻</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <small class="text-secondary">Bens de consumo</small>
-              <h4 class="fw-bold mb-0">89</h4>
-              <div class="mini-note mt-1">Itens de uso recorrente</div>
-            </div>
-            <div class="kpi-icon bg-soft-purple">📦</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <small class="text-secondary">Pendências</small>
-              <h4 class="fw-bold text-warning mb-0">5</h4>
-              <div class="mini-note mt-1">Demandas em acompanhamento</div>
-            </div>
-            <div class="kpi-icon bg-soft-yellow">⚠️</div>
-          </div>
-        </div>
-      </div>
-
+    <div class="topbar-actions">
+      <a href="#" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Gerenciar Setores
+      </a>
+      <a href="#" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Admin
+      </a>
     </div>
-
-    <!-- Ações -->
-    <div class="row g-3 mb-4">
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon icon-red">🏢</div>
-              <strong class="d-block">UAs</strong>
-              <small class="text-secondary">Gerenciar unidades</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon icon-blue">📍</div>
-              <strong class="d-block">Salas / Setores</strong>
-              <small class="text-secondary">Organização física</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon icon-purple">🔐</div>
-              <strong class="d-block">Permissões</strong>
-              <small class="text-secondary">Perfis de acesso</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon icon-green">🎯</div>
-              <strong class="d-block">Demandas</strong>
-              <small class="text-secondary">Atribuir Demanda</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon icon-yellow">📊</div>
-              <strong class="d-block">Relatórios</strong>
-              <small class="text-secondary">Gerar indicadores</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-2 col-sm-6">
-        <a href="#" class="text-decoration-none text-dark">
-          <div class="card action-card h-100 hover-card">
-            <div class="card-body text-center py-4">
-              <div class="action-icon bg-soft-blue">🗂️</div>
-              <strong class="d-block">Cadastros</strong>
-              <small class="text-secondary">Base administrativa</small>
-            </div>
-          </div>
-        </a>
-      </div>
-
-    </div>
-
-    <!-- Resumo Operacional -->
-    <div class="card panel-card">
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-          <h6 class="fw-bold mb-0">Resumo Operacional</h6>
-          <small class="text-secondary">Dados fictícios para demonstração</small>
-        </div>
-
-        <a href="#" class="btn btn-sm btn-outline-secondary toolbar-btn">Ver mais</a>
-      </div>
-
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Categoria</th>
-                <th>Descrição</th>
-                <th>Status</th>
-                <th class="text-end">Atualização</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="badge bg-primary-subtle text-primary">Setor</span></td>
-                <td>Almoxarifado Central</td>
-                <td>
-                  <span class="status-dot dot-green"></span>
-                  <span class="badge bg-success">OK</span>
-                </td>
-                <td class="text-end">Hoje</td>
-              </tr>
-
-              <tr>
-                <td><span class="badge bg-success-subtle text-success">Permanente</span></td>
-                <td>Notebook Dell</td>
-                <td>
-                  <span class="status-dot dot-yellow"></span>
-                  <span class="badge bg-warning text-dark">Pendente</span>
-                </td>
-                <td class="text-end">Ontem</td>
-              </tr>
-
-              <tr>
-                <td><span class="badge bg-secondary-subtle text-secondary">Consumo</span></td>
-                <td>Caixa de papel A4</td>
-                <td>
-                  <span class="status-dot dot-gray"></span>
-                  <span class="badge bg-secondary">Estoque baixo</span>
-                </td>
-                <td class="text-end">2 dias atrás</td>
-              </tr>
-
-              <tr>
-                <td><span class="badge bg-danger-subtle text-danger">Permissão</span></td>
-                <td>Solicitação de acesso pendente</td>
-                <td>
-                  <span class="status-dot dot-yellow"></span>
-                  <span class="badge bg-warning text-dark">Em análise</span>
-                </td>
-                <td class="text-end">Hoje</td>
-              </tr>
-
-              <tr>
-                <td><span class="badge bg-info-subtle text-info">Atividade</span></td>
-                <td>Conferência de inventário do setor TI</td>
-                <td>
-                  <span class="status-dot dot-green"></span>
-                  <span class="badge bg-success">Concluído</span>
-                </td>
-                <td class="text-end">3 horas atrás</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </div>
-</div>
 
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Setores</div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-sub">Estrutura organizacional ativa</div>
+        </div>
+        <div class="kpi-icon ki-blue">🏢</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Bens Permanentes</div>
+          <div class="kpi-value">248</div>
+          <div class="kpi-sub">Inventário patrimonial</div>
+        </div>
+        <div class="kpi-icon ki-green">💻</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Bens de Consumo</div>
+          <div class="kpi-value">89</div>
+          <div class="kpi-sub">Itens de uso recorrente</div>
+        </div>
+        <div class="kpi-icon ki-violet">📦</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Pendências</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-sub">Demandas em acompanhamento</div>
+        </div>
+        <div class="kpi-icon ki-amber">⚠️</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="qa-grid">
+    <a href="{% url 'dempam:ua_homepage' %}" class="qa-tile">
+      <div class="qa-icon">🏢</div>
+      <div class="qa-title">UAs</div>
+      <div class="qa-sub">Gerenciar unidades</div>
+    </a>
+    <a href="{% url 'dempam:locate_homepage' %}" class="qa-tile">
+      <div class="qa-icon">📿</div>
+      <div class="qa-title">Prédios/Circunscrição</div>
+      <div class="qa-sub">Organização dos locais</div>
+    </a>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📍</div>
+      <div class="qa-title">Salas / Setores</div>
+      <div class="qa-sub">Organização física</div>
+    </a>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🔐</div>
+      <div class="qa-title">Permissões</div>
+      <div class="qa-sub">Perfis de acesso</div>
+    </a>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🎯</div>
+      <div class="qa-title">Demandas</div>
+      <div class="qa-sub">Atribuir demanda</div>
+    </a>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📊</div>
+      <div class="qa-title">Relatórios</div>
+      <div class="qa-sub">Gerar indicadores</div>
+    </a>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🗂️</div>
+      <div class="qa-title">Cadastros</div>
+      <div class="qa-sub">Base administrativa</div>
+    </a>
+  </div>
+
+  <!-- RESUMO OPERACIONAL -->
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        📋 Resumo Operacional
+        <span style="font-size:.72rem; font-weight:500; color:var(--ink-3); font-family:var(--mono);">dados provisórios</span>
+      </div>
+      <a href="#" class="btn-sm-ghost">Ver mais</a>
+    </div>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Atualização</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="cat-chip cc-blue">Setor</span></td>
+            <td style="font-weight:600; color:var(--ink);">Almoxarifado Central</td>
+            <td><span class="pill p-ok"><span class="pill-dot"></span>OK</span></td>
+            <td class="mono-cell">Hoje</td>
+          </tr>
+          <tr>
+            <td><span class="cat-chip cc-green">Permanente</span></td>
+            <td style="font-weight:600; color:var(--ink);">Notebook Dell</td>
+            <td><span class="pill p-pending"><span class="pill-dot"></span>Pendente</span></td>
+            <td class="mono-cell">Ontem</td>
+          </tr>
+          <tr>
+            <td><span class="cat-chip cc-slate">Consumo</span></td>
+            <td style="font-weight:600; color:var(--ink);">Caixa de papel A4</td>
+            <td><span class="pill p-low"><span class="pill-dot"></span>Estoque baixo</span></td>
+            <td class="mono-cell">2 dias atrás</td>
+          </tr>
+          <tr>
+            <td><span class="cat-chip cc-red">Permissão</span></td>
+            <td style="font-weight:600; color:var(--ink);">Solicitação de acesso pendente</td>
+            <td><span class="pill p-analysis"><span class="pill-dot"></span>Em análise</span></td>
+            <td class="mono-cell">Hoje</td>
+          </tr>
+          <tr>
+            <td><span class="cat-chip cc-teal">Atividade</span></td>
+            <td style="font-weight:600; color:var(--ink);">Conferência de inventário — TI</td>
+            <td><span class="pill p-done"><span class="pill-dot"></span>Concluído</span></td>
+            <td class="mono-cell">3 horas atrás</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

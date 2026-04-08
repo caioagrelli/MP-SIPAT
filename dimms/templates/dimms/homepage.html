@@ -623,11 +623,10 @@
       </div>
     </a>
 
-    <a href="{% url 'dimms:contracts' %}" class="qa-tile">
+    <a href="{% url 'dimms:artifacts' %}" class="qa-tile">
       <div class="qa-icon">📝</div>
       <div>
-        <div class="qa-title">Contratações</div>
-        <div class="qa-sub">Em Desenvolvimento</div>
+        <div class="qa-title">Artefatos</div>
       </div>
     </a>
 
@@ -639,18 +638,23 @@
       </div>
     </a>
 
-    <a href="#" class="qa-tile">
+    <a href="{% url 'dimms:stock_add' %}" class="qa-tile">
       <div class="qa-icon">🛒</div>
       <div>
-        <div class="qa-title">Compra Individual / Direta</div>
-        <div class="qa-sub">Provisório</div>
+        <div class="qa-title">Entradas</div>
       </div>
     </a>
-
-
-
-
+ 
+     <a href="{% url 'dimms:bensconsumo' %}" class="qa-tile">
+      <div class="qa-icon">➕</div>
+      <div>
+        <div class="qa-title">E-Fiscos</div>
+      </div>
+    </a>
   </div>
+
+  
+
 
   <!-- MAIN TABLE CARD -->
   <div class="main-card">

@@ -1,0 +1,721 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Proposta {{ proposal.proposal_code }}{% endblock %}
+
+{% block content %}
+<div class="apage">
+
+  <div class="page-header">
+    <div class="page-title">
+      <div class="breadcrumbs">
+        <a href="{% url 'dimms:artifacts' %}">Artefatos</a>
+        <span>/</span>
+        <a href="{% url 'dimms:artifacts_details' artifact.pk %}">{{ artifact.artifacts_code }}</a>
+        <span>/</span>
+        <span>{{ proposal.proposal_code }}</span>
+      </div>
+
+      <h2>Proposta {{ proposal.proposal_code }}</h2>
+      <p class="page-subtitle">Visualização dos itens vinculados à proposta</p>
+    </div>
+
+    <div class="page-actions">
+      <a href="{% url 'dimms:artifacts_details' artifact.pk %}" class="btn btn-ghost">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Voltar ao Artefato
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="messages-wrap">
+      {% for message in messages %}
+        <div class="alert-msg {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sum-label">Proposta</div>
+      <div class="sum-value">{{ proposal.proposal_code }}</div>
+      <div class="sum-sub">código da proposta</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Fornecedor</div>
+      <div class="sum-value">{{ proposal.supplier.supplier|default:"—" }}</div>
+      <div class="sum-sub">{{ proposal.supplier.cnpj_supplier|default:"—" }}</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Artefato</div>
+      <div class="sum-value">
+        <a href="{% url 'dimms:artifacts_details' artifact.pk %}" class="artifact-code">
+          {{ artifact.artifacts_code }}
+        </a>
+      </div>
+      <div class="sum-sub">{{ artifact.description|default:"Sem descrição"|truncatechars:38 }}</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Estado</div>
+      <div class="sum-value">
+        {% with s=proposal.state %}
+          {% if s == "ANALISE" %}
+            <span class="pill p-analise"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+          {% elif s == "APROVADO" %}
+            <span class="pill p-homologado"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+          {% elif s == "RECUSADO" %}
+            <span class="pill p-recusado"><span class="pill-dot"></span>{{ proposal.get_state_display }}</span>
+          {% else %}
+            <span class="pill p-default"><span class="pill-dot"></span>{{ proposal.get_state_display|default:"—" }}</span>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="sum-sub">status da proposta</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Itens</div>
+      <div class="sum-value">{{ proposal_items|length }}</div>
+      <div class="sum-sub">vinculados</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Total Geral</div>
+      <div class="sum-value">R$ {{ total_geral|floatformat:2 }}</div>
+      <div class="sum-sub">valor da proposta</div>
+    </div>
+  </div>
+
+  <div class="items-grid">
+    {% for item in proposal_items %}
+      <div class="item-card">
+
+        <div class="item-card-top">
+          <div class="item-main">
+            <div class="item-code">
+              {% if item.item and item.item.efisco %}
+                {{ item.item.efisco.item_shock|default:item.item.efisco }}
+              {% else %}
+                Item sem efisco
+              {% endif %}
+            </div>
+
+            <div class="item-desc">
+              {% if item.item and item.item.efisco %}
+                {{ item.item.efisco.description|default:"Sem descrição" }}
+              {% else %}
+                Sem detalhamento do item
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="item-status">
+            {% with s=item.state %}
+              {% if s == "ANALISE" %}
+                <span class="pill p-analise"><span class="pill-dot"></span>{{ item.get_state_display }}</span>
+              {% elif s == "APROVADO" %}
+                <span class="pill p-homologado"><span class="pill-dot"></span>{{ item.get_state_display }}</span>
+              {% elif s == "RECUSADO" %}
+                <span class="pill p-recusado"><span class="pill-dot"></span>{{ item.get_state_display }}</span>
+              {% else %}
+                <span class="pill p-default"><span class="pill-dot"></span>{{ item.get_state_display|default:"Sem status" }}</span>
+              {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+
+        <div class="item-detail-grid">
+          <div class="detail-box">
+            <div class="detail-label detail-label-blue">DETALHE DO ARTEFATO</div>
+            <div class="detail-value">
+              {% if item.item %}
+                {{ item.item.details|default:"Nenhum detalhe informado." }}
+              {% else %}
+                Nenhum detalhe informado.
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="detail-box">
+            <div class="detail-label detail-label-green">DETALHE DA PROPOSTA</div>
+            <div class="detail-value">
+              {{ item.details_proposal|default:"—" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">QTD. ARTEFATO</div>
+            <div class="metric-value">
+              {% if item.item and item.item.amount %}
+                {{ item.item.amount }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="metric-box">
+            <div class="metric-label">QTD. PROPOSTA</div>
+            <div class="metric-value">{{ item.amount }}</div>
+          </div>
+
+          <div class="metric-box">
+            <div class="metric-label">PREÇO ARTEFATO</div>
+            <div class="metric-value">
+              {% if item.item and item.item.value_max %}
+                R$ {{ item.item.value_max|floatformat:2 }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="metric-box">
+            <div class="metric-label">PREÇO PROPOSTA</div>
+            <div class="metric-value">R$ {{ item.value|floatformat:2 }}</div>
+          </div>
+
+          <div class="metric-box">
+            <div class="metric-label">TOTAL PROPOSTA</div>
+            <div class="metric-value metric-total">R$ {{ item.total_value|floatformat:2 }}</div>
+          </div>
+        </div>
+
+        <div class="item-footer">
+          <div class="item-footer-left">
+            {% if item.reason %}
+              <div class="reason-box">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>{{ item.reason }}</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="item-actions">
+            <form method="post" action="{% url 'dimms:proposal_item_update_status' item.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="approve">
+              <button type="submit" class="btn-xs btn-xs-blue">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <polyline points="9 11 12 14 22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                Aprovar
+              </button>
+            </form>
+
+            <button type="button"
+                    class="btn-xs btn-xs-red"
+                    onclick="toggleRejectBox('{{ item.pk }}')">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Recusar
+            </button>
+          </div>
+        </div>
+
+        <div id="reject-box-{{ item.pk }}" class="reject-box" style="display:none;">
+          <form method="post" action="{% url 'dimms:proposal_item_update_status' item.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+
+            <label class="reject-label" for="reason-{{ item.pk }}">Motivo da reprovação</label>
+
+            <textarea id="reason-{{ item.pk }}"
+                      name="reason"
+                      class="reject-textarea"
+                      rows="3"
+                      placeholder="Explique o motivo da reprovação"
+                      required></textarea>
+
+            <div class="reject-actions">
+              <button type="submit" class="btn-xs btn-xs-red">Confirmar</button>
+              <button type="button" class="btn-xs btn-xs-neutral" onclick="toggleRejectBox('{{ item.pk }}')">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-title">Nenhum item nesta proposta</div>
+        <div class="empty-subtitle">Ainda não existem itens vinculados a esta proposta.</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.page-subtitle {
+  margin: 6px 0 0;
+  color: var(--ink-3, #6b7280);
+  font-size: .95rem;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: .82rem;
+  color: var(--ink-3, #64748b);
+}
+
+.breadcrumbs a {
+  color: var(--blue-600, #2563eb);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.messages-wrap {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-msg {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: .9rem;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background: #ecfdf5;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.alert-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.alert-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.alert-info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sum-card {
+  background: var(--surface-1, #fff);
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.sum-label {
+  font-size: .78rem;
+  color: var(--ink-3, #64748b);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 700;
+}
+
+.sum-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-1, #111827);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.sum-sub {
+  margin-top: 6px;
+  font-size: .82rem;
+  color: var(--ink-3, #64748b);
+}
+
+.artifact-code {
+  color: var(--blue-600, #2563eb);
+  text-decoration: none;
+}
+
+.artifact-code:hover {
+  text-decoration: underline;
+}
+
+.items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.item-card {
+  background: var(--surface-1, #fff);
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.item-card-top {
+  background: #24395d;
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.item-main {
+  min-width: 0;
+}
+
+.item-code {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.item-desc {
+  margin-top: 5px;
+  font-size: .9rem;
+  opacity: .9;
+}
+
+.item-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line, #e5e7eb);
+}
+
+.detail-box {
+  padding: 18px 20px;
+  min-height: 96px;
+}
+
+.detail-box + .detail-box {
+  border-left: 1px solid var(--line, #e5e7eb);
+}
+
+.detail-label {
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  margin-bottom: 10px;
+}
+
+.detail-label-blue {
+  color: #4f46e5;
+}
+
+.detail-label-green {
+  color: #059669;
+}
+
+.detail-value {
+  color: var(--ink-2, #374151);
+  font-size: .95rem;
+  line-height: 1.5;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line, #e5e7eb);
+}
+
+.metric-box {
+  padding: 16px 18px;
+}
+
+.metric-box + .metric-box {
+  border-left: 1px solid var(--line, #e5e7eb);
+}
+
+.metric-label {
+  font-size: .76rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: .05em;
+  margin-bottom: 8px;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.metric-total {
+  color: #15803d;
+}
+
+.item-footer {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.item-footer-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.reason-box {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: .85rem;
+  line-height: 1.45;
+}
+
+.item-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-xs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: .88rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #fff;
+}
+
+.btn-xs-blue {
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.btn-xs-blue:hover {
+  background: #dbeafe;
+}
+
+.btn-xs-red {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.btn-xs-red:hover {
+  background: #fee2e2;
+}
+
+.btn-xs-neutral {
+  color: #374151;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.btn-xs-neutral:hover {
+  background: #e5e7eb;
+}
+
+.reject-box {
+  margin: 0 18px 18px;
+  padding: 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff7f7;
+}
+
+.reject-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: .85rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.reject-textarea {
+  width: 100%;
+  border: 1px solid #f1b8bf;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: .9rem;
+  resize: vertical;
+  box-sizing: border-box;
+  min-height: 90px;
+}
+
+.reject-textarea:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+}
+
+.reject-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.p-analise {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.p-analise .pill-dot {
+  background: #f59e0b;
+}
+
+.p-homologado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.p-homologado .pill-dot {
+  background: #22c55e;
+}
+
+.p-recusado {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.p-recusado .pill-dot {
+  background: #ef4444;
+}
+
+.p-default {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.p-default .pill-dot {
+  background: #6b7280;
+}
+
+.empty-state {
+  background: var(--surface-1, #fff);
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 16px;
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-1, #111827);
+}
+
+.empty-subtitle {
+  margin-top: 6px;
+  color: var(--ink-3, #64748b);
+}
+
+@media (max-width: 1200px) {
+  .summary-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .item-detail-grid,
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-box + .detail-box,
+  .metric-box + .metric-box {
+    border-left: none;
+    border-top: 1px solid var(--line, #e5e7eb);
+  }
+
+  .item-card-top,
+  .item-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+function toggleRejectBox(id) {
+  const currentBox = document.getElementById(`reject-box-${id}`);
+  if (!currentBox) return;
+
+  document.querySelectorAll('.reject-box').forEach((box) => {
+    if (box.id !== `reject-box-${id}`) {
+      box.style.display = 'none';
+    }
+  });
+
+  currentBox.style.display =
+    (currentBox.style.display === 'none' || currentBox.style.display === '')
+      ? 'block'
+      : 'none';
+}
+</script>
+{% endblock %}
