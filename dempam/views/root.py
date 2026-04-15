@@ -14,7 +14,7 @@ from django.shortcuts import redirect
 def root(request):
     if request.user.is_authenticated:
         return redirect('home') # página quando o usuario estiver logado:
-    return redirect('login')  #caso não manda pra tela de login
+    return redirect('oidc_authentication_init')  # redireciona para o Authentik
 
 #homepage central (futuramente vai ser um app a parte)
 @login_required
