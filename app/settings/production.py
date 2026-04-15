@@ -7,12 +7,12 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': environ.get("DB_NAME", "db_name"),
-        'USER': environ.get("DB_USER", "db_user"),
-        'PASSWORD': environ.get("DB_PASSWORD", "db_user_password"),
-        'HOST': environ.get("DB_HOST", "db_host"),
-        'PORT': environ.get("DB_PORT", "db_port_number"),
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": environ.get("DB_NAME", "db_name"),
+        "USER": environ.get("DB_USER", "db_user"),
+        "PASSWORD": environ.get("DB_PASSWORD", "db_user_password"),
+        "HOST": environ.get("DB_HOST", "db_host"),
+        "PORT": environ.get("DB_PORT", "db_port_number"),
     }
 }
 
@@ -25,10 +25,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # OIDC settings
-OIDC_RP_CLIENT_ID = os.environ["OIDC_RP_CLIENT_ID"]
-OIDC_RP_CLIENT_SECRET = os.environ["OIDC_RP_CLIENT_SECRET"]
+OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID", "")
+OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET", "")
 
-OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ["OIDC_OP_AUTHORIZATION_ENDPOINT"]
-OIDC_OP_TOKEN_ENDPOINT = os.environ["OIDC_OP_TOKEN_ENDPOINT"]
-OIDC_OP_USER_ENDPOINT = os.environ["OIDC_OP_USER_ENDPOINT"]
-OIDC_OP_JWKS_ENDPOINT = os.environ["OIDC_OP_JWKS_ENDPOINT"]
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get("OIDC_OP_AUTHORIZATION_ENDPOINT", "")
+OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_OP_TOKEN_ENDPOINT", "")
+OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_OP_USER_ENDPOINT", "")
+OIDC_OP_JWKS_ENDPOINT = os.environ.get("OIDC_OP_JWKS_ENDPOINT", "")
