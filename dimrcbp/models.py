@@ -438,9 +438,105 @@ class UseExternal(models.Model):
     date_renovation = models.DateField(
         verbose_name='Data de Renovação do Uso Externo'
         )
+
     class Meta:
         verbose_name = 'Uso Externo'
         verbose_name_plural = 'Usos Externos'
-        
+
     def __str__(self):
-        return self.description[:60]
+        return self.responsible[:60]
+
+
+# Movimentações dos Bens Permanentes entre UAs
+class MovimentacoesPermanentes(models.Model):
+    tombo = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        verbose_name='Tombo'
+        )
+
+    sei = models.CharField(
+        max_length=25,
+        blank=True,
+        null=True,
+        verbose_name='SEI'
+        )
+
+    acao = models.CharField(
+        max_length=20,
+        choices=AcaoPermanente.choices,
+        verbose_name='Ação'
+        )
+
+    data_hora = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True,
+        verbose_name='Data e Hora'
+        )
+
+    anexo = models.FileField(
+        upload_to='bens/movimentacoes/',
+        blank=True,
+        null=True,
+        verbose_name='Anexo'
+        )
+
+    nome_resp_uso_ext = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Responsável pelo Uso Externo'
+        )
+
+    matricula_resp_uso_ext = models.CharField(
+        max_length=25,
+        blank=True,
+        null=True,
+        verbose_name='Matrícula do Responsável'
+        )
+
+    contato_resp_uso_ext = models.CharField(
+        max_length=25,
+        blank=True,
+        null=True,
+        verbose_name='Contato do Responsável'
+        )
+
+    destino = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='movimentacoes_destino',
+        verbose_name='Destino'
+        )
+
+    origem = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='movimentacoes_origem',
+        verbose_name='Origem'
+        )
+
+    usuario = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Usuário'
+        )
+
+    codigo = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Código'
+        )
+
+    class Meta:
+        verbose_name = 'Movimentação Permanente'
+        verbose_name_plural = 'Movimentações Permanentes'
+
+    def __str__(self):
+        return f'{self.tombo} — {self.acao}'
