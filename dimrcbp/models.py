@@ -249,50 +249,49 @@ class BensPermanentes(models.Model):
 
 # Histórico das UAs que o Bem Permanente passou
 class HistoryUas(models.Model):
-    tombo = models.ForeignKey(
+    tombo = models.OneToOneField(
         InfoUA,
         on_delete=models.PROTECT,
-        max_length=20,  
-        unique=True,
+        related_name='history_tombo',
         verbose_name='Tombo'
         )
-    
-    
+
+
     # UA Atual
     current_ua = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
-        max_length=50,
         blank=True,
         null=True,
+        related_name='history_current_ua',
         verbose_name='UA Atual'
         )
-    
+
     current_year = models.IntegerField(
         blank=True,
         verbose_name='Ano Entrada Ua Atual'
         )
-    
+
     current_responsible = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Responsável da Ua Atual'
         )
-    
+
     current_registration = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Matrícula do Responsável da Ua Atual'
         )
-    
-    
-    # Ua Anterior  
+
+
+    # Ua Anterior
     last_ua = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
-        max_length=50,
         blank=True,
         null=True,
+        related_name='history_last_ua',
         verbose_name='UA Anterior'
         )
 
@@ -300,73 +299,70 @@ class HistoryUas(models.Model):
         blank=True,
         verbose_name='Ano Entrada Ua Anterior'
         )
-    
+
     last_responsible = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Responsável da última Ua'
         )
-    
+
     last_registration = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Matrícula do Responsável da Ua Anterior'
         )
-    
 
 
     # Penúltima Ua
     penultimate_ua = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
-        max_length=50,
         blank=True,
         null=True,
+        related_name='history_penultimate_ua',
         verbose_name='UA Penúltima'
         )
-    
+
     penultimate_year = models.IntegerField(
         blank=True,
         verbose_name='Ano Entrada Ua Penúltima'
     )
-    
+
     penultimate_responsible = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Responsável da penúltima'
     )
-    
+
     penultimate_registration = models.CharField(
         max_length=50,
         blank=True,
         verbose_name='Matrícula do Responsável da Ua penúltima'
     )
-    
-    
-    
+
+
     # Antepenúltima Ua
     third_last_ua = models.ForeignKey(
         InfoUA,
         on_delete=models.PROTECT,
-        max_length=50,
         blank=True,
         null=True,
+        related_name='history_third_last_ua',
         verbose_name='UA Antepenúltima'
         )
-    
-    penultimate_year = models.IntegerField(
+
+    third_last_year = models.IntegerField(
         blank=True,
         verbose_name='Ano Entrada Ua Antepenúltima'
     )
-    
 
 
     class Meta:
         verbose_name = 'Histórico das Uas'
         verbose_name_plural = 'Histórico das Uas'
-        
-        def __str__(self):
-            return str(self.tombo)
+
+    def __str__(self):
+        return str(self.tombo)
 
 # Usuários Externos
 class UseExternal(models.Model):
