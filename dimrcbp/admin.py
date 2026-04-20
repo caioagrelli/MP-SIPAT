@@ -1,171 +1,337 @@
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from .models import *
 
-# --- Informações Bens Permanentes DIMRCBP --
+
+''' CLASSIFICAÇÃO DOS BENS PERMANENTES '''
+
+@admin.register(Groups)
+class GroupsAdmin(admin.ModelAdmin):
+    list_display = (
+        'group',
+    )
+
+    search_fields = (
+        'group',
+    )
+
+    fieldsets = (
+        ('Grupo', {
+            'fields': (
+                'group',
+            )
+        }),
+    )
+
+
+@admin.register(Type)
+class TypeAdmin(admin.ModelAdmin):
+    list_display = (
+        'type',
+        'gruop',
+    )
+
+    search_fields = (
+        'type',
+    )
+
+    list_filter = (
+        'gruop',
+    )
+
+    autocomplete_fields = (
+        'gruop',
+    )
+
+    fieldsets = (
+        ('Classificação', {
+            'fields': (
+                'gruop',
+                'type',
+            )
+        }),
+    )
+
+
+@admin.register(Description)
+class DescriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        'description',
+        'type',
+        'classification',
+        'subclassification',
+        'color',
+        'size',
+        'btu_hp',
+    )
+
+    search_fields = (
+        'description',
+        'classification',
+        'subclassification',
+    )
+
+    list_filter = (
+        'type',
+        'color',
+    )
+
+    autocomplete_fields = (
+        'type',
+    )
+
+    fieldsets = (
+        ('Descrição', {
+            'fields': (
+                'type',
+                'description',
+            )
+        }),
+
+        ('Classificação', {
+            'fields': (
+                'classification',
+                'subclassification',
+            )
+        }),
+
+        ('Características', {
+            'fields': (
+                'color',
+                'size',
+                'btu_hp',
+            )
+        }),
+    )
+
+
+''' FORNECEDORES '''
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'cnpj',
+        'email',
+        'phone',
+        'Responsible',
+    )
+
+    search_fields = (
+        'name',
+        'cnpj',
+        'email',
+        'Responsible',
+    )
+
+    fieldsets = (
+        ('Fornecedor', {
+            'fields': (
+                'name',
+                'cnpj',
+            )
+        }),
+
+        ('Contato', {
+            'fields': (
+                'email',
+                'phone',
+                'Responsible',
+            )
+        }),
+    )
+
+
+''' BENS PERMANENTES '''
+
 @admin.register(BensPermanentes)
 class BensPermanentesAdmin(admin.ModelAdmin):
-    list_display =(
-        'tombamento_legado',
-        'descricao_manual',
-        'modelo',
-        'data_aquisicao',
-        'ua_atual',
-        'valor_unitario',
-        'valor_atual_do_bem',
-    )
-    
-    search_fields=(
-        'tombamento_legado',
-        'ua_atual',
-        'nome_resp_uso_ext',
-        'marca_fabricante',
-        'modelo',
-        'numero_do_processo',
-        'numero_do_empenho',
-        'numero_de_serie',
-    )
-
-    list_filter=(
-        'ua_atual',        
-    )
-    
-    autocomplete_fields=(
-        'ua_atual',
-    )
-    
-    fieldsets=(
-        ('Informações do Bem', {
-            'fields': (
-                'tombamento_legado',
-                'numero_de_serie',
-                'modelo',
-                'qtde',
-                'ua_atual',
-            )
-        }),
-        
-        ('Detalhamento do Bem', {
-            'fields': (
-                'descricao_manual',
-                'classe',
-                'subclasse',
-                'subclasse_2',
-                'subclasse_3',
-            )
-        }),
-        
-        ('Informações do Fornecedor', {
-            'fields': (
-                'marca_fabricante',
-                'cnpj_fornecedor',
-            )
-        }),
-
-        ('Informações da Compra', {
-            'fields': (
-                'numero_do_processo',
-                'numero_do_empenho',
-                'nota_fiscal',
-                'valor_unitario',
-                'data_aquisicao',
-                'venc_garantia',
-            )
-        }),
-        
-        ('Foto do Bem', {
-        'fields': (
-            'imagem_permanente',
-        )    
-        }),
-        
-        ('Informações do Responsável de Uso Externo', {
-            'fields': (
-                'nome_resp_uso_ext',
-                'matricula_resp_uso_ext',
-                'contato_resp_uso_ext',
-            )
-        }),
-    )
-
-@admin.register(MovimentacoesPermanentes)
-class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
-    list_display=(
+    list_display = (
         'tombo',
-        'acao',
-        'origem',
-        'destino',
-        'nome_resp_uso_ext',
-        'usuario',
-        'data_hora',
+        'description',
+        'mark',
+        'model',
+        'state',
+        'situacion',
+        'acquisition_date',
+        'value',
     )
 
-    ordering = (
-                '-id',
-                )
-   
-    search_fields=(
+    search_fields = (
         'tombo',
-        'usuario_username',
-        'data_hora',
+        'description',
+        'mark',
+        'model',
+        'n_series',
+        'n_empenho',
+        'n_process',
     )
-    
-    
-    list_filter=(
-        'acao',
+
+    list_filter = (
+        'state',
+        'situacion',
+        'entry_method',
+        'modality',
     )
-    
-    
-    readonly_fields=(
-        'usuario',
-        'data_hora',
-    )
-    
-    
-    fieldsets=(
-        ('SEI da Movimentação', {
-            'fields': (
-                'sei',
-            )
-        }),
-        
-        ('Movimentação', {
+
+    fieldsets = (
+        ('Identificação', {
             'fields': (
                 'tombo',
-                'acao',
-                'destino'
+                'description',
+                'mark',
+                'model',
+                'n_series',
+                'photo',
             )
         }),
-        
-        ('Documentos', {
+
+        ('Estado', {
             'fields': (
-                'anexo',
+                'state',
+                'situacion',
             )
         }),
-        
-        ('Informações Uso Externo', {
+
+        ('Aquisição', {
             'fields': (
-                'nome_resp_uso_ext',
-                'matricula_resp_uso_ext',
-                'contato_resp_uso_ext',
+                'acquisition_date',
+                'value',
+                'entry_method',
+                'modality',
+                'n_empenho',
+                'n_process',
+                'supllier',
             )
         }),
     )
-    
-    def save_model(self, request, obj, form, change):
-        if change:
-            raise ValidationError('Não Edite Movimentações, crie uma nova :) ')
-        
-        obj.usuario = request.user
-        bem = obj.tombo        
-        obj.origem = bem.ua_atual
-
-        if obj.destino ==  obj.origem:
-            raise ValidationError('O Destino não pode ser igual à Origem :(')
-        
-        bem.ua_atual = obj.destino
-        bem.save()
-        
-        return super().save_model(request, obj, form, change)       
 
 
+@admin.register(HistoryUas)
+class HistoryUasAdmin(admin.ModelAdmin):
+    list_display = (
+        'tombo',
+        'current_ua',
+        'current_year',
+        'current_responsible',
+    )
+
+    search_fields = (
+        'current_responsible',
+        'current_registration',
+        'last_responsible',
+        'last_registration',
+    )
+
+    list_filter = (
+        'current_ua',
+        'last_ua',
+    )
+
+    autocomplete_fields = (
+        'tombo',
+        'current_ua',
+        'last_ua',
+        'penultimate_ua',
+        'third_last_ua',
+    )
+
+    fieldsets = (
+        ('Bem Permanente', {
+            'fields': (
+                'tombo',
+            )
+        }),
+
+        ('UA Atual', {
+            'fields': (
+                'current_ua',
+                'current_year',
+                'current_responsible',
+                'current_registration',
+            )
+        }),
+
+        ('UA Anterior', {
+            'fields': (
+                'last_ua',
+                'last_year',
+                'last_responsible',
+                'last_registration',
+            )
+        }),
+
+        ('UA Penúltima', {
+            'fields': (
+                'penultimate_ua',
+                'penultimate_year',
+                'penultimate_responsible',
+                'penultimate_registration',
+            )
+        }),
+
+        ('UA Antepenúltima', {
+            'fields': (
+                'third_last_ua',
+            )
+        }),
+    )
+
+
+@admin.register(UseExternal)
+class UseExternalAdmin(admin.ModelAdmin):
+    list_display = (
+        'tombo',
+        'responsible',
+        'registration_responsible',
+        'user',
+        'date_renovation',
+    )
+
+    search_fields = (
+        'responsible',
+        'registration_responsible',
+        'user',
+        'cpf_user',
+        'email_responsible',
+        'email_user',
+    )
+
+    list_filter = (
+        'date_renovation',
+    )
+
+    autocomplete_fields = (
+        'tombo',
+    )
+
+    fieldsets = (
+        ('Bem Permanente', {
+            'fields': (
+                'tombo',
+            )
+        }),
+
+        ('Responsável pelo Uso Externo', {
+            'fields': (
+                'responsible',
+                'registration_responsible',
+                'contact_responsible',
+                'email_responsible',
+            )
+        }),
+
+        ('Usuário', {
+            'fields': (
+                'user',
+                'cpf_user',
+                'email_user',
+                'phone_user',
+            )
+        }),
+
+        ('Vigência', {
+            'fields': (
+                'date_renovation',
+            )
+        }),
+    )
