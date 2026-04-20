@@ -1,10 +1,8 @@
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+# Importações do Django
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
+
+# Importações do codigo
 from .utils import *
 from dempam.models import InfoUA
 
@@ -12,6 +10,142 @@ from dempam.models import InfoUA
 class Complementos(): #Temporário
     validator_contato = RegexValidator(regex=r'^\+?\d{10,15}$',)
 
+
+
+
+''' INFORMAÇÕES DA CLASSIFICAÇÃO DOS BENS PERMANENTES '''
+# Grupos
+class Groups(models.Model):
+    group = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name='Nome do Grupo'
+        )
+    
+    class Meta:
+        verbose_name = 'Grupo'
+        verbose_name_plural = 'Grupos'
+        
+    def __str__(self):
+        return self.gruop
+
+# Tipo do bem permanente, associado a um grupo específico
+class Type(models.Model):
+    gruop = models.ForeignKey(
+        Groups,
+        on_delete=models.PROTECT,
+        verbose_name='Grupo'
+        )
+    
+    type = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name='Nome do Tipo'
+        )
+    
+    class Meta:
+        verbose_name = 'Tipo'
+        verbose_name_plural = 'Tipos'
+        
+    def __str__(self):
+        return self.type
+
+# Descrição detalhada do bem permanente, associada a um tipo específico
+class Description(models.Model):
+    description = models.TextField(
+        verbose_name='Descrição'
+        )
+    
+    type = models.ForeignKey(
+        Type,
+        on_delete=models.PROTECT,
+        verbose_name='Tipo'
+        )
+    
+    classification = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Classificação'
+        )
+    
+    subclassification = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Subclassificação'
+        )
+    
+    btu_hp = models.IntegerField(
+        blank=True,
+        verbose_name='BTU/HP'
+        )
+    
+    size = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Tamanho'
+        )
+    
+    color = models.CharField(
+        max_length=40,
+        choices=Cores.choices,
+        blank=True,
+        verbose_name='Cor'
+        )
+    
+    class Meta:
+        verbose_name = 'Descrição'
+        verbose_name_plural = 'Descrições'
+        
+    def __str__(self):
+        return self.description[:60]
+
+
+
+'''FORNECEDORES'''
+# Fornecedores
+class Supplier(models.Model):
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Nome do Fornecedor'
+        )
+    
+    cnpj = BRCNPJField(
+        unique=True,
+        verbose_name='CNPJ do Fornecedor'
+        )
+    
+    email = models.EmailField(
+        blank=True,
+        null=True,
+        verbose_name='Email do Fornecedor'
+        )
+    
+    phone = models.CharField(
+        max_length=16,
+        validators=[Complementos.validator_contato],
+        blank=True,
+        null=True,
+        verbose_name='Telefone do Fornecedor'
+        )
+    
+    Responsible = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Responsável pelo Fornececimento'
+        )
+    
+    class Meta:
+        verbose_name = 'Fornecedor'
+        verbose_name_plural = 'Fornecedores'
+        
+    def __str__(self):
+        return f'{self.name} - CNPJ: {self.cnpj}'
+
+
+
+'''BENS PERMANENTES'''
+# Bens Permanentes
 class BensPermanentes(models.Model):
     tombo = models.CharField(
         max_length=20,
@@ -111,43 +245,121 @@ class BensPermanentes(models.Model):
         verbose_name_plural = 'Bens Permanentes'
         
     def __str__(self):
-        return f'Tombo: {self.tombo} - Descrição: {self.description[:30]}'
-    
+        return f'Tombo: {self.tombo} - Descrição: {self.description[:30]}'   
 
+# Histórico das UAs que o Bem Permanente passou
 class HistoryUas(models.Model):
-    tombo = models.CharField(
+    tombo = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
         max_length=20,  
         unique=True,
         verbose_name='Tombo'
         )
     
-    ua_current = models.CharField(
+    
+    # UA Atual
+    current_ua = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
         max_length=50,
         blank=True,
         null=True,
         verbose_name='UA Atual'
         )
     
-    ua_last = models.CharField(
+    current_year = models.IntegerField(
+        blank=True,
+        verbose_name='Ano Entrada Ua Atual'
+        )
+    
+    current_responsible = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Responsável da Ua Atual'
+        )
+    
+    current_registration = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Matrícula do Responsável da Ua Atual'
+        )
+    
+    
+    # Ua Anterior  
+    last_ua = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
         max_length=50,
         blank=True,
         null=True,
         verbose_name='UA Anterior'
         )
 
-    ua_penultimate = models.CharField(
+    last_year = models.IntegerField(
+        blank=True,
+        verbose_name='Ano Entrada Ua Anterior'
+        )
+    
+    last_responsible = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Responsável da última Ua'
+        )
+    
+    last_registration = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Matrícula do Responsável da Ua Anterior'
+        )
+    
+
+
+    # Penúltima Ua
+    penultimate_ua = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
         max_length=50,
         blank=True,
         null=True,
         verbose_name='UA Penúltima'
         )
     
-    ua_third_last = models.CharField(
+    penultimate_year = models.IntegerField(
+        blank=True,
+        verbose_name='Ano Entrada Ua Penúltima'
+    )
+    
+    penultimate_responsible = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Responsável da penúltima'
+    )
+    
+    penultimate_registration = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Matrícula do Responsável da Ua penúltima'
+    )
+    
+    
+    
+    # Antepenúltima Ua
+    third_last_ua = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
         max_length=50,
         blank=True,
         null=True,
         verbose_name='UA Antepenúltima'
         )
+    
+    penultimate_year = models.IntegerField(
+        blank=True,
+        verbose_name='Ano Entrada Ua Antepenúltima'
+    )
+    
+
 
     class Meta:
         verbose_name = 'Histórico das Uas'
@@ -156,119 +368,16 @@ class HistoryUas(models.Model):
         def __str__(self):
             return str(self.tombo)
 
-class Description(models.Model):
-    description = models.TextField(
-        verbose_name='Descrição'
-        )
-    
-    group = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Grupo'
-        )
-    
-    type = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Tipo'
-        )
-    
-    classification = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Classificação'
-        )
-    
-    subclassification = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Subclassificação'
-        )
-    
-    btu_hp = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='BTU/HP'
-        )
-    
-    size = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Tamanho'
-        )
-    
-    color = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        verbose_name='Cor'
-        )
-    
-    class Meta:
-        verbose_name = 'Descrição'
-        verbose_name_plural = 'Descrições'
-        
-    def __str__(self):
-        return self.description[:60]
-
-
-class Supplier(models.Model):
-    name = models.CharField(
-        max_length=100,
-        verbose_name='Nome do Fornecedor'
-        )
-    
-    cnpj = BRCNPJField(
-        unique=True,
-        verbose_name='CNPJ do Fornecedor'
-        )
-    
-    email = models.EmailField(
-        blank=True,
-        null=True,
-        verbose_name='Email do Fornecedor'
-        )
-    
-    phone = models.CharField(
-        max_length=16,
-        validators=[Complementos.validator_contato],
-        blank=True,
-        null=True,
-        verbose_name='Telefone do Fornecedor'
-        )
-    
-    Responsible = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Responsável pelo Fornecedor'
-        )
-    
-    class Meta:
-        verbose_name = 'Fornecedor'
-        verbose_name_plural = 'Fornecedores'
-        
-    def __str__(self):
-        return f'{self.name} - CNPJ: {self.cnpj}'
-
-    
+# Usuários Externos
 class UseExternal(models.Model):
-    tombo = models.CharField(
-        max_length=20,
-        unique=True,
+    tombo = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
         verbose_name='Tombo'
         )
     
     responsible = models.CharField(
         max_length=50,
-        blank=True,
-        null=True,
         verbose_name='Responsável pelo Uso Externo'
         )
     
@@ -276,40 +385,33 @@ class UseExternal(models.Model):
         max_length=16,
         validators=[Complementos.validator_contato],
         blank=True,
-        null=True,
         verbose_name='Contato do Uso Externo'
         )
     
     registration_responsible = models.CharField(
         max_length=50,
-        blank=True,
-        null=True,
         verbose_name='Registro do Responsável pelo Uso Externo'
         )
     
     email_responsible = models.EmailField(
         blank=True,
-        null=True,
         verbose_name='Email do Uso Externo'
         )
     
     user = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name='Usuário do Uso Externo'
         )
     
     cpf_user = models.CharField(
         max_length=14,
         blank=True,
-        null=True,
         verbose_name='CPF do Usuário do Uso Externo'
         )
     
     email_user = models.EmailField(
         blank=True,
-        null=True,
         verbose_name='Email do Usuário do Uso Externo'
         )
     
@@ -317,13 +419,10 @@ class UseExternal(models.Model):
         max_length=16,
         validators=[Complementos.validator_contato],
         blank=True,
-        null=True,
         verbose_name='Telefone do Usuário do Uso Externo'
         )
     
     date_renovation = models.DateField(
-        blank=True,
-        null=True,
         verbose_name='Data de Renovação do Uso Externo'
         )
     class Meta:
