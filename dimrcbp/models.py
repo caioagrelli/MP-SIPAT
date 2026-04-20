@@ -27,7 +27,7 @@ class Groups(models.Model):
         verbose_name_plural = 'Grupos'
         
     def __str__(self):
-        return self.gruop
+        return self.group
 
 # Tipo do bem permanente, associado a um grupo específico
 class Type(models.Model):
@@ -76,6 +76,7 @@ class Description(models.Model):
     
     btu_hp = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='BTU/HP'
         )
     
@@ -109,7 +110,8 @@ class Supplier(models.Model):
         verbose_name='Nome do Fornecedor'
         )
     
-    cnpj = BRCNPJField(
+    cnpj = models.CharField(
+        max_length=22,
         unique=True,
         verbose_name='CNPJ do Fornecedor'
         )
@@ -153,7 +155,10 @@ class BensPermanentes(models.Model):
         verbose_name='Tombo'
         )
     
-    description = models.TextField(
+    description = models.ForeignKey(
+        Description,
+        on_delete=models.PROTECT,
+        related_name='description_tombo',
         verbose_name='Descrição'
         )
     
@@ -233,11 +238,13 @@ class BensPermanentes(models.Model):
         verbose_name='Modalidade'
         )
     
-    supllier = BRCNPJField(
+    supllier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
         verbose_name='Fornecedor'
-        )
+         )
     
     
     class Meta:
@@ -245,12 +252,12 @@ class BensPermanentes(models.Model):
         verbose_name_plural = 'Bens Permanentes'
         
     def __str__(self):
-        return f'Tombo: {self.tombo} - Descrição: {self.description[:30]}'   
+        return f'Tombo: {self.tombo} - Descrição: {str(self.description)[:30]}'
 
 # Histórico das UAs que o Bem Permanente passou
 class HistoryUas(models.Model):
     tombo = models.OneToOneField(
-        InfoUA,
+        BensPermanentes,
         on_delete=models.PROTECT,
         related_name='history_tombo',
         verbose_name='Tombo'
@@ -269,18 +276,21 @@ class HistoryUas(models.Model):
 
     current_year = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='Ano Entrada Ua Atual'
         )
 
     current_responsible = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Responsável da Ua Atual'
         )
 
     current_registration = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Matrícula do Responsável da Ua Atual'
         )
 
@@ -297,18 +307,21 @@ class HistoryUas(models.Model):
 
     last_year = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='Ano Entrada Ua Anterior'
         )
 
     last_responsible = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Responsável da última Ua'
         )
 
     last_registration = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Matrícula do Responsável da Ua Anterior'
         )
 
@@ -325,18 +338,21 @@ class HistoryUas(models.Model):
 
     penultimate_year = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='Ano Entrada Ua Penúltima'
     )
 
     penultimate_responsible = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Responsável da penúltima'
     )
 
     penultimate_registration = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         verbose_name='Matrícula do Responsável da Ua penúltima'
     )
 
@@ -353,6 +369,7 @@ class HistoryUas(models.Model):
 
     third_last_year = models.IntegerField(
         blank=True,
+        null=True,
         verbose_name='Ano Entrada Ua Antepenúltima'
     )
 
