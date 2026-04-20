@@ -1,177 +1,395 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Bens Permanentes{% endblock %}
+{% block title %}SIPAT — Bens Permanentes{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --cinza-fundo:#f9fafc;
-    --cinza-card:#ffffff;
-    --cinza-texto:#444;
-    --cinza-borda:#e2e6ea;
-    --azul-suave:#2f4f6f;
-    --azul-botao:#406080;
-    --verde-suave:#5cb85c;
-    --vermelho-suave:#d9534f;
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
   }
 
-  .page-wrap{
-    background:var(--cinza-fundo);
-    color:var(--cinza-texto);
-    font-family:"Inter","Segoe UI",sans-serif;
-    padding:18px;
-    border-radius:12px;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  h1,h4{ color:var(--azul-suave); font-weight:600; }
+  .bpage { font-family: var(--font); background: var(--bg); padding: 28px 24px; min-height: 100vh; color: var(--ink); }
 
-  .btn-primary{
-    background-color:var(--azul-botao);
-    border:none;
-    border-radius:8px;
-    font-weight:500;
-    padding:8px 18px;
-  }
-  .btn-primary:hover{ background-color:#324b66; }
+  /* TOPBAR */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; line-height: 1.2; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
 
-  .btn-outline-secondary{
-    border-radius:8px;
-    padding:8px 14px;
-  }
+  /* ALERT STRIP */
+  .alert-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .alert-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; animation: fadeUp .3s ease both; }
+  .alert-card:nth-child(2) { animation-delay: .05s; }
+  .alert-card:nth-child(3) { animation-delay: .10s; }
+  .alert-card-head { padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); gap: 10px; }
+  .alert-card-title { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .alert-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+  .ab-blue   { background: var(--blue-soft);   color: var(--blue);   border: 1px solid var(--blue-mid); }
+  .ab-amber  { background: var(--amber-soft);  color: var(--amber);  border: 1px solid var(--amber-mid); }
+  .ab-red    { background: var(--red-soft);    color: var(--red);    border: 1px solid var(--red-mid); }
+  .ab-violet { background: var(--violet-soft); color: var(--violet); border: 1px solid var(--violet-mid); }
+  .alert-card-link { font-size: .78rem; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .alert-card-link:hover { text-decoration: underline; }
 
-  .card{
-    background-color:var(--cinza-card);
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-  }
-  .card-header{
-    background:transparent;
-    border-bottom:1px solid var(--cinza-borda);
-    color:var(--azul-suave);
-    font-weight:600;
-  }
+  .mini-table-wrap { max-height: 210px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .mini-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .mini-table thead th { position: sticky; top: 0; background: var(--surface-2); padding: 8px 14px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .mini-table tbody td { padding: 9px 14px; color: var(--ink-2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .mini-table tbody tr:last-child td { border-bottom: none; }
+  .mini-table tbody tr:hover td { background: var(--blue-soft); }
+  .mini-table a { color: var(--ink); text-decoration: none; font-weight: 600; display: block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-table a:hover { color: var(--accent); }
+  .mini-table .center { text-align: center; font-family: var(--mono); font-size: .78rem; }
+  .mini-empty { padding: 24px; text-align: center; color: var(--ink-3); font-size: .85rem; font-style: italic; }
 
-  .filter-label{ font-size:.85rem; color:#6c757d; margin-bottom:6px; }
-  .form-control, .form-select{
-    border:1px solid var(--cinza-borda);
-    border-radius:10px;
-    padding:10px 12px;
-  }
+  /* QUICK ACTIONS */
+  .qa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .qa-tile { background: #1e2d42; border: 1px solid rgba(255,255,255,.07); border-radius: var(--r-md); padding: 16px; text-decoration: none; display: flex; align-items: center; gap: 13px; min-height: 76px; transition: transform .15s, box-shadow .15s, background .15s; box-shadow: 0 4px 14px rgba(15,23,42,.18); animation: fadeUp .3s ease both; }
+  .qa-tile:nth-child(2) { animation-delay: .03s; }
+  .qa-tile:nth-child(3) { animation-delay: .06s; }
+  .qa-tile:nth-child(4) { animation-delay: .09s; }
+  .qa-tile:nth-child(5) { animation-delay: .12s; }
+  .qa-tile:nth-child(6) { animation-delay: .15s; }
+  .qa-tile:nth-child(7) { animation-delay: .18s; }
+  .qa-tile:nth-child(8) { animation-delay: .21s; }
+  .qa-tile:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(37,99,235,.22); background: #263650; }
+  .qa-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,.09); display: grid; place-items: center; font-size: 20px; flex-shrink: 0; }
+  .qa-title { font-size: .95rem; font-weight: 700; color: #f0f4ff; line-height: 1.2; }
+  .qa-sub { font-size: .78rem; color: rgba(160,175,210,.75); margin-top: 2px; }
 
-  table thead{
-    background:#f0f2f5;
-    color:var(--azul-suave);
-    font-weight:600;
-  }
-  table tbody tr:hover{ background:#f9f9f9; }
-  .table td,.table th{ vertical-align:middle; }
+  /* MAIN CARD */
+  .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; animation: fadeUp .3s .15s ease both; }
+  .main-card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--surface); }
+  .main-card-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .total-badge { background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--blue); border-radius: 999px; padding: 3px 10px; font-size: .78rem; font-family: var(--mono); font-weight: 700; }
 
-  .badge-soft{
-    background:#e9eef6;
-    color:#2f4f6f;
-    border:1px solid #d7e2f3;
-    font-weight:600;
-  }
+  /* FILTER BAR */
+  .filter-bar { padding: 18px 24px; border-bottom: 1px solid var(--border); background: var(--surface-2); display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
+  .filter-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .filter-input, .filter-select { height: 40px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 0 13px; font-family: var(--font); font-size: .87rem; color: var(--ink); background: var(--surface); outline: none; transition: border-color .15s, box-shadow .15s; width: 100%; }
+  .filter-input:focus, .filter-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .filter-actions { display: flex; gap: 8px; align-self: flex-end; }
+
+  /* BTN */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: all .15s; height: 40px; white-space: nowrap; }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  /* MAIN TABLE */
+  .main-table-wrap { overflow-x: auto; }
+  .main-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  .main-table thead th { padding: 12px 16px; font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .main-table tbody td { padding: 12px 16px; color: var(--ink-2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .main-table tbody tr:last-child td { border-bottom: none; }
+  .main-table tbody tr:hover td { background: #f5f8ff; }
+  .mono-cell { font-family: var(--mono); font-size: .82rem; color: var(--ink); }
+
+  /* PILLS */
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid; white-space: nowrap; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .p-bom     { background: var(--green-soft);  color: var(--green);  border-color: var(--green-mid); }
+  .p-bom .pill-dot { background: var(--green); }
+  .p-novo    { background: var(--blue-soft);   color: var(--blue);   border-color: var(--blue-mid); }
+  .p-novo .pill-dot { background: var(--blue); }
+  .p-regular { background: var(--amber-soft);  color: var(--amber);  border-color: var(--amber-mid); }
+  .p-regular .pill-dot { background: var(--amber); }
+  .p-precario { background: var(--red-soft);   color: var(--red);    border-color: var(--red-mid); }
+  .p-precario .pill-dot { background: var(--red); }
+  .p-sucata   { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  .p-sucata .pill-dot { background: #475569; }
+
+  .table-empty { padding: 40px; text-align: center; color: var(--ink-3); font-size: .9rem; }
+  .table-empty-icon { font-size: 2.2rem; margin-bottom: 8px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 960px) { .alert-strip { grid-template-columns: 1fr; } .qa-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .bpage { padding: 14px 12px; } .qa-grid { grid-template-columns: 1fr; } .topbar { flex-direction: column; align-items: flex-start; } }
 </style>
 
-<div class="page-wrap">
+<div class="bpage">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <!-- TOPBAR -->
+  <div class="topbar">
     <div>
-      <h1 class="mb-0">Bens Permanentes</h1>
-      <p class="text-muted mb-0">Consulta e acompanhamento dos bens permanentes cadastrados.</p>
+      <div class="topbar-title">Bens Permanentes</div>
+      <div class="topbar-sub">Consulta e acompanhamento do patrimônio permanente tombado.</div>
     </div>
-
-    <!-- Botão provisório (troca depois por uma URL real) -->
-    <a href="#" class="btn btn-primary shadow-sm">↔ Movimentações (provisório)</a>
   </div>
 
-  <!-- FILTROS -->
-  <div class="card mb-4">
-    <div class="card-header">Filtros</div>
-    <div class="card-body">
-      <form method="get" class="row g-3">
+  <!-- ALERT STRIP -->
+  <div class="alert-strip">
 
-        <div class="col-md-4">
-          <div class="filter-label">Buscar (nome / marca / tombo)</div>
-          <input class="form-control" type="text" name="q"
+    <!-- Bens em estado precário -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-amber">⚠️ Estado Precário</span>
+        </div>
+        <a href="#" class="alert-card-link">Ver todos →</a>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Tombo</th><th>Descrição</th><th>Marca</th></tr></thead>
+          <tbody>
+            {% for bem in bens_precario %}
+            <tr>
+              <td class="center">{{ bem.tombo }}</td>
+              <td><a href="#">{{ bem.description }}</a></td>
+              <td>{{ bem.mark|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3"><div class="mini-empty">Nenhum bem em estado precário.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bens em sucata -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-red">🗑️ Sucata</span>
+        </div>
+        <a href="#" class="alert-card-link">Ver todos →</a>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Tombo</th><th>Descrição</th><th>Marca</th></tr></thead>
+          <tbody>
+            {% for bem in bens_sucata %}
+            <tr>
+              <td class="center">{{ bem.tombo }}</td>
+              <td><a href="#">{{ bem.description }}</a></td>
+              <td>{{ bem.mark|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3"><div class="mini-empty">Nenhum bem em sucata.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Movimentações recentes -->
+    <div class="alert-card">
+      <div class="alert-card-head">
+        <div class="alert-card-title">
+          <span class="alert-badge ab-blue">↔️ Movimentações Recentes</span>
+        </div>
+        <a href="#" class="alert-card-link">Ver todas →</a>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Tombo</th><th>Ação</th><th>Destino</th></tr></thead>
+          <tbody>
+            {% for mov in movimentacoes %}
+            <tr>
+              <td class="center mono-cell">{{ mov.tombo }}</td>
+              <td>{{ mov.get_acao_display|default:mov.acao }}</td>
+              <td>{{ mov.destino|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3"><div class="mini-empty">Nenhuma movimentação registrada.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="qa-grid">
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">↔️</div>
+      <div>
+        <div class="qa-title">Movimentar Bem</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🔍</div>
+      <div>
+        <div class="qa-title">Consultar Bem</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🤝</div>
+      <div>
+        <div class="qa-title">Uso Externo</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📜</div>
+      <div>
+        <div class="qa-title">Histórico de UAs</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🏷️</div>
+      <div>
+        <div class="qa-title">Grupos / Tipos</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">🏭</div>
+      <div>
+        <div class="qa-title">Fornecedores</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📊</div>
+      <div>
+        <div class="qa-title">Relatórios</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="{% url 'admin:index' %}" class="qa-tile">
+      <div class="qa-icon">⚙️</div>
+      <div>
+        <div class="qa-title">Admin</div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- MAIN TABLE -->
+  <div class="main-card">
+
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🏛️ Todos os Bens Permanentes
+        <span class="total-badge">{{ total_bens|default:0 }} bens</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <form method="get">
+      <div class="filter-bar">
+
+        <div class="filter-group" style="flex:2; min-width:220px;">
+          <label class="filter-label">Pesquisar</label>
+          <input class="filter-input" type="text" name="q"
                  value="{{ query|default_if_none:'' }}"
-                 placeholder="Ex: cadeira, dell, 12345...">
+                 placeholder="Tombo, marca, modelo, n° série…">
         </div>
 
-        <div class="col-md-3">
-          <div class="filter-label">Localização</div>
-          <input class="form-control" type="text" name="local"
-                 value="{{ filtro_local|default_if_none:'' }}"
-                 placeholder="Ex: Sala 203, Almox...">
-        </div>
-
-        <div class="col-md-3">
-          <div class="filter-label">Situação</div>
-          <select class="form-select" name="situacao">
-            <option value="">Todas</option>
-            <option value="ATIVO" {% if filtro_situacao == "ATIVO" %}selected{% endif %}>Ativo</option>
-            <option value="BAIXA" {% if filtro_situacao == "BAIXA" %}selected{% endif %}>Baixa</option>
-            <option value="MANUTENCAO" {% if filtro_situacao == "MANUTENCAO" %}selected{% endif %}>Manutenção</option>
-            <option value="EMPRESTADO" {% if filtro_situacao == "EMPRESTADO" %}selected{% endif %}>Emprestado</option>
+        <div class="filter-group">
+          <label class="filter-label">Estado de Conservação</label>
+          <select name="state" class="filter-select">
+            <option value="">Todos</option>
+            {% for value, label in estados %}
+            <option value="{{ value }}" {% if f_state == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
           </select>
         </div>
 
-        <div class="col-md-2 d-flex align-items-end gap-2">
-          <button class="btn btn-primary w-100" type="submit">Filtrar</button>
-          <a class="btn btn-outline-secondary w-100" href="">Limpar</a>
+        <div class="filter-group">
+          <label class="filter-label">Situação Física</label>
+          <select name="situacion" class="filter-select">
+            <option value="">Todas</option>
+            {% for value, label in situacoes %}
+            <option value="{{ value }}" {% if f_situacion == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-      </form>
-    </div>
-  </div>
-
-  <!-- LISTAGEM -->
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Todos os Bens Permanentes ({{ total_bens|default:0 }})</h4>
-      {% if total_ativos is not None %}
-        <span class="badge badge-soft px-3 py-2">Ativos: {{ total_ativos }}</span>
-      {% endif %}
-    </div>
-
-    <div class="card-body">
-      {% if bens %}
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Tombo</th>
-                <th>Bem</th>
-                <th>Localização</th>
-                <th>Marca</th>
-                <th>Situação</th>
-                <th style="width:170px;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for bem in bens %}
-                <tr>
-                  <td>{{ bem.numero_identificacao|default:"-" }}</td>
-                  <td class="fw-semibold">{{ bem.nome|default:"-" }}</td>
-                  <td>{{ bem.localizacao|default:"N/A" }}</td>
-                  <td>{{ bem.marca|default:"N/A" }}</td>
-                  <td>{{ bem.situacao|default:"-" }}</td>
-                  <td>
-                    <!-- Ações provisórias (liga depois em rotas reais) -->
-                    <a href="#" class="btn btn-sm btn-outline-secondary">Detalhes</a>
-                    <a href="#" class="btn btn-sm btn-outline-primary">Movimentar</a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Pesquisar
+          </button>
+          <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">Limpar</a>
         </div>
-      {% else %}
-        <div class="alert alert-info text-center py-3 mb-0">Nenhum bem permanente encontrado.</div>
-      {% endif %}
+
+      </div>
+    </form>
+
+    {% if bens %}
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Tombo</th>
+            <th>Descrição</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Estado</th>
+            <th>Situação</th>
+            <th>Aquisição</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bem in bens %}
+          <tr>
+            <td class="mono-cell">{{ bem.tombo }}</td>
+            <td style="font-weight:600; color:var(--ink);">{{ bem.description }}</td>
+            <td>{{ bem.mark|default:"—" }}</td>
+            <td>{{ bem.model|default:"—" }}</td>
+            <td>
+              {% if bem.state == 'BOM' %}
+                <span class="pill p-bom"><span class="pill-dot"></span>Bom</span>
+              {% elif bem.state == 'NOVO' %}
+                <span class="pill p-novo"><span class="pill-dot"></span>Novo</span>
+              {% elif bem.state == 'REGULAR' %}
+                <span class="pill p-regular"><span class="pill-dot"></span>Regular</span>
+              {% elif bem.state == 'PRECARIO' %}
+                <span class="pill p-precario"><span class="pill-dot"></span>Precário</span>
+              {% elif bem.state == 'SUCATA' %}
+                <span class="pill p-sucata"><span class="pill-dot"></span>Sucata</span>
+              {% else %}
+                <span style="color:var(--ink-3);">—</span>
+              {% endif %}
+            </td>
+            <td>{{ bem.get_situacion_display|default:"—" }}</td>
+            <td class="mono-cell">{{ bem.acquisition_date|date:"d/m/Y"|default:"—" }}</td>
+            <td class="mono-cell">R$ {{ bem.value|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+    <div class="table-empty">
+      <div class="table-empty-icon">🏛️</div>
+      Nenhum bem permanente encontrado.
+    </div>
+    {% endif %}
+
   </div>
 
 </div>
