@@ -26,6 +26,16 @@
         </svg>
         Voltar ao Artefato
       </a>
+      <a href="{% url 'dimms:proposal_item_add' proposal.pk %}" class="btn btn-ghost" style="color:#15803d;border-color:#bbf7d0;background:#f0fdf4;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar Item
+      </a>
+      {% if proposal.state == 'APROVADO' %}
+      <a href="{% url 'dimms:contrato_create' proposal.pk %}" class="btn btn-ghost" style="color:#1d4ed8;border-color:#c7d7fd;background:#eff4ff;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Criar Contrato
+      </a>
+      {% endif %}
     </div>
   </div>
 
@@ -224,6 +234,17 @@
               </svg>
               Recusar
             </button>
+
+            <form method="post" action="{% url 'dimms:proposal_item_delete' item.pk %}" style="display:inline;"
+                  onsubmit="return confirm('Remover este item da proposta?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-xs btn-xs-neutral">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+                Remover
+              </button>
+            </form>
           </div>
         </div>
 

@@ -1,0 +1,234 @@
+{% extends 'global/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}SIPAT — Editar {{ item.description_manual|default:"Item" }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .opage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+  .page-title{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.2;}
+  .page-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .efisco-chip{background:#1e2d42;border-radius:var(--r-sm);padding:10px 16px;text-align:center;min-width:140px;flex-shrink:0;box-shadow:0 4px 14px rgba(15,23,42,.2);}
+  .efisco-chip-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(160,175,210,.7);margin-bottom:4px;}
+  .efisco-chip-value{font-family:var(--mono);font-size:1.15rem;font-weight:700;color:#fff;line-height:1;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+  .form-grid-full{grid-column:1/-1;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;animation:fadeUp .3s ease both;}
+  .card+.card{margin-top:20px;}
+  .card:nth-child(2){animation-delay:.05s;}
+  .card:nth-child(3){animation-delay:.10s;}
+
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--surface-2);}
+  .card-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex-shrink:0;}
+  .ci-blue{background:var(--blue-soft);}
+  .ci-green{background:var(--green-soft);}
+  .ci-amber{background:var(--amber-soft);}
+  .card-title{font-size:.88rem;font-weight:700;color:var(--ink);}
+  .card-body{padding:20px;}
+
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+  .field input[type=text],
+  .field input[type=number],
+  .field input[type=date],
+  .field select,
+  .field textarea{
+    width:100%;height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);
+    background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .field textarea{height:auto;padding:10px 12px;resize:vertical;}
+  .field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:#fff;
+  }
+  .field input[type=file]{height:auto;padding:6px 10px;}
+  .field-check{display:flex;align-items:center;gap:10px;padding:8px 0;}
+  .field-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .field-check label{font-size:.88rem;font-weight:600;color:var(--ink-2);cursor:pointer;}
+
+  .field-error{font-size:.75rem;color:var(--red);margin-top:3px;}
+  .has-error input,.has-error select,.has-error textarea{border-color:var(--red);background:var(--red-soft);}
+
+  .btn-bar{display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid var(--border);background:var(--surface-2);justify-content:flex-end;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
+  .btn-primary:hover{background:var(--accent-dark);color:#fff;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  .help-text{font-size:.75rem;color:var(--ink-3);margin-top:3px;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:720px){.form-grid{grid-template-columns:1fr;}.opage{padding:14px 12px 32px;}}
+</style>
+
+<div class="opage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">Bens de Consumo</a>
+    <span>›</span>
+    <a href="{% url 'dimms:overview' item.pk %}">{{ item.description_manual|default:"Item" }}</a>
+    <span>›</span>
+    Editar
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="page-title">Editar Item</div>
+      <div class="page-sub">Atualize os dados do item no estoque.</div>
+    </div>
+    <div class="efisco-chip">
+      <div class="efisco-chip-label">E-Fisco</div>
+      <div class="efisco-chip-value">{{ item.item_shock.efisco|default:"—" }}</div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <!-- Identificação -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-blue">🗂️</div>
+        <div class="card-title">Identificação</div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="field {% if form.item_shock.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.item_shock.id_for_label }}">Bem no Estoque (E-Fisco)</label>
+            {% render_field form.item_shock %}
+            {% for e in form.item_shock.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.description_manual.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.description_manual.id_for_label }}">Descrição Manual</label>
+            {% render_field form.description_manual placeholder="Ex: Papel A4 resma 500 fls" %}
+            {% for e in form.description_manual.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.mark.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.mark.id_for_label }}">Marca</label>
+            {% render_field form.mark placeholder="Ex: Chamex" %}
+            {% for e in form.mark.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.form_input.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.form_input.id_for_label }}">Forma de Entrada</label>
+            {% render_field form.form_input placeholder="Ex: Nota Fiscal, Doação..." %}
+            {% for e in form.form_input.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Estoque & Localização -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-green">📊</div>
+        <div class="card-title">Estoque e Localização</div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="field {% if form.amount_shock.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.amount_shock.id_for_label }}">Quantidade</label>
+            {% render_field form.amount_shock %}
+            <div class="help-text">Para registrar entradas/saídas use a seção Movimentação.</div>
+            {% for e in form.amount_shock.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.monthly_consumption.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.monthly_consumption.id_for_label }}">Consumo Mensal</label>
+            {% render_field form.monthly_consumption %}
+            {% for e in form.monthly_consumption.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.locate.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.locate.id_for_label }}">Localização</label>
+            {% render_field form.locate %}
+            {% for e in form.locate.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form.validity.errors %}has-error{% endif %}">
+            <label class="field-label" for="{{ form.validity.id_for_label }}">Validade</label>
+            {% render_field form.validity type="date" %}
+            {% for e in form.validity.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="field form-grid-full">
+            <div class="field-check">
+              {% render_field form.essential id=form.essential.id_for_label %}
+              <label for="{{ form.essential.id_for_label }}">Item essencial</label>
+            </div>
+            {% for e in form.essential.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Foto -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-amber">📷</div>
+        <div class="card-title">Foto do Item</div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label class="field-label" for="{{ form.photo.id_for_label }}">Imagem</label>
+          {% if item.photo %}
+            <div style="margin-bottom:10px;">
+              <img src="{{ item.photo.url }}" style="max-height:120px;border-radius:8px;border:1px solid var(--border);" alt="Foto atual">
+              <div class="help-text" style="margin-top:4px;">Foto atual — selecione outra para substituir.</div>
+            </div>
+          {% endif %}
+          {% render_field form.photo %}
+          {% for e in form.photo.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="btn-bar">
+        <a href="{% url 'dimms:overview' item.pk %}" class="btn btn-ghost">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar Alterações
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

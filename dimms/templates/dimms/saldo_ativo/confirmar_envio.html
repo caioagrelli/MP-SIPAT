@@ -1,0 +1,220 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Confirmar Envio{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 20px rgba(15,23,42,.1),0 2px 6px rgba(15,23,42,.06);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .cepage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+
+  .confirm-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+    box-shadow:var(--shadow-md);max-width:600px;margin:0 auto;
+    animation:fadeUp .3s ease both;overflow:hidden;
+  }
+
+  .confirm-header{
+    background:linear-gradient(135deg,#14532d 0%,#15803d 100%);
+    padding:22px 28px;color:#fff;
+    display:flex;align-items:center;gap:16px;
+  }
+  .confirm-header-icon{
+    width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:12px;
+    display:grid;place-items:center;font-size:22px;flex-shrink:0;
+    border:1px solid rgba(255,255,255,.2);
+  }
+  .confirm-header-title{font-size:1.2rem;font-weight:800;letter-spacing:-.02em;}
+  .confirm-header-sub{font-size:.82rem;color:rgba(187,247,208,.8);margin-top:4px;}
+
+  /* Item Summary */
+  .item-summary{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
+    padding:16px 18px;margin-bottom:22px;
+  }
+  .item-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+  .item-row:last-child{margin-bottom:0;}
+  .item-key{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .item-val{font-size:.9rem;font-weight:600;color:var(--ink);}
+
+  .saldo-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 14px;border-radius:999px;font-size:.82rem;font-weight:700;
+    background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid);
+  }
+
+  /* Flow arrow */
+  .flow-arrow-wrap{
+    display:flex;align-items:center;justify-content:center;gap:16px;
+    padding:16px 0;margin-bottom:20px;
+    border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);
+    background:var(--surface-2);
+    font-size:.82rem;font-weight:600;color:var(--ink-3);
+  }
+  .flow-node{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .flow-node-icon{
+    width:42px;height:42px;border-radius:10px;display:grid;place-items:center;
+    font-size:18px;border:1px solid var(--border);background:var(--surface);
+  }
+  .flow-node-icon.active{background:var(--green-soft);border-color:var(--green-mid);}
+  .flow-node-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+  .flow-arrow-icon{font-size:1.3rem;color:var(--border-strong);}
+
+  .form-body{padding:24px 28px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;}
+  .form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-input{
+    height:48px;border:2px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 16px;font-family:var(--mono);font-size:1.2rem;font-weight:700;
+    color:var(--ink);background:var(--surface-2);outline:none;
+    transition:border-color .15s,box-shadow .15s;text-align:center;
+  }
+  .form-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(21,128,61,.15);background:var(--surface);}
+  .form-hint{font-size:.75rem;color:var(--ink-3);text-align:center;}
+
+  .notice-box{
+    background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);
+    padding:12px 16px;margin-bottom:20px;font-size:.84rem;color:var(--amber);
+    display:flex;align-items:flex-start;gap:10px;
+  }
+
+  .form-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-green{background:var(--green);color:#fff;border-color:#166534;box-shadow:0 2px 8px rgba(21,128,61,.3);}
+  .btn-green:hover{background:#166534;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  .mono{font-family:var(--mono); font-size:.82rem;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:640px){.cepage{padding:14px 12px;}.form-body{padding:18px;}.form-footer{padding:14px 18px;}}
+</style>
+
+<div class="cepage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}">Solicitações</a>
+    <span>›</span>
+    <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}">{{ item.solicitacao.codigo }}</a>
+    <span>›</span>
+    Confirmar Envio
+  </nav>
+
+  <div class="confirm-card">
+
+    <div class="confirm-header">
+      <div class="confirm-header-icon">📤</div>
+      <div>
+        <div class="confirm-header-title">Confirmar Envio de Item</div>
+        <div class="confirm-header-sub">Solicitação {{ item.solicitacao.codigo }}</div>
+      </div>
+    </div>
+
+    <!-- FLUXO VISUAL: Saldo Ativo → Envio → Estoque -->
+    <div class="flow-arrow-wrap">
+      <div class="flow-node">
+        <div class="flow-node-icon">🏦</div>
+        <div class="flow-node-label" style="color:var(--ink-3);">Saldo Ativo</div>
+      </div>
+      <div class="flow-arrow-icon">→</div>
+      <div class="flow-node">
+        <div class="flow-node-icon active">📤</div>
+        <div class="flow-node-label" style="color:var(--green);">Envio</div>
+      </div>
+      <div class="flow-arrow-icon">→</div>
+      <div class="flow-node">
+        <div class="flow-node-icon active">📦</div>
+        <div class="flow-node-label" style="color:var(--green);">Estoque</div>
+      </div>
+    </div>
+
+    <div class="form-body">
+
+      <!-- Resumo do item -->
+      <div class="item-summary">
+        <div class="item-row">
+          <div class="item-key">E-Fisco</div>
+          <div class="item-val mono" style="color:var(--blue); font-size:.9rem;">{{ item.bem.efisco.efisco }}</div>
+        </div>
+        <div class="item-row">
+          <div class="item-key">Descrição</div>
+          <div class="item-val" style="text-align:right; max-width:70%;">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}</div>
+        </div>
+        <div class="item-row">
+          <div class="item-key">Marca</div>
+          <div class="item-val">{{ item.bem.marca|default:"—" }}</div>
+        </div>
+        <div class="item-row">
+          <div class="item-key">Qtd. Solicitada</div>
+          <div class="item-val mono" style="font-size:1rem;">{{ item.quantidade }}</div>
+        </div>
+        <div class="item-row">
+          <div class="item-key">Saldo Disponível Atual</div>
+          <div class="item-val">
+            <span class="saldo-pill">{{ item.bem.saldo_disponivel|default:0 }} disponíveis</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice-box">
+        <span style="font-size:1rem; flex-shrink:0;">⚠️</span>
+        <div>
+          Ao confirmar o envio, o saldo disponível será decrementado automaticamente e o item será <strong>registrado no Estoque</strong>.
+          Esta ação não pode ser desfeita.
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Quantidade Enviada</label>
+          <input
+            type="number"
+            name="quantidade_enviada"
+            class="form-input"
+            min="1"
+            max="{{ item.quantidade }}"
+            value="{{ item.quantidade }}"
+            required
+          >
+          <div class="form-hint">Máximo: {{ item.quantidade }} (quantidade solicitada)</div>
+        </div>
+
+        <div class="form-footer" style="padding:0; border:none; background:none; margin-top:4px;">
+          <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
+          <button type="submit" class="btn btn-green">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirmar Envio → Estoque
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,24 +1,641 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Novo Artefato{% endblock %}
+{% block title %}SIPAT — Novo Artefato{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h1>Novo Artefato</h1>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-  <div class="mb-3">
-    <a href="{% url 'dimms:artifacts' %}" class="btn btn-secondary">Voltar</a>
-  </div>
+<style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --blue-mid: #c7d7fd;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --amber-mid: #fde68a;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --accent: #2563eb;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 20px rgba(15,23,42,.09), 0 2px 6px rgba(15,23,42,.05);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
 
-  <div class="card p-3">
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ form.as_p }}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      <button type="submit" class="btn btn-primary">
-        Salvar artefato
-      </button>
-    </form>
-  </div>
+  .pg {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px;
+    color: var(--ink);
+  }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; font-weight: 500;
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 22px;
+    align-items: start;
+    max-width: 1100px;
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: fadeUp .3s ease both;
+  }
+  .card:nth-child(2) { animation-delay: .05s; }
+
+  .card-header {
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #1e2d42 0%, #1d4ed8 100%);
+    color: #fff;
+  }
+  .card-header.green { background: linear-gradient(135deg, #14532d 0%, #15803d 100%); }
+
+  .card-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-header-icon {
+    width: 34px; height: 34px;
+    background: rgba(255,255,255,.13);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 9px;
+    display: grid; place-items: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .card-header-sub { font-size: .82rem; color: rgba(200,220,255,.75); margin-top: 5px; }
+  .card-header.green .card-header-sub { color: rgba(187,247,208,.75); }
+
+  /* ─── FORM BODY ─── */
+  .form-body { padding: 24px; }
+
+  .section-label {
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+  .form-group.span-2 { grid-column: 1 / -1; }
+
+  .form-label {
+    font-size: .71rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+  }
+  .form-label .req { color: var(--red); margin-left: 2px; }
+
+  .form-control, .form-select {
+    height: 42px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 0 13px;
+    font-family: var(--font);
+    font-size: .9rem;
+    color: var(--ink);
+    background: var(--surface-2);
+    outline: none;
+    width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+    background: var(--surface);
+  }
+  .form-control.error { border-color: var(--red); }
+  .field-error { font-size: .75rem; color: var(--red); margin-top: 3px; }
+
+  /* ─── DOCS GRID ─── */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .doc-item {
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+    background: var(--surface-2);
+    transition: border-color .15s;
+  }
+  .doc-item:focus-within { border-color: var(--accent); background: var(--surface); }
+  .doc-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .doc-label .doc-tag {
+    background: var(--blue-soft);
+    color: var(--blue);
+    border: 1px solid var(--blue-mid);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+  input[type="file"].form-control { height: auto; padding: 8px 10px; font-size: .82rem; }
+
+  /* ─── SUPPLIER TOGGLE ─── */
+  .supplier-toggle-wrap {
+    margin-bottom: 0;
+  }
+
+  .toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--green-soft);
+    border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--green);
+    transition: background .15s;
+    gap: 10px;
+  }
+  .toggle-btn:hover { background: #dcfce7; }
+  .toggle-btn-left { display: flex; align-items: center; gap: 9px; }
+  .toggle-arrow {
+    width: 20px; height: 20px;
+    display: grid; place-items: center;
+    transition: transform .2s ease;
+    flex-shrink: 0;
+  }
+  .toggle-arrow.open { transform: rotate(180deg); }
+
+  .supplier-section {
+    display: none;
+    margin-top: 14px;
+    padding: 20px;
+    border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm);
+    background: var(--green-soft);
+    animation: fadeUp .2s ease both;
+  }
+  .supplier-section.open { display: block; }
+
+  .supplier-checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+  }
+  .supplier-checkbox-wrap input[type="checkbox"] {
+    width: 17px; height: 17px; accent-color: var(--green); cursor: pointer;
+  }
+  .supplier-checkbox-wrap label {
+    font-size: .85rem; font-weight: 600; color: var(--green); cursor: pointer;
+  }
+
+  /* ─── FORM FOOTER ─── */
+  .form-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    flex-wrap: wrap;
+  }
+
+  /* ─── SIDE INFO ─── */
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: fadeUp .3s .1s ease both;
+    margin-bottom: 16px;
+  }
+  .info-card:last-child { margin-bottom: 0; }
+  .info-card-head {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .info-card-body { padding: 14px 16px; }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-step:last-child { border-bottom: none; padding-bottom: 0; }
+  .flow-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: .75rem;
+    font-weight: 800;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    border: 1px solid var(--blue-mid);
+  }
+  .flow-num.done { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .flow-title { font-size: .84rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .flow-sub   { font-size: .75rem; color: var(--ink-3); margin-top: 2px; }
+
+  .doc-hint {
+    font-size: .78rem;
+    color: var(--ink-3);
+    line-height: 1.5;
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    margin-top: 8px;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .9rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: #1d4ed8; box-shadow: 0 2px 8px rgba(37,99,235,.3); }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+    .docs-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="pg">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:artifacts' %}">Artefatos</a>
+    <span>›</span>
+    Novo Artefato
+  </nav>
+
+  <form method="post" enctype="multipart/form-data" id="mainForm">
+    {% csrf_token %}
+    <input type="hidden" name="cadastrar_supplier" id="cadastrarSupplierInput" value="0">
+
+    <div class="layout">
+
+      <!-- COLUNA PRINCIPAL -->
+      <div>
+
+        <!-- DADOS DO ARTEFATO -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div class="card-header-title">
+              <div class="card-header-icon">📋</div>
+              Dados do Artefato
+            </div>
+            <div class="card-header-sub">Informações principais para identificação do processo</div>
+          </div>
+          <div class="form-body">
+
+            <div class="form-grid-2">
+              <div class="form-group span-2">
+                <label class="form-label">{{ form.description.label }} <span class="req">*</span></label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="field-error">{{ form.description.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ form.sei.label }}</label>
+                {{ form.sei }}
+                {% if form.sei.errors %}<div class="field-error">{{ form.sei.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ form.state.label }}</label>
+                {{ form.state }}
+                {% if form.state.errors %}<div class="field-error">{{ form.state.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- DOCUMENTOS -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div class="card-header-title">
+              <div class="card-header-icon">📁</div>
+              Documentos do Processo
+            </div>
+            <div class="card-header-sub">Todos os campos são opcionais — podem ser adicionados depois</div>
+          </div>
+          <div class="form-body">
+            <div class="docs-grid">
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">TR</span> Termo de Referência</div>
+                <input type="file" name="{{ form.tr.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">ETP</span> Estudo Técnico Preliminar</div>
+                <input type="file" name="{{ form.etp.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">RGPP</span> Registro de Preço</div>
+                <input type="file" name="{{ form.rgpp.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">DODE</span> Oficialização de Demanda</div>
+                <input type="file" name="{{ form.dode.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">TAPP</span> Análise Preliminar do Planejamento</div>
+                <input type="file" name="{{ form.tapp.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+              <div class="doc-item">
+                <div class="doc-label"><span class="doc-tag">RISCO</span> Análise de Risco</div>
+                <input type="file" name="{{ form.risk_analysis.html_name }}" class="form-control" accept=".pdf,.doc,.docx">
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- CADASTRAR FORNECEDOR (OPCIONAL) -->
+        <div class="card">
+          <div class="card-header green">
+            <div class="card-header-title">
+              <div class="card-header-icon">🏢</div>
+              Fornecedor
+            </div>
+            <div class="card-header-sub">Opcional — cadastre um fornecedor junto com o artefato</div>
+          </div>
+          <div class="form-body">
+
+            <div class="supplier-toggle-wrap">
+              <button type="button" class="toggle-btn" id="toggleBtn" onclick="toggleSupplier()">
+                <div class="toggle-btn-left">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3M10 7h4M10 11h4M10 15h4"/>
+                  </svg>
+                  Cadastrar novo fornecedor
+                </div>
+                <div class="toggle-arrow" id="toggleArrow">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </div>
+              </button>
+
+              <div class="supplier-section" id="supplierSection">
+                <div class="form-grid-2">
+
+                  <div class="form-group span-2">
+                    <label class="form-label">{{ supplier_form.supplier.label }} <span class="req">*</span></label>
+                    {{ supplier_form.supplier }}
+                    {% if supplier_form.supplier.errors %}<div class="field-error">{{ supplier_form.supplier.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">{{ supplier_form.cnpj_supplier.label }}</label>
+                    {{ supplier_form.cnpj_supplier }}
+                    {% if supplier_form.cnpj_supplier.errors %}<div class="field-error">{{ supplier_form.cnpj_supplier.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">{{ supplier_form.email_supplier.label }}</label>
+                    {{ supplier_form.email_supplier }}
+                    {% if supplier_form.email_supplier.errors %}<div class="field-error">{{ supplier_form.email_supplier.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">{{ supplier_form.name_responsible.label }} <span class="req">*</span></label>
+                    {{ supplier_form.name_responsible }}
+                    {% if supplier_form.name_responsible.errors %}<div class="field-error">{{ supplier_form.name_responsible.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">{{ supplier_form.cpf_responsible.label }}</label>
+                    {{ supplier_form.cpf_responsible }}
+                    {% if supplier_form.cpf_responsible.errors %}<div class="field-error">{{ supplier_form.cpf_responsible.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                  <div class="form-group span-2">
+                    <label class="form-label">{{ supplier_form.contact_supplier.label }}</label>
+                    {{ supplier_form.contact_supplier }}
+                    {% if supplier_form.contact_supplier.errors %}<div class="field-error">{{ supplier_form.contact_supplier.errors|join:", " }}</div>{% endif %}
+                  </div>
+
+                </div>
+
+                <div class="supplier-checkbox-wrap">
+                  <input type="checkbox" id="confirmarSupplier" onchange="updateSupplierFlag(this)">
+                  <label for="confirmarSupplier">Confirmar cadastro do fornecedor junto com o artefato</label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="form-footer">
+            <a href="{% url 'dimms:artifacts' %}" class="btn btn-ghost">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+              Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Salvar Artefato
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA LATERAL: Info e fluxo -->
+      <div>
+
+        <div class="info-card">
+          <div class="info-card-head">
+            <span>📍</span> Fluxo do Processo
+          </div>
+          <div class="info-card-body">
+            <div class="flow-step">
+              <div class="flow-num done">✓</div>
+              <div>
+                <div class="flow-title">Criar Artefato</div>
+                <div class="flow-sub">Você está aqui</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div>
+                <div class="flow-title">Adicionar Itens</div>
+                <div class="flow-sub">Definir bens e quantidades</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div>
+                <div class="flow-title">Cadastrar Proposta</div>
+                <div class="flow-sub">Vincular fornecedor e preços</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <div>
+                <div class="flow-title">Aprovar Itens</div>
+                <div class="flow-sub">Análise e aprovação da proposta</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">5</div>
+              <div>
+                <div class="flow-title">Criar Contrato</div>
+                <div class="flow-sub">Formalizar com o fornecedor vencedor</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">6</div>
+              <div>
+                <div class="flow-title">Gerar Saldo Ativo</div>
+                <div class="flow-sub">Bens disponíveis para solicitação</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-head">
+            <span>💡</span> Sobre os Documentos
+          </div>
+          <div class="info-card-body">
+            <div class="doc-hint">
+              Todos os documentos são <strong>opcionais</strong> no cadastro inicial. Você pode anexá-los depois em <strong>Gerenciar Documentos</strong> na página do artefato.
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-head">
+            <span>🏢</span> Sobre o Fornecedor
+          </div>
+          <div class="info-card-body">
+            <div class="doc-hint" style="background:var(--green-soft);border-color:var(--green-mid);color:var(--green);">
+              O cadastro de fornecedor é <strong>opcional</strong> aqui. Fornecedores também podem ser gerenciados no painel administrativo.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </form>
+
 </div>
+
+<script>
+  function toggleSupplier() {
+    const section = document.getElementById('supplierSection');
+    const arrow   = document.getElementById('toggleArrow');
+    const isOpen  = section.classList.contains('open');
+
+    if (isOpen) {
+      section.classList.remove('open');
+      arrow.classList.remove('open');
+      // desmarcar e zerar flag
+      document.getElementById('confirmarSupplier').checked = false;
+      document.getElementById('cadastrarSupplierInput').value = '0';
+    } else {
+      section.classList.add('open');
+      arrow.classList.add('open');
+    }
+  }
+
+  function updateSupplierFlag(checkbox) {
+    document.getElementById('cadastrarSupplierInput').value = checkbox.checked ? '1' : '0';
+  }
+
+  // Se houver erros no supplier_form, abrir a seção automaticamente
+  {% if supplier_form.errors %}
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('supplierSection').classList.add('open');
+      document.getElementById('toggleArrow').classList.add('open');
+      document.getElementById('confirmarSupplier').checked = true;
+      document.getElementById('cadastrarSupplierInput').value = '1';
+    });
+  {% endif %}
+</script>
+
 {% endblock %}
