@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+
+handler403 = 'accounts.views.errors.permission_denied'
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import views as auth_views
 from django.conf import settings
@@ -28,6 +30,7 @@ urlpatterns = [
     path('dempam/', include(('dempam.urls', 'dempam'), namespace='dempam')),
     path('dimms/', include(('dimms.urls', 'dimms'), namespace='dimms')),
     path('dimrcbp/', include(('dimrcbp.urls', 'dimrcbp'), namespace='dimrcbp')),
+    path('access/', include(('accounts.urls', 'accounts'), namespace='accounts')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
