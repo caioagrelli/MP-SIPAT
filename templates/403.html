@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIPAT — Acesso Negado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sora', 'Segoe UI', sans-serif;
+      background: #f0f2f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, .12);
+      padding: 52px 48px;
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 80px; height: 80px;
+      border-radius: 22px;
+      background: #fef2f2;
+      border: 1.5px solid #fecaca;
+      display: grid;
+      place-items: center;
+      font-size: 2.2rem;
+      margin: 0 auto 28px;
+    }
+
+    .code {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #b91c1c;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 999px;
+      padding: 3px 12px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1a2035;
+      letter-spacing: -.03em;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    p {
+      font-size: .9rem;
+      color: #7380a0;
+      font-weight: 500;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: #2563eb;
+      color: #fff;
+      font-family: 'Sora', sans-serif;
+      font-size: .9rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background .15s, transform .15s;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, .3);
+    }
+
+    .btn-back:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e5ef;
+      margin: 28px 0 20px;
+    }
+
+    .home-link {
+      font-size: .82rem;
+      font-weight: 600;
+      color: #7380a0;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .home-link:hover { color: #2563eb; }
+
+    @media (max-width: 480px) {
+      .card { padding: 36px 24px; }
+      h1 { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="icon-wrap">🔒</div>
+
+    <span class="code">Erro 403</span>
+
+    <h1>Acesso não autorizado</h1>
+
+    <p>
+      Você não tem permissão para acessar esta página.<br>
+      Se acredita que isso é um engano, entre em contato com o administrador do sistema.
+    </p>
+
+    {% if user.is_authenticated %}
+      <a href="/home/" class="btn-back">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Ir para o painel principal
+      </a>
+    {% else %}
+      <a href="/login/" class="btn-back">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Fazer login
+      </a>
+    {% endif %}
+  </div>
+
+</body>
+</html>

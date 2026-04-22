@@ -291,18 +291,25 @@
         <span class="nav-item-icon">🏠</span> Painel Principal
       </a>
 
+      {% if perms.dimrcbp or perms.dimms %}
       <div class="nav-section-label">Patrimônio Interno</div>
+      {% endif %}
 
+      {% if perms.dimrcbp %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dimrcbp:homepage' %}">
         <span class="nav-item-icon">📦</span> Bens Permanentes
       </a>
+      {% endif %}
 
+      {% if perms.dimms %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimms' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dimms:homepage' %}">
         <span class="nav-item-icon">📝</span> Bens de Consumo
       </a>
+      {% endif %}
 
+      {% if perms.dempam %}
       <div class="nav-section-label">Gestão</div>
 
       <a class="nav-item-link {% if request.resolver_match.url_name == 'demands' %}active{% endif %}"
@@ -314,9 +321,19 @@
          href="{% url 'dempam:homepage' %}">
         <span class="nav-item-icon">🏢</span> Painel Gerencial
       </a>
+      {% endif %}
 
       <!-- Admin: discreto, no fundo -->
       <hr class="nav-divider">
+
+      {% if user.is_staff or user.is_superuser %}
+      <div class="nav-section-label">Administração</div>
+
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}"
+         href="{% url 'accounts:users_list' %}">
+        <span class="nav-item-icon">🔐</span> Controle de Acesso
+      </a>
+      {% endif %}
 
       <a class="nav-item-link admin-link" href="{% url 'admin:index' %}" title="Painel Administrativo">
         <span class="nav-item-icon">⚙</span> Administrativo
@@ -328,10 +345,18 @@
   <!-- FOOTER -->
   {% if user.is_authenticated %}
   <div class="sidebar-footer">
-    <div class="footer-user">
-      <div class="footer-avatar">{{ user.username|slice:":1"|upper }}</div>
-      <div class="footer-username">{{ user.username }}</div>
-    </div>
+    <a href="{% url 'accounts:profile' %}" class="footer-user" style="text-decoration:none;" title="Meu perfil">
+      {% with photo=user.profile.photo %}
+        {% if photo %}
+          <div class="footer-avatar" style="padding:0; overflow:hidden;">
+            <img src="{{ photo.url }}" alt="foto" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+        {% else %}
+          <div class="footer-avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div>
+        {% endif %}
+      {% endwith %}
+      <div class="footer-username">{{ user.get_full_name|default:user.username }}</div>
+    </a>
 
     <form action="{% url 'logout' %}" method="post" class="m-0">
       {% csrf_token %}

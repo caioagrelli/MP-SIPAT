@@ -1,0 +1,287 @@
+{% extends 'global/base.html' %}
+{% load access_tags %}
+
+{% block title %}SIPAT — Permissões: {{ group.name }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 900px; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .83rem; font-weight: 600; color: var(--ink-3);
+    text-decoration: none; margin-bottom: 20px; transition: color .15s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  /* Cabeçalho do grupo */
+  .group-header {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .group-icon-big {
+    width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+    background: var(--violet-soft); border: 1px solid var(--violet-mid);
+    display: grid; place-items: center; font-size: 1.4rem;
+  }
+  .group-header-name { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+  .group-header-sub { font-size: .82rem; color: var(--ink-3); margin-top: 3px; }
+
+  /* Card por app */
+  .app-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .app-card-head {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .app-card-title {
+    font-size: .88rem; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .app-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* Cores por app */
+  .app-dimms    .app-dot { background: #1d4ed8; }
+  .app-dimrcbp  .app-dot { background: #0f766e; }
+  .app-dempam   .app-dot { background: #6d28d9; }
+  .app-accounts .app-dot { background: #b45309; }
+
+  .select-all-btn {
+    font-size: .73rem; font-weight: 700; color: var(--ink-3);
+    background: none; border: none; cursor: pointer; font-family: var(--font);
+    padding: 4px 8px; border-radius: 6px; transition: background .13s, color .13s;
+  }
+  .select-all-btn:hover { background: var(--border); color: var(--ink); }
+
+  /* Tabela de permissões */
+  .perm-table { width: 100%; border-collapse: collapse; }
+  .perm-table thead th {
+    padding: 10px 16px; font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
+    background: var(--surface-2); border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .perm-table thead th:first-child { text-align: left; width: 40%; }
+
+  .perm-table tbody td {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    vertical-align: middle; text-align: center;
+  }
+  .perm-table tbody td:first-child { text-align: left; }
+  .perm-table tbody tr:last-child td { border-bottom: none; }
+  .perm-table tbody tr:hover td { background: #f5f8ff; }
+
+  .model-name { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+
+  /* Checkbox visual */
+  .perm-check { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+  .perm-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  .check-box {
+    width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+    border: 2px solid var(--border-strong); background: var(--surface);
+    display: grid; place-items: center;
+    transition: all .15s ease;
+    font-size: .78rem; color: transparent;
+  }
+  .check-box:hover { border-color: var(--accent); background: var(--blue-soft); }
+
+  /* Cores diferentes por ação */
+  .perm-check.action-view   input:checked + .check-box { background: var(--blue-soft);   border-color: var(--blue);   color: var(--blue); }
+  .perm-check.action-add    input:checked + .check-box { background: var(--green-soft);  border-color: var(--green);  color: var(--green); }
+  .perm-check.action-change input:checked + .check-box { background: var(--amber-soft);  border-color: var(--amber);  color: var(--amber); }
+  .perm-check.action-delete input:checked + .check-box { background: var(--red-soft);    border-color: var(--red);    color: var(--red); }
+
+  /* Legenda das ações */
+  .legend-strip {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    padding: 14px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    margin-bottom: 20px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; color: var(--ink-3); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+  .dot-view   { background: var(--blue); }
+  .dot-add    { background: var(--green); }
+  .dot-change { background: var(--amber); }
+  .dot-delete { background: var(--red); }
+
+  /* Ações do formulário */
+  .form-actions {
+    display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .apage { padding: 14px 12px 32px; }
+    .perm-table thead th, .perm-table tbody td { padding: 10px 10px; }
+  }
+</style>
+
+<div class="apage">
+
+  <a href="{% url 'accounts:groups_list' %}" class="back-link">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Voltar para grupos
+  </a>
+
+  <!-- Cabeçalho -->
+  <div class="group-header">
+    <div class="group-icon-big">🔐</div>
+    <div>
+      <div class="group-header-name">{{ group.name }}</div>
+      <div class="group-header-sub">Defina o que os membros deste grupo podem fazer em cada módulo.</div>
+    </div>
+  </div>
+
+  <!-- Legenda -->
+  <div class="legend-strip">
+    <div class="legend-item"><span class="legend-dot dot-view"></span> Ver</div>
+    <div class="legend-item"><span class="legend-dot dot-add"></span> Adicionar</div>
+    <div class="legend-item"><span class="legend-dot dot-change"></span> Editar</div>
+    <div class="legend-item"><span class="legend-dot dot-delete"></span> Deletar</div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% for app_label, app in apps_data.items %}
+    <div class="app-card app-{{ app_label }}">
+
+      <div class="app-card-head">
+        <div class="app-card-title">
+          <span class="app-dot"></span>
+          {{ app.display_name }}
+        </div>
+        <button
+          type="button"
+          class="select-all-btn"
+          onclick="toggleApp('{{ app_label }}')"
+          data-app="{{ app_label }}"
+          data-state="off"
+        >
+          Selecionar tudo
+        </button>
+      </div>
+
+      <table class="perm-table" id="table-{{ app_label }}">
+        <thead>
+          <tr>
+            <th>Model</th>
+            {% for action in actions %}
+              <th>{{ action_labels|get_item:action }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for model in app.models %}
+          <tr>
+            <td><span class="model-name">{{ model.verbose_name }}</span></td>
+            {% for action in actions %}
+              <td>
+                {% with perm=model.perms|get_item:action %}
+                  {% if perm %}
+                    <label class="perm-check action-{{ action }}">
+                      <input
+                        type="checkbox"
+                        name="permissions"
+                        value="{{ perm.id }}"
+                        class="perm-cb app-{{ app_label }}"
+                        {% if perm.id in group_perm_ids %}checked{% endif %}
+                      >
+                      <span class="check-box">✓</span>
+                    </label>
+                  {% else %}
+                    <span style="color:var(--border-strong); font-size:.8rem;">—</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% empty %}
+      <p style="color:var(--ink-3); font-size:.9rem;">Nenhuma permissão encontrada. Execute <code>manage.py migrate</code> para criá-las.</p>
+    {% endfor %}
+
+    <div class="form-actions">
+      <a href="{% url 'accounts:groups_list' %}" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        Salvar permissões
+      </button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+  // Seleciona/deseleciona todos os checkboxes de um app
+  function toggleApp(appLabel) {
+    const btn = document.querySelector(`[data-app="${appLabel}"]`);
+    const checkboxes = document.querySelectorAll(`.perm-cb.app-${appLabel}`);
+    const isOff = btn.dataset.state === 'off';
+
+    checkboxes.forEach(cb => cb.checked = isOff);
+    btn.dataset.state = isOff ? 'on' : 'off';
+    btn.textContent = isOff ? 'Desmarcar tudo' : 'Selecionar tudo';
+  }
+
+  // Atualiza o botão de "selecionar tudo" ao carregar a página
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.select-all-btn').forEach(btn => {
+      const appLabel = btn.dataset.app;
+      const checkboxes = document.querySelectorAll(`.perm-cb.app-${appLabel}`);
+      const allChecked = [...checkboxes].every(cb => cb.checked);
+      if (allChecked && checkboxes.length > 0) {
+        btn.dataset.state = 'on';
+        btn.textContent = 'Desmarcar tudo';
+      }
+    });
+  });
+</script>
+
+{% endblock %}

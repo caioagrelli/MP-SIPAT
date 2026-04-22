@@ -1,0 +1,123 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ action }} Grupo{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 520px; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .83rem; font-weight: 600; color: var(--ink-3);
+    text-decoration: none; margin-bottom: 20px; transition: color .15s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  .page-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; margin-bottom: 4px; }
+  .page-sub { font-size: .88rem; color: var(--ink-3); font-weight: 500; margin-bottom: 28px; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden;
+  }
+  .form-card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    font-size: 1rem; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-card-body { padding: 24px; }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-input {
+    height: 42px; border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 14px; font-family: var(--font); font-size: .9rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%; transition: border-color .15s, box-shadow .15s;
+  }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field-hint { font-size: .76rem; color: var(--ink-3); margin-top: 4px; }
+
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } }
+</style>
+
+<div class="apage">
+
+  <a href="{% url 'accounts:groups_list' %}" class="back-link">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Voltar para grupos
+  </a>
+
+  <div class="page-title">{{ action }} Grupo</div>
+  <div class="page-sub">
+    {% if action == 'Criar' %}
+      Defina um nome para o novo grupo de acesso.
+    {% else %}
+      Renomeie o grupo de acesso.
+    {% endif %}
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-head">🔐 Dados do Grupo</div>
+    <div class="form-card-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label class="field-label" for="id_name">Nome do Grupo</label>
+          <input
+            class="field-input"
+            type="text"
+            id="id_name"
+            name="name"
+            value="{{ group.name|default:'' }}"
+            placeholder="Ex: Gerencia, Operador, Visualizador…"
+            autofocus
+          >
+          <span class="field-hint">Use um nome claro que descreva o nível de acesso.</span>
+        </div>
+
+        <div class="form-actions">
+          <a href="{% url 'accounts:groups_list' %}" class="btn btn-ghost">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            {{ action }} Grupo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
