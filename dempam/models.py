@@ -107,9 +107,13 @@ class SetorDEMPAM(models.Model):
     class Meta():
         verbose_name='Setor/Sala DEMPAM'
         verbose_name_plural='03 - Setores/Salas DEMPAM'
-        
+
     def __str__(self):
-       return str(self.setor)  
+       return str(self.setor)
+
+    @property
+    def total_localizacoes(self):
+        return self.localizacao_interna.count()
 
 class LocalizacaoDEMPAM(models.Model):
     setor_sala = models.ForeignKey(

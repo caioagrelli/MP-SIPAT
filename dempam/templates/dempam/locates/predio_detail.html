@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT — Unidades Administrativas{% endblock %}
+{% block title %}SIPAT — {{ predio.local }}{% endblock %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -22,45 +22,36 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
 
+  .page-back{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--ink-3);text-decoration:none;margin-bottom:12px;transition:color .15s;}
+  .page-back:hover{color:var(--ink);}
+
   .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
-  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
-  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
-  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
-  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
-  .btn-primary:hover{background:var(--accent-dark);color:#fff;}
+  .page-title{font-size:1.65rem;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:10px;}
+  .page-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  /* ── Info banner ── */
+  .info-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;box-shadow:var(--shadow-sm);}
+  .info-item{display:flex;flex-direction:column;gap:3px;}
+  .info-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .info-value{font-size:.92rem;font-weight:700;color:var(--ink);}
+  .info-sep{width:1px;height:36px;background:var(--border-strong);align-self:center;}
 
   /* ── KPI strip ── */
-  .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+  .kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px;}
   .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;animation:fadeUp .3s ease both;}
   .kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
   .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
   .kpi-card:nth-child(1)::before{background:var(--blue);}
   .kpi-card:nth-child(2)::before{background:var(--green);}
-  .kpi-card:nth-child(3)::before{background:var(--amber);}
-  .kpi-card:nth-child(2){animation-delay:.04s;}
-  .kpi-card:nth-child(3){animation-delay:.08s;}
   .kpi-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
   .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
   .kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;}
   .kpi-sub{font-size:.76rem;color:var(--ink-3);margin-top:5px;}
   .kpi-card:nth-child(1) .kpi-value{color:var(--blue);}
   .kpi-card:nth-child(2) .kpi-value{color:var(--green);}
-  .kpi-card:nth-child(3) .kpi-value{color:var(--amber);}
   .kpi-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
   .ki-blue{background:var(--blue-soft);}
   .ki-green{background:var(--green-soft);}
-  .ki-amber{background:var(--amber-soft);}
-
-  /* ── Filtros ── */
-  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
-  .filter-input{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;min-width:220px;flex:1;}
-  .filter-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
-  .filter-select{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;cursor:pointer;min-width:180px;}
-  .filter-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
-  .filter-btn{height:38px;padding:0 18px;border-radius:var(--r-sm);border:1.5px solid var(--accent-dark);background:var(--accent);color:#fff;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;}
-  .filter-btn:hover{background:var(--accent-dark);}
-  .filter-clear{height:38px;padding:0 14px;border-radius:var(--r-sm);border:1.5px solid var(--border-strong);background:var(--surface);color:var(--ink-3);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;}
-  .filter-clear:hover{color:var(--ink);}
 
   /* ── Main card ── */
   .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;animation:fadeUp .3s .08s ease both;}
@@ -77,6 +68,7 @@
   .main-table tbody tr:hover td{background:#f5f8ff;}
   .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
 
+  /* ── Pills ── */
   .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.73rem;font-weight:700;border:1px solid;}
   .pill-dot{width:6px;height:6px;border-radius:50%;}
   .p-green{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
@@ -84,27 +76,47 @@
   .p-default{background:var(--surface-2);color:var(--ink-3);border-color:var(--border-strong);}
   .p-default .pill-dot{background:var(--ink-3);}
 
+  /* ── Empty ── */
   .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
   .table-empty-icon{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.3;}
   .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-  @media(max-width:800px){.kpi-strip{grid-template-columns:1fr 1fr;}}
-  @media(max-width:640px){.apage{padding:14px 12px 32px;}.kpi-strip{grid-template-columns:1fr 1fr;}}
+  @media(max-width:640px){.kpi-strip{grid-template-columns:1fr;}.apage{padding:14px 12px 32px;}}
 </style>
 
 <div class="apage">
 
+  <a href="{% url 'dempam:locate_homepage' %}" class="page-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Voltar para Locais
+  </a>
+
   <div class="topbar">
     <div>
-      <div class="topbar-title">Unidades Administrativas</div>
-      <div class="topbar-sub">Visualize e gerencie as UAs cadastradas.</div>
+      <div class="page-title">🏛️ {{ predio.local }}</div>
+      <div class="page-sub">Unidades Administrativas vinculadas a este local.</div>
     </div>
-    <a href="{% url 'dempam:ua_add' %}" class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      Nova UA
-    </a>
   </div>
+
+  <!-- ── Info banner ── -->
+  {% if predio.meso or predio.micro %}
+  <div class="info-banner">
+    {% if predio.meso %}
+    <div class="info-item">
+      <span class="info-label">Mesorregião</span>
+      <span class="info-value">{{ predio.meso }}</span>
+    </div>
+    {% endif %}
+    {% if predio.meso and predio.micro %}<div class="info-sep"></div>{% endif %}
+    {% if predio.micro %}
+    <div class="info-item">
+      <span class="info-label">Microrregião</span>
+      <span class="info-value">{{ predio.micro }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- ── KPIs ── -->
   <div class="kpi-strip">
@@ -112,8 +124,8 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Total de UAs</div>
-          <div class="kpi-value">{{ total_cadastradas }}</div>
-          <div class="kpi-sub">Unidades cadastradas</div>
+          <div class="kpi-value">{{ uas|length }}</div>
+          <div class="kpi-sub">Unidades neste local</div>
         </div>
         <div class="kpi-icon ki-blue">🏢</div>
       </div>
@@ -122,49 +134,24 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Sedes</div>
-          <div class="kpi-value">{{ total_sedes }}</div>
-          <div class="kpi-sub">UAs marcadas como sede</div>
+          <div class="kpi-value">{% with count=0 %}{% for ua in uas %}{% if ua.sede %}{% with count=count|add:1 %}{% endwith %}{% endif %}{% endfor %}{{ uas|length }}{% endwith %}</div>
+          <div class="kpi-sub">
+            {% with sedes=0 %}
+              {% for ua in uas %}{% if ua.sede %}{% with sedes=sedes|add:1 %}{% endwith %}{% endif %}{% endfor %}
+            {% endwith %}
+            UAs marcadas como sede
+          </div>
         </div>
         <div class="kpi-icon ki-green">⭐</div>
       </div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-inner">
-        <div>
-          <div class="kpi-label">Locais / Prédios</div>
-          <div class="kpi-value">{{ total_predios }}</div>
-          <div class="kpi-sub">Circunscrições cadastradas</div>
-        </div>
-        <div class="kpi-icon ki-amber">🏛️</div>
-      </div>
-    </div>
   </div>
 
-  <!-- ── Filtros ── -->
-  <form method="get" class="filter-bar">
-    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por UA, responsável, e-mail..." class="filter-input">
-    <select name="predio" class="filter-select">
-      <option value="">Todos os locais</option>
-      {% for p in predios %}
-        <option value="{{ p.pk }}" {% if predio_filter == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.local }}</option>
-      {% endfor %}
-    </select>
-    <select name="sede" class="filter-select" style="min-width:130px;">
-      <option value="">Sede / Não sede</option>
-      <option value="1" {% if sede_filter == "1" %}selected{% endif %}>Apenas sedes</option>
-      <option value="0" {% if sede_filter == "0" %}selected{% endif %}>Não sedes</option>
-    </select>
-    <button type="submit" class="filter-btn">Filtrar</button>
-    {% if query or predio_filter or sede_filter %}
-      <a href="{% url 'dempam:ua_homepage' %}" class="filter-clear">Limpar</a>
-    {% endif %}
-  </form>
-
-  <!-- ── Tabela ── -->
+  <!-- ── Tabela de UAs ── -->
   <div class="main-card">
     <div class="main-card-head">
       <div class="main-card-title">
-        UAs cadastradas
+        Unidades Administrativas
         <span class="total-badge">{{ uas|length }}</span>
       </div>
     </div>
@@ -174,8 +161,8 @@
           <tr>
             <th>#</th>
             <th>UA</th>
-            <th>Local / Circunscrição</th>
             <th>Responsável</th>
+            <th>Matrícula</th>
             <th>Contato</th>
             <th>E-mail</th>
             <th>Sede</th>
@@ -188,8 +175,8 @@
             <td>
               <a href="{% url 'dempam:ua_detail' ua.pk %}" style="font-weight:700;color:var(--accent);text-decoration:none;">{{ ua.ua }}</a>
             </td>
-            <td>{{ ua.circunscricao_predio }}</td>
             <td>{{ ua.responsavel_ua|default:"—" }}</td>
+            <td class="mono-cell">{{ ua.mat_resp_ua|default:"—" }}</td>
             <td class="mono-cell">{{ ua.contato_ua|default:"—" }}</td>
             <td>
               {% if ua.email_ua %}
@@ -209,8 +196,8 @@
             <td colspan="7">
               <div class="table-empty">
                 <span class="table-empty-icon">🏢</span>
-                <div class="table-empty-title">Nenhuma UA encontrada</div>
-                <div>Tente ajustar os filtros ou cadastre uma nova UA.</div>
+                <div class="table-empty-title">Nenhuma UA cadastrada</div>
+                <div>Ainda não há unidades vinculadas a este local.</div>
               </div>
             </td>
           </tr>

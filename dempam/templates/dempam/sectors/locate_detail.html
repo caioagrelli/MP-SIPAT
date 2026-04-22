@@ -1,0 +1,269 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ localizacao.prateleira_pallet }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --teal:#0f766e; --teal-soft:#f0fdfa; --teal-mid:#99f6e4;
+    --violet:#6d28d9; --violet-soft:#f5f3ff; --violet-mid:#ddd6fe;
+    --slate:#475569; --slate-soft:#f8fafc; --slate-mid:#cbd5e1;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
+
+  .page-back{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--ink-3);text-decoration:none;margin-bottom:12px;transition:color .15s;}
+  .page-back:hover{color:var(--ink);}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .page-title{font-size:1.65rem;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:10px;}
+  .page-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  /* ── Info banner ── */
+  .info-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;box-shadow:var(--shadow-sm);}
+  .info-item{display:flex;flex-direction:column;gap:3px;}
+  .info-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .info-value{font-size:.92rem;font-weight:700;color:var(--ink);font-family:var(--mono);}
+  .info-sep{width:1px;height:36px;background:var(--border-strong);align-self:center;}
+
+  /* ── KPI strip ── */
+  .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;animation:fadeUp .3s ease both;}
+  .kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card:nth-child(1)::before{background:var(--ink-3);}
+  .kpi-card:nth-child(2)::before{background:var(--blue);}
+  .kpi-card:nth-child(3)::before{background:var(--green);}
+  .kpi-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+  .kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;color:var(--ink);}
+  .kpi-sub{font-size:.76rem;color:var(--ink-3);margin-top:5px;}
+  .kpi-card:nth-child(2) .kpi-value{color:var(--blue);}
+  .kpi-card:nth-child(3) .kpi-value{color:var(--green);}
+  .kpi-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
+  .ki-gray{background:var(--surface-2);}
+  .ki-blue{background:var(--blue-soft);}
+  .ki-green{background:var(--green-soft);}
+
+  /* ── Main card ── */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;animation:fadeUp .3s .08s ease both;}
+  .main-card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--surface-2);}
+  .main-card-title{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .total-badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.78rem;font-family:var(--mono);font-weight:700;}
+
+  /* ── Table ── */
+  .main-table-wrap{overflow-x:auto;}
+  .main-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+  .main-table thead th{padding:10px 18px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+  .main-table tbody td{padding:13px 18px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  .main-table tbody tr:last-child td{border-bottom:none;}
+  .main-table tbody tr:hover td{background:#f5f8ff;}
+  .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
+
+  /* ── Pills ── */
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.73rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .p-green{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .p-green .pill-dot{background:var(--green);}
+  .p-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .p-amber .pill-dot{background:var(--amber);}
+  .p-red{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .p-red .pill-dot{background:var(--red);}
+  .p-blue{background:var(--blue-soft);color:var(--blue);border-color:var(--blue-mid);}
+  .p-blue .pill-dot{background:var(--blue);}
+  .p-default{background:var(--slate-soft);color:var(--slate);border-color:var(--slate-mid);}
+  .p-default .pill-dot{background:var(--slate);}
+
+  /* ── Validity badge ── */
+  .val-ok{color:var(--green);font-family:var(--mono);font-size:.8rem;font-weight:700;}
+  .val-warn{color:var(--amber);font-family:var(--mono);font-size:.8rem;font-weight:700;}
+  .val-exp{color:var(--red);font-family:var(--mono);font-size:.8rem;font-weight:700;}
+  .val-none{color:var(--ink-3);font-size:.8rem;}
+
+  /* ── Empty ── */
+  .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
+  .table-empty-icon{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.3;}
+  .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:640px){.kpi-strip{grid-template-columns:1fr 1fr;}.apage{padding:14px 12px 32px;}}
+</style>
+
+<div class="apage">
+
+  <a href="{% url 'dempam:sector_detail' localizacao.setor_sala.pk %}" class="page-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Voltar para {{ localizacao.setor_sala.setor }}
+  </a>
+
+  <div class="topbar">
+    <div>
+      <div class="page-title">
+        {% if localizacao.tipo_localizacao == "PALLET" %}📦{% else %}🗄️{% endif %}
+        {{ localizacao.prateleira_pallet }}
+      </div>
+      <div class="page-sub">Itens armazenados nesta localização.</div>
+    </div>
+  </div>
+
+  <!-- ── Info banner ── -->
+  <div class="info-banner">
+    <div class="info-item">
+      <span class="info-label">Setor / Sala</span>
+      <span class="info-value">{{ localizacao.setor_sala.setor }}</span>
+    </div>
+    <div class="info-sep"></div>
+    <div class="info-item">
+      <span class="info-label">Identificação</span>
+      <span class="info-value">{{ localizacao.prateleira_pallet }}</span>
+    </div>
+    <div class="info-sep"></div>
+    <div class="info-item">
+      <span class="info-label">Tipo</span>
+      <span class="info-value">{{ localizacao.tipo_localizacao }}</span>
+    </div>
+  </div>
+
+  <!-- ── KPIs ── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Tipos de Item</div>
+          <div class="kpi-value">{{ itens|length }}</div>
+          <div class="kpi-sub">Itens distintos</div>
+        </div>
+        <div class="kpi-icon ki-gray">📋</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Qtd. Total</div>
+          <div class="kpi-value">{{ total_qtd }}</div>
+          <div class="kpi-sub">Unidades armazenadas</div>
+        </div>
+        <div class="kpi-icon ki-blue">📦</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Essenciais</div>
+          <div class="kpi-value">{{ itens|length }}</div>
+          <div class="kpi-sub">
+            {% with ess=0 %}
+              {% for i in itens %}{% if i.essential %}{% with ess=ess|add:1 %}{% endwith %}{% endif %}{% endfor %}
+            {% endwith %}
+            itens marcados como essenciais
+          </div>
+        </div>
+        <div class="kpi-icon ki-green">⭐</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tabela de itens ── -->
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Itens nesta localização
+        <span class="total-badge">{{ itens|length }}</span>
+      </div>
+    </div>
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>E-Fisco</th>
+            <th>Descrição</th>
+            <th>Marca</th>
+            <th>Quantidade</th>
+            <th>Unid.</th>
+            <th>Grupo</th>
+            <th>Consumo Mensal</th>
+            <th>Validade</th>
+            <th>Essencial</th>
+            <th>Entrada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in itens %}
+          <tr>
+            <td class="mono-cell">{{ forloop.counter }}</td>
+            <td class="mono-cell">{{ item.item_shock.efisco }}</td>
+            <td style="max-width:260px;">
+              <a href="{% url 'dimms:overview' item.pk %}" style="font-weight:600;color:var(--accent);text-decoration:none;">
+                {{ item.description_manual|default:item.item_shock.descricao_efisco }}
+              </a>
+            </td>
+            <td>{{ item.mark|default:"—" }}</td>
+            <td>
+              <span style="font-family:var(--mono);font-weight:800;font-size:.9rem;color:var(--ink);">
+                {{ item.amount_shock }}
+              </span>
+            </td>
+            <td class="mono-cell">{{ item.item_shock.medida }}</td>
+            <td>{{ item.item_shock.grupo_consumo }}</td>
+            <td class="mono-cell">
+              {% if item.monthly_consumption %}
+                {{ item.monthly_consumption }}/mês
+                {% if item.duration %}
+                  <span style="color:var(--ink-3);font-size:.72rem;">(~{{ item.duration }})</span>
+                {% endif %}
+              {% else %}
+                <span style="color:var(--ink-3);">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.validity %}
+                {% now "Y-m-d" as today %}
+                <span class="{% if item.validity|date:'Y-m-d' < today %}val-exp{% else %}val-ok{% endif %}">
+                  {{ item.validity|date:"d/m/Y" }}
+                </span>
+              {% else %}
+                <span class="val-none">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.essential %}
+                <span class="pill p-green"><span class="pill-dot"></span>Sim</span>
+              {% else %}
+                <span class="pill p-default"><span class="pill-dot"></span>Não</span>
+              {% endif %}
+            </td>
+            <td class="mono-cell">{{ item.form_input|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="11">
+              <div class="table-empty">
+                <span class="table-empty-icon">📦</span>
+                <div class="table-empty-title">Nenhum item nesta localização</div>
+                <div>Ainda não há itens associados a esta prateleira/pallet.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

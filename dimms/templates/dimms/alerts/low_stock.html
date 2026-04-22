@@ -1,265 +1,280 @@
 {% extends "global/base.html" %}
 
+{% block title %}SIPAT — Estoque Baixo{% endblock %}
+
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-/* =========================
-   CARD / TABELA
-========================= */
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --violet:#6d28d9; --violet-soft:#f5f3ff; --violet-mid:#ddd6fe;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
 
-.card{
-    border: none;
-    border-radius: 18px;
-    overflow: hidden;
-}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
 
-.card-header{
-    background: #ffffff;
-    border-bottom: 1px solid #eceff3;
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-}
+  /* ── KPI strip ── */
+  .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;animation:fadeUp .3s ease both;}
+  .kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card:nth-child(1)::before{background:var(--amber);}
+  .kpi-card:nth-child(2)::before{background:var(--violet);}
+  .kpi-card:nth-child(3)::before{background:var(--red);}
+  .kpi-card:nth-child(2){animation-delay:.04s;}
+  .kpi-card:nth-child(3){animation-delay:.08s;}
+  .kpi-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+  .kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;}
+  .kpi-sub{font-size:.76rem;color:var(--ink-3);margin-top:5px;}
+  .kpi-card:nth-child(1) .kpi-value{color:var(--amber);}
+  .kpi-card:nth-child(2) .kpi-value{color:var(--violet);}
+  .kpi-card:nth-child(3) .kpi-value{color:var(--red);}
+  .kpi-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
+  .ki-amber{background:var(--amber-soft);}
+  .ki-violet{background:var(--violet-soft);}
+  .ki-red{background:var(--red-soft);}
 
-.table{
-    margin-bottom: 0;
-    vertical-align: middle;
-}
+  /* ── Filtros ── */
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+  .filter-input{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;min-width:220px;flex:1;}
+  .filter-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-select{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;cursor:pointer;min-width:170px;}
+  .filter-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-btn{height:38px;padding:0 18px;border-radius:var(--r-sm);border:1.5px solid var(--accent-dark);background:var(--accent);color:#fff;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;}
+  .filter-btn:hover{background:var(--accent-dark);}
+  .filter-clear{height:38px;padding:0 14px;border-radius:var(--r-sm);border:1.5px solid var(--border-strong);background:var(--surface);color:var(--ink-3);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;}
+  .filter-clear:hover{color:var(--ink);}
 
-.table thead th{
-    background: #f4f6f9 !important;
-    color: #34495e;
-    font-size: .82rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    border-bottom: 1px solid #e5e9ef;
-    white-space: nowrap;
-}
+  .active-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .af-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;font-size:.75rem;font-weight:700;}
 
-.table tbody td{
-    padding: .9rem .75rem;
-    border-color: #edf1f5;
-}
+  /* ── Main card ── */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;animation:fadeUp .3s .08s ease both;}
+  .main-card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--surface-2);}
+  .main-card-title{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .total-badge{background:var(--amber-soft);border:1px solid var(--amber-mid);color:var(--amber);border-radius:999px;padding:3px 10px;font-size:.78rem;font-family:var(--mono);font-weight:700;}
 
-.table tbody tr:hover{
-    background: #fafcff;
-}
+  /* ── Table ── */
+  .main-table-wrap{overflow-x:auto;}
+  .main-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+  .main-table thead th{padding:10px 18px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+  .main-table tbody td{padding:13px 18px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  .main-table tbody tr:last-child td{border-bottom:none;}
+  .main-table tbody tr:hover td{background:#fffbf0;}
+  .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
 
-/* =========================
-   BADGES DE GRUPO
-========================= */
+  /* ── Grupo badges ── */
+  .grupo-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:700;color:#fff;white-space:nowrap;}
+  .grupo-ALIMENTO{background:#16a34a;} .grupo-CONFECCAO{background:#7c3aed;} .grupo-COPA_COZINHA{background:#ea580c;}
+  .grupo-DOMISSANITARIO{background:#0d9488;} .grupo-ELETRICA{background:#d97706;color:#1a1a1a;} .grupo-EPI{background:#dc2626;}
+  .grupo-HIDROSANITARIO{background:#2563eb;} .grupo-INFORMATICA{background:#1e293b;} .grupo-LIMPEZA{background:#0891b2;}
+  .grupo-MANUTENCAO{background:#64748b;} .grupo-MARCENARIA{background:#92400e;} .grupo-PINTURA{background:#c2410c;}
+  .grupo-PAPEIS_EXPEDIENTE{background:#3b82f6;} .grupo-PAPEIS_LIMPEZA{background:#06b6d4;} .grupo-REFRIGERACAO{background:#38bdf8;color:#0c4a6e;}
+  .grupo-TONER{background:#334155;} .grupo-None{background:#94a3b8;}
 
-.badge-grupo{
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: .75rem;
-    font-weight: 700;
-    letter-spacing: .3px;
-    color: #fff;
-    display: inline-block;
-    white-space: nowrap;
-}
+  /* ── Pills ── */
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.73rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .p-ok{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);} .p-ok .pill-dot{background:var(--green);}
+  .p-warn{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);} .p-warn .pill-dot{background:var(--amber);}
+  .p-danger{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);} .p-danger .pill-dot{background:var(--red);}
+  .p-ess{background:var(--violet-soft);color:var(--violet);border-color:var(--violet-mid);} .p-ess .pill-dot{background:var(--violet);}
+  .p-none{background:var(--surface-2);color:var(--ink-3);border-color:var(--border-strong);} .p-none .pill-dot{background:var(--ink-3);}
 
-.grupo-ALIMENTO{background:#27ae60;}
-.grupo-CONFECCAO{background:#8e44ad;}
-.grupo-COPA_COZINHA{background:#e67e22;}
-.grupo-DOMISSANITARIO{background:#16a085;}
-.grupo-ELETRICA{background:#f39c12;color:#000;}
-.grupo-EPI{background:#c0392b;}
-.grupo-HIDROSANITARIO{background:#2980b9;}
-.grupo-INFORMATICA{background:#2c3e50;}
-.grupo-LIMPEZA{background:#1abc9c;}
-.grupo-MANUTENCAO{background:#7f8c8d;}
-.grupo-MARCENARIA{background:#6d4c41;}
-.grupo-PINTURA{background:#d35400;}
-.grupo-PAPEIS_EXPEDIENTE{background:#3498db;}
-.grupo-PAPEIS_LIMPEZA{background:#48c9b0;}
-.grupo-REFRIGERACAO{background:#5dade2;}
-.grupo-TONER{background:#34495e;}
-.grupo-None{background:#95a5a6;}
+  .qtd-danger{font-family:var(--mono);font-weight:800;color:var(--red);}
+  .qtd-warn{font-family:var(--mono);font-weight:800;color:var(--amber);}
 
-/* =========================
-   ALERTAS
-========================= */
+  .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
+  .table-empty-icon{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.3;}
+  .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
 
-.badge-alerta{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: .84rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.alerta-box{
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
-.alerta-vermelho{
-    background: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220,53,69,.12);
-}
-
-.alerta-verde{
-    background: #28a745;
-    box-shadow: 0 0 0 3px rgba(40,167,69,.12);
-}
-
-.badge-alerta-vermelho{
-    background: #fdeaea;
-    color: #a61e2d;
-}
-
-.badge-alerta-verde{
-    background: #eaf7ee;
-    color: #1f7a38;
-}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:800px){.kpi-strip{grid-template-columns:1fr 1fr;}}
+  @media(max-width:640px){.apage{padding:14px 12px 32px;}}
 </style>
 
-<div class="container-fluid">
+<div class="apage">
 
-    <!-- Header da página -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">⚠️ Estoque Baixo</div>
+      <div class="topbar-sub">Itens com duração estimada inferior a 3 meses ou contada em dias.</div>
+    </div>
+    <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar
+    </a>
+  </div>
+
+  <!-- ── KPIs ── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-inner">
         <div>
-            <h2 class="mb-1">Estoque Baixo ⚠️</h2>
-            <p class="text-muted mb-0">
-                Lista completa dos itens com duração inferior a 3 meses ou em dias.
-            </p>
+          <div class="kpi-label">Estoque Baixo</div>
+          <div class="kpi-value">{{ total_baixo }}</div>
+          <div class="kpi-sub">Itens abaixo do limite</div>
         </div>
-
-        <a href="{% url 'dimms:homepage' %}" class="btn btn-outline-primary">
-            ← Voltar
-        </a>
+        <div class="kpi-icon ki-amber">⚠️</div>
+      </div>
     </div>
-
-    <!-- Card principal -->
-    <div class="card shadow-sm h-100">
-
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <span><strong>Total de itens:</strong> {{ estoque_baixo|length }}</span>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Essenciais</div>
+          <div class="kpi-value">{{ tb_essenciais }}</div>
+          <div class="kpi-sub">Com baixo estoque e essenciais</div>
         </div>
-
-        <div class="card-body p-0">
-            <div class="table-responsive essenciais-scroll">
-                <table class="table table-hover mb-0 w-100 table-essenciais">
-
-                    <thead class="table-light">
-                        <tr>
-                            <th>Grupo</th>
-                            <th>E-fisco</th>
-                            <th>Descrição</th>
-                            <th>Marca</th>
-                            <th>Unidade</th>
-                            <th class="text-center">Quantidade</th>
-                            <th class="text-center">Consumo Mensal</th>
-                            <th class="text-center">Duração</th>
-                            <th class="text-center">Validade</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for item in estoque_baixo %}
-                        <tr>
-
-                            <!-- Grupo -->
-                            <td>
-                                {% if item.item_shock.grupo_consumo %}
-                                    <span class="badge-grupo grupo-{{ item.item_shock.grupo_consumo }}">
-                                        {{ item.item_shock.get_grupo_consumo_display }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge-grupo grupo-None">-</span>
-                                {% endif %}
-                            </td>
-
-                            <!-- E-fisco -->
-                            <td>
-                                <a href="{% url 'dimms:overview' item.pk %}"
-                                   class="text-decoration-none fw-semibold text-primary">
-                                    {{ item.item_shock.efisco|default:"-" }}
-                                </a>
-                            </td>
-
-                            <!-- Descrição -->
-                            <td>
-                                <a href="{% url 'dimms:overview' item.pk %}"
-                                   class="text-decoration-none fw-semibold text-dark">
-                                    {{ item.description_manual|default:"-" }}
-                                </a>
-                            </td>
-
-                            <!-- Marca -->
-                            <td>{{ item.mark|default:"-" }}</td>
-
-                            <!-- Unidade -->
-                            <td>{{ item.item_shock.medida|default:"-" }}</td>
-
-                            <!-- Quantidade -->
-                            <td class="text-center">
-                                {{ item.amount_shock|default:"-" }}
-                            </td>
-
-                            <!-- Consumo -->
-                            <td class="text-center">
-                                {{ item.monthly_consumption|default:"-" }}
-                            </td>
-
-                            <!-- Duração -->
-                            <td class="text-center">
-                                {% if item.low_stock %}
-                                    <span class="badge-alerta badge-alerta-vermelho">
-                                        <span class="alerta-box alerta-vermelho"></span>
-                                        {{ item.duration|default:"—" }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge-alerta badge-alerta-verde">
-                                        <span class="alerta-box alerta-verde"></span>
-                                        {{ item.duration|default:"—" }}
-                                    </span>
-                                {% endif %}
-                            </td>
-
-                            <!-- Validade -->
-                            <td class="text-center">
-                                {% if item.validity %}
-                                    {% if item.alerta_vencimento %}
-                                        <span class="badge-alerta badge-alerta-vermelho">
-                                            <span class="alerta-box alerta-vermelho"></span>
-                                            {{ item.validity|date:"d/m/Y" }}
-                                        </span>
-                                    {% else %}
-                                        <span class="badge-alerta badge-alerta-verde">
-                                            <span class="alerta-box alerta-verde"></span>
-                                            {{ item.validity|date:"d/m/Y" }}
-                                        </span>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
-                                Nenhum item com baixo estoque encontrado.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-
-                </table>
-            </div>
-        </div>
-
+        <div class="kpi-icon ki-violet">⭐</div>
+      </div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Vence em Breve</div>
+          <div class="kpi-value">{{ tb_vencimento }}</div>
+          <div class="kpi-sub">Baixo estoque + validade próxima</div>
+        </div>
+        <div class="kpi-icon ki-red">📅</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filtros ── -->
+  <form method="get" class="filter-bar">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por descrição, E-Fisco ou marca..." class="filter-input">
+    <select name="grupo" class="filter-select">
+      <option value="">Todos os grupos</option>
+      {% for val, label in grupos %}
+        <option value="{{ val }}" {% if grupo_f == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="essencial" class="filter-select" style="min-width:150px;">
+      <option value="">Essencial / Todos</option>
+      <option value="1" {% if essencial_f == "1" %}selected{% endif %}>Apenas essenciais</option>
+      <option value="0" {% if essencial_f == "0" %}selected{% endif %}>Não essenciais</option>
+    </select>
+    <button type="submit" class="filter-btn">Filtrar</button>
+    {% if query or grupo_f or essencial_f %}
+      <a href="{% url 'dimms:low_stock' %}" class="filter-clear">Limpar</a>
+    {% endif %}
+  </form>
+
+  {% if query or grupo_f or essencial_f %}
+  <div class="active-filters">
+    {% if query %}<span class="af-tag">🔍 "{{ query }}"</span>{% endif %}
+    {% if grupo_f %}<span class="af-tag">🏷️ {{ grupo_f }}</span>{% endif %}
+    {% if essencial_f == "1" %}<span class="af-tag" style="background:var(--violet-soft);border-color:var(--violet-mid);color:var(--violet);">⭐ Essenciais</span>{% endif %}
+    {% if essencial_f == "0" %}<span class="af-tag">Não essenciais</span>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ── Tabela ── -->
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Itens com estoque baixo
+        <span class="total-badge">{{ estoque_baixo|length }}</span>
+      </div>
+    </div>
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Grupo</th>
+            <th>E-Fisco</th>
+            <th>Descrição</th>
+            <th>Marca</th>
+            <th>Unidade</th>
+            <th>Quantidade</th>
+            <th>Cons. Mensal</th>
+            <th>Duração</th>
+            <th>Validade</th>
+            <th>Essencial</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in estoque_baixo %}
+          <tr>
+            <td class="mono-cell">{{ forloop.counter }}</td>
+            <td>
+              <span class="grupo-badge grupo-{{ item.item_shock.grupo_consumo|default:'None' }}">
+                {{ item.item_shock.get_grupo_consumo_display|default:"—" }}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'dimms:overview' item.pk %}" style="font-family:var(--mono);font-weight:700;color:var(--accent);text-decoration:none;font-size:.82rem;">
+                {{ item.item_shock.efisco|default:"—" }}
+              </a>
+            </td>
+            <td>
+              <a href="{% url 'dimms:overview' item.pk %}" style="font-weight:600;color:var(--ink);text-decoration:none;">
+                {{ item.description_manual|default:item.item_shock.descricao_efisco|truncatechars:50 }}
+              </a>
+            </td>
+            <td>{{ item.mark|default:"—" }}</td>
+            <td class="mono-cell">{{ item.item_shock.medida|default:"—" }}</td>
+            <td>
+              <span class="qtd-danger">{{ item.amount_shock }}</span>
+            </td>
+            <td class="mono-cell">{{ item.monthly_consumption|default:"—" }}</td>
+            <td>
+              <span class="pill p-warn"><span class="pill-dot"></span>{{ item.duration|default:"—" }}</span>
+            </td>
+            <td>
+              {% if item.validity %}
+                {% if item.alerta_vencimento %}
+                  <span class="pill p-danger"><span class="pill-dot"></span>{{ item.validity|date:"d/m/Y" }}</span>
+                {% else %}
+                  <span class="pill p-ok"><span class="pill-dot"></span>{{ item.validity|date:"d/m/Y" }}</span>
+                {% endif %}
+              {% else %}
+                <span class="pill p-none"><span class="pill-dot"></span>—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.essential %}
+                <span class="pill p-ess"><span class="pill-dot"></span>Sim</span>
+              {% else %}
+                <span class="pill p-none"><span class="pill-dot"></span>Não</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="11">
+              <div class="table-empty">
+                <span class="table-empty-icon">✅</span>
+                <div class="table-empty-title">Nenhum item com estoque baixo</div>
+                <div>Tente ajustar os filtros ou o estoque está normalizado.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 </div>
-
 {% endblock %}

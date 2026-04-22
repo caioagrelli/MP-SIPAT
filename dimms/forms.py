@@ -3,8 +3,8 @@ from django import forms
 from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 
-# Importações do código 
-from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo
+# Importações do código
+from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo, Proposal, ItensProposal, Supplier, Contrato, SaldoAtivo
 
 # =================================
 # FORMS DA DIMMS (BENS DE CONSUMO)
@@ -298,30 +298,134 @@ class ArtifactDocumentsForm(forms.ModelForm):
 class ArtifactsCreateForm(forms.ModelForm):
     class Meta:
         model = Artifacts
-        fields = [
-            'description',
-            'sei',
-            'tr',
-            'etp',
-            'rgpp',
-            'dode',
-            'tapp',
-            'risk_analysis',
-            'state',
-        ]
+        fields = ['description', 'sei', 'tr', 'etp', 'rgpp', 'dode', 'tapp', 'risk_analysis', 'state']
         widgets = {
             'description': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Digite a descrição do artefato',
+                'placeholder': 'Ex: Aquisição de materiais de limpeza',
             }),
             'sei': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Número SEI',
+                'placeholder': 'Número SEI do processo',
             }),
-            'state': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Estado do artefato',
-            }),
+            'state': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+''' Fornecedores '''
+class SupplierForm(forms.ModelForm):
+    class Meta:
+        model = Supplier
+        fields = ['supplier', 'cnpj_supplier', 'name_responsible', 'cpf_responsible', 'contact_supplier', 'email_supplier']
+        widgets = {
+            'supplier':          forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do fornecedor'}),
+            'cnpj_supplier':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
+            'name_responsible':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
+            'cpf_responsible':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'contact_supplier':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(81) 99999-9999'}),
+            'email_supplier':    forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@fornecedor.com'}),
+        }
+        labels = {
+            'supplier':         'Nome do Fornecedor',
+            'cnpj_supplier':    'CNPJ',
+            'name_responsible': 'Nome do Responsável',
+            'cpf_responsible':  'CPF do Responsável',
+            'contact_supplier': 'Telefone de Contato',
+            'email_supplier':   'E-mail',
+        }
+
+
+''' Propostas '''
+# Criar nova proposta
+class ProposalForm(forms.ModelForm):
+    class Meta:
+        model = Proposal
+        fields = ['supplier', 'state']
+        widgets = {
+            'supplier': forms.Select(attrs={'class': 'form-select'}),
+            'state': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'supplier': 'Fornecedor',
+            'state': 'Status',
+        }
+
+# Adicionar item à proposta
+class ItensProposalForm(forms.ModelForm):
+    class Meta:
+        model = ItensProposal
+        fields = ['item', 'details_proposal', 'amount', 'value']
+        widgets = {
+            'item': forms.Select(attrs={'class': 'form-select'}),
+            'details_proposal': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'value': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+        }
+        labels = {
+            'item': 'Item do Artefato',
+            'details_proposal': 'Detalhes da Proposta',
+            'amount': 'Quantidade Ofertada',
+            'value': 'Valor Unitário (R$)',
+        }
+
+    def __init__(self, *args, artifact=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if artifact:
+            self.fields['item'].queryset = ItensArtifacts.objects.filter(
+                artifacts=artifact
+            ).select_related('efisco')
+
+
+''' Contratos '''
+# Criar contrato
+class ContratoForm(forms.ModelForm):
+    class Meta:
+        model = Contrato
+        fields = [
+            'supplier_contract', 'contrato', 'inicio_vigencia',
+            'final_vigencia', 'homologacao', 'cs', 'cod_liquidacao', 'status',
+        ]
+        widgets = {
+            'supplier_contract': forms.Select(attrs={'class': 'form-select'}),
+            'contrato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'N° do contrato'}),
+            'inicio_vigencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'final_vigencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'homologacao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'cs': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cod_liquidacao': forms.NumberInput(attrs={'class': 'form-control'}),
+            'status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ativo'}),
+        }
+        labels = {
+            'supplier_contract': 'Fornecedor',
+            'contrato': 'N° do Contrato',
+            'inicio_vigencia': 'Início da Vigência',
+            'final_vigencia': 'Final da Vigência',
+            'homologacao': 'Data de Homologação',
+            'cs': 'N° CS',
+            'cod_liquidacao': 'Código de Licitação',
+            'status': 'Status',
+        }
+
+
+''' Saldo Ativo '''
+# Adicionar item ao saldo ativo de um contrato
+class SaldoAtivoItemForm(forms.ModelForm):
+    class Meta:
+        model = SaldoAtivo
+        fields = ['efisco', 'marca', 'descricao_manual', 'quantidade_contrato', 'cota']
+        widgets = {
+            'efisco': forms.Select(attrs={'class': 'form-select'}),
+            'marca': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Marca X'}),
+            'descricao_manual': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição complementar'}),
+            'quantidade_contrato': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'cota': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'efisco': 'E-Fisco (Bem de Consumo)',
+            'marca': 'Marca',
+            'descricao_manual': 'Descrição Manual',
+            'quantidade_contrato': 'Quantidade do Contrato',
+            'cota': 'Tipo de Cota',
         }
 
 

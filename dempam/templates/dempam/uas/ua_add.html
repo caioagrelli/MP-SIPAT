@@ -57,6 +57,12 @@
         {{ form.mat_resp_ua }}
         <div style="color:#dc2626; font-size:.85rem;">{{ form.mat_resp_ua.errors }}</div>
       </div>
+
+      <div style="grid-column:span 2; display:flex; align-items:center; gap:10px; padding:12px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;">
+        {{ form.sede }}
+        <label for="{{ form.sede.id_for_label }}" style="font-weight:600; color:#15803d; cursor:pointer; margin:0;">Esta UA é uma sede</label>
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.sede.errors }}</div>
+      </div>
     </div>
 
     <div style="display:flex; gap:10px; margin-top:24px;">

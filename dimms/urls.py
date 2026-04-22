@@ -24,6 +24,7 @@ urlpatterns = [
     path('overview/<int:pk>/', overview, name='overview'),
     path('overview/<int:pk>/qrcode/', qrcode_view, name='qrcode'),
     path('overview/<int:pk>/label/', label, name='label'),
+    path('overview/<int:pk>/edit/', overview_edit, name='overview_edit'),
     
 
     # Url's de Solicitações
@@ -37,6 +38,9 @@ urlpatterns = [
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
     
     
+    # Busca de E-Fisco (autocomplete)
+    path('efisco/search/', efisco_search, name='efisco_search'),
+
     # Url's dos Artefatos e das Propostas
     path('artifacts/', artifacts, name='artifacts'),
     path('artifacts/<int:pk>/', artifacts_details, name='artifacts_details'),
@@ -46,9 +50,23 @@ urlpatterns = [
     path('artifacts/new/', artifacts_create, name='artifacts_create'),
     path('proposals/<int:pk>/', proposal_details, name='proposal_details'),
     path('proposal/<int:pk>/status/', proposal_status, name='proposal_item_update_status'),
+    path('artifacts/<int:pk>/proposal/create/', proposal_create, name='proposal_create'),
+    path('proposals/<int:pk>/item/add/', proposal_item_add, name='proposal_item_add'),
+    path('proposals/item/<int:pk>/delete/', proposal_item_delete, name='proposal_item_delete'),
+    path('proposals/<int:pk>/contrato/', contrato_create, name='contrato_create'),
+    path('contrato/<int:pk>/', contrato_detail, name='contrato_detail'),
+    path('contrato/<int:contrato_pk>/saldo/gerar/<int:proposal_pk>/', contrato_gerar_saldo, name='contrato_gerar_saldo'),
 
 
-    # Url's das Ações no estoque 
+    # Url's do Saldo Ativo
+    path('saldo-ativo/', saldo_ativo_homepage, name='saldo_ativo_homepage'),
+    path('saldo-ativo/solicitacoes/', saldo_ativo_solicitacoes, name='saldo_ativo_solicitacoes'),
+    path('saldo-ativo/solicitacao/criar/', saldo_ativo_solicitacao_create, name='saldo_ativo_solicitacao_create'),
+    path('saldo-ativo/solicitacao/<int:pk>/', saldo_ativo_solicitacao_detail, name='saldo_ativo_solicitacao_detail'),
+    path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
+
+
+    # Url's das Ações no estoque
     path('stock_add/', stock_add, name='stock_add'),
     path('stock_up/', stock_up, name='stock_up'),
     path('bensconsumo/', bensconsumo, name='bensconsumo'),

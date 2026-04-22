@@ -1,0 +1,287 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Setores e Localizações{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --violet:#6d28d9; --violet-soft:#f5f3ff; --violet-mid:#ddd6fe;
+    --teal:#0f766e; --teal-soft:#f0fdfa; --teal-mid:#99f6e4;
+    --slate:#475569; --slate-soft:#f8fafc; --slate-mid:#cbd5e1;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
+
+  /* ── Topbar ── */
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+  .topbar-left{}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .topbar-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  /* ── Buttons ── */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
+  .btn-primary:hover{background:var(--accent-dark);color:#fff;transform:translateY(-1px);}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-divider{width:1px;height:28px;background:var(--border-strong);}
+
+  /* ── KPI strip ── */
+  .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;animation:fadeUp .3s ease both;}
+  .kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card:nth-child(1)::before{background:var(--ink-3);}
+  .kpi-card:nth-child(2)::before{background:var(--blue);}
+  .kpi-card:nth-child(3)::before{background:var(--teal);}
+  .kpi-card:nth-child(4)::before{background:var(--green);}
+  .kpi-card:nth-child(2){animation-delay:.04s;}
+  .kpi-card:nth-child(3){animation-delay:.08s;}
+  .kpi-card:nth-child(4){animation-delay:.12s;}
+  .kpi-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+  .kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;color:var(--ink);}
+  .kpi-sub{font-size:.76rem;color:var(--ink-3);margin-top:5px;}
+  .kpi-card:nth-child(2) .kpi-value{color:var(--blue);}
+  .kpi-card:nth-child(3) .kpi-value{color:var(--teal);}
+  .kpi-card:nth-child(4) .kpi-value{color:var(--green);}
+  .kpi-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
+  .ki-gray{background:var(--surface-2);}
+  .ki-blue{background:var(--blue-soft);}
+  .ki-teal{background:var(--teal-soft);}
+  .ki-green{background:var(--green-soft);}
+
+  /* ── Setor tiles ── */
+  .setor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+  .setor-tile{background:#1e2d42;border:1px solid rgba(255,255,255,.07);border-radius:var(--r-md);padding:16px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;min-height:100px;transition:transform .15s,box-shadow .15s,background .15s;box-shadow:0 4px 14px rgba(15,23,42,.18);animation:fadeUp .3s ease both;}
+  .setor-tile:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(37,99,235,.22);background:#263650;}
+  .setor-tile-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.09);display:grid;place-items:center;font-size:19px;}
+  .setor-tile-name{font-size:.83rem;font-weight:700;color:#f0f4ff;line-height:1.3;}
+  .setor-tile-total{font-size:.72rem;color:rgba(160,175,210,.65);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ── Cards ── */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:20px;}
+  .main-card:last-child{margin-bottom:0;}
+  .main-card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .main-card-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .total-badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.78rem;font-family:var(--mono);font-weight:700;}
+
+  /* ── Table ── */
+  .main-table-wrap{overflow-x:auto;}
+  .main-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+  .main-table thead th{padding:10px 16px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+  .main-table tbody td{padding:12px 16px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  .main-table tbody tr:last-child td{border-bottom:none;}
+  .main-table tbody tr:hover td{background:#f5f8ff;}
+  .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);white-space:nowrap;}
+
+  /* ── Pills ── */
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.73rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .p-pallet{background:var(--blue-soft);color:var(--blue);border-color:var(--blue-mid);}
+  .p-pallet .pill-dot{background:var(--blue);}
+  .p-prateleira{background:var(--teal-soft);color:var(--teal);border-color:var(--teal-mid);}
+  .p-prateleira .pill-dot{background:var(--teal);}
+  .p-default{background:var(--slate-soft);color:var(--slate);border-color:var(--slate-mid);}
+  .p-default .pill-dot{background:var(--slate);}
+
+  /* ── Setor tags ── */
+  .setor-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .setor-tag-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .st-0{background:var(--blue-soft);color:var(--blue);border-color:var(--blue-mid);} .st-0 .setor-tag-dot{background:var(--blue);}
+  .st-1{background:var(--teal-soft);color:var(--teal);border-color:var(--teal-mid);} .st-1 .setor-tag-dot{background:var(--teal);}
+  .st-2{background:var(--violet-soft);color:var(--violet);border-color:var(--violet-mid);} .st-2 .setor-tag-dot{background:var(--violet);}
+  .st-3{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);} .st-3 .setor-tag-dot{background:var(--amber);}
+  .st-4{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);} .st-4 .setor-tag-dot{background:var(--green);}
+  .st-5{background:var(--slate-soft);color:var(--slate);border-color:var(--slate-mid);} .st-5 .setor-tag-dot{background:var(--slate);}
+
+  /* ── Count badges ── */
+  .count-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-family:var(--mono);font-size:.76rem;font-weight:700;}
+  .cb-teal{background:var(--teal-soft);color:var(--teal);border:1px solid var(--teal-mid);}
+  .cb-blue{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid);}
+  .cb-gray{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border-strong);}
+
+  /* ── Empty state ── */
+  .table-empty{padding:40px;text-align:center;color:var(--ink-3);font-size:.9rem;}
+  .table-empty-icon{font-size:2.2rem;display:block;margin-bottom:8px;opacity:.35;}
+  .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
+
+  /* ── Section divider ── */
+  .section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin:32px 0 14px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border-strong);}
+
+  @media(max-width:960px){.kpi-strip{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:600px){.apage{padding:14px 12px 32px;}.kpi-strip{grid-template-columns:repeat(2,1fr);}}
+</style>
+
+<div class="apage">
+
+  <!-- ── Topbar ── -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Setores e Localizações</div>
+      <div class="topbar-sub">Painel gerencial  — setores, prateleiras e pallets.</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="{% url 'dempam:sector_add' %}" class="btn btn-ghost">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar Setor/Sala
+      </a>
+      <div class="btn-divider"></div>
+      <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar Pallet/Prateleira
+      </a>
+    </div>
+  </div>
+
+  <!-- ── KPI strip ── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Setores / Salas</div>
+          <div class="kpi-value">{{ setores|length }}</div>
+          <div class="kpi-sub">Setores/Salas cadastrados</div>
+        </div>
+        <div class="kpi-icon ki-gray">🏢</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Localizações</div>
+          <div class="kpi-value">{{ localizacoes|length }}</div>
+          <div class="kpi-sub">Pallets/Prateleiras cadastrados</div>
+        </div>
+        <div class="kpi-icon ki-blue">📦</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Prateleiras</div>
+          <div class="kpi-value">{{ total_prateleira|default:"0" }}</div>
+          <div class="kpi-sub">Localizações em Prateleiras</div>
+        </div>
+        <div class="kpi-icon ki-teal">🗄️</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-inner">
+        <div>
+          <div class="kpi-label">Pallets</div>
+          <div class="kpi-value">{{ total_pallet|default:"0" }}</div>
+          <div class="kpi-sub">Localizações em Pallets</div>
+        </div>
+        <div class="kpi-icon ki-green">🪵</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Seção: Pallets e Prateleiras ── -->
+  <div class="section-label">📦 Pallets e Prateleiras</div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Todos os Pallets e Prateleiras
+        <span class="total-badge">{{ localizacoes|length }}</span>
+      </div>
+      <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary" style="padding:7px 14px;font-size:.82rem;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar Pallet/Prateleira
+      </a>
+    </div>
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Setor/Sala</th>
+            <th>Identificação</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loc in localizacoes %}
+          <tr>
+            <td class="mono-cell">{{ forloop.counter }}</td>
+            <td>
+              {% cycle 'st-0' 'st-1' 'st-2' 'st-3' 'st-4' 'st-5' as cor silent %}
+              <span class="setor-tag {{ cor }}">
+                <span class="setor-tag-dot"></span>{{ loc.setor_sala.setor }}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'dempam:locate_detail' loc.pk %}" style="font-weight:600;color:var(--accent);font-family:var(--mono);font-size:.82rem;text-decoration:none;">
+                {{ loc.prateleira_pallet }}
+              </a>
+            </td>
+            <td>
+              {% with t=loc.tipo_localizacao %}
+                {% if "PALLET" in t|upper %}
+                  <span class="pill p-pallet"><span class="pill-dot"></span>{{ t }}</span>
+                {% elif "PRATELEIRA" in t|upper %}
+                  <span class="pill p-prateleira"><span class="pill-dot"></span>{{ t }}</span>
+                {% else %}
+                  <span class="pill p-default"><span class="pill-dot"></span>{{ t }}</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4">
+              <div class="table-empty">
+                <span class="table-empty-icon">📦</span>
+                <div class="table-empty-title">Nenhum pallet ou prateleira cadastrado</div>
+                <div>Clique em "Adicionar" para criar uma localização.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Seção: Setores / Salas ── -->
+  <div class="section-label">🏢 Setores / Salas</div>
+
+  <div class="setor-grid">
+    {% for setor in setores %}
+    <a href="{% url 'dempam:sector_detail' setor.pk %}" class="setor-tile" style="text-decoration:none;">
+      <div class="setor-tile-icon">🏢</div>
+      <div class="setor-tile-name">{{ setor.setor }}</div>
+      <div class="setor-tile-total">{{ setor.total_localizacoes }} localização(ões)</div>
+    </a>
+    {% empty %}
+    <div class="table-empty" style="grid-column:1/-1;">
+      <span class="table-empty-icon">🏢</span>
+      <div class="table-empty-title">Nenhum setor cadastrado</div>
+      <div>Clique em "Adicionar Setor" para começar.</div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
