@@ -1,0 +1,137 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Criar Contrato{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --accent:#2563eb;
+    --shadow-md:0 4px 20px rgba(15,23,42,.1);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .pg{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);max-width:680px;margin:0 auto;overflow:hidden;animation:fadeUp .3s ease both;}
+  .form-header{background:linear-gradient(135deg,#1e2d42 0%,#0f3460 100%);padding:22px 28px;color:#fff;}
+  .form-header-title{font-size:1.2rem;font-weight:800;}
+  .form-header-sub{font-size:.82rem;color:rgba(160,195,255,.8);margin-top:5px;}
+  .prop-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:.82rem;color:rgba(210,230,255,.9);display:flex;align-items:center;gap:8px;}
+
+  .form-body{padding:26px 28px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;}
+  .form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-select,.form-control{
+    height:44px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 14px;font-family:var(--font);font-size:.9rem;color:var(--ink);
+    background:var(--surface-2);outline:none;width:100%;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .form-select:focus,.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+
+  .section-divider{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin:4px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+  .form-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .btn-ghost:hover{background:var(--surface-2);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:640px){.form-grid,.form-grid-3{grid-template-columns:1fr;}}
+</style>
+
+<div class="pg">
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:artifacts' %}">Artefatos</a>
+    <span>›</span>
+    <a href="{% url 'dimms:artifacts_details' proposal.artifacts_proposal.pk %}">{{ proposal.artifacts_proposal.artifacts_code }}</a>
+    <span>›</span>
+    <a href="{% url 'dimms:proposal_details' proposal.pk %}">{{ proposal.proposal_code }}</a>
+    <span>›</span>
+    Criar Contrato
+  </nav>
+
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-header-title">Criar Contrato</div>
+      <div class="form-header-sub">Formalização do contrato a partir da proposta aprovada</div>
+      <div class="prop-badge">
+        <span>📑</span>
+        <span>Proposta: <strong>{{ proposal.proposal_code }}</strong> — Fornecedor: {{ proposal.supplier.supplier }}</span>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-body">
+
+        <div class="section-divider">Identificação</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">{{ form.contrato.label }}</label>
+            {{ form.contrato }}
+            {% if form.contrato.errors %}<div style="color:#b91c1c;font-size:.78rem;">{{ form.contrato.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.supplier_contract.label }}</label>
+            {{ form.supplier_contract }}
+            {% if form.supplier_contract.errors %}<div style="color:#b91c1c;font-size:.78rem;">{{ form.supplier_contract.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="section-divider">Vigência e Homologação</div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">{{ form.inicio_vigencia.label }}</label>
+            {{ form.inicio_vigencia }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.final_vigencia.label }}</label>
+            {{ form.final_vigencia }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.homologacao.label }}</label>
+            {{ form.homologacao }}
+          </div>
+        </div>
+
+        <div class="section-divider">Dados Complementares</div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">{{ form.cs.label }}</label>
+            {{ form.cs }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.cod_liquidacao.label }}</label>
+            {{ form.cod_liquidacao }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.status.label }}</label>
+            {{ form.status }}
+          </div>
+        </div>
+
+      </div>
+      <div class="form-footer">
+        <a href="{% url 'dimms:proposal_details' proposal.pk %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Criar Contrato
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

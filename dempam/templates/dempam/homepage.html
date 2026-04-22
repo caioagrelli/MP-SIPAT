@@ -161,7 +161,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Setores</div>
-          <div class="kpi-value">12</div>
+          <div class="kpi-value">{{ total_setores }}</div>
           <div class="kpi-sub">Estrutura organizacional ativa</div>
         </div>
         <div class="kpi-icon ki-blue">🏢</div>
@@ -181,7 +181,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Bens de Consumo</div>
-          <div class="kpi-value">89</div>
+          <div class="kpi-value">{{ total_consumo }}</div>
           <div class="kpi-sub">Itens de uso recorrente</div>
         </div>
         <div class="kpi-icon ki-violet">📦</div>
@@ -191,7 +191,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Pendências</div>
-          <div class="kpi-value">5</div>
+          <div class="kpi-value">{{ total_pendencias }}</div>
           <div class="kpi-sub">Demandas em acompanhamento</div>
         </div>
         <div class="kpi-icon ki-amber">⚠️</div>
@@ -211,7 +211,7 @@
       <div class="qa-title">Prédios/Circunscrição</div>
       <div class="qa-sub">Organização dos locais</div>
     </a>
-    <a href="#" class="qa-tile">
+    <a href="{% url 'dempam:sector_homepage'%}" class="qa-tile">
       <div class="qa-icon">📍</div>
       <div class="qa-title">Salas / Setores</div>
       <div class="qa-sub">Organização física</div>

@@ -1,0 +1,171 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Solicitações de Saldo Ativo{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .slpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.2;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .filter-bar{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+    padding:14px 18px;margin-bottom:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;
+    box-shadow:var(--shadow-sm);
+  }
+  .filter-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .filter-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .filter-input,.filter-select{
+    height:36px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 10px;font-family:var(--font);font-size:.84rem;color:var(--ink);background:var(--surface-2);outline:none;
+  }
+  .filter-input:focus,.filter-select:focus{border-color:var(--accent);}
+
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .data-table{width:100%;border-collapse:collapse;}
+  .data-table thead tr{background:var(--surface-2);border-bottom:2px solid var(--border);}
+  .data-table th{padding:11px 14px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);text-align:left;white-space:nowrap;}
+  .data-table td{padding:13px 14px;font-size:.86rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  .data-table tbody tr:last-child td{border-bottom:none;}
+  .data-table tbody tr:hover td{background:var(--blue-soft);}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill .dot{width:6px;height:6px;border-radius:50%;}
+  .status-RASCUNHO{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+  .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-CANCELADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .status-EM_ANÁLISE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-sm{padding:6px 12px;font-size:.8rem;}
+
+  .empty-state{padding:48px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.4;}
+
+  .mono{font-family:var(--mono);font-size:.82rem;}
+</style>
+
+<div class="slpage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    Solicitações
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Solicitações de Saldo Ativo</div>
+      <div class="topbar-sub">{{ total }} solicitação(ões) encontrada(s)</div>
+    </div>
+    <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}" class="btn btn-primary">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova Solicitação
+    </a>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <div class="filter-group" style="flex:2;">
+        <label class="filter-label">Busca</label>
+        <input type="text" name="q" class="filter-input" value="{{ query }}" placeholder="Código, contrato...">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select name="status" class="filter-select">
+          <option value="">Todos</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_f == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Contrato</label>
+        <select name="contrato" class="filter-select">
+          <option value="">Todos</option>
+          {% for c in contratos %}
+            <option value="{{ c.pk }}" {% if contrato_f == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.contrato }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group" style="flex:0; justify-content:flex-end;">
+        <label class="filter-label">&nbsp;</label>
+        <button type="submit" class="btn btn-ghost" style="height:36px; padding:0 16px;">Filtrar</button>
+      </div>
+      {% if query or status_f or contrato_f %}
+      <div class="filter-group" style="flex:0; justify-content:flex-end;">
+        <label class="filter-label">&nbsp;</label>
+        <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost" style="height:36px; padding:0 12px; font-size:.8rem; color:var(--red);">✕ Limpar</a>
+      </div>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    {% if solicitacoes %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Contrato</th>
+          <th>Responsável</th>
+          <th>Data/Hora</th>
+          <th>Status</th>
+          <th>Itens</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitacoes %}
+        <tr>
+          <td><span class="mono" style="font-weight:700; color:var(--ink);">{{ s.codigo }}</span></td>
+          <td><span class="mono" style="color:var(--blue); font-weight:700;">{{ s.contrato.contrato }}</span></td>
+          <td style="color:var(--ink-2);">{{ s.usuario.get_full_name|default:s.usuario.username|default:"—" }}</td>
+          <td style="color:var(--ink-3); font-size:.82rem;">{{ s.data_hora|date:"d/m/Y H:i"|default:"—" }}</td>
+          <td><span class="pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
+          <td class="mono" style="font-weight:700;">{{ s.bensenviados_saldoativo.count }}</td>
+          <td style="text-align:right;">
+            <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' s.pk %}" class="btn btn-ghost btn-sm">Ver detalhes</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📬</div>
+      <div style="font-size:.9rem; font-weight:600; margin-bottom:6px;">Nenhuma solicitação encontrada</div>
+      <div style="font-size:.82rem;">Crie uma nova solicitação para retirar itens do saldo ativo.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

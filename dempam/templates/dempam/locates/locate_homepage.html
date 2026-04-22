@@ -1,61 +1,156 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Gerenciar Circunscrições / Prédios{% endblock %}
+{% block title %}SIPAT — Circunscrições / Prédios{% endblock %}
 
 {% block content %}
-<div style="padding: 24px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:16px; flex-wrap:wrap;">
-    <div>
-      <h1 style="margin:0; font-size:1.6rem;">Circunscrições / Prédios</h1>
-      <p style="margin:6px 0 0; color:#6b7280;">
-        Visualize e gerencie os locais cadastrados.
-      </p>
-    </div>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-    <a href="{% url 'dempam:locate_add' %}"
-       style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#2563eb; color:#fff; padding:10px 16px; border-radius:10px; font-weight:600;">
-      + Novo local
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
+  .btn-primary:hover{background:var(--accent-dark);color:#fff;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  /* ── Filtros ── */
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+  .filter-input{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;min-width:240px;flex:1;}
+  .filter-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-select{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;cursor:pointer;min-width:200px;}
+  .filter-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-btn{height:38px;padding:0 18px;border-radius:var(--r-sm);border:1.5px solid var(--accent-dark);background:var(--accent);color:#fff;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;}
+  .filter-btn:hover{background:var(--accent-dark);}
+  .filter-clear{height:38px;padding:0 14px;border-radius:var(--r-sm);border:1.5px solid var(--border-strong);background:var(--surface);color:var(--ink-3);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;}
+  .filter-clear:hover{color:var(--ink);border-color:var(--border-strong);}
+  .active-filter{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;font-size:.75rem;font-weight:700;}
+
+  /* ── Main card ── */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .main-card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--surface-2);}
+  .main-card-title{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .total-badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.78rem;font-family:var(--mono);font-weight:700;}
+
+  /* ── Table ── */
+  .main-table-wrap{overflow-x:auto;}
+  .main-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+  .main-table thead th{padding:10px 18px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+  .main-table tbody td{padding:13px 18px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  .main-table tbody tr:last-child td{border-bottom:none;}
+  .main-table tbody tr:hover td{background:#f5f8ff;}
+  .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
+
+  .ua-count{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:22px;padding:0 8px;background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;font-family:var(--mono);font-size:.76rem;font-weight:700;}
+  .meso-tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:.73rem;font-weight:600;background:var(--surface-2);border:1px solid var(--border-strong);color:var(--ink-2);}
+
+  .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
+  .table-empty-icon{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.3;}
+  .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:640px){.apage{padding:14px 12px 32px;}}
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Circunscrições / Prédios</div>
+      <div class="topbar-sub">Visualize e gerencie os locais cadastrados.</div>
+    </div>
+    <a href="{% url 'dempam:locate_add' %}" class="btn btn-primary">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Novo Local
     </a>
   </div>
 
-  <form method="get" style="margin-bottom:18px; display:flex; gap:10px; flex-wrap:wrap;">
-    <input
-      type="text"
-      name="q"
-      value="{{ query }}"
-      placeholder="Buscar local..."
-      style="flex:1; min-width:280px; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px;"
-    >
-    <button type="submit"
-            style="padding:10px 16px; border:none; border-radius:10px; background:#111827; color:#fff; font-weight:600;">
-      Buscar
-    </button>
+  <!-- ── Filtros ── -->
+  <form method="get" class="filter-bar">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nome do local..." class="filter-input">
+    <select name="meso" class="filter-select">
+      <option value="">Todas as mesorregiões</option>
+      {% for meso in mesoregiones %}
+        <option value="{{ meso }}" {% if meso_filter == meso %}selected{% endif %}>{{ meso }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="filter-btn">Filtrar</button>
+    {% if query or meso_filter %}
+      <a href="{% url 'dempam:locate_homepage' %}" class="filter-clear">Limpar</a>
+    {% endif %}
   </form>
 
-  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:14px; overflow:hidden;">
-    <div style="overflow-x:auto;">
-      <table style="width:100%; border-collapse:collapse;">
-        <thead style="background:#f9fafb;">
+  {% if meso_filter %}
+    <div style="margin-bottom:14px;">
+      <span class="active-filter">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        Mesorregião: {{ meso_filter }}
+      </span>
+    </div>
+  {% endif %}
+
+  <!-- ── Tabela ── -->
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Locais cadastrados
+        <span class="total-badge">{{ circunscricoes|length }}</span>
+      </div>
+    </div>
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
           <tr>
-            <th style="text-align:left; padding:14px; font-size:.78rem;">Local</th>
-            <th style="text-align:center; padding:14px; font-size:.78rem;">Ações</th>
+            <th>#</th>
+            <th>Local</th>
+            <th>Mesorregião</th>
+            <th>Microrregião</th>
+            <th>UAs</th>
           </tr>
         </thead>
         <tbody>
           {% for item in circunscricoes %}
-          <tr style="border-top:1px solid #e5e7eb;">
-            <td style="padding:14px; font-weight:600;">{{ item.local }}</td>
-            <td style="padding:14px; text-align:center;">
-              <a href="{% url 'dempam:locate_homepage'%}"
-                 style="text-decoration:none; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; color:#111827; font-weight:600;">
-                Editar
+          <tr>
+            <td class="mono-cell">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'dempam:predio_detail' item.pk %}" style="font-weight:700;color:var(--accent);text-decoration:none;">
+                {{ item.local }}
               </a>
             </td>
+            <td>
+              {% if item.meso %}
+                <span class="meso-tag">{{ item.meso }}</span>
+              {% else %}
+                <span style="color:var(--ink-3);">—</span>
+              {% endif %}
+            </td>
+            <td style="color:var(--ink-2);">{{ item.micro|default:"—" }}</td>
+            <td><span class="ua-count">{{ item.total_uas }}</span></td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="2" style="padding:24px; text-align:center; color:#6b7280;">
-              Nenhum local cadastrado.
+            <td colspan="5">
+              <div class="table-empty">
+                <span class="table-empty-icon">🏛️</span>
+                <div class="table-empty-title">Nenhum local encontrado</div>
+                <div>Tente ajustar os filtros ou cadastre um novo local.</div>
+              </div>
             </td>
           </tr>
           {% endfor %}
@@ -63,5 +158,6 @@
       </table>
     </div>
   </div>
+
 </div>
 {% endblock %}

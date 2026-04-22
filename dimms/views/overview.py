@@ -19,6 +19,7 @@ from reportlab.lib.utils import ImageReader
 
 # Importações do Código
 from .. models import Estoque
+from .. forms import EstoqueForm
 
 # =============================================================
 # CAMPOS DESTINADOS PARA A VISUALIZAÇÃO/MANUTENÇÃO DE CADA BEM
@@ -52,6 +53,24 @@ def qrcode_view(request, pk):
     buf = BytesIO()
     img.save(buf, format="PNG")
     return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+''' Editar dados do bem '''
+@login_required
+def overview_edit(request, pk):
+    item = get_object_or_404(Estoque.objects.select_related('item_shock', 'locate'), pk=pk)
+    if request.method == 'POST':
+        form = EstoqueForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            edited = form.save(commit=False)
+            edited.updated_by = request.user
+            edited.save()
+            from django.contrib import messages
+            messages.success(request, 'Item atualizado com sucesso.')
+            return redirect('dimms:overview', pk=pk)
+    else:
+        form = EstoqueForm(instance=item)
+    return render(request, 'dimms/overview_edit.html', {'form': form, 'item': item})
 
 
 ''' Etiquetas dos Bem '''   # Pra terminar

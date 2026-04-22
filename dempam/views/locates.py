@@ -1,12 +1,12 @@
 # bibliotecas do django
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import render, redirect, get_object_or_404
 
 # importações do código
 from ..forms import CircunscricaoPredioForm
-from ..models import CircunscricaoPredio
+from ..models import CircunscricaoPredio, InfoUA
 
 # ============================================
 # VIEWS DOS LOCAIS (PRÉDIOS E CIRCUNSCRIÇÕES)
@@ -19,19 +19,37 @@ from ..models import CircunscricaoPredio
 @login_required
 def locate_homepage(request):
     query = request.GET.get('q', '').strip()
+    meso_filter = request.GET.get('meso', '').strip()
 
-    circunscricoes = CircunscricaoPredio.objects.all().order_by('local')
+    circunscricoes = CircunscricaoPredio.objects.annotate(
+        total_uas=Count('circunscricoes_predios')
+    ).order_by('local')
 
     if query:
-        circunscricoes = circunscricoes.filter(
-            Q(local__icontains=query)
-        )
+        circunscricoes = circunscricoes.filter(Q(local__icontains=query))
+
+    if meso_filter:
+        circunscricoes = circunscricoes.filter(meso=meso_filter)
+
+    mesoregiones = CircunscricaoPredio.objects.exclude(meso='').values_list('meso', flat=True).distinct().order_by('meso')
 
     context = {
         'circunscricoes': circunscricoes,
         'query': query,
+        'meso_filter': meso_filter,
+        'mesoregiones': mesoregiones,
     }
     return render(request, 'dempam/locates/locate_homepage.html', context)
+
+@login_required
+def predio_detail(request, pk):
+    predio = get_object_or_404(CircunscricaoPredio, pk=pk)
+    uas = predio.circunscricoes_predios.all().order_by('ua')
+    return render(request, 'dempam/locates/predio_detail.html', {
+        'predio': predio,
+        'uas': uas,
+    })
+
 
 # Cadastrar nova circunscrição/prédio
 @login_required
