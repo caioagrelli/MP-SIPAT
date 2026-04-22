@@ -158,7 +158,7 @@ class BensPermanentesAdmin(admin.ModelAdmin):
 
     search_fields = (
         'tombo',
-        'description',
+        'description__description',
         'mark',
         'model',
         'n_series',
@@ -272,6 +272,84 @@ class HistoryUasAdmin(admin.ModelAdmin):
         ('UA Antepenúltima', {
             'fields': (
                 'third_last_ua',
+                'third_last_year',
+            )
+        }),
+    )
+
+
+@admin.register(MovimentacoesPermanentes)
+class MovimentacoesPermanentesAdmin(admin.ModelAdmin):
+    list_display = (
+        'codigo',
+        'tombo',
+        'acao',
+        'origem',
+        'destino',
+        'usuario',
+        'data_hora',
+    )
+
+    ordering = ('-id',)
+
+    search_fields = (
+        'codigo',
+        'tombo__tombo',
+        'nome_resp_uso_ext',
+        'matricula_resp_uso_ext',
+        'sei',
+    )
+
+    list_filter = (
+        'acao',
+    )
+
+    readonly_fields = (
+        'usuario',
+        'data_hora',
+        'origem',
+    )
+
+    autocomplete_fields = (
+        'tombo',
+        'destino',
+    )
+
+    fieldsets = (
+        ('SEI da Movimentação', {
+            'fields': (
+                'sei',
+                'codigo',
+            )
+        }),
+
+        ('Movimentação', {
+            'fields': (
+                'tombo',
+                'acao',
+                'origem',
+                'destino',
+            )
+        }),
+
+        ('Documentos', {
+            'fields': (
+                'anexo',
+            )
+        }),
+
+        ('Informações Uso Externo', {
+            'fields': (
+                'nome_resp_uso_ext',
+                'matricula_resp_uso_ext',
+                'contato_resp_uso_ext',
+            )
+        }),
+
+        ('Registro', {
+            'fields': (
+                'usuario',
+                'data_hora',
             )
         }),
     )
