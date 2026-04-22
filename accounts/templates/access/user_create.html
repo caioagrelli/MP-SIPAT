@@ -1,0 +1,263 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Novo Usuário{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 760px; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .83rem; font-weight: 600; color: var(--ink-3);
+    text-decoration: none; margin-bottom: 20px; transition: color .15s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  .page-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; margin-bottom: 4px; }
+  .page-sub { font-size: .88rem; color: var(--ink-3); font-weight: 500; margin-bottom: 28px; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .form-card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    font-size: 1rem; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-card-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Grid de campos */
+  .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .fields-row.full { grid-template-columns: 1fr; }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-label span { color: var(--red); margin-left: 2px; }
+
+  .field-input {
+    height: 42px; border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 14px; font-family: var(--font); font-size: .9rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field-hint { font-size: .74rem; color: var(--ink-3); margin-top: 2px; }
+
+  /* Grupos (igual ao user_edit) */
+  .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+
+  .group-toggle { position: relative; cursor: pointer; }
+  .group-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  .group-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-radius: var(--r-md);
+    border: 2px solid var(--border); background: var(--surface-2);
+    transition: all .15s ease; user-select: none;
+  }
+  .group-card:hover { border-color: var(--blue-mid); background: var(--blue-soft); }
+  .group-toggle input:checked + .group-card {
+    border-color: var(--accent); background: var(--blue-soft);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .group-check-icon {
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid var(--border-strong); background: var(--surface);
+    display: grid; place-items: center; font-size: .68rem; color: transparent;
+    transition: all .15s;
+  }
+  .group-toggle input:checked + .group-card .group-check-icon {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .group-label-text { font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+  .group-toggle input:checked + .group-card .group-label-text { color: var(--accent-dark); }
+
+  /* Toggle ativo/inativo */
+  .active-toggle-wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border: 2px solid var(--border);
+    border-radius: var(--r-md); background: var(--surface-2);
+  }
+  .active-toggle-label { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+  .active-toggle-sub { font-size: .74rem; color: var(--ink-3); margin-top: 2px; }
+
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border-strong); border-radius: 999px; transition: .2s;
+  }
+  .switch-slider::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    left: 3px; bottom: 3px; background: #fff;
+    transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .switch-slider { background: var(--accent); }
+  .switch input:checked + .switch-slider::before { transform: translateX(20px); }
+
+  /* Botões */
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .apage { padding: 14px 12px 32px; }
+    .fields-row { grid-template-columns: 1fr; }
+    .groups-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="apage">
+
+  <a href="{% url 'accounts:users_list' %}" class="back-link">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Voltar para usuários
+  </a>
+
+  <div class="page-title">Novo Usuário</div>
+  <div class="page-sub">Preencha os dados para criar um novo acesso ao sistema.</div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Dados pessoais -->
+    <div class="form-card">
+      <div class="form-card-head">👤 Dados Pessoais</div>
+      <div class="form-card-body">
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label" for="id_first_name">Nome</label>
+            <input class="field-input" type="text" id="id_first_name" name="first_name"
+              value="{{ form_data.first_name|default:'' }}" placeholder="Ex: João">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="id_last_name">Sobrenome</label>
+            <input class="field-input" type="text" id="id_last_name" name="last_name"
+              value="{{ form_data.last_name|default:'' }}" placeholder="Ex: Silva">
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label" for="id_username">Usuário <span>*</span></label>
+            <input class="field-input" type="text" id="id_username" name="username"
+              value="{{ form_data.username|default:'' }}" placeholder="Ex: joao.silva" autofocus>
+            <span class="field-hint">Usado para login. Sem espaços.</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="id_email">E-mail</label>
+            <input class="field-input" type="email" id="id_email" name="email"
+              value="{{ form_data.email|default:'' }}" placeholder="Ex: joao@mppe.mp.br">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Senha -->
+    <div class="form-card">
+      <div class="form-card-head">🔑 Senha</div>
+      <div class="form-card-body">
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label" for="id_password1">Senha <span>*</span></label>
+            <input class="field-input" type="password" id="id_password1" name="password1" placeholder="Mínimo 8 caracteres">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="id_password2">Confirmar Senha <span>*</span></label>
+            <input class="field-input" type="password" id="id_password2" name="password2" placeholder="Repita a senha">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grupos -->
+    <div class="form-card">
+      <div class="form-card-head">🔐 Grupos de Acesso</div>
+      <div class="form-card-body">
+        {% if all_groups %}
+          <div class="groups-grid">
+            {% for g in all_groups %}
+              <label class="group-toggle">
+                <input type="checkbox" name="groups" value="{{ g.id }}"
+                  {% if g.id|stringformat:"s" in form_data.getlist.groups %}checked{% endif %}>
+                <div class="group-card">
+                  <div class="group-check-icon">✓</div>
+                  <span class="group-label-text">{{ g.name }}</span>
+                </div>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:var(--ink-3); font-size:.86rem;">
+            Nenhum grupo criado ainda.
+            <a href="{% url 'accounts:group_create' %}" style="color:var(--accent);">Criar um grupo</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="form-card">
+      <div class="form-card-head">⚡ Status da Conta</div>
+      <div class="form-card-body">
+        <div class="active-toggle-wrap">
+          <div>
+            <div class="active-toggle-label">Conta ativa</div>
+            <div class="active-toggle-sub">Usuários inativos não conseguem fazer login.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="is_active" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'accounts:users_list' %}" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Criar Usuário
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

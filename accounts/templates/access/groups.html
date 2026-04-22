@@ -1,0 +1,227 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Grupos de Acesso{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; transform: translateY(-1px); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .btn-sm {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 8px;
+    font-family: var(--font); font-size: .76rem; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+    transition: all .13s; white-space: nowrap; text-decoration: none;
+  }
+  .btn-sm-blue { background: var(--blue-soft); border-color: var(--blue-mid); color: var(--blue); }
+  .btn-sm-blue:hover { background: #dbeafe; }
+  .btn-sm-red { background: var(--red-soft); border-color: var(--red-mid); color: var(--red); }
+  .btn-sm-red:hover { background: #fee2e2; }
+
+  .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+  .main-card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .main-card-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .total-badge { background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--blue); border-radius: 999px; padding: 3px 10px; font-size: .78rem; font-family: var(--mono); font-weight: 700; }
+
+  .main-table-wrap { overflow-x: auto; }
+  .main-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  .main-table thead th { padding: 11px 16px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
+  .main-table tbody td { padding: 14px 16px; color: var(--ink-2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .main-table tbody tr:last-child td { border-bottom: none; }
+  .main-table tbody tr:hover td { background: #f5f8ff; }
+
+  .group-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    background: var(--violet-soft); border: 1px solid var(--violet-mid);
+    display: grid; place-items: center; font-size: 1rem;
+  }
+  .group-cell { display: flex; align-items: center; gap: 12px; }
+  .group-cell-name { font-size: .9rem; font-weight: 700; color: var(--ink); }
+
+  .user-count-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700;
+    background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--blue);
+    font-family: var(--mono);
+  }
+
+  .actions-group { display: flex; gap: 6px; }
+
+  .table-empty { padding: 40px; text-align: center; color: var(--ink-3); font-size: .9rem; }
+  .table-empty-icon { font-size: 2.2rem; display: block; margin-bottom: 8px; opacity: .35; }
+  .table-empty-title { font-weight: 700; color: var(--ink-2); font-size: .95rem; margin-bottom: 4px; }
+
+  /* Modal de confirmação de exclusão */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.45); z-index: 999;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface); border-radius: var(--r-lg);
+    box-shadow: 0 20px 60px rgba(15,23,42,.2);
+    padding: 28px; max-width: 400px; width: 90%;
+  }
+  .modal-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+  .modal-body { font-size: .88rem; color: var(--ink-3); margin-bottom: 22px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Grupos de Acesso</div>
+      <div class="topbar-sub">Crie e gerencie os grupos de permissão do sistema.</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="{% url 'accounts:users_list' %}" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Voltar para usuários
+      </a>
+      <a href="{% url 'accounts:group_create' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Novo Grupo
+      </a>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🔐 Grupos cadastrados
+        <span class="total-badge">{{ total_groups }} grupos</span>
+      </div>
+    </div>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Grupo</th>
+            <th>Membros</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in groups %}
+          <tr>
+            <td>
+              <div class="group-cell">
+                <div class="group-icon">🔐</div>
+                <div class="group-cell-name">{{ g.name }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="user-count-badge">{{ g.user_count }} usuário{{ g.user_count|pluralize:"s" }}</span>
+            </td>
+            <td>
+              <div class="actions-group">
+                <a href="{% url 'accounts:group_permissions' g.pk %}" class="btn-sm btn-sm-blue">Permissões</a>
+                <a href="{% url 'accounts:group_edit' g.pk %}" class="btn-sm btn-sm-outline">Renomear</a>
+                <button
+                  class="btn-sm btn-sm-red"
+                  onclick="openDeleteModal('{{ g.pk }}', '{{ g.name }}')"
+                  type="button"
+                >
+                  Remover
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3">
+              <div class="table-empty">
+                <span class="table-empty-icon">🔐</span>
+                <div class="table-empty-title">Nenhum grupo criado ainda</div>
+                <div>Crie um grupo para começar a atribuir permissões.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-title">Remover grupo</div>
+    <div class="modal-body">
+      Tem certeza que deseja remover o grupo <strong id="modal-group-name"></strong>?
+      Os usuários não serão excluídos, apenas perderão esse grupo.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()" type="button">Cancelar</button>
+      <form id="deleteForm" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background:#b91c1c; color:#fff; border-color:#991b1b;">
+          Confirmar remoção
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openDeleteModal(pk, name) {
+    document.getElementById('modal-group-name').textContent = name;
+    document.getElementById('deleteForm').action = '/accounts/grupos/' + pk + '/deletar/';
+    document.getElementById('deleteModal').classList.add('open');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+  }
+  // Fecha ao clicar fora do modal
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+
+{% endblock %}

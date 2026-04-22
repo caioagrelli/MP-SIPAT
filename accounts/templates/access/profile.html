@@ -1,0 +1,270 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Meu Perfil{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 800px; }
+
+  .page-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; margin-bottom: 4px; }
+  .page-sub { font-size: .88rem; color: var(--ink-3); font-weight: 500; margin-bottom: 28px; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .form-card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    font-size: 1rem; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-card-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Avatar */
+  .avatar-section {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .avatar-preview {
+    width: 90px; height: 90px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #6d28d9);
+    display: grid; place-items: center;
+    font-size: 2rem; font-weight: 800; color: #fff;
+    overflow: hidden; border: 3px solid var(--border);
+    position: relative;
+  }
+  .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+  .avatar-controls { display: flex; flex-direction: column; gap: 8px; }
+  .avatar-hint { font-size: .76rem; color: var(--ink-3); }
+
+  /* Upload customizado */
+  .upload-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .82rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border-strong);
+    background: var(--surface-2); color: var(--ink-2);
+    transition: all .15s; white-space: nowrap;
+  }
+  .upload-btn:hover { background: var(--border); color: var(--ink); }
+  .upload-btn input[type="file"] { display: none; }
+
+  .remove-photo-btn {
+    background: none; border: none; font-family: var(--font);
+    font-size: .78rem; font-weight: 600; color: var(--red);
+    cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .remove-photo-btn:hover { color: #991b1b; }
+
+  /* Campos */
+  .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-input, .field-textarea {
+    border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 14px; font-family: var(--font); font-size: .9rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field-input { height: 42px; }
+  .field-textarea { padding: 10px 14px; resize: vertical; min-height: 80px; }
+  .field-input:focus, .field-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  /* Info somente leitura */
+  .readonly-field {
+    height: 42px; display: flex; align-items: center;
+    padding: 0 14px; border-radius: var(--r-sm);
+    background: var(--surface-2); border: 1.5px solid var(--border);
+    font-size: .88rem; color: var(--ink-3); font-family: var(--mono);
+  }
+
+  /* Grupos do usuário */
+  .groups-list { display: flex; gap: 6px; flex-wrap: wrap; }
+  .group-chip {
+    padding: 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 700;
+    background: var(--violet-soft); border: 1px solid var(--violet-mid); color: #6d28d9;
+  }
+  .no-group { font-size: .84rem; color: var(--ink-3); font-style: italic; }
+
+  /* Divisor de seção de senha */
+  .password-section { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Botões */
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-danger { background: var(--red-soft); border-color: var(--red-mid); color: var(--red); }
+  .btn-danger:hover { background: #fee2e2; }
+
+  @media (max-width: 600px) {
+    .apage { padding: 14px 12px 32px; }
+    .fields-row { grid-template-columns: 1fr; }
+    .avatar-section { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<div class="apage">
+
+  <div class="page-title">Meu Perfil</div>
+  <div class="page-sub">Personalize suas informações e foto de perfil.</div>
+
+  <!-- Informações e foto -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_info">
+
+    <div class="form-card">
+      <div class="form-card-head">📷 Foto de Perfil</div>
+      <div class="form-card-body">
+        <div class="avatar-section">
+
+          <div class="avatar-preview" id="avatarPreview">
+            {% if profile.photo %}
+              <img src="{{ profile.photo.url }}" alt="Foto de perfil" id="avatarImg">
+            {% else %}
+              <span id="avatarInitials">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</span>
+            {% endif %}
+          </div>
+
+          <div class="avatar-controls">
+            <label class="upload-btn">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              Enviar foto
+              <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this)">
+            </label>
+            <span class="avatar-hint">JPG, PNG ou WEBP. Máx. 2MB.</span>
+            {% if profile.photo %}
+              <button type="submit" name="remove_photo" value="1" class="remove-photo-btn"
+                onclick="document.querySelector('[name=remove_photo]').value='1'">
+                Remover foto atual
+              </button>
+              <input type="hidden" name="remove_photo" value="0">
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-head">👤 Informações Pessoais</div>
+      <div class="form-card-body">
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label" for="id_first_name">Nome</label>
+            <input class="field-input" type="text" id="id_first_name" name="first_name"
+              value="{{ user.first_name }}" placeholder="Seu nome">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="id_last_name">Sobrenome</label>
+            <input class="field-input" type="text" id="id_last_name" name="last_name"
+              value="{{ user.last_name }}" placeholder="Seu sobrenome">
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label">Usuário</label>
+            <div class="readonly-field">@{{ user.username }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="id_email">E-mail</label>
+            <input class="field-input" type="email" id="id_email" name="email"
+              value="{{ user.email }}" placeholder="seu@email.com">
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label" for="id_phone">Telefone</label>
+            <input class="field-input" type="text" id="id_phone" name="phone"
+              value="{{ profile.phone }}" placeholder="(81) 99999-9999">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Grupos</label>
+            <div style="padding-top:4px;">
+              <div class="groups-list">
+                {% for g in user.groups.all %}
+                  <span class="group-chip">{{ g.name }}</span>
+                {% empty %}
+                  <span class="no-group">Sem grupo atribuído</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Salvar alterações
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </form>
+
+
+</div>
+
+<script>
+  // Preview da foto antes de enviar
+  function previewPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('avatarPreview');
+      const initials = document.getElementById('avatarInitials');
+      let img = document.getElementById('avatarImg');
+
+      if (!img) {
+        img = document.createElement('img');
+        img.id = 'avatarImg';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+        preview.innerHTML = '';
+        preview.appendChild(img);
+      }
+
+      img.src = e.target.result;
+      if (initials) initials.remove();
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+</script>
+
+{% endblock %}

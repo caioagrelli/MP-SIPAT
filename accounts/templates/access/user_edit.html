@@ -1,0 +1,322 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Editar Usuário: {{ edited_user.username }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --violet: #6d28d9; --violet-soft: #f5f3ff; --violet-mid: #ddd6fe;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 800px; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .83rem; font-weight: 600; color: var(--ink-3);
+    text-decoration: none; margin-bottom: 20px; transition: color .15s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  .page-title { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; margin-bottom: 4px; }
+  .page-sub { font-size: .88rem; color: var(--ink-3); font-weight: 500; margin-bottom: 24px; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .form-card-head {
+    padding: 15px 24px; border-bottom: 1px solid var(--border);
+    font-size: .95rem; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-card-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* Foto */
+  .avatar-section { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .avatar-preview {
+    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #6d28d9);
+    display: grid; place-items: center;
+    font-size: 1.6rem; font-weight: 800; color: #fff;
+    overflow: hidden; border: 3px solid var(--border);
+  }
+  .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-controls { display: flex; flex-direction: column; gap: 7px; }
+  .avatar-hint { font-size: .74rem; color: var(--ink-3); }
+  .upload-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .81rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border-strong);
+    background: var(--surface-2); color: var(--ink-2); transition: all .15s;
+  }
+  .upload-btn:hover { background: var(--border); color: var(--ink); }
+  .upload-btn input[type="file"] { display: none; }
+  .remove-photo-btn {
+    background: none; border: none; font-family: var(--font);
+    font-size: .76rem; font-weight: 600; color: var(--red);
+    cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .remove-photo-btn:hover { color: #991b1b; }
+
+  /* Campos */
+  .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-input {
+    height: 40px; border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 12px; font-family: var(--font); font-size: .88rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .readonly-field {
+    height: 40px; display: flex; align-items: center;
+    padding: 0 12px; border-radius: var(--r-sm);
+    background: var(--surface-2); border: 1.5px solid var(--border);
+    font-size: .85rem; color: var(--ink-3); font-family: var(--mono);
+  }
+
+  /* Grupos */
+  .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .group-toggle { position: relative; cursor: pointer; }
+  .group-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .group-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-radius: var(--r-md);
+    border: 2px solid var(--border); background: var(--surface-2);
+    transition: all .15s; user-select: none;
+  }
+  .group-card:hover { border-color: var(--blue-mid); background: var(--blue-soft); }
+  .group-toggle input:checked + .group-card {
+    border-color: var(--accent); background: var(--blue-soft);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .group-check-icon {
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid var(--border-strong); background: var(--surface);
+    display: grid; place-items: center; font-size: .68rem; color: transparent; transition: all .15s;
+  }
+  .group-toggle input:checked + .group-card .group-check-icon {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .group-label-text { font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+  .group-toggle input:checked + .group-card .group-label-text { color: var(--accent-dark); }
+
+  /* Switch */
+  .active-toggle-wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border: 2px solid var(--border);
+    border-radius: var(--r-md); background: var(--surface-2);
+  }
+  .active-toggle-label { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+  .active-toggle-sub { font-size: .74rem; color: var(--ink-3); margin-top: 2px; }
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border-strong); border-radius: 999px; transition: .2s;
+  }
+  .switch-slider::before {
+    content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%;
+    left: 3px; bottom: 3px; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .switch-slider { background: var(--accent); }
+  .switch input:checked + .switch-slider::before { transform: translateX(20px); }
+
+  /* Botões */
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent; transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .apage { padding: 14px 12px 32px; }
+    .fields-row { grid-template-columns: 1fr; }
+    .groups-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="apage">
+
+  <a href="{% url 'accounts:users_list' %}" class="back-link">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Voltar para usuários
+  </a>
+
+  <div class="page-title">Editar Usuário</div>
+  <div class="page-sub">@{{ edited_user.username }}</div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="remove_photo" value="0" id="removePhotoInput">
+
+    <!-- Foto -->
+    <div class="form-card">
+      <div class="form-card-head">📷 Foto de Perfil</div>
+      <div class="form-card-body">
+        <div class="avatar-section">
+          <div class="avatar-preview" id="avatarPreview">
+            {% if profile.photo %}
+              <img src="{{ profile.photo.url }}" alt="" id="avatarImg">
+            {% else %}
+              <span id="avatarInitials">{{ edited_user.get_full_name|default:edited_user.username|slice:":2"|upper }}</span>
+            {% endif %}
+          </div>
+          <div class="avatar-controls">
+            <label class="upload-btn">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              Trocar foto
+              <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this)">
+            </label>
+            <span class="avatar-hint">JPG, PNG ou WEBP. Máx. 2MB.</span>
+            {% if profile.photo %}
+              <button type="button" class="remove-photo-btn" onclick="removePhoto()">Remover foto</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dados pessoais -->
+    <div class="form-card">
+      <div class="form-card-head">👤 Dados Pessoais</div>
+      <div class="form-card-body">
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label">Nome</label>
+            <input class="field-input" type="text" name="first_name"
+              value="{{ edited_user.first_name }}" placeholder="Nome">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Sobrenome</label>
+            <input class="field-input" type="text" name="last_name"
+              value="{{ edited_user.last_name }}" placeholder="Sobrenome">
+          </div>
+        </div>
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label">Usuário</label>
+            <div class="readonly-field">@{{ edited_user.username }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">E-mail</label>
+            <input class="field-input" type="email" name="email"
+              value="{{ edited_user.email }}" placeholder="email@exemplo.com">
+          </div>
+        </div>
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label">Telefone</label>
+            <input class="field-input" type="text" name="phone"
+              value="{{ profile.phone }}" placeholder="(81) 99999-9999">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grupos -->
+    <div class="form-card">
+      <div class="form-card-head">🔐 Grupos de Acesso</div>
+      <div class="form-card-body">
+        {% if all_groups %}
+          <div class="groups-grid">
+            {% for g in all_groups %}
+              <label class="group-toggle">
+                <input type="checkbox" name="groups" value="{{ g.id }}"
+                  {% if g.id in user_group_ids %}checked{% endif %}>
+                <div class="group-card">
+                  <div class="group-check-icon">✓</div>
+                  <span class="group-label-text">{{ g.name }}</span>
+                </div>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:var(--ink-3); font-size:.86rem;">
+            Nenhum grupo criado.
+            <a href="{% url 'accounts:group_create' %}" style="color:var(--accent);">Criar um grupo</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="form-card">
+      <div class="form-card-head">⚡ Status da Conta</div>
+      <div class="form-card-body">
+        <div class="active-toggle-wrap">
+          <div>
+            <div class="active-toggle-label">Conta ativa</div>
+            <div class="active-toggle-sub">Usuários inativos não conseguem fazer login.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="is_active" {% if edited_user.is_active %}checked{% endif %}>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'accounts:users_list' %}" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        Salvar alterações
+      </button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+  function previewPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('avatarPreview');
+      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+    // Cancela remoção caso estivesse marcada
+    document.getElementById('removePhotoInput').value = '0';
+  }
+
+  function removePhoto() {
+    document.getElementById('removePhotoInput').value = '1';
+    const preview = document.getElementById('avatarPreview');
+    const initials = '{{ edited_user.get_full_name|default:edited_user.username|slice:":2"|upper }}';
+    preview.innerHTML = `<span style="font-size:1.6rem;font-weight:800;color:#fff;">${initials}</span>`;
+  }
+</script>
+
+{% endblock %}
