@@ -31,6 +31,7 @@ urlpatterns = [
     path('dimms/', include(('dimms.urls', 'dimms'), namespace='dimms')),
     path('dimrcbp/', include(('dimrcbp.urls', 'dimrcbp'), namespace='dimrcbp')),
     path('access/', include(('accounts.urls', 'accounts'), namespace='accounts')),
+    path('demands/', include(('demands.urls', 'demands'), namespace='demands')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
