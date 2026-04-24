@@ -1,0 +1,286 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Nova Demanda{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 860px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: 28px 32px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-full { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-input, .field-select, .field-textarea {
+    border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 10px 13px; font-family: var(--font); font-size: .88rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%; transition: border-color .15s, box-shadow .15s;
+  }
+  .field-select {
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+  }
+  .field-textarea { resize: vertical; min-height: 100px; }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .section-divider { grid-column: 1 / -1; border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+  .section-label { grid-column: 1 / -1; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); padding-top: 4px; }
+
+  /* UA cards */
+  .ua-cards { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ua-card-input { display: none; }
+  .ua-card-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-radius: var(--r-sm);
+    border: 2px solid var(--border); background: var(--surface-2);
+    cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--ink-2);
+    transition: all .15s;
+  }
+  .ua-card-label:hover { border-color: var(--amber-mid); background: var(--amber-soft); color: var(--amber); }
+  .ua-card-input:checked + .ua-card-label {
+    border-color: var(--amber); background: var(--amber-soft); color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(180,83,9,.1);
+  }
+
+  /* Tipo de demanda cards */
+  .type-cards { display: flex; flex-wrap: wrap; gap: 10px; }
+  .type-card-input { display: none; }
+  .type-card-label {
+    display: flex; align-items: center; gap: 9px;
+    padding: 10px 14px; border-radius: var(--r-sm);
+    border: 2px solid var(--border); background: var(--surface-2);
+    cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--ink-2);
+    transition: all .15s;
+  }
+  .type-card-label:hover { border-color: var(--blue-mid); background: var(--blue-soft); color: var(--blue); }
+  .type-card-input:checked + .type-card-label {
+    border-color: var(--accent); background: var(--blue-soft); color: var(--blue);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* Multi-select de usuários */
+  .users-select { max-height: 180px; overflow-y: auto; border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 6px; background: var(--surface); }
+  .users-select label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: .85rem; color: var(--ink-2); transition: background .1s; }
+  .users-select label:hover { background: var(--surface-2); }
+  .users-select input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+  .users-select label.hidden { display: none; }
+
+  .ua-hint { font-size: .78rem; color: var(--ink-3); font-style: italic; padding: 10px 8px; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; }
+
+  @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .apage { padding: 14px 12px 32px; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Nova Demanda</div>
+      <div class="topbar-sub">Preencha os campos abaixo para registrar uma nova demanda.</div>
+    </div>
+    <a href="{% url 'demands:homepage' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="form-card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-grid">
+
+        <!-- UA -->
+        <div class="form-full field">
+          <span class="field-label">UA Responsável</span>
+          <div class="ua-cards">
+            {% for ua in managed_uas %}
+            <div>
+              <input class="ua-card-input" type="radio" name="ua" id="ua_{{ ua.pk }}" value="{{ ua.pk }}"
+                {% if form_data.ua == ua.pk|stringformat:"s" %}checked{% endif %}
+                onchange="filterByUA({{ ua.pk }})" required>
+              <label class="ua-card-label" for="ua_{{ ua.pk }}">🏢 {{ ua.ua }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Tipo -->
+        <div class="form-full field">
+          <span class="field-label">Tipo de Demanda</span>
+          <div class="type-cards">
+            {% for dt in available_types %}
+            <div>
+              <input class="type-card-input" type="radio" name="demand_type" id="type_{{ dt.pk }}" value="{{ dt.pk }}"
+                {% if form_data.demand_type == dt.pk|stringformat:"s" %}checked{% endif %} required>
+              <label class="type-card-label" for="type_{{ dt.pk }}" style="border-color:{{ dt.color }}40;">
+                {{ dt.icon }} {{ dt.name }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Título -->
+        <div class="form-full field">
+          <label class="field-label" for="title">Título</label>
+          <input class="field-input" type="text" id="title" name="title" maxlength="120"
+            value="{{ form_data.title|default:'' }}" placeholder="Descreva brevemente a demanda…" required>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-full field">
+          <label class="field-label" for="description">Descrição</label>
+          <textarea class="field-textarea" id="description" name="description" rows="4"
+            placeholder="Detalhes, contexto e informações relevantes…" required>{{ form_data.description|default:'' }}</textarea>
+        </div>
+
+        <!-- Prioridade -->
+        <div class="field">
+          <label class="field-label" for="priority">Prioridade</label>
+          <select class="field-select" id="priority" name="priority">
+            {% for val, label in priority_choices %}
+              <option value="{{ val }}" {% if form_data.priority == val or not form_data and val == 'medium' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Prazo -->
+        <div class="field">
+          <label class="field-label" for="deadline">Prazo (opcional)</label>
+          <input class="field-input" type="date" id="deadline" name="deadline" value="{{ form_data.deadline|default:'' }}">
+        </div>
+
+        <hr class="section-divider">
+        <div class="section-label">Atribuição</div>
+
+        <!-- Atribuído a -->
+        <div class="form-full field">
+          <label class="field-label">Atribuir a (opcional)</label>
+          <div class="users-select" id="usersSelect">
+            <p class="ua-hint" id="ua-hint">Selecione uma UA primeiro para ver os membros disponíveis.</p>
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <hr class="section-divider">
+        <div class="section-label">Anexos (opcional)</div>
+
+        <div class="form-full field">
+          <label class="field-label" for="attachments">Arquivos</label>
+          <input class="field-input" type="file" id="attachments" name="attachments" multiple>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'demands:homepage' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Criar Demanda
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  const usersByUA = {{ users_by_ua_json|safe }};
+  const prevAssigned = [{% for id in form_data.getlist|default:'' %}"{{ id }}"{% endfor %}];
+
+  function filterByUA(uaId) {
+    const container = document.getElementById('usersSelect');
+    const hint = document.getElementById('ua-hint');
+    const members = usersByUA[uaId] || [];
+
+    container.innerHTML = '';
+
+    if (members.length === 0) {
+      container.innerHTML = '<p class="ua-hint">Nenhum membro cadastrado nesta UA.</p>';
+      return;
+    }
+
+    members.forEach(function(u) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:8px; gap:12px;';
+      row.onmouseenter = () => row.style.background = 'var(--surface-2)';
+      row.onmouseleave = () => row.style.background = '';
+
+      // Checkbox atribuir
+      const assignLabel = document.createElement('label');
+      assignLabel.style.cssText = 'display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--ink-2); flex:1;';
+      const assignInput = document.createElement('input');
+      assignInput.type = 'checkbox';
+      assignInput.name = 'assigned_to';
+      assignInput.value = u.id;
+      assignInput.style.cssText = 'accent-color:var(--accent); width:15px; height:15px;';
+      if (prevAssigned.includes(String(u.id))) assignInput.checked = true;
+      assignLabel.appendChild(assignInput);
+      assignLabel.appendChild(document.createTextNode(' ' + u.name));
+
+      // Checkbox pode alterar status
+      const statusLabel = document.createElement('label');
+      statusLabel.style.cssText = 'display:flex; align-items:center; gap:5px; cursor:pointer; font-size:.75rem; color:var(--ink-3); white-space:nowrap;';
+      const statusInput = document.createElement('input');
+      statusInput.type = 'checkbox';
+      statusInput.name = 'can_change_status';
+      statusInput.value = u.id;
+      statusInput.style.cssText = 'accent-color:var(--amber); width:13px; height:13px;';
+      statusLabel.appendChild(statusInput);
+      statusLabel.appendChild(document.createTextNode(' Pode alterar status'));
+
+      row.appendChild(assignLabel);
+      row.appendChild(statusLabel);
+      container.appendChild(row);
+    });
+  }
+
+  // Se já havia UA selecionada (ex: erro de validação), carrega os membros
+  document.addEventListener('DOMContentLoaded', function() {
+    const checked = document.querySelector('input[name="ua"]:checked');
+    if (checked) filterByUA(parseInt(checked.value));
+  });
+</script>
+
+{% endblock %}

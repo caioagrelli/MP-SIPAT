@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
+from dempam.models import InfoUA
 
 
 # ─── Choices ──────────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ def demand_attachment_path(instance, filename):
 
 
 def update_attachment_path(instance, filename):
-    return f'demands/{instance.update.demand.code}/updates/{filename}'
+    return f'demands/{instance.demand.code}/updates/{filename}'
 
 
 # ─── Tipo de Demanda ──────────────────────────────────────────────────────────
@@ -66,6 +67,14 @@ class Demand(models.Model):
     status      = models.CharField(max_length=15, choices=Status.choices, default=Status.open, verbose_name='Status')
     deadline    = models.DateField(blank=True, null=True, verbose_name='Prazo')
 
+    ua = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+        verbose_name='UA',
+        help_text='Unidade Administrativa responsável pela demanda',
+    )
+
     created_by  = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -75,6 +84,7 @@ class Demand(models.Model):
 
     assigned_to = models.ManyToManyField(
         User,
+        through='DemandAssignment',
         blank=True,
         related_name='demands_assigned',
         verbose_name='Atribuído a',
@@ -112,6 +122,22 @@ class Demand(models.Model):
         if self.deadline and self.status != Status.done:
             return self.deadline < timezone.now().date()
         return False
+
+
+# ─── Atribuição com permissão de status ──────────────────────────────────────
+
+class DemandAssignment(models.Model):
+    demand            = models.ForeignKey(Demand, on_delete=models.CASCADE, related_name='assignments', verbose_name='Demanda')
+    user              = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demand_assignments', verbose_name='Usuário')
+    can_change_status = models.BooleanField(default=False, verbose_name='Pode alterar status')
+
+    class Meta:
+        unique_together = ('demand', 'user')
+        verbose_name        = 'Atribuição'
+        verbose_name_plural = 'Atribuições'
+
+    def __str__(self):
+        return f'{self.user} → {self.demand.code}'
 
 
 # ─── Anexos da Demanda ────────────────────────────────────────────────────────
