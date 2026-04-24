@@ -1,0 +1,238 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ action }} Tipo de Demanda{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); max-width: 640px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .field-input, .field-textarea {
+    border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 10px 13px; font-family: var(--font); font-size: .88rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%; transition: border-color .15s, box-shadow .15s;
+  }
+  .field-textarea { resize: vertical; min-height: 80px; }
+  .field-input:focus, .field-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Preview */
+  .preview-box {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: var(--r-md);
+    border: 1px solid var(--border); background: var(--surface-2);
+  }
+  .preview-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; flex-shrink: 0; transition: all .2s; }
+  .preview-name { font-weight: 700; font-size: 1rem; color: var(--ink); }
+  .preview-sub  { font-size: .76rem; color: var(--ink-3); margin-top: 2px; }
+
+  /* Switch */
+  .switch-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+  .switch-label { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+  .switch-sub { font-size: .74rem; color: var(--ink-3); margin-top: 2px; }
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border-strong); border-radius: 999px; transition: .2s; }
+  .switch-slider::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; left: 3px; bottom: 3px; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .switch input:checked + .switch-slider { background: var(--accent); }
+  .switch input:checked + .switch-slider::before { transform: translateX(20px); }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  @media (max-width: 600px) { .fields-row { grid-template-columns: 1fr; } .apage { padding: 14px 12px 32px; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{{ action }} Tipo</div>
+      <div class="topbar-sub">{% if dt %}Editando "{{ dt.name }}"{% else %}Novo tipo de demanda{% endif %}</div>
+    </div>
+    <a href="{% url 'demands:types_list' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <!-- Preview dinâmico -->
+  {% with init_color=dt.color|default:'#1d4ed8' init_icon=dt.icon|default:'📋' init_name=dt.name|default:'Nome do tipo' %}
+  <div class="preview-box" style="margin-bottom:20px;">
+    <div class="preview-icon" id="previewIcon"
+      style="background:{{ init_color }}18; border:1px solid {{ init_color }}30;">
+      <span id="previewIconText">{{ init_icon }}</span>
+    </div>
+    <div>
+      <div class="preview-name" id="previewName">{{ init_name }}</div>
+      <div class="preview-sub" id="previewColor">{{ init_color }}</div>
+    </div>
+  </div>
+  {% endwith %}
+
+  <div class="form-card">
+    <form method="post" id="typeForm">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="field-label" for="name">Nome</label>
+        <input class="field-input" type="text" id="name" name="name" maxlength="80"
+          value="{% if dt %}{{ dt.name }}{% else %}{{ form_data.name|default:'' }}{% endif %}"
+          placeholder="Ex: Manutenção, Compra, TI…" required
+          oninput="document.getElementById('previewName').textContent = this.value || 'Nome do tipo'">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="description">Descrição (opcional)</label>
+        <textarea class="field-textarea" id="description" name="description" rows="3"
+          placeholder="Descreva quando este tipo deve ser usado…">{% if dt %}{{ dt.description }}{% else %}{{ form_data.description|default:'' }}{% endif %}</textarea>
+      </div>
+
+      <div class="fields-row">
+        <div class="field">
+          <label class="field-label" for="color">Cor</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="color" id="colorPicker" value="{% if dt %}{{ dt.color }}{% else %}{{ form_data.color|default:'#1d4ed8' }}{% endif %}"
+              oninput="syncColor(this.value)"
+              style="width:44px; height:44px; border:1px solid var(--border-strong); border-radius:var(--r-sm); cursor:pointer; padding:2px;">
+            <input class="field-input" type="text" id="color" name="color" maxlength="7"
+              value="{% if dt %}{{ dt.color }}{% else %}{{ form_data.color|default:'#1d4ed8' }}{% endif %}"
+              placeholder="#1d4ed8" style="font-family:var(--mono); font-size:.85rem;"
+              oninput="syncColorFromText(this.value)">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Ícone (emoji)</label>
+          <div style="position:relative;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" id="emojiBtn" onclick="togglePicker()"
+                style="width:44px; height:44px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
+                       background:var(--surface-2); cursor:pointer; font-size:1.4rem; display:grid; place-items:center;
+                       transition:border-color .15s; flex-shrink:0;"
+                title="Escolher emoji">
+                <span id="emojiBtnPreview">{% if dt %}{{ dt.icon }}{% else %}{{ form_data.icon|default:'📋' }}{% endif %}</span>
+              </button>
+              <input class="field-input" type="text" id="icon" name="icon" maxlength="10" readonly
+                value="{% if dt %}{{ dt.icon }}{% else %}{{ form_data.icon|default:'📋' }}{% endif %}"
+                style="font-size:1.3rem; cursor:pointer; background:var(--surface-2);"
+                onclick="togglePicker()">
+            </div>
+            <div id="emojiPickerWrap" style="display:none; position:absolute; z-index:999; top:calc(100% + 6px); left:0;">
+              <emoji-picker id="emojiPicker"></emoji-picker>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Ativo</div>
+          <div class="switch-sub">Tipos inativos não aparecem no formulário de criação.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="is_active" {% if dt.is_active or not dt %}checked{% endif %}>
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'demands:types_list' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          {{ action }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+
+<script>
+  function syncColor(val) {
+    document.getElementById('color').value = val;
+    updatePreviewColor(val);
+  }
+
+  function syncColorFromText(val) {
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+      document.getElementById('colorPicker').value = val;
+      updatePreviewColor(val);
+    }
+  }
+
+  function updatePreviewColor(hex) {
+    const icon = document.getElementById('previewIcon');
+    icon.style.background = hex + '18';
+    icon.style.borderColor = hex + '30';
+    document.getElementById('previewColor').textContent = hex;
+  }
+
+  function togglePicker() {
+    const wrap = document.getElementById('emojiPickerWrap');
+    wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Fecha ao clicar fora
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('emojiPickerWrap');
+    const btn  = document.getElementById('emojiBtn');
+    const input = document.getElementById('icon');
+    if (!wrap.contains(e.target) && e.target !== btn && e.target !== input && !btn.contains(e.target)) {
+      wrap.style.display = 'none';
+    }
+  });
+
+  // Quando um emoji é selecionado
+  document.addEventListener('DOMContentLoaded', function() {
+    const picker = document.getElementById('emojiPicker');
+    if (picker) {
+      picker.addEventListener('emoji-click', function(e) {
+        const emoji = e.detail.unicode;
+        document.getElementById('icon').value = emoji;
+        document.getElementById('emojiBtnPreview').textContent = emoji;
+        document.getElementById('previewIconText').textContent = emoji;
+        document.getElementById('emojiPickerWrap').style.display = 'none';
+      });
+    }
+  });
+</script>
+
+{% endblock %}

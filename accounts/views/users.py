@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from accounts.views import management_required
 from accounts.models import Profile
+from dempam.models import InfoUA
 
 
 @management_required
@@ -60,6 +61,8 @@ def user_edit(request, pk):
     profile, _  = Profile.objects.get_or_create(user=edited_user)
     all_groups  = Group.objects.order_by('name')
 
+    all_uas = InfoUA.objects.order_by('ua')
+
     if request.method == 'POST':
         # Dados pessoais
         edited_user.first_name = request.POST.get('first_name', '').strip()
@@ -71,6 +74,12 @@ def user_edit(request, pk):
         # Grupos
         selected_ids = request.POST.getlist('groups')
         edited_user.groups.set(Group.objects.filter(id__in=selected_ids))
+
+        # UAs
+        ua_ids      = request.POST.getlist('uas')
+        managed_ids = request.POST.getlist('managed_uas')
+        profile.uas.set(InfoUA.objects.filter(id__in=ua_ids))
+        profile.managed_uas.set(InfoUA.objects.filter(id__in=managed_ids))
 
         # Foto — remove se solicitado, troca se enviada
         if request.POST.get('remove_photo') == '1' and profile.photo:
@@ -87,13 +96,18 @@ def user_edit(request, pk):
         messages.success(request, f'Usuário "{edited_user.username}" atualizado com sucesso.')
         return redirect('accounts:users_list')
 
-    user_group_ids = set(edited_user.groups.values_list('id', flat=True))
+    user_group_ids   = set(edited_user.groups.values_list('id', flat=True))
+    user_ua_ids      = set(profile.uas.values_list('id', flat=True))
+    user_managed_ids = set(profile.managed_uas.values_list('id', flat=True))
 
     return render(request, 'access/user_edit.html', {
-        'edited_user': edited_user,
-        'profile': profile,
-        'all_groups': all_groups,
-        'user_group_ids': user_group_ids,
+        'edited_user':     edited_user,
+        'profile':         profile,
+        'all_groups':      all_groups,
+        'user_group_ids':  user_group_ids,
+        'all_uas':         all_uas,
+        'user_ua_ids':     user_ua_ids,
+        'user_managed_ids': user_managed_ids,
     })
 
 

@@ -7,13 +7,14 @@ from django.db.models import Count
 from accounts.views import management_required
 
 # Apps do projeto que terão permissões gerenciadas
-PROJECT_APPS = ['dimms', 'dimrcbp', 'dempam', 'accounts']
+PROJECT_APPS = ['dimms', 'dimrcbp', 'dempam', 'accounts', 'demands']
 
 APP_DISPLAY_NAMES = {
     'dimms':    'DIMMS — Bens de Consumo',
     'dimrcbp':  'DIMRCBP — Bens Permanentes',
     'dempam':   'DEMPAM',
     'accounts': 'Controle de Acesso',
+    'demands':  'Demandas',
 }
 
 ACTIONS = ['view', 'add', 'change', 'delete']

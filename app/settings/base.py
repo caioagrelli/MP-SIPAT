@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "dimrcbp",
     "dempam",
     "accounts",
+    "demands",
     "mozilla_django_oidc",
 ]
 

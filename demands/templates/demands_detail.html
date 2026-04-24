@@ -1,0 +1,342 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ demand.code }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .topbar-title { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+  .card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 22px 24px; }
+
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .meta-value { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+
+  .description-block { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px 18px; font-size: .88rem; color: var(--ink-2); line-height: 1.65; white-space: pre-wrap; }
+
+  .priority-pill, .status-pill, .type-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px; font-size: .73rem; font-weight: 700; border: 1px solid;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .prio-low      { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .prio-medium   { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .prio-high     { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .prio-urgent   { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+  .status-open        { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .status-open .pill-dot        { background: var(--blue); }
+  .status-in_progress { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .status-in_progress .pill-dot { background: var(--amber); }
+  .status-done        { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .status-done .pill-dot        { background: var(--green); }
+  .overdue-badge { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-mid); border-radius: 999px; padding: 2px 8px; font-size: .7rem; font-weight: 700; }
+
+  /* Sidebar info */
+  .info-list { display: flex; flex-direction: column; gap: 14px; }
+  .info-row { display: flex; flex-direction: column; gap: 4px; }
+  .info-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .info-value { font-size: .86rem; color: var(--ink-2); font-weight: 500; }
+  .assigned-list { display: flex; flex-direction: column; gap: 5px; }
+  .assigned-user { display: flex; align-items: center; gap: 7px; font-size: .83rem; color: var(--ink-2); }
+  .avatar-xs { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #6d28d9); display: grid; place-items: center; font-size: .62rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+  /* Anexos */
+  .attach-list { display: flex; flex-direction: column; gap: 8px; }
+  .attach-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface-2); font-size: .83rem; color: var(--ink-2); text-decoration: none; transition: background .12s; }
+  .attach-item:hover { background: var(--blue-soft); color: var(--blue); border-color: var(--blue-mid); }
+
+  /* Timeline de atualizações */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-item { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #6d28d9); display: grid; place-items: center; font-size: .76rem; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
+  .tl-body { flex: 1; min-width: 0; }
+  .tl-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .tl-author { font-weight: 700; font-size: .87rem; color: var(--ink); }
+  .tl-date { font-size: .76rem; color: var(--ink-3); }
+  .tl-status-change { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-mid); }
+  .tl-comment { font-size: .86rem; color: var(--ink-2); line-height: 1.6; white-space: pre-wrap; }
+  .tl-file { margin-top: 8px; }
+
+  /* Formulário de atualização */
+  .update-form { display: flex; flex-direction: column; gap: 14px; }
+  .field-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); display: block; margin-bottom: 6px; }
+  .field-textarea {
+    border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 10px 13px; font-family: var(--font); font-size: .88rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%; resize: vertical; min-height: 80px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field-select {
+    height: 38px; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 12px; font-family: var(--font); font-size: .85rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+  }
+  .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field-input {
+    height: 38px; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 0 12px; font-family: var(--font); font-size: .85rem; color: var(--ink);
+    background: var(--surface); outline: none; width: 100%;
+  }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-actions { display: flex; justify-content: flex-end; }
+
+  .code-mono { font-family: var(--mono); font-size: .82rem; color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px; }
+
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } .meta-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">
+        {{ demand.demand_type.icon }} {{ demand.title }}
+        {% if demand.is_overdue %}<span class="overdue-badge">Atrasada</span>{% endif %}
+      </div>
+      <div class="topbar-sub">
+        <span class="code-mono">{{ demand.code }}</span>
+        <span class="status-pill status-{{ demand.status }}">
+          <span class="pill-dot"></span>{{ demand.get_status_display }}
+        </span>
+        <span class="priority-pill prio-{{ demand.priority }}">{{ demand.get_priority_display }}</span>
+      </div>
+    </div>
+    <a href="{% url 'demands:homepage' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="layout">
+
+    <!-- Coluna principal -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Descrição -->
+      <div class="card">
+        <div class="card-head">📄 Descrição</div>
+        <div class="card-body">
+          <div class="meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">Tipo</span>
+              <span class="meta-value">{{ demand.demand_type.icon }} {{ demand.demand_type.name }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Criado por</span>
+              <span class="meta-value">{{ demand.created_by.get_full_name|default:demand.created_by.username }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Criado em</span>
+              <span class="meta-value">{{ demand.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Prazo</span>
+              <span class="meta-value">{% if demand.deadline %}{{ demand.deadline|date:"d/m/Y" }}{% else %}—{% endif %}</span>
+            </div>
+          </div>
+          <div class="description-block">{{ demand.description }}</div>
+        </div>
+      </div>
+
+      <!-- Anexos da demanda -->
+      {% if attachments %}
+      <div class="card">
+        <div class="card-head">📎 Anexos</div>
+        <div class="card-body">
+          <div class="attach-list">
+            {% for a in attachments %}
+            <a href="{{ a.file.url }}" class="attach-item" target="_blank">
+              {% if a.is_image %}🖼️{% else %}📄{% endif %}
+              {{ a.name }}
+              <span style="margin-left:auto; font-size:.72rem; color:var(--ink-3);">{{ a.uploaded_by.get_full_name|default:a.uploaded_by.username }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Timeline -->
+      <div class="card">
+        <div class="card-head">💬 Histórico de Atualizações</div>
+        <div class="card-body" style="padding-top:8px; padding-bottom:8px;">
+          {% if updates %}
+          <div class="timeline">
+            {% for u in updates %}
+            <div class="tl-item">
+              {% if u.author.profile.photo %}
+                <div class="tl-avatar" style="padding:0; overflow:hidden;">
+                  <img src="{{ u.author.profile.photo.url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+              {% else %}
+                <div class="tl-avatar">{{ u.author.get_full_name|default:u.author.username|slice:":2"|upper }}</div>
+              {% endif %}
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-author">{{ u.author.get_full_name|default:u.author.username }}</span>
+                  <span class="tl-date">{{ u.created_at|date:"d/m/Y H:i" }}</span>
+                  {% if u.status_change %}
+                    <span class="tl-status-change">→ {{ u.get_status_change_display }}</span>
+                  {% endif %}
+                </div>
+                {% if u.comment %}<div class="tl-comment">{{ u.comment }}</div>{% endif %}
+                {% if u.file %}
+                <div class="tl-file">
+                  <a href="{{ u.file.url }}" class="attach-item" target="_blank" style="display:inline-flex;">
+                    📎 Arquivo anexado
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p style="color:var(--ink-3); font-size:.88rem; padding:16px 0;">Nenhuma atualização ainda.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Formulário de atualização -->
+      <div class="card">
+        <div class="card-head">✏️ Adicionar Atualização</div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" class="update-form">
+            {% csrf_token %}
+            <div>
+              <label class="field-label" for="comment">Comentário</label>
+              <textarea class="field-textarea" id="comment" name="comment" placeholder="Escreva um comentário ou atualização…"></textarea>
+            </div>
+            <div class="form-row">
+              {% if can_manage %}
+              <div>
+                <label class="field-label" for="new_status">Alterar Status</label>
+                <select class="field-select" id="new_status" name="new_status">
+                  <option value="">Manter atual</option>
+                  {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if demand.status == val %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endif %}
+              <div>
+                <label class="field-label" for="update_file">Anexar arquivo</label>
+                <input class="field-input" type="file" id="update_file" name="update_file">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Enviar Atualização</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <div class="card">
+        <div class="card-head">ℹ️ Informações</div>
+        <div class="card-body">
+          <div class="info-list">
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span class="status-pill status-{{ demand.status }}">
+                <span class="pill-dot"></span>{{ demand.get_status_display }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Prioridade</span>
+              <span class="priority-pill prio-{{ demand.priority }}">{{ demand.get_priority_display }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Tipo</span>
+              <span class="info-value">{{ demand.demand_type.icon }} {{ demand.demand_type.name }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Prazo</span>
+              <span class="info-value">{% if demand.deadline %}{{ demand.deadline|date:"d/m/Y" }}{% else %}Sem prazo{% endif %}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Última atualização</span>
+              <span class="info-value">{{ demand.updated_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Atribuído a</span>
+              <div class="assigned-list">
+                {% for a in assignments %}
+                <div class="assigned-user" style="justify-content:space-between;">
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    {% if a.user.profile.photo %}
+                      <div class="avatar-xs" style="padding:0; overflow:hidden;">
+                        <img src="{{ a.user.profile.photo.url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+                      </div>
+                    {% else %}
+                      <div class="avatar-xs">{{ a.user.get_full_name|default:a.user.username|slice:":2"|upper }}</div>
+                    {% endif %}
+                    {{ a.user.get_full_name|default:a.user.username }}
+                  </div>
+                  {% if a.can_change_status %}
+                    <span title="Pode alterar status" style="font-size:.7rem; background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber-mid); border-radius:999px; padding:1px 7px; font-weight:700;">edita</span>
+                  {% else %}
+                    <span title="Somente visualização" style="font-size:.7rem; background:var(--surface-2); color:var(--ink-3); border:1px solid var(--border); border-radius:999px; padding:1px 7px; font-weight:700;">vê</span>
+                  {% endif %}
+                </div>
+                {% empty %}
+                <span class="info-value" style="font-style:italic; color:var(--ink-3);">Não atribuído</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

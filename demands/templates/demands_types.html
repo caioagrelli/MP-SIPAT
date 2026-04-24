@@ -1,0 +1,175 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Tipos de Demanda{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; transform: translateY(-1px); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-sm {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 8px;
+    font-family: var(--font); font-size: .76rem; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+    transition: all .13s; white-space: nowrap; text-decoration: none;
+  }
+  .btn-sm-blue   { background: var(--blue-soft);  border-color: var(--blue-mid);  color: var(--blue); }
+  .btn-sm-blue:hover { background: #dbeafe; }
+  .btn-sm-amber  { background: var(--amber-soft); border-color: var(--amber-mid); color: var(--amber); }
+  .btn-sm-amber:hover { background: #fef3c7; }
+  .btn-sm-red    { background: var(--red-soft);   border-color: var(--red-mid);   color: var(--red); }
+  .btn-sm-red:hover { background: #fee2e2; }
+
+  .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+  .main-card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .main-card-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .total-badge { background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--blue); border-radius: 999px; padding: 3px 10px; font-size: .78rem; font-family: var(--mono); font-weight: 700; }
+
+  .main-table-wrap { overflow-x: auto; }
+  .main-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  .main-table thead th { padding: 11px 16px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); background: var(--surface-2); border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  .main-table tbody td { padding: 13px 16px; color: var(--ink-2); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .main-table tbody tr:last-child td { border-bottom: none; }
+  .main-table tbody tr:hover td { background: #f5f8ff; }
+
+  .type-preview { display: inline-flex; align-items: center; gap: 8px; }
+  .type-icon-box { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; flex-shrink: 0; }
+  .type-name { font-weight: 700; color: var(--ink); font-size: .9rem; }
+  .type-desc { font-size: .78rem; color: var(--ink-3); margin-top: 2px; }
+
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill-active   { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .pill-active .pill-dot   { background: var(--green); }
+  .pill-inactive { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+  .pill-inactive .pill-dot { background: var(--red); }
+
+  .table-empty { padding: 48px; text-align: center; color: var(--ink-3); }
+  .table-empty-icon { font-size: 2.4rem; display: block; margin-bottom: 10px; opacity: .35; }
+  .table-empty-title { font-weight: 700; color: var(--ink-2); font-size: .95rem; margin-bottom: 4px; }
+
+  .actions-cell { display: flex; gap: 6px; align-items: center; }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🗂️ Tipos de Demanda</div>
+      <div class="topbar-sub">Gerencie as categorias disponíveis para classificar as demandas.</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a href="{% url 'demands:homepage' %}" class="btn btn-ghost">← Demandas</a>
+      <a href="{% url 'demands:type_create' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Novo Tipo
+      </a>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        📋 Tipos cadastrados
+        <span class="total-badge">{{ types|length }}</span>
+      </div>
+    </div>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in types %}
+          <tr>
+            <td>
+              <div class="type-preview">
+                <div class="type-icon-box" style="background:{{ t.color }}18; border: 1px solid {{ t.color }}30;">
+                  {{ t.icon }}
+                </div>
+                <div>
+                  <div class="type-name">{{ t.name }}</div>
+                  <div style="font-size:.72rem; color:var(--ink-3); font-family:var(--mono);">{{ t.color }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="max-width:320px; color:var(--ink-3); font-size:.84rem;">
+              {{ t.description|default:"—" }}
+            </td>
+            <td>
+              <span class="status-pill {% if t.is_active %}pill-active{% else %}pill-inactive{% endif %}">
+                <span class="pill-dot"></span>
+                {% if t.is_active %}Ativo{% else %}Inativo{% endif %}
+              </span>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <a href="{% url 'demands:type_edit' t.pk %}" class="btn-sm btn-sm-blue">Editar</a>
+                <form method="post" action="{% url 'demands:type_toggle' t.pk %}" style="margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-sm {% if t.is_active %}btn-sm-amber{% else %}btn-sm-blue{% endif %}">
+                    {% if t.is_active %}Desativar{% else %}Ativar{% endif %}
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4">
+              <div class="table-empty">
+                <span class="table-empty-icon">🗂️</span>
+                <div class="table-empty-title">Nenhum tipo cadastrado</div>
+                <div>Crie o primeiro tipo de demanda para começar.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
