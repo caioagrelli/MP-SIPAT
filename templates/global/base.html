@@ -309,18 +309,23 @@
       </a>
       {% endif %}
 
-      {% if perms.dempam %}
+      {% if perms.dempam or perms.demands %}
       <div class="nav-section-label">Gestão</div>
 
-      <a class="nav-item-link {% if request.resolver_match.url_name == 'demands' %}active{% endif %}"
-         href="#">
+      {% if perms.demands %}
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'demands' %}active{% endif %}"
+         href="{% url 'demands:homepage' %}">
         <span class="nav-item-icon">🎯</span> Demandas
       </a>
+      {% endif %}
 
+      {% if perms.dempam %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dempam' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dempam:homepage' %}">
         <span class="nav-item-icon">🏢</span> Painel Gerencial
       </a>
+      {% endif %}
+
       {% endif %}
 
       <!-- Admin: discreto, no fundo -->
