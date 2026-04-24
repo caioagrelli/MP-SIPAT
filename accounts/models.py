@@ -14,6 +14,22 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, blank=True, verbose_name='Telefone')
     bio   = models.TextField(blank=True, verbose_name='Sobre mim')
 
+    # UAs às quais o usuário pertence (pode receber atribuições)
+    uas = models.ManyToManyField(
+        'dempam.InfoUA',
+        blank=True,
+        related_name='members',
+        verbose_name='UAs que pertence',
+    )
+
+    # UAs que o usuário gerencia (pode criar demandas, atribuir e ver tudo)
+    managed_uas = models.ManyToManyField(
+        'dempam.InfoUA',
+        blank=True,
+        related_name='managers',
+        verbose_name='UAs que gerencia',
+    )
+
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'
