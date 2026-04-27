@@ -49,7 +49,7 @@ class DemandType(models.Model):
 
     class Meta:
         verbose_name        = 'Tipo de Demanda'
-        verbose_name_plural = 'Tipos de Demanda'
+        verbose_name_plural = '01 - Tipos de Demanda'
         ordering            = ['name']
 
     def __str__(self):
@@ -104,7 +104,7 @@ class Demand(models.Model):
 
     class Meta:
         verbose_name        = 'Demanda'
-        verbose_name_plural = 'Demandas'
+        verbose_name_plural = '02 - Demandas'
         ordering            = ['-created_at']
 
     def save(self, *args, **kwargs):
@@ -134,7 +134,7 @@ class DemandAssignment(models.Model):
     class Meta:
         unique_together = ('demand', 'user')
         verbose_name        = 'Atribuição'
-        verbose_name_plural = 'Atribuições'
+        verbose_name_plural = '03 - Atribuições'
 
     def __str__(self):
         return f'{self.user} → {self.demand.code}'
@@ -151,7 +151,7 @@ class DemandAttachment(models.Model):
 
     class Meta:
         verbose_name        = 'Anexo'
-        verbose_name_plural = 'Anexos'
+        verbose_name_plural = '04 - Anexos'
 
     def save(self, *args, **kwargs):
         # Usa o nome original do arquivo se não informado
@@ -179,7 +179,7 @@ class DemandUpdate(models.Model):
 
     class Meta:
         verbose_name        = 'Atualização'
-        verbose_name_plural = 'Atualizações'
+        verbose_name_plural = '05 - Atualizações'
         ordering            = ['created_at']
 
     def __str__(self):

@@ -24,7 +24,7 @@ class Groups(models.Model):
     
     class Meta:
         verbose_name = 'Grupo'
-        verbose_name_plural = 'Grupos'
+        verbose_name_plural = '2 - Grupos'
         
     def __str__(self):
         return self.group
@@ -45,7 +45,7 @@ class Type(models.Model):
     
     class Meta:
         verbose_name = 'Tipo'
-        verbose_name_plural = 'Tipos'
+        verbose_name_plural = '3 - Tipos'
         
     def __str__(self):
         return self.type
@@ -54,6 +54,12 @@ class Type(models.Model):
 class Description(models.Model):
     description = models.TextField(
         verbose_name='Descrição'
+        )
+    
+    subdescription = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Subdescrição'
         )
     
     type = models.ForeignKey(
@@ -74,7 +80,7 @@ class Description(models.Model):
         verbose_name='Subclassificação'
         )
     
-    btu_hp = models.IntegerField(
+    capacity = models.IntegerField(
         blank=True,
         null=True,
         verbose_name='BTU/HP'
@@ -95,7 +101,7 @@ class Description(models.Model):
     
     class Meta:
         verbose_name = 'Descrição'
-        verbose_name_plural = 'Descrições'
+        verbose_name_plural = '4 - Descrições'
         
     def __str__(self):
         return self.description[:60]
@@ -139,7 +145,7 @@ class Supplier(models.Model):
     
     class Meta:
         verbose_name = 'Fornecedor'
-        verbose_name_plural = 'Fornecedores'
+        verbose_name_plural = '4 - Fornecedores'
         
     def __str__(self):
         return f'{self.name} - CNPJ: {self.cnpj}'
@@ -249,7 +255,7 @@ class BensPermanentes(models.Model):
     
     class Meta:
         verbose_name = 'Bem Permanente'
-        verbose_name_plural = 'Bens Permanentes'
+        verbose_name_plural = '1 - Bens Permanentes'
         
     def __str__(self):
         return f'Tombo: {self.tombo} - Descrição: {str(self.description)[:30]}'
@@ -376,7 +382,7 @@ class HistoryUas(models.Model):
 
     class Meta:
         verbose_name = 'Histórico das Uas'
-        verbose_name_plural = 'Histórico das Uas'
+        verbose_name_plural = '5 - Histórico das Uas'
 
     def __str__(self):
         return str(self.tombo)
@@ -440,7 +446,7 @@ class UseExternal(models.Model):
         )
     class Meta:
         verbose_name = 'Uso Externo'
-        verbose_name_plural = 'Usos Externos'
+        verbose_name_plural = '6 - Usos Externos'
         
     def __str__(self):
         return self.description[:60]

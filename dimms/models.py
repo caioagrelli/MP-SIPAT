@@ -207,7 +207,7 @@ class Artifacts(models.Model):
     
     class Meta():
         verbose_name ='Artefato'
-        verbose_name_plural ='Artefatos'  
+        verbose_name_plural ='12 - Artefatos'  
 
 # Itens dos Artefatos
 class ItensArtifacts(models.Model):
@@ -243,7 +243,7 @@ class ItensArtifacts(models.Model):
     
     class Meta():
         verbose_name ='Item Artefato'
-        verbose_name_plural ='Itens Artefatos'  
+        verbose_name_plural ='13 - Itens Artefatos'  
 
 
 
@@ -297,7 +297,7 @@ class Proposal(models.Model):
     
     class Meta():
         verbose_name ='Proposta'
-        verbose_name_plural ='Propostas'  
+        verbose_name_plural ='14 - Propostas'  
 
 # Itens das Propostas
 class ItensProposal(models.Model):
@@ -364,7 +364,7 @@ class ItensProposal(models.Model):
         
     class Meta():
         verbose_name ='Item Proposta'
-        verbose_name_plural ='Itens Propostas'  
+        verbose_name_plural ='15 - Itens Propostas'  
 
 # Notas/ Observações (Desabilitada)
 '''class Notes(models.Model):
