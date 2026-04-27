@@ -61,7 +61,7 @@ class DescriptionAdmin(admin.ModelAdmin):
         'subclassification',
         'color',
         'size',
-        'btu_hp',
+        'capacity',
     )
 
     search_fields = (
@@ -98,7 +98,7 @@ class DescriptionAdmin(admin.ModelAdmin):
             'fields': (
                 'color',
                 'size',
-                'btu_hp',
+                'capacity',
             )
         }),
     )
