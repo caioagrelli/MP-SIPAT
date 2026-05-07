@@ -291,6 +291,11 @@
         <span class="nav-item-icon">🏠</span> Painel Principal
       </a>
 
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name in 'meus_bens,detalhe_bem,atualizar_foto' %}active{% endif %}"
+         href="{% url 'dimrcbp:meus_bens' %}">
+        <span class="nav-item-icon">📋</span> Meus Bens
+      </a>
+
       {% if perms.dimrcbp or perms.dimms %}
       <div class="nav-section-label">Patrimônio Interno</div>
       {% endif %}
