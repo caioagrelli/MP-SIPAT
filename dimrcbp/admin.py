@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
 from .models import *
 
 
@@ -272,6 +273,60 @@ class HistoryUasAdmin(admin.ModelAdmin):
         ('UA Antepenúltima', {
             'fields': (
                 'third_last_ua',
+            )
+        }),
+    )
+
+
+@admin.register(AtribuicaoBem)
+class AtribuicaoBemAdmin(admin.ModelAdmin):
+    list_display = (
+        'bem',
+        'user',
+        'desde',
+        'ativo',
+    )
+
+    search_fields = (
+        'bem__tombo',
+        'user__first_name',
+        'user__last_name',
+        'user__username',
+    )
+
+    list_filter = (
+        'ativo',
+    )
+
+    autocomplete_fields = (
+        'bem',
+    )
+
+    fieldsets = (
+        ('Atribuição', {
+            'fields': (
+                'bem',
+                'user',
+                'ativo',
+            )
+        }),
+    )
+
+
+@admin.register(PeriodoInventario)
+class PeriodoInventarioAdmin(admin.ModelAdmin):
+    list_display = (
+        'descricao',
+        'inicio',
+        'fim',
+    )
+
+    fieldsets = (
+        ('Período', {
+            'fields': (
+                'descricao',
+                'inicio',
+                'fim',
             )
         }),
     )

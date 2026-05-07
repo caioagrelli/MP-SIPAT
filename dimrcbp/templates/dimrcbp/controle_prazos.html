@@ -1,0 +1,243 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Controle de Prazos{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;
+    --amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;
+    --red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+
+  /* Resumo */
+  .resumo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+  .resumo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;text-decoration:none;color:inherit;transition:box-shadow .15s,transform .15s;display:block;}
+  .resumo-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .resumo-num{font-family:var(--mono);font-size:1.9rem;font-weight:800;line-height:1;}
+  .resumo-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-top:5px;opacity:.7;}
+  .rc-red  {color:var(--red);  border-color:var(--red-mid);  background:var(--red-soft);}
+  .rc-amber{color:var(--amber);border-color:var(--amber-mid);background:var(--amber-soft);}
+  .rc-blue {color:var(--blue); border-color:var(--blue-mid); background:var(--blue-soft);}
+  .rc-ink  {color:var(--ink);  border-color:var(--border-strong);}
+  .resumo-card.active{box-shadow:0 0 0 2.5px currentColor;}
+
+  /* Filtros */
+  .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+  .filter-section-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:end;}
+  .filter-group label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:4px;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:7px 11px;font-family:var(--font);font-size:.84rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .filter-actions{display:flex;gap:8px;}
+
+  /* Tabela */
+  .results-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .results-count{font-size:.83rem;color:var(--ink-3);font-weight:600;}
+
+  .prazo-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .prazo-table thead tr{background:#1e2d42;}
+  .prazo-table th{padding:11px 14px;text-align:left;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(200,215,240,.75);white-space:nowrap;}
+  .prazo-table td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:.85rem;vertical-align:middle;}
+  .prazo-table tbody tr:last-child td{border-bottom:none;}
+  .prazo-table tbody tr:hover td{filter:brightness(.97);}
+
+  tr.row-vencido td{background:#fef2f2;}
+  tr.row-alerta  td{background:#fffbeb;}
+  tr.row-ok      td{background:var(--surface);}
+
+  .status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap;}
+  .sb-vencido{background:var(--red-soft);  color:var(--red);  border:1px solid var(--red-mid);}
+  .sb-alerta {background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber-mid);}
+  .sb-ok     {background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid);}
+
+  .tombo-link{font-family:var(--mono);font-size:.83rem;font-weight:700;color:var(--blue);text-decoration:none;}
+  .tombo-link:hover{text-decoration:underline;}
+
+  .dias-num{font-family:var(--mono);font-weight:700;font-size:.88rem;}
+  .dias-vencido{color:var(--red);}
+  .dias-alerta {color:var(--amber);}
+  .dias-ok     {color:var(--green);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);}
+  .empty-icon{font-size:2.8rem;margin-bottom:10px;opacity:.3;}
+  .empty-text{font-size:.95rem;font-weight:600;}
+  .empty-sub{font-size:.82rem;margin-top:4px;}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    Controle de Prazos
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">⏰ Controle de Prazos</div>
+      <div class="topbar-sub">Monitore vencimentos de garantia e datas de entrada dos bens</div>
+    </div>
+  </div>
+
+  <!-- Resumo -->
+  <div class="resumo-grid">
+    <a href="?proximidade=vencidos" class="resumo-card rc-red {% if filtros.proximidade == 'vencidos' %}active{% endif %}">
+      <div class="resumo-num">{{ resumo.vencidos }}</div>
+      <div class="resumo-label">Garantias vencidas</div>
+    </a>
+    <a href="?proximidade=hoje" class="resumo-card rc-amber {% if filtros.proximidade == 'hoje' %}active{% endif %}">
+      <div class="resumo-num">{{ resumo.hoje }}</div>
+      <div class="resumo-label">Vencem hoje</div>
+    </a>
+    <a href="?proximidade=7" class="resumo-card rc-amber {% if filtros.proximidade == '7' %}active{% endif %}">
+      <div class="resumo-num">{{ resumo.em_7 }}</div>
+      <div class="resumo-label">Em 7 dias</div>
+    </a>
+    <a href="?proximidade=30" class="resumo-card rc-blue {% if filtros.proximidade == '30' %}active{% endif %}">
+      <div class="resumo-num">{{ resumo.em_30 }}</div>
+      <div class="resumo-label">Em 30 dias</div>
+    </a>
+    <a href="{% url 'dimrcbp:controle_prazos' %}" class="resumo-card rc-ink {% if not filtros.proximidade and not filtros.busca %}active{% endif %}">
+      <div class="resumo-num">{{ resumo.total }}</div>
+      <div class="resumo-label">Total com garantia</div>
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-card">
+    <form method="get">
+      <div class="filter-section-label">Filtros</div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Busca (Tombo / Descrição)</label>
+          <input type="text" name="busca" class="form-control" value="{{ filtros.busca }}" placeholder="Ex: 8745, monitor…">
+        </div>
+        <div class="filter-group">
+          <label>Proximidade da garantia</label>
+          <select name="proximidade" class="form-control">
+            <option value="">Todos</option>
+            <option value="vencidos" {% if filtros.proximidade == 'vencidos' %}selected{% endif %}>Vencidos</option>
+            <option value="hoje"     {% if filtros.proximidade == 'hoje'     %}selected{% endif %}>Vencem hoje</option>
+            <option value="7"        {% if filtros.proximidade == '7'        %}selected{% endif %}>Próximos 7 dias</option>
+            <option value="30"       {% if filtros.proximidade == '30'       %}selected{% endif %}>Próximos 30 dias</option>
+            <option value="90"       {% if filtros.proximidade == '90'       %}selected{% endif %}>Próximos 90 dias</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Data de Entrada — De</label>
+          <input type="date" name="entrada_de" class="form-control" value="{{ filtros.entrada_de }}">
+        </div>
+        <div class="filter-group">
+          <label>Data de Entrada — Até</label>
+          <input type="date" name="entrada_ate" class="form-control" value="{{ filtros.entrada_ate }}">
+        </div>
+        <div class="filter-group">
+          <label>Garantia — De</label>
+          <input type="date" name="garantia_de" class="form-control" value="{{ filtros.garantia_de }}">
+        </div>
+        <div class="filter-group">
+          <label>Garantia — Até</label>
+          <input type="date" name="garantia_ate" class="form-control" value="{{ filtros.garantia_ate }}">
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary" style="width:100%;">Filtrar</button>
+          <a href="{% url 'dimrcbp:controle_prazos' %}" class="btn btn-ghost">Limpar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Resultados -->
+  <div class="results-bar">
+    <span class="results-count">{{ itens|length }} bem{% if itens|length != 1 %}ns{% endif %} encontrado{% if itens|length != 1 %}s{% endif %}</span>
+  </div>
+
+  {% if itens %}
+  <table class="prazo-table">
+    <thead>
+      <tr>
+        <th>Tombo</th>
+        <th>Descrição</th>
+        <th>Data de Entrada</th>
+        <th>Vencimento Garantia</th>
+        <th>Dias Restantes</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in itens %}
+      <tr class="row-{{ i.status }}">
+        <td>
+          <a href="{% url 'dimrcbp:bem_detalhe_admin' i.bem.tombo %}" class="tombo-link">
+            {{ i.bem.tombo }}
+          </a>
+        </td>
+        <td style="max-width:220px;color:var(--ink-2);">{{ i.bem.description|truncatechars:55 }}</td>
+        <td style="font-family:var(--mono);font-size:.8rem;color:var(--ink-3);">
+          {{ i.bem.acquisition_date|date:"d/m/Y" }}
+        </td>
+        <td style="font-family:var(--mono);font-size:.83rem;font-weight:600;">
+          {{ i.bem.garantia_vencimento|date:"d/m/Y" }}
+        </td>
+        <td>
+          {% if i.dias == 0 %}
+          <span class="dias-num dias-alerta">Hoje</span>
+          {% elif i.dias < 0 %}
+          <span class="dias-num dias-vencido">{{ i.dias }} d</span>
+          {% elif i.status == 'alerta' %}
+          <span class="dias-num dias-alerta">+{{ i.dias }} d</span>
+          {% else %}
+          <span class="dias-num dias-ok">+{{ i.dias }} d</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if i.status == 'vencido' %}
+          <span class="status-badge sb-vencido">● Vencido</span>
+          {% elif i.status == 'alerta' %}
+          <span class="status-badge sb-alerta">● Atenção</span>
+          {% else %}
+          <span class="status-badge sb-ok">● OK</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if perms.dimrcbp.change_benspermanentes %}
+          <a href="{% url 'dimrcbp:editar_bem' i.bem.tombo %}" class="btn btn-ghost" style="padding:5px 10px;font-size:.78rem;">✏️ Editar</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📅</div>
+    <div class="empty-text">Nenhum bem encontrado com os filtros aplicados.</div>
+    <div class="empty-sub">Adicione a data de vencimento de garantia ao editar um bem.</div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

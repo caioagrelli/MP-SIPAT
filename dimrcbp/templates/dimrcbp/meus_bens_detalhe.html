@@ -1,0 +1,287 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Tombo {{ bem.tombo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 40px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .topbar-title { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-amber { background: var(--amber-soft); border-color: var(--amber-mid); color: var(--amber); }
+  .btn-amber:hover { background: #fde68a; }
+
+  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+  .card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 22px 24px; }
+
+  .bem-foto-box {
+    width: 100%; aspect-ratio: 4/3; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  }
+  .bem-foto-box img { width: 100%; height: 100%; object-fit: cover; }
+  .bem-foto-placeholder { font-size: 4rem; color: var(--border-strong); }
+
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .meta-value { font-size: .88rem; font-weight: 600; color: var(--ink-2); }
+
+  .description-block {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+    padding: 16px 18px; font-size: .88rem; color: var(--ink-2); line-height: 1.65;
+    margin-top: 18px;
+  }
+
+  .situacao-pill, .estado-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px; font-size: .73rem; font-weight: 700; border: 1px solid;
+  }
+  .situ-em_uso    { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .situ-ocioso    { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .situ-recuperavel { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .situ-default   { background: var(--surface-2); color: var(--ink-3); border-color: var(--border); }
+  .estado-bom, .estado-novo { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .estado-regular { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .estado-precario, .estado-sucata { background: var(--red-soft); color: var(--red); border-color: var(--red-mid); }
+
+  .info-list { display: flex; flex-direction: column; gap: 14px; }
+  .info-row { display: flex; flex-direction: column; gap: 4px; }
+  .info-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .info-value { font-size: .86rem; color: var(--ink-2); font-weight: 500; }
+
+  .code-mono { font-family: var(--mono); font-size: .82rem; color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px; }
+
+  .foto-form { display: flex; flex-direction: column; gap: 12px; }
+  .field-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); display: block; margin-bottom: 6px; }
+  .field-input {
+    width: 100%; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 8px 12px; font-family: var(--font); font-size: .85rem; color: var(--ink);
+    background: var(--surface); outline: none;
+  }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .form-actions { display: flex; justify-content: flex-end; }
+
+  .inventario-banner {
+    background: var(--amber-soft); border: 1px solid var(--amber-mid);
+    border-radius: var(--r-md); padding: 12px 18px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: .85rem; font-weight: 600; color: var(--amber);
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } .meta-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📦 {{ bem.description }}</div>
+      <div class="topbar-sub">
+        <span class="code-mono">Tombo {{ bem.tombo }}</span>
+        {% if bem.situacion %}
+          <span class="situacao-pill situ-{{ bem.situacion|lower }}">{{ bem.get_situacion_display }}</span>
+        {% endif %}
+        {% if bem.state %}
+          <span class="estado-pill estado-{{ bem.state|lower }}">{{ bem.get_state_display }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a href="{% url 'demands:create' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Abrir Chamado
+      </a>
+      <a href="{% url 'dimrcbp:meus_bens' %}" class="btn btn-ghost">← Meus Bens</a>
+    </div>
+  </div>
+
+  {% if inventario_ativo %}
+  <div class="inventario-banner">
+    📋 Período de inventário ativo — você pode atualizar a foto deste bem.
+  </div>
+  {% endif %}
+
+  {% if messages %}
+    {% for msg in messages %}
+      <div style="margin-bottom:16px; padding:12px 16px; border-radius:var(--r-sm); font-size:.88rem; font-weight:600;
+                  background:{% if msg.tags == 'success' %}var(--green-soft){% else %}var(--red-soft){% endif %};
+                  color:{% if msg.tags == 'success' %}var(--green){% else %}var(--red){% endif %};
+                  border:1px solid {% if msg.tags == 'success' %}var(--green-mid){% else %}var(--red-mid){% endif %};">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="layout">
+
+    <!-- Coluna principal -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Foto e descrição -->
+      <div class="card">
+        <div class="card-head">🖼️ Identificação</div>
+        <div class="card-body">
+
+          <div class="bem-foto-box">
+            {% if bem.photo %}
+              <img src="{{ bem.photo.url }}" alt="Foto do bem">
+            {% else %}
+              <span class="bem-foto-placeholder">📦</span>
+            {% endif %}
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">Tombo</span>
+              <span class="meta-value">{{ bem.tombo }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Número de Série</span>
+              <span class="meta-value">{{ bem.n_series|default:"—" }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Marca / Fabricante</span>
+              <span class="meta-value">{{ bem.mark }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Modelo</span>
+              <span class="meta-value">{{ bem.model }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Tipo</span>
+              <span class="meta-value">{{ bem.description.type|default:"—" }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Grupo</span>
+              <span class="meta-value">{{ bem.description.type.gruop|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="description-block">{{ bem.description }}</div>
+
+        </div>
+      </div>
+
+      <!-- Atualização de foto (só no período de inventário) -->
+      {% if inventario_ativo %}
+      <div class="card">
+        <div class="card-head">📷 Atualizar Foto</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'dimrcbp:atualizar_foto' bem.tombo %}" enctype="multipart/form-data" class="foto-form">
+            {% csrf_token %}
+            <div>
+              <label class="field-label" for="foto">Nova foto do bem</label>
+              <input class="field-input" type="file" id="foto" name="foto" accept="image/*">
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-amber">Enviar Foto</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <div class="card">
+        <div class="card-head">ℹ️ Informações</div>
+        <div class="card-body">
+          <div class="info-list">
+            <div class="info-row">
+              <span class="info-label">Situação Física</span>
+              {% if bem.situacion %}
+                <span class="situacao-pill situ-{{ bem.situacion|lower }}" style="align-self:flex-start;">{{ bem.get_situacion_display }}</span>
+              {% else %}
+                <span class="info-value">—</span>
+              {% endif %}
+            </div>
+            <div class="info-row">
+              <span class="info-label">Estado de Conservação</span>
+              {% if bem.state %}
+                <span class="estado-pill estado-{{ bem.state|lower }}" style="align-self:flex-start;">{{ bem.get_state_display }}</span>
+              {% else %}
+                <span class="info-value">—</span>
+              {% endif %}
+            </div>
+            <div class="info-row">
+              <span class="info-label">UA Atual</span>
+              <span class="info-value">
+                {% if bem.history_tombo.current_ua %}{{ bem.history_tombo.current_ua.ua }}{% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Responsável da UA</span>
+              <span class="info-value">
+                {{ bem.history_tombo.current_responsible|default:"—" }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Data de Aquisição</span>
+              <span class="info-value">{{ bem.acquisition_date|date:"d/m/Y" }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Forma de Ingresso</span>
+              <span class="info-value">{{ bem.entry_method|default:"—" }}</span>
+            </div>
+            {% if bem.supllier %}
+            <div class="info-row">
+              <span class="info-label">Fornecedor</span>
+              <span class="info-value">{{ bem.supllier.name }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+              <span class="info-label">Atribuído a você desde</span>
+              <span class="info-value">{{ atribuicao.desde|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

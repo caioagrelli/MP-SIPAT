@@ -1,6 +1,8 @@
 # Importações do Django
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Importações do codigo
 from .utils import *
@@ -185,6 +187,12 @@ class BensPermanentes(models.Model):
     
     acquisition_date = models.DateField(
         verbose_name='Data da Aquisição'
+        )
+
+    garantia_vencimento = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Vencimento da Garantia'
         )
     
     value = models.DecimalField(
@@ -447,6 +455,139 @@ class UseExternal(models.Model):
     class Meta:
         verbose_name = 'Uso Externo'
         verbose_name_plural = '6 - Usos Externos'
-        
+
     def __str__(self):
         return self.description[:60]
+
+
+'''ATRIBUIÇÃO DE BENS A USUÁRIOS'''
+
+class AtribuicaoBem(models.Model):
+    bem   = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        related_name='atribuicoes',
+        verbose_name='Bem Permanente',
+    )
+    user  = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='bens_atribuidos',
+        verbose_name='Usuário',
+    )
+    desde = models.DateField(
+        auto_now_add=True,
+        verbose_name='Atribuído desde',
+    )
+    ativo = models.BooleanField(
+        default=True,
+        verbose_name='Atribuição ativa',
+    )
+
+    class Meta:
+        verbose_name        = 'Atribuição de Bem'
+        verbose_name_plural = '7 - Atribuições de Bens'
+
+    def __str__(self):
+        nome = self.user.get_full_name() or self.user.username
+        return f'{nome} → Tombo {self.bem.tombo}'
+
+
+'''HISTÓRICO DE MUDANÇAS'''
+
+class HistoricoMudanca(models.Model):
+    bem = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        related_name='historico_mudancas',
+        verbose_name='Bem',
+    )
+    alterado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='mudancas_realizadas',
+        verbose_name='Alterado por',
+    )
+    data = models.DateTimeField(auto_now_add=True, verbose_name='Data da Alteração')
+    justificativa = models.TextField(blank=True, verbose_name='Justificativa')
+    # JSON: {"campo": {"label": "Rótulo", "de": "valor antigo", "para": "novo valor"}}
+    campos = models.JSONField(verbose_name='Campos Alterados')
+
+    class Meta:
+        verbose_name        = 'Histórico de Mudança'
+        verbose_name_plural = '9 - Histórico de Mudanças'
+        ordering            = ['-data']
+
+    def __str__(self):
+        return f'#{self.pk} — Tombo {self.bem.tombo} em {self.data:%d/%m/%Y %H:%M}'
+
+
+'''PERÍODO DE INVENTÁRIO'''
+
+class PeriodoInventario(models.Model):
+    descricao = models.CharField(
+        max_length=100,
+        verbose_name='Descrição',
+    )
+    inicio = models.DateField(
+        verbose_name='Início',
+    )
+    fim = models.DateField(
+        verbose_name='Fim',
+    )
+
+    class Meta:
+        verbose_name        = 'Período de Inventário'
+        verbose_name_plural = '8 - Períodos de Inventário'
+        ordering            = ['-inicio']
+
+    def __str__(self):
+        return f'{self.descricao} ({self.inicio} — {self.fim})'
+
+    @classmethod
+    def em_andamento(cls):
+        hoje = timezone.now().date()
+        return cls.objects.filter(inicio__lte=hoje, fim__gte=hoje).exists()
+    
+
+class Catalogo(models.Model):
+    efisco = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name='Código Efisco'
+    )
+
+    description = models.ForeignKey(
+        Description,
+        on_delete=models.PROTECT,
+        related_name='catalogo_description',
+        verbose_name='Descrição'
+    )
+
+    descricao = models.TextField(
+        blank=True,
+        verbose_name='Descrição Livre'
+    )
+
+    photo = models.ImageField(
+        upload_to=caminho_catalogo,
+        blank=True,
+        null=True,
+        verbose_name='Imagem do Catálogo'
+    )
+
+    value = models.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Valor Unitário de Referência'
+    )
+
+    class Meta:
+        verbose_name = 'Catálogo'
+        verbose_name_plural = '10 - Catálogos'
+        ordering = ['description__type__gruop', 'description']
+
+    def __str__(self):
+        return str(self.description)[:60]

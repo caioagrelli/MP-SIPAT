@@ -4,11 +4,18 @@ from django.db import models
 # --- Paths ---
 
 def caminho_benspermanentes(instance, filename):
-    tombamento = instance.tombamento_legado or 'sem_tombo'
+    tombamento = instance.tombo or 'sem_tombo'
     ext = os.path.splitext(filename)[1]
     nome_aquivo = f'{tombamento}{ext}'
-    
+
     return f'bens/permanentes/{nome_aquivo}'
+
+def caminho_catalogo(instance, filename):
+    efisco = instance.efisco or 'sem_efisco'
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{efisco}{ext}'
+
+    return f'bens/permanentes/catalogo/{nome_aquivo}'
 
 
 

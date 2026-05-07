@@ -1,0 +1,150 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Prazos — {{ acao }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --red:#b91c1c;--red-mid:#fecaca;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);background:#1e2d42;display:flex;align-items:center;gap:10px;}
+  .card-head-icon{font-size:1.1rem;}
+  .card-head-title{font-size:.95rem;font-weight:800;color:#fff;}
+  .card-head-sub{font-size:.75rem;color:rgba(210,220,240,.65);margin-top:1px;}
+  .card-body{padding:20px 24px;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-group label{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .req{color:var(--red);}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:8px 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .form-control.is-invalid{border-color:var(--red);}
+  .invalid-msg{font-size:.75rem;color:var(--red);font-weight:600;}
+  .form-footer{padding:16px 24px;border-top:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:flex-end;gap:10px;}
+  .check-row{display:flex;align-items:center;gap:10px;padding:10px 0;}
+  .check-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);}
+  .check-row label{font-size:.88rem;font-weight:600;color:var(--ink-2);cursor:pointer;}
+</style>
+
+<div class="apage">
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:controle_prazos' %}">Controle de Prazos</a><span>›</span>
+    {{ acao }}
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{% if acao == 'Registrar' %}➕{% else %}✏️{% endif %} {{ acao }} Prazo</div>
+      <div class="topbar-sub">{% if prazo %}Editando prazo #{{ prazo.pk }}{% else %}Registre um novo prazo para um bem permanente.{% endif %}</div>
+    </div>
+    <a href="{% url 'dimrcbp:controle_prazos' %}" class="btn btn-ghost">← Cancelar</a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card">
+      <div class="card-head">
+        <span class="card-head-icon">📅</span>
+        <div>
+          <div class="card-head-title">Dados do Prazo</div>
+          <div class="card-head-sub">Informe o bem, o tipo e as datas</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="form-group full">
+            <label>Bem Permanente <span class="req">*</span></label>
+            <select name="bem" class="form-control {% if erros.bem %}is-invalid{% endif %}">
+              <option value="">— Selecione o bem —</option>
+              {% for b in bens %}
+              <option value="{{ b.pk }}"
+                {% if post.bem == b.pk|stringformat:"s" %}selected
+                {% elif prazo and prazo.bem_id == b.pk %}selected{% endif %}>
+                Tombo {{ b.tombo }} — {{ b.description|truncatechars:60 }}
+              </option>
+              {% endfor %}
+            </select>
+            {% if erros.bem %}<span class="invalid-msg">{{ erros.bem }}</span>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Prazo <span class="req">*</span></label>
+            <select name="tipo" class="form-control {% if erros.tipo %}is-invalid{% endif %}">
+              <option value="">— Selecione —</option>
+              {% for val, label in tipos %}
+              <option value="{{ val }}"
+                {% if post.tipo == val %}selected
+                {% elif prazo and prazo.tipo == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            {% if erros.tipo %}<span class="invalid-msg">{{ erros.tipo }}</span>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label>Alertar quantos dias antes</label>
+            <input type="number" name="alertar_dias" min="1" max="365" class="form-control"
+                   value="{{ post.alertar_dias|default:prazo.alertar_dias|default:30 }}">
+          </div>
+
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input type="date" name="data_inicio" class="form-control"
+                   value="{{ post.data_inicio|default:prazo.data_inicio|default:'' }}">
+          </div>
+
+          <div class="form-group">
+            <label>Data de Vencimento <span class="req">*</span></label>
+            <input type="date" name="data_vencimento" class="form-control {% if erros.data_vencimento %}is-invalid{% endif %}"
+                   value="{{ post.data_vencimento|default:prazo.data_vencimento|default:'' }}">
+            {% if erros.data_vencimento %}<span class="invalid-msg">{{ erros.data_vencimento }}</span>{% endif %}
+          </div>
+
+          <div class="form-group full">
+            <label>Descrição / Observação</label>
+            <input type="text" name="descricao" class="form-control" maxlength="200"
+                   value="{{ post.descricao|default:prazo.descricao|default:'' }}"
+                   placeholder="Ex: Garantia do fabricante conforme NF 1234…">
+          </div>
+
+          {% if prazo %}
+          <div class="form-group full">
+            <div class="check-row">
+              <input type="checkbox" name="renovado" id="id_renovado" {% if prazo.renovado %}checked{% endif %}>
+              <label for="id_renovado">Marcar como renovado / encerrado (remove dos alertas ativos)</label>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+      <div class="form-footer">
+        <a href="{% url 'dimrcbp:controle_prazos' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">💾 {{ acao }} Prazo</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

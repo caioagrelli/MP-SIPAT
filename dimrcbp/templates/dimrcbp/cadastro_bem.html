@@ -1,0 +1,319 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Cadastro de Bem Permanente{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --red-soft: #fef2f2; --red-mid: #fecaca; --red: #b91c1c;
+    --accent: #2563eb;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 48px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: var(--shadow-sm); }
+  .btn-primary:hover { background: #1e40af; border-color: #1e40af; }
+
+  /* Card principal */
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden;
+  }
+
+  .form-card-header {
+    padding: 20px 28px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    background: #1e2d42;
+  }
+  .form-card-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: rgba(255,255,255,.12); display: grid;
+    place-items: center; font-size: 1.2rem; flex-shrink: 0;
+  }
+  .form-card-title { font-size: 1.05rem; font-weight: 800; color: #fff; }
+  .form-card-subtitle { font-size: .78rem; color: rgba(210,220,240,.65); margin-top: 2px; }
+
+  .form-body { padding: 28px; }
+
+  /* Seções */
+  .form-section { margin-bottom: 32px; }
+  .section-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--ink-3);
+    padding-bottom: 10px; margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Grid de campos */
+  .fields-grid { display: grid; gap: 16px; }
+  .cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .col-full { grid-column: 1 / -1; }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label {
+    font-size: .78rem; font-weight: 700; color: var(--ink-2);
+  }
+  .field-group label .req { color: var(--red); margin-left: 2px; }
+
+  /* Reutiliza classes Bootstrap dentro do form */
+  .form-control, .form-select {
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm); padding: 8px 12px;
+    font-family: var(--font); font-size: .88rem; color: var(--ink);
+    background: var(--surface); width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-control:focus, .form-select:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+  }
+
+  .field-error {
+    font-size: .75rem; color: var(--red); font-weight: 600; margin-top: 3px;
+  }
+  .field-has-error .form-control,
+  .field-has-error .form-select { border-color: var(--red); }
+
+  /* Footer do form */
+  .form-footer {
+    padding: 20px 28px; border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 12px;
+    background: var(--surface-2);
+  }
+
+  @media (max-width: 768px) {
+    .cols-2, .cols-3 { grid-template-columns: 1fr; }
+    .form-body { padding: 20px 16px; }
+    .form-footer { flex-direction: column-reverse; }
+    .form-footer .btn { width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📦 Cadastro de Bem</div>
+      <div class="topbar-sub">Registre um novo bem permanente no sistema.</div>
+    </div>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <div class="form-card">
+
+      <div class="form-card-header">
+        <div class="form-card-icon">📦</div>
+        <div>
+          <div class="form-card-title">Novo Bem Permanente</div>
+          <div class="form-card-subtitle">Preencha todos os campos obrigatórios (*)</div>
+        </div>
+      </div>
+
+      <div class="form-body">
+
+        <!-- Identificação -->
+        <div class="form-section">
+          <div class="section-label">🔖 Identificação</div>
+          <div class="fields-grid cols-3">
+
+            <div class="field-group {% if form.tombo.errors %}field-has-error{% endif %}">
+              <label for="{{ form.tombo.id_for_label }}">
+                Tombo <span class="req">*</span>
+              </label>
+              {{ form.tombo }}
+              {% for e in form.tombo.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group col-full {% if form.description.errors %}field-has-error{% endif %}" style="grid-column: span 2;">
+              <label for="{{ form.description.id_for_label }}">
+                Descrição <span class="req">*</span>
+              </label>
+              {{ form.description }}
+              {% for e in form.description.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Características -->
+        <div class="form-section">
+          <div class="section-label">🔩 Características</div>
+          <div class="fields-grid cols-3">
+
+            <div class="field-group {% if form.mark.errors %}field-has-error{% endif %}">
+              <label for="{{ form.mark.id_for_label }}">Marca / Fabricante <span class="req">*</span></label>
+              {{ form.mark }}
+              {% for e in form.mark.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.model.errors %}field-has-error{% endif %}">
+              <label for="{{ form.model.id_for_label }}">Modelo <span class="req">*</span></label>
+              {{ form.model }}
+              {% for e in form.model.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.n_series.errors %}field-has-error{% endif %}">
+              <label for="{{ form.n_series.id_for_label }}">Número de Série <span class="req">*</span></label>
+              {{ form.n_series }}
+              {% for e in form.n_series.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.state.errors %}field-has-error{% endif %}">
+              <label for="{{ form.state.id_for_label }}">Estado de Conservação</label>
+              {{ form.state }}
+              {% for e in form.state.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.situacion.errors %}field-has-error{% endif %}">
+              <label for="{{ form.situacion.id_for_label }}">Situação Física</label>
+              {{ form.situacion }}
+              {% for e in form.situacion.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.photo.errors %}field-has-error{% endif %}">
+              <label for="{{ form.photo.id_for_label }}">Foto do Bem</label>
+              {{ form.photo }}
+              {% for e in form.photo.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Aquisição -->
+        <div class="form-section">
+          <div class="section-label">💰 Aquisição</div>
+          <div class="fields-grid cols-3">
+
+            <div class="field-group {% if form.acquisition_date.errors %}field-has-error{% endif %}">
+              <label for="{{ form.acquisition_date.id_for_label }}">Data de Aquisição <span class="req">*</span></label>
+              {{ form.acquisition_date }}
+              {% for e in form.acquisition_date.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.garantia_vencimento.errors %}field-has-error{% endif %}">
+              <label for="{{ form.garantia_vencimento.id_for_label }}">Vencimento da Garantia</label>
+              {{ form.garantia_vencimento }}
+              {% for e in form.garantia_vencimento.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.value.errors %}field-has-error{% endif %}">
+              <label for="{{ form.value.id_for_label }}">Valor Unitário (R$) <span class="req">*</span></label>
+              {{ form.value }}
+              {% for e in form.value.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.entry_method.errors %}field-has-error{% endif %}">
+              <label for="{{ form.entry_method.id_for_label }}">Forma de Ingresso</label>
+              {{ form.entry_method }}
+              {% for e in form.entry_method.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.modality.errors %}field-has-error{% endif %}">
+              <label for="{{ form.modality.id_for_label }}">Modalidade</label>
+              {{ form.modality }}
+              {% for e in form.modality.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.n_empenho.errors %}field-has-error{% endif %}">
+              <label for="{{ form.n_empenho.id_for_label }}">Número do Empenho</label>
+              {{ form.n_empenho }}
+              {% for e in form.n_empenho.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.n_process.errors %}field-has-error{% endif %}">
+              <label for="{{ form.n_process.id_for_label }}">Número do Processo</label>
+              {{ form.n_process }}
+              {% for e in form.n_process.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.supllier.errors %}field-has-error{% endif %}">
+              <label for="{{ form.supllier.id_for_label }}">Fornecedor</label>
+              {{ form.supllier }}
+              {% for e in form.supllier.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Localização atual -->
+        <div class="form-section">
+          <div class="section-label">📍 Localização Atual</div>
+          <div class="fields-grid cols-2">
+
+            <div class="field-group {% if form.current_ua.errors %}field-has-error{% endif %}">
+              <label for="{{ form.current_ua.id_for_label }}">UA Atual</label>
+              {{ form.current_ua }}
+              {% for e in form.current_ua.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.current_year.errors %}field-has-error{% endif %}">
+              <label for="{{ form.current_year.id_for_label }}">Ano de Entrada na UA</label>
+              {{ form.current_year }}
+              {% for e in form.current_year.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.current_responsible.errors %}field-has-error{% endif %}">
+              <label for="{{ form.current_responsible.id_for_label }}">Responsável</label>
+              {{ form.current_responsible }}
+              {% for e in form.current_responsible.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="field-group {% if form.current_registration.errors %}field-has-error{% endif %}">
+              <label for="{{ form.current_registration.id_for_label }}">Matrícula do Responsável</label>
+              {{ form.current_registration }}
+              {% for e in form.current_registration.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Erros não associados a campo -->
+        {% if form.non_field_errors %}
+        <div style="background: var(--red-soft); border: 1px solid var(--red-mid); border-radius: var(--r-sm);
+                    padding: 12px 16px; font-size: .85rem; color: var(--red); font-weight: 600; margin-top: 8px;">
+          {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+        </div>
+        {% endif %}
+
+      </div><!-- /form-body -->
+
+      <div class="form-footer">
+        <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">💾 Salvar Bem</button>
+      </div>
+
+    </div><!-- /form-card -->
+  </form>
+
+</div>
+{% endblock %}

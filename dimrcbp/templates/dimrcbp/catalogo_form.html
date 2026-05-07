@@ -1,0 +1,218 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Catálogo — {{ acao }} Item{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);background:#1e2d42;display:flex;align-items:center;gap:10px;}
+  .card-head-icon{font-size:1.1rem;}
+  .card-head-title{font-size:.95rem;font-weight:800;color:#fff;}
+  .card-head-sub{font-size:.75rem;color:rgba(210,220,240,.65);margin-top:1px;}
+  .card-body{padding:20px 24px;}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-group label{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-group label .req{color:var(--red);}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:8px 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .form-control.is-invalid{border-color:var(--red);}
+  .invalid-msg{font-size:.75rem;color:var(--red);font-weight:600;margin-top:2px;}
+
+  .form-footer{padding:16px 24px;border-top:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:flex-end;gap:10px;}
+
+  .photo-preview{margin-top:8px;}
+  .photo-preview img{height:80px;width:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:catalogo_lista' %}">Catálogo</a><span>›</span>
+    {% if item %}<a href="{% url 'dimrcbp:catalogo_detalhe' item.pk %}">{{ item.efisco }}</a><span>›</span>{% endif %}
+    {{ acao }}
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{% if acao == 'Cadastrar' %}➕{% else %}✏️{% endif %} {{ acao }} Item no Catálogo</div>
+      <div class="topbar-sub">{% if item %}Editando: {{ item }}{% else %}Preencha os campos abaixo para adicionar um novo item ao catálogo.{% endif %}</div>
+    </div>
+    <a href="{% if item %}{% url 'dimrcbp:catalogo_detalhe' item.pk %}{% else %}{% url 'dimrcbp:catalogo_lista' %}{% endif %}" class="btn btn-ghost">← Cancelar</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Identificação -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-head-icon">🏷️</span>
+        <div>
+          <div class="card-head-title">Identificação</div>
+          <div class="card-head-sub">Código e classificação do bem no catálogo</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Código Efisco <span class="req">*</span></label>
+            <input type="text" name="efisco" class="form-control {% if erros.efisco %}is-invalid{% endif %}"
+                   value="{{ val.efisco }}"
+                   placeholder="Ex: 44901010" maxlength="20">
+            {% if erros.efisco %}<span class="invalid-msg">{{ erros.efisco }}</span>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label>Grupo</label>
+            <select id="id_grupo" class="form-control">
+              <option value="">— Selecione o grupo —</option>
+              {% for g in grupos %}
+              <option value="{{ g.pk }}"
+                {% if item %}{% if item.description.type.gruop.pk == g.pk %}selected{% endif %}{% endif %}>{{ g.group }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="id_tipo" class="form-control">
+              <option value="">— Selecione o tipo —</option>
+              {% for t in tipos %}
+              <option value="{{ t.pk }}"
+                data-grupo="{{ t.gruop_id }}"
+                {% if item %}{% if item.description.type.pk == t.pk %}selected{% endif %}{% endif %}>{{ t.type }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Descrição <span class="req">*</span></label>
+            <select name="description" id="id_description" class="form-control {% if erros.description %}is-invalid{% endif %}">
+              <option value="">— Selecione a descrição —</option>
+              {% for d in descricoes %}
+              <option value="{{ d.pk }}"
+                data-tipo="{{ d.type_id }}"
+                {% if val.description == d.pk|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
+              {% endfor %}
+            </select>
+            {% if erros.description %}<span class="invalid-msg">{{ erros.description }}</span>{% endif %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Especificações -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-head-icon">🔧</span>
+        <div>
+          <div class="card-head-title">Especificações</div>
+          <div class="card-head-sub">Dados técnicos e valor de referência</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Valor Unitário de Referência (R$)</label>
+            <input type="number" name="value" step="0.01" min="0" class="form-control"
+                   value="{{ val.value }}"
+                   placeholder="0,00">
+          </div>
+
+          <div class="form-group full">
+            <label>Descrição</label>
+            <textarea name="descricao" class="form-control" style="min-height:100px;resize:vertical;"
+                      placeholder="Descreva o item: especificações, características, finalidade…">{{ val.descricao }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Imagem{% if item %}{% if item.photo %} (atual abaixo){% endif %}{% endif %}</label>
+            <input type="file" name="photo" accept="image/*" class="form-control">
+            {% if item %}{% if item.photo %}
+            <div class="photo-preview">
+              <img src="{{ item.photo.url }}" alt="foto atual">
+            </div>
+            {% endif %}{% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-footer">
+        {% if item %}
+        <a href="{% url 'dimrcbp:catalogo_detalhe' item.pk %}" class="btn btn-ghost">Cancelar</a>
+        {% else %}
+        <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-ghost">Cancelar</a>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">💾 {{ acao }} Item</button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<script>
+// Filtro cascata Grupo → Tipo → Descrição
+(function() {
+  const selGrupo = document.getElementById('id_grupo');
+  const selTipo  = document.getElementById('id_tipo');
+  const selDesc  = document.getElementById('id_description');
+
+  const allTipos = Array.from(selTipo.options).slice(1);
+  const allDescs = Array.from(selDesc.options).slice(1);
+
+  function filterTipos() {
+    const grupoId = selGrupo.value;
+    selTipo.innerHTML = '<option value="">— Selecione o tipo —</option>';
+    allTipos.forEach(opt => {
+      if (!grupoId || opt.dataset.grupo === grupoId) selTipo.appendChild(opt.cloneNode(true));
+    });
+    filterDescs();
+  }
+
+  function filterDescs() {
+    const tipoId = selTipo.value;
+    selDesc.innerHTML = '<option value="">— Selecione a descrição —</option>';
+    allDescs.forEach(opt => {
+      if (!tipoId || opt.dataset.tipo === tipoId) selDesc.appendChild(opt.cloneNode(true));
+    });
+  }
+
+  selGrupo.addEventListener('change', filterTipos);
+  selTipo.addEventListener('change', filterDescs);
+})();
+</script>
+{% endblock %}
