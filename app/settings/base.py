@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "dimms",
-    "dimrcbp",
+    "dimrcbp.apps.DimrcbpConfig",
     "dempam",
     "accounts",
     "demands",

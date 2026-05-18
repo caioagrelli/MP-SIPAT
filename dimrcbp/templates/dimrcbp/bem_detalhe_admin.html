@@ -1,0 +1,561 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Tombo {{ bem.tombo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .opage { font-family: var(--font); padding: 28px 24px 48px; color: var(--ink); }
+
+  /* Breadcrumb */
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; font-weight: 500; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { opacity: .45; }
+
+  /* Topbar */
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .topbar-left { flex: 1; min-width: 0; }
+  .item-title { font-size: 1.55rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; line-height: 1.2; word-break: break-word; }
+  .item-sub { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .tombo-chip {
+    background: #1e2d42; border-radius: var(--r-sm);
+    padding: 10px 18px; text-align: center; min-width: 150px;
+    flex-shrink: 0; box-shadow: 0 4px 14px rgba(15,23,42,.2);
+  }
+  .tombo-chip-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(160,175,210,.7); margin-bottom: 4px; }
+  .tombo-chip-value { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; color: #fff; line-height: 1; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 16px; animation: fadeUp .3s ease both; }
+  .card:last-child { margin-bottom: 0; }
+  .card:nth-child(2) { animation-delay: .05s; }
+  .card:nth-child(3) { animation-delay: .10s; }
+  .card-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .card-head-left { display: flex; align-items: center; gap: 9px; }
+  .card-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; flex-shrink: 0; }
+  .ci-blue  { background: var(--blue-soft); }
+  .ci-green { background: var(--green-soft); }
+  .ci-amber { background: var(--amber-soft); }
+  .card-title { font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .card-body { padding: 18px; }
+
+  /* Foto */
+  .photo-box {
+    border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2);
+    height: 340px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    cursor: pointer; transition: box-shadow .15s;
+  }
+  .photo-box:hover { box-shadow: var(--shadow-md); }
+  .photo-box img { max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 8px; display: block; }
+  .photo-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--ink-3); font-size: .85rem; }
+  .photo-empty-icon { font-size: 2.5rem; opacity: .35; }
+
+  /* KV table */
+  .kv-table { width: 100%; border-collapse: collapse; }
+  .kv-table tr { border-bottom: 1px solid var(--border); }
+  .kv-table tr:last-child { border-bottom: none; }
+  .kv-table tr:hover td { background: var(--blue-soft); }
+  .kv-table td { padding: 10px 14px; font-size: .87rem; vertical-align: middle; }
+  .kv-table td:first-child { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); width: 40%; white-space: nowrap; }
+  .kv-table td:last-child { font-weight: 600; color: var(--ink); word-break: break-word; }
+
+  /* Pills */
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid; white-space: nowrap; }
+  .situ-em_uso        { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .situ-ocioso        { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .situ-recuperavel   { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .situ-antieconomico,
+  .situ-irrecuperavel { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+  .situ-default       { background: var(--surface-2);  color: var(--ink-3); border-color: var(--border); }
+  .estado-bom, .estado-novo    { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .estado-regular              { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .estado-precario,
+  .estado-sucata               { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+
+  /* Botões */
+  .btn-bar { display: flex; gap: 10px; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--border); background: var(--surface-2); justify-content: flex-end; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 15px; border-radius: var(--r-sm); font-family: var(--font); font-size: .84rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent-dark); }
+  .btn-primary:hover { background: var(--accent-dark); }
+
+  /* Histórico UA */
+  .ua-timeline { display: flex; flex-direction: column; gap: 0; }
+  .ua-entry {
+    display: flex; align-items: flex-start; gap: 14px; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ua-entry:last-child { border-bottom: none; }
+  .ua-dot-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  .ua-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .ua-dot.current { background: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .ua-dot.past    { background: var(--border-strong); }
+  .ua-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 3px; }
+  .ua-name  { font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .ua-meta  { font-size: .78rem; color: var(--ink-3); margin-top: 2px; }
+
+  /* Modal foto */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,15,30,.85); z-index: 999; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal-inner { max-width: 90vw; max-height: 90vh; position: relative; }
+  .modal-inner img { max-width: 100%; max-height: 90vh; border-radius: var(--r-md); display: block; }
+  .modal-close { position: absolute; top: -14px; right: -14px; width: 32px; height: 32px; background: #fff; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow-md); color: var(--ink); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { .opage { padding: 14px 12px 32px; } .item-title { font-size: 1.2rem; } }
+</style>
+
+<div class="opage">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a>
+    <span>›</span>
+    <a href="{% url 'dimrcbp:filtros_operacionais' %}">Filtros Operacionais</a>
+    <span>›</span>
+    Tombo {{ bem.tombo }}
+  </nav>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="item-title">{{ bem.description }}</div>
+      <div class="item-sub">
+        {% if bem.situacion %}
+          <span class="pill situ-{{ bem.situacion|lower }}">{{ bem.get_situacion_display }}</span>
+        {% endif %}
+        {% if bem.state %}
+          <span class="pill estado-{{ bem.state|lower }}">{{ bem.get_state_display }}</span>
+        {% endif %}
+        {% if bem.description.type %}
+          <span style="font-size:.78rem; color:var(--ink-3); font-weight:600;">{{ bem.description.type }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="tombo-chip">
+      <div class="tombo-chip-label">Tombo</div>
+      <div class="tombo-chip-value">{{ bem.tombo }}</div>
+    </div>
+  </div>
+
+  <!-- Banner pós-edição: aparece quando redireciona com ?historico=pk -->
+  {% if request.GET.historico %}
+  <div style="background:var(--green-soft); border:1px solid var(--green-mid); border-radius:var(--r-md);
+              padding:14px 20px; margin-bottom:20px; display:flex; align-items:center;
+              justify-content:space-between; gap:16px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:1.2rem;">✅</span>
+      <div>
+        <div style="font-size:.9rem; font-weight:700; color:var(--green);">Bem atualizado com sucesso!</div>
+        <div style="font-size:.78rem; color:var(--green); opacity:.8; margin-top:2px;">As alterações foram salvas e registradas no histórico.</div>
+      </div>
+    </div>
+    <a href="{% url 'dimrcbp:relatorio_mudanca' request.GET.historico %}" target="_blank"
+       class="btn btn-primary" style="background:var(--green); border-color:#166534; flex-shrink:0;">
+      📄 Gerar Documento
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Layout principal -->
+  <div class="layout">
+
+    <!-- Coluna esquerda: foto -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">📷</div>
+            <div class="card-title">Foto do Bem</div>
+          </div>
+          {% if bem.photo %}<span style="font-size:.73rem; color:var(--ink-3);">Clique para ampliar</span>{% endif %}
+        </div>
+        <div class="card-body" style="padding-bottom:14px;">
+          <div class="photo-box" id="photoTrigger">
+            {% if bem.photo %}
+              <img src="{{ bem.photo.url }}" alt="Foto do bem" id="mainPhoto">
+            {% else %}
+              <div class="photo-empty">
+                <div class="photo-empty-icon">📦</div>
+                <span>Sem foto cadastrada</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- QR Code -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">🔲</div>
+            <div class="card-title">QR Code</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px;
+                      background:var(--surface-2); border:1px solid var(--border);
+                      border-radius:var(--r-sm); padding:18px 16px; text-align:center;">
+            <img src="{% url 'dimrcbp:qrcode_bem' bem.tombo %}" alt="QR Code"
+                 style="width:140px; height:140px; image-rendering:pixelated; border-radius:8px; display:block;">
+            <div style="font-size:.82rem; font-weight:700; color:var(--ink);">Acesso Rápido</div>
+            <div style="font-size:.75rem; color:var(--ink-3); line-height:1.5;">
+              Escaneie para abrir este bem diretamente no sistema.
+            </div>
+            <a href="{% url 'dimrcbp:etiqueta_bem' bem.tombo %}" target="_blank" class="btn btn-ghost"
+               style="font-size:.78rem; padding:6px 14px; width:100%; justify-content:center;">
+              🖨️ Imprimir Etiqueta
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Coluna direita: informações -->
+    <div>
+
+      <!-- Identificação -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">🗂️</div>
+            <div class="card-title">Identificação</div>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Tombo</td><td style="font-family:var(--mono);">{{ bem.tombo }}</td></tr>
+            <tr><td>Descrição</td><td>{{ bem.description }}</td></tr>
+            {% if bem.description.subdescription %}
+            <tr><td>Subdescrição</td><td>{{ bem.description.subdescription }}</td></tr>
+            {% endif %}
+            <tr><td>Tipo</td><td>{{ bem.description.type|default:"—" }}</td></tr>
+            <tr><td>Grupo</td><td>{{ bem.description.type.gruop|default:"—" }}</td></tr>
+            <tr><td>Marca / Fabricante</td><td>{{ bem.mark }}</td></tr>
+            <tr><td>Modelo</td><td>{{ bem.model }}</td></tr>
+            <tr><td>Número de Série</td><td style="font-family:var(--mono); font-size:.83rem;">{{ bem.n_series|default:"—" }}</td></tr>
+            <tr>
+              <td>Situação Física</td>
+              <td>
+                {% if bem.situacion %}
+                  <span class="pill situ-{{ bem.situacion|lower }}">{{ bem.get_situacion_display }}</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Estado de Conservação</td>
+              <td>
+                {% if bem.state %}
+                  <span class="pill estado-{{ bem.state|lower }}">{{ bem.get_state_display }}</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Aquisição -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-green">💰</div>
+            <div class="card-title">Aquisição</div>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Data de Aquisição</td><td>{{ bem.acquisition_date|date:"d/m/Y" }}</td></tr>
+            <tr><td>Valor Unitário</td><td style="font-family:var(--mono);">R$ {{ bem.value }}</td></tr>
+            <tr><td>Forma de Ingresso</td><td>{{ bem.entry_method|default:"—" }}</td></tr>
+            <tr><td>Modalidade</td><td>{{ bem.modality|default:"—" }}</td></tr>
+            <tr><td>N° Empenho</td><td style="font-family:var(--mono); font-size:.83rem;">{{ bem.n_empenho|default:"—" }}</td></tr>
+            <tr><td>N° Processo</td><td style="font-family:var(--mono); font-size:.83rem;">{{ bem.n_process|default:"—" }}</td></tr>
+            {% if bem.supllier %}
+            <tr><td>Fornecedor</td><td>{{ bem.supllier.name }}</td></tr>
+            <tr><td>CNPJ Fornecedor</td><td style="font-family:var(--mono); font-size:.83rem;">{{ bem.supllier.cnpj }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+
+        <div class="btn-bar">
+          <a href="{% url 'dimrcbp:filtros_operacionais' %}" class="btn btn-ghost">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Voltar
+          </a>
+          <a href="{% url 'dimrcbp:criar_solicitacao' %}?tombo={{ bem.tombo }}" class="btn btn-ghost"
+             style="background:var(--amber-soft);border-color:var(--amber-mid);color:var(--amber);">
+            📝 Solicitar Transferência
+          </a>
+          {% if perms.dimrcbp.change_benspermanentes %}
+          <a href="{% url 'dimrcbp:transferir_bem' bem.tombo %}" class="btn btn-ghost"
+             style="background:var(--blue-soft);border-color:var(--blue-mid);color:var(--blue);">
+            🔄 Transferir
+          </a>
+          <a href="{% url 'dimrcbp:editar_bem' bem.tombo %}" class="btn btn-primary">
+            ✏️ Editar Bem
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Histórico de UAs (full-width) -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-amber">📍</div>
+        <div class="card-title">Histórico de Localização (UAs)</div>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:0;">
+      {% with h=bem.history_tombo %}{% if h %}
+
+        {% if h.current_ua %}
+        <div style="padding:16px 20px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); flex-shrink:0;"></div>
+            <span style="font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--blue);">
+              UA Atual{% if h.current_year %} · {{ h.current_year }}{% endif %}
+            </span>
+          </div>
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.current_ua.ua }}</div>
+          {% with gestor=h.current_ua.gestor %}
+          {% if gestor %}
+          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% endif %}
+
+        {% if h.last_ua %}
+        <div style="padding:16px 20px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:var(--border-strong); flex-shrink:0;"></div>
+            <span style="font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3);">
+              UA Anterior{% if h.last_year %} · {{ h.last_year }}{% endif %}
+            </span>
+          </div>
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.last_ua.ua }}</div>
+          {% with gestor=h.last_ua.gestor %}
+          {% if gestor %}
+          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% endif %}
+
+        {% if h.penultimate_ua %}
+        <div style="padding:16px 20px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:var(--border-strong); flex-shrink:0;"></div>
+            <span style="font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3);">
+              Penúltima{% if h.penultimate_year %} · {{ h.penultimate_year }}{% endif %}
+            </span>
+          </div>
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.penultimate_ua.ua }}</div>
+          {% with gestor=h.penultimate_ua.gestor %}
+          {% if gestor %}
+          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% endif %}
+
+        {% if h.third_last_ua %}
+        <div style="padding:16px 20px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:var(--border-strong); flex-shrink:0;"></div>
+            <span style="font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3);">
+              Antepenúltima{% if h.third_last_year %} · {{ h.third_last_year }}{% endif %}
+            </span>
+          </div>
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.third_last_ua.ua }}</div>
+        </div>
+        {% endif %}
+
+        {% if not h.current_ua and not h.last_ua %}
+        <div style="grid-column:1/-1; padding:32px; text-align:center; color:var(--ink-3); font-size:.85rem;">
+          Sem histórico de UA registrado.
+        </div>
+        {% endif %}
+
+      {% else %}
+      <div style="grid-column:1/-1; padding:32px; text-align:center; color:var(--ink-3); font-size:.85rem;">
+        Sem histórico de localização.
+      </div>
+      {% endif %}{% endwith %}
+    </div>
+  </div>
+
+  <!-- Histórico de Movimentações (full-width) -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-blue">🔄</div>
+        <div class="card-title">Histórico de Movimentações</div>
+      </div>
+      <a href="{% url 'dimrcbp:historico_movimentacoes' bem.tombo %}" class="btn btn-ghost" style="font-size:.78rem;padding:6px 12px;">
+        Ver tudo
+      </a>
+    </div>
+
+    {% if movimentacoes %}
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface-2);">
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Código</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Data</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">UA Origem</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">UA Destino</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Responsável</th>
+            <th style="padding:10px 16px; border-bottom:1px solid var(--border);"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimentacoes %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:11px 16px; font-family:var(--mono); font-size:.78rem; color:var(--ink-3);">{{ m.codigo }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; color:var(--ink-2); white-space:nowrap;">{{ m.data|date:"d/m/Y H:i" }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; color:var(--ink-2);">{{ m.ua_origem.ua|default:"—" }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; font-weight:700; color:var(--blue);">{{ m.ua_destino.ua }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; color:var(--ink-2);">{{ m.responsavel.get_full_name|default:m.responsavel.username }}</td>
+            <td style="padding:11px 16px; white-space:nowrap;">
+              <a href="{% url 'dimrcbp:termo_transferencia' m.pk %}" target="_blank"
+                 class="btn btn-ghost" style="padding:5px 10px; font-size:.76rem;">
+                📄 Termo
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:32px 24px; text-align:center; color:var(--ink-3);">
+      <div style="font-size:1.8rem; margin-bottom:8px; opacity:.3;">🔄</div>
+      <div style="font-weight:700; color:var(--ink-2); font-size:.9rem; margin-bottom:4px;">Nenhuma movimentação registrada</div>
+      <div style="font-size:.83rem;">As transferências entre UAs aparecerão aqui.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Histórico de Mudanças (full-width abaixo do layout) -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="card-icon ci-blue">🕒</div>
+        <div class="card-title">Histórico de Alterações</div>
+      </div>
+    </div>
+
+    {% if historico %}
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface-2);">
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border); white-space:nowrap;">#</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Data</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Alterado por</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Campos Alterados</th>
+            <th style="padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--border);">Justificativa</th>
+            <th style="padding:10px 16px; border-bottom:1px solid var(--border);"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in historico %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:11px 16px; font-family:var(--mono); font-size:.78rem; color:var(--ink-3); vertical-align:top; white-space:nowrap;">{{ h.pk }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; color:var(--ink-2); vertical-align:top; white-space:nowrap;">{{ h.data|date:"d/m/Y H:i" }}</td>
+            <td style="padding:11px 16px; font-size:.83rem; color:var(--ink-2); vertical-align:top; white-space:nowrap;">{{ h.alterado_por.get_full_name|default:h.alterado_por.username }}</td>
+            <td style="padding:11px 16px; vertical-align:top;">
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                {% for campo, info in h.campos.items %}
+                <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:5px 10px; font-size:.78rem;">
+                  <span style="font-weight:700; color:var(--ink-2);">{{ info.label }}</span>
+                  <span style="color:var(--ink-3); margin:0 4px;">·</span>
+                  <span style="font-family:var(--mono); color:var(--red); text-decoration:line-through;">{{ info.de|default:"—"|truncatechars:30 }}</span>
+                  <span style="color:var(--ink-3); margin:0 4px;">→</span>
+                  <span style="font-family:var(--mono); color:var(--green); font-weight:700;">{{ info.para|truncatechars:30 }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </td>
+            <td style="padding:11px 16px; font-size:.82rem; color:var(--ink-3); vertical-align:top; max-width:200px;">
+              {{ h.justificativa|default:"—"|truncatechars:80 }}
+            </td>
+            <td style="padding:11px 16px; vertical-align:top; white-space:nowrap;">
+              <a href="{% url 'dimrcbp:relatorio_mudanca' h.pk %}" target="_blank"
+                 class="btn btn-ghost" style="padding:5px 10px; font-size:.76rem;">
+                📄 PDF
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:40px 24px; text-align:center; color:var(--ink-3);">
+      <div style="font-size:2rem; margin-bottom:10px; opacity:.3;">📋</div>
+      <div style="font-weight:700; color:var(--ink-2); font-size:.9rem; margin-bottom:4px;">Nenhuma alteração registrada</div>
+      <div style="font-size:.83rem;">O histórico de edições deste bem aparecerá aqui.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Modal foto -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal-inner">
+    <button class="modal-close" id="modalClose">✕</button>
+    <img id="modalImg" src="" alt="Foto ampliada">
+  </div>
+</div>
+
+<script>
+  const trigger = document.getElementById('photoTrigger');
+  const modal   = document.getElementById('photoModal');
+  const close   = document.getElementById('modalClose');
+  const mImg    = document.getElementById('modalImg');
+  const src     = document.getElementById('mainPhoto');
+
+  if (trigger && src) {
+    trigger.addEventListener('click', () => { mImg.src = src.src; modal.classList.add('open'); });
+  }
+  if (close) close.addEventListener('click', () => modal.classList.remove('open'));
+  if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+</script>
+
+{% endblock %}

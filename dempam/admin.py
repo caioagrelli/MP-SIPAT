@@ -59,8 +59,9 @@ class InfoUaAdmin(admin.ModelAdmin):
             'fields': (
                 'responsavel_ua',
                 'mat_resp_ua',
+                'gestor',
             )
-                
+
         }),
     )
 

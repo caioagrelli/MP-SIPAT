@@ -1,0 +1,131 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Minhas Solicitações{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .section-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .section-title .cnt{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:2px 9px;font-size:.73rem;font-family:var(--mono);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:20px;}
+  .sol-header{padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border);}
+  .sol-header:last-of-type{border-bottom:none;}
+  .sol-header:hover{background:var(--surface-2);}
+  .sol-code{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--blue);}
+  .sol-meta{font-size:.78rem;color:var(--ink-3);}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-APROVADA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-REJEITADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .status-CANCELADA{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+  .sol-items{display:none;padding:0 20px 14px;}
+  .sol-items.open{display:block;}
+  .item-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+  .item-row:last-child{border-bottom:none;}
+  .item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot-green{background:var(--green);}
+  .dot-amber{background:var(--amber);}
+  .dot-blue{background:var(--blue);}
+  .empty-state{padding:40px 24px;text-align:center;color:var(--ink-3);}
+</style>
+<div class="apage">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📋 Minhas Solicitações</div>
+      <div class="topbar-sub">Acompanhe o status de todos os seus pedidos do catálogo.</div>
+    </div>
+    <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-primary">🛍️ Ir ao Catálogo</a>
+  </div>
+
+  <!-- ── BENS PERMANENTES ── -->
+  <div class="section-title">
+    📦 Bens Permanentes
+    <span class="cnt">{{ sols_perm|length }}</span>
+  </div>
+
+  {% if sols_perm %}
+  <div class="card">
+    {% for sol in sols_perm %}
+    <div>
+      <div class="sol-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span class="sol-code">{{ sol.codigo }}</span>
+        <span class="sol-meta">{{ sol.data|date:"d/m/Y H:i" }}</span>
+        <span class="sol-meta">UA: {{ sol.ua_destino.ua }}</span>
+        <span class="sol-meta">{{ sol.itens.count }} item{{ sol.itens.count|pluralize:"ns" }}</span>
+        <span class="pill status-{{ sol.status }}" style="margin-left:auto;">{{ sol.get_status_display }}</span>
+        <span style="color:var(--ink-3);font-size:.8rem;">▾</span>
+      </div>
+      <div class="sol-items">
+        {% for item in sol.itens.all %}
+        <div class="item-row">
+          <div class="item-dot {% if item.bem_atribuido %}dot-green{% else %}dot-amber{% endif %}"></div>
+          <span style="flex:1;">{{ item.catalogo.description }}</span>
+          {% if item.bem_atribuido %}
+          <span style="font-size:.77rem;color:var(--green);font-weight:700;">Tombo {{ item.bem_atribuido.tombo }} atribuído</span>
+          {% else %}
+          <span style="font-size:.77rem;color:var(--amber);">Aguardando atribuição</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if sol.obs_decisao %}<div style="margin-top:8px;font-size:.78rem;color:var(--ink-3);background:var(--surface-2);padding:8px 10px;border-radius:8px;"><strong>Obs:</strong> {{ sol.obs_decisao }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><div class="empty-state">
+    <div style="font-size:2rem;opacity:.3;margin-bottom:8px;">📦</div>
+    <div style="font-weight:600;font-size:.9rem;color:var(--ink-2);">Nenhuma solicitação de bens permanentes</div>
+  </div></div>
+  {% endif %}
+
+  <!-- ── BENS DE CONSUMO ── -->
+  <div class="section-title" style="margin-top:8px;">
+    🧴 Bens de Consumo
+    <span class="cnt">{{ sols_cons|length }}</span>
+  </div>
+
+  {% if sols_cons %}
+  <div class="card">
+    {% for sol in sols_cons %}
+    <div>
+      <div class="sol-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span class="sol-code">{{ sol.codigo }}</span>
+        <span class="sol-meta">{{ sol.data|date:"d/m/Y H:i" }}</span>
+        <span class="sol-meta">UA: {{ sol.ua_destino.ua }}</span>
+        <span class="sol-meta">{{ sol.total_itens }} item{{ sol.total_itens|pluralize:"ns" }}</span>
+        <span class="pill status-{{ sol.status }}" style="margin-left:auto;">{{ sol.get_status_display }}</span>
+        <span style="color:var(--ink-3);font-size:.8rem;">▾</span>
+      </div>
+      <div class="sol-items">
+        {% for item in sol.itens.all %}
+        <div class="item-row">
+          <div class="item-dot dot-blue"></div>
+          <span style="flex:1;">{{ item.catalogo.description }}</span>
+          <span style="font-family:var(--mono);font-size:.79rem;font-weight:700;color:var(--blue);">{{ item.quantidade }}x {{ item.catalogo.get_medida_display }}</span>
+        </div>
+        {% endfor %}
+        {% if sol.obs_decisao %}<div style="margin-top:8px;font-size:.78rem;color:var(--ink-3);background:var(--surface-2);padding:8px 10px;border-radius:8px;"><strong>Obs:</strong> {{ sol.obs_decisao }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><div class="empty-state">
+    <div style="font-size:2rem;opacity:.3;margin-bottom:8px;">🧴</div>
+    <div style="font-weight:600;font-size:.9rem;color:var(--ink-2);">Nenhuma solicitação de bens de consumo</div>
+  </div></div>
+  {% endif %}
+
+</div>
+{% endblock %}

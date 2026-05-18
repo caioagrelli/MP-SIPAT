@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
 from .models import *
 
 
@@ -212,14 +213,10 @@ class HistoryUasAdmin(admin.ModelAdmin):
         'tombo',
         'current_ua',
         'current_year',
-        'current_responsible',
     )
 
     search_fields = (
-        'current_responsible',
-        'current_registration',
-        'last_responsible',
-        'last_registration',
+        'tombo__tombo',
     )
 
     list_filter = (
@@ -246,8 +243,6 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'current_ua',
                 'current_year',
-                'current_responsible',
-                'current_registration',
             )
         }),
 
@@ -255,8 +250,6 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'last_ua',
                 'last_year',
-                'last_responsible',
-                'last_registration',
             )
         }),
 
@@ -264,14 +257,66 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'penultimate_ua',
                 'penultimate_year',
-                'penultimate_responsible',
-                'penultimate_registration',
             )
         }),
 
         ('UA Antepenúltima', {
             'fields': (
                 'third_last_ua',
+            )
+        }),
+    )
+
+
+@admin.register(AtribuicaoBem)
+class AtribuicaoBemAdmin(admin.ModelAdmin):
+    list_display = (
+        'bem',
+        'user',
+        'desde',
+        'ativo',
+    )
+
+    search_fields = (
+        'bem__tombo',
+        'user__first_name',
+        'user__last_name',
+        'user__username',
+    )
+
+    list_filter = (
+        'ativo',
+    )
+
+    autocomplete_fields = (
+        'bem',
+    )
+
+    fieldsets = (
+        ('Atribuição', {
+            'fields': (
+                'bem',
+                'user',
+                'ativo',
+            )
+        }),
+    )
+
+
+@admin.register(PeriodoInventario)
+class PeriodoInventarioAdmin(admin.ModelAdmin):
+    list_display = (
+        'descricao',
+        'inicio',
+        'fim',
+    )
+
+    fieldsets = (
+        ('Período', {
+            'fields': (
+                'descricao',
+                'inicio',
+                'fim',
             )
         }),
     )
@@ -335,3 +380,39 @@ class UseExternalAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+
+''' MOVIMENTAÇÕES '''
+
+@admin.register(SolicitacaoTransferencia)
+class SolicitacaoTransferenciaAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'bem', 'ua_destino', 'solicitante', 'data', 'status')
+    list_filter   = ('status',)
+    search_fields = ('codigo', 'bem__tombo', 'solicitante__username')
+    readonly_fields = ('codigo', 'data', 'data_decisao')
+
+
+@admin.register(MovimentacaoBem)
+class MovimentacaoBemAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'bem', 'ua_origem', 'ua_destino', 'responsavel', 'data')
+    search_fields = ('codigo', 'bem__tombo')
+    readonly_fields = ('codigo', 'data')
+
+
+''' CATÁLOGO — SOLICITAÇÕES '''
+
+@admin.register(SolicitacaoCatalogo)
+class SolicitacaoCatalogoAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'solicitante', 'ua_destino', 'data', 'status')
+    list_filter   = ('status',)
+    search_fields = ('codigo', 'solicitante__username', 'solicitante__first_name', 'solicitante__last_name')
+    readonly_fields = ('codigo', 'data', 'data_decisao')
+
+
+@admin.register(ItemSolicitacaoCatalogo)
+class ItemSolicitacaoCatalogoAdmin(admin.ModelAdmin):
+    list_display  = ('solicitacao', 'catalogo', 'bem_atribuido')
+    search_fields = ('solicitacao__codigo', 'catalogo__description__description')
+    list_filter   = ('solicitacao__status',)
+    autocomplete_fields = ('bem_atribuido',)
+

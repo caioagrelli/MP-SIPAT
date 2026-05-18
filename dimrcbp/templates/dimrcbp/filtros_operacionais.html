@@ -1,0 +1,314 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Filtros Operacionais{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .apage { font-family: var(--font); padding: 28px 24px 48px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-ghost  { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-primary:hover { background: #1e40af; border-color: #1e40af; }
+  .btn-sm { padding: 6px 12px; font-size: .78rem; }
+
+  /* Filtro card */
+  .filter-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+    overflow: hidden; margin-bottom: 24px;
+  }
+  .filter-card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    background: #1e2d42; display: flex; align-items: center; gap: 10px;
+  }
+  .filter-card-head-icon { font-size: 1.1rem; }
+  .filter-card-head-title { font-size: .95rem; font-weight: 800; color: #fff; }
+  .filter-card-head-sub { font-size: .75rem; color: rgba(210,220,240,.6); margin-top: 1px; }
+
+  .filter-body { padding: 20px 24px; }
+  .filter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label { font-size: .75rem; font-weight: 700; color: var(--ink-2); }
+  .form-control, .form-select {
+    border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 8px 12px; font-family: var(--font); font-size: .85rem; color: var(--ink);
+    background: var(--surface); width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-control:focus, .form-select:focus {
+    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+  }
+  .filter-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  /* Resultados */
+  .results-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden;
+  }
+  .results-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .results-head-title { font-size: 1rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .badge {
+    background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--blue);
+    border-radius: 999px; padding: 3px 10px; font-size: .75rem; font-family: var(--mono); font-weight: 700;
+  }
+
+  /* Tabela */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--surface-2); }
+  th {
+    padding: 10px 16px; text-align: left;
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-3);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  td {
+    padding: 11px 16px; font-size: .85rem; color: var(--ink-2);
+    border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+
+  .tombo-mono { font-family: var(--mono); font-size: .8rem; color: var(--ink-3); font-weight: 700; }
+  .desc-text { font-size: .84rem; color: var(--ink); font-weight: 600; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub-text { font-size: .76rem; color: var(--ink-3); margin-top: 2px; }
+
+  .pill {
+    display: inline-flex; align-items: center; padding: 2px 9px;
+    border-radius: 999px; font-size: .7rem; font-weight: 700; border: 1px solid;
+    white-space: nowrap;
+  }
+  .situ-em_uso        { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .situ-ocioso        { background: var(--blue-soft);  color: var(--blue);  border-color: var(--blue-mid); }
+  .situ-recuperavel   { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .situ-antieconomico,
+  .situ-irrecuperavel { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+  .situ-default       { background: var(--surface-2);  color: var(--ink-3); border-color: var(--border); }
+
+  .estado-bom, .estado-novo    { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
+  .estado-regular              { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  .estado-precario,
+  .estado-sucata               { background: var(--red-soft);   color: var(--red);   border-color: var(--red-mid); }
+
+  .empty-state { padding: 56px 24px; text-align: center; color: var(--ink-3); }
+  .empty-icon  { font-size: 2.4rem; display: block; margin-bottom: 12px; opacity: .35; }
+  .empty-title { font-weight: 700; color: var(--ink-2); font-size: .95rem; margin-bottom: 4px; }
+  .empty-sub   { font-size: .84rem; }
+
+  @media (max-width: 900px) { .filter-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .filter-grid { grid-template-columns: 1fr; } .apage { padding: 14px 12px 32px; } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔍 Filtros Operacionais</div>
+      <div class="topbar-sub">Pesquise bens permanentes por tombo, processo, UA, descrição e mais.</div>
+    </div>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Bens Permanentes</a>
+  </div>
+
+  <!-- Painel de filtros -->
+  <div class="filter-card">
+    <div class="filter-card-head">
+      <span class="filter-card-head-icon">⚙️</span>
+      <div>
+        <div class="filter-card-head-title">Parâmetros de Pesquisa</div>
+        <div class="filter-card-head-sub">Preencha um ou mais campos e clique em Pesquisar</div>
+      </div>
+    </div>
+    <div class="filter-body">
+      <form method="get" id="filter-form">
+        <div class="filter-grid">
+
+          <div class="field-group">
+            <label for="id_tombo">Número de Tombo</label>
+            <input type="text" id="id_tombo" name="tombo" class="form-control"
+                   placeholder="Ex: 12345" value="{{ f_tombo }}">
+          </div>
+
+          <div class="field-group">
+            <label for="id_n_process">Número de Processo</label>
+            <input type="text" id="id_n_process" name="n_process" class="form-control"
+                   placeholder="Ex: 23480.001234/2024" value="{{ f_n_process }}">
+          </div>
+
+          <div class="field-group">
+            <label for="id_descricao">Descrição</label>
+            <input type="text" id="id_descricao" name="descricao" class="form-control"
+                   placeholder="Ex: Cadeira, Notebook…" value="{{ f_descricao }}">
+          </div>
+
+          <div class="field-group">
+            <label for="id_ua">UA Atual</label>
+            <select id="id_ua" name="ua" class="form-select">
+              <option value="">— Todas as UAs —</option>
+              {% for ua in uas %}
+              <option value="{{ ua.pk }}" {% if f_ua == ua.pk|stringformat:"s" %}selected{% endif %}>
+                {{ ua.ua }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="id_situacion">Situação Física</label>
+            <select id="id_situacion" name="situacion" class="form-select">
+              <option value="">— Todas —</option>
+              {% for val, label in situacoes %}
+              <option value="{{ val }}" {% if f_situacion == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="id_state">Estado de Conservação</label>
+            <select id="id_state" name="state" class="form-select">
+              <option value="">— Todos —</option>
+              {% for val, label in estados %}
+              <option value="{{ val }}" {% if f_state == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+
+        <div class="filter-actions">
+          <a href="{% url 'dimrcbp:filtros_operacionais' %}" class="btn btn-ghost btn-sm">Limpar</a>
+          <button type="submit" class="btn btn-primary btn-sm">
+            🔍 Pesquisar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div class="results-card">
+    <div class="results-head">
+      <div class="results-head-title">
+        Resultados
+        {% if pesquisou %}<span class="badge">{{ total }} encontrado{{ total|pluralize:"s" }}</span>{% endif %}
+      </div>
+    </div>
+
+    {% if not pesquisou %}
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <div class="empty-title">Nenhuma pesquisa realizada</div>
+      <div class="empty-sub">Use os filtros acima para buscar bens permanentes.</div>
+    </div>
+
+    {% elif bens %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tombo</th>
+            <th>Descrição</th>
+            <th>Marca / Modelo</th>
+            <th>UA Atual</th>
+            <th>Situação</th>
+            <th>Estado</th>
+            <th>Processo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bem in bens %}
+          <tr>
+            <td>
+              <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}"
+                 style="font-family:var(--mono); font-size:.8rem; font-weight:700; color:var(--blue); text-decoration:none;"
+                 title="Ver detalhe do bem">
+                {{ bem.tombo }}
+              </a>
+            </td>
+            <td>
+              <div class="desc-text" title="{{ bem.description }}">{{ bem.description }}</div>
+              {% if bem.description.subdescription %}
+                <div class="sub-text">{{ bem.description.subdescription }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <div style="font-size:.84rem; font-weight:600; color:var(--ink);">{{ bem.mark }}</div>
+              <div class="sub-text">{{ bem.model }}</div>
+            </td>
+            <td>
+              {% if bem.history_tombo.current_ua %}
+                <span style="font-size:.84rem;">{{ bem.history_tombo.current_ua.ua }}</span>
+              {% else %}
+                <span style="color:var(--ink-3);">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if bem.situacion %}
+                <span class="pill situ-{{ bem.situacion|lower }}">{{ bem.get_situacion_display }}</span>
+              {% else %}
+                <span class="pill situ-default">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if bem.state %}
+                <span class="pill estado-{{ bem.state|lower }}">{{ bem.get_state_display }}</span>
+              {% else %}
+                <span class="pill situ-default">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span style="font-family:var(--mono); font-size:.76rem; color:var(--ink-3);">
+                {{ bem.n_process|default:"—" }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-icon">📭</span>
+      <div class="empty-title">Nenhum bem encontrado</div>
+      <div class="empty-sub">Tente ajustar os filtros da pesquisa.</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

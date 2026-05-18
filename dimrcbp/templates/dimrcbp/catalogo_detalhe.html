@@ -1,0 +1,182 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Catálogo — {{ item.efisco }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --green:#15803d;--green-soft:#f0fdf4;
+    --red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .item-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.2;}
+  .item-sub{margin-top:6px;font-size:.88rem;color:var(--ink-3);}
+
+  .efisco-chip{background:#1e2d42;border-radius:var(--r-sm);padding:10px 18px;text-align:center;min-width:140px;flex-shrink:0;box-shadow:0 4px 14px rgba(15,23,42,.2);}
+  .efisco-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(160,175,210,.7);margin-bottom:4px;}
+  .efisco-value{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:#fff;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-danger{background:var(--red-soft);border-color:var(--red-mid);color:var(--red);}
+  .btn-danger:hover{background:var(--red-mid);}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;}
+  .card:last-child{margin-bottom:0;}
+  .card-head{padding:14px 18px;border-bottom:1px solid var(--border);background:#1e2d42;display:flex;align-items:center;gap:10px;}
+  .card-head-icon{font-size:1rem;}
+  .card-head-title{font-size:.9rem;font-weight:800;color:#fff;}
+  .card-body{padding:18px;}
+
+  .photo-box{border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface-2);height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .photo-box img{max-height:100%;max-width:100%;object-fit:contain;border-radius:8px;}
+  .photo-empty{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink-3);font-size:.85rem;}
+  .photo-empty-icon{font-size:3rem;opacity:.25;}
+
+  .kv-table{width:100%;border-collapse:collapse;}
+  .kv-table tr{border-bottom:1px solid var(--border);}
+  .kv-table tr:last-child{border-bottom:none;}
+  .kv-table tr:hover td{background:var(--blue-soft);}
+  .kv-table td{padding:10px 14px;font-size:.85rem;vertical-align:middle;}
+  .kv-table td:first-child{width:38%;font-weight:700;color:var(--ink-3);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;}
+  .kv-value{font-family:var(--mono);font-size:.82rem;color:var(--ink);}
+
+  .btn-bar{display:flex;gap:8px;flex-wrap:wrap;}
+
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:catalogo_lista' %}">Catálogo</a><span>›</span>
+    {{ item.efisco }}
+  </nav>
+
+  <div class="topbar">
+    <div style="flex:1;min-width:0;">
+      <div class="item-title">{{ item.description }}</div>
+    </div>
+    <div class="efisco-chip">
+      <div class="efisco-label">Efisco</div>
+      <div class="efisco-value">{{ item.efisco }}</div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Coluna Esquerda -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-icon">🖼️</span>
+          <span class="card-head-title">Imagem</span>
+        </div>
+        <div class="card-body">
+          <div class="photo-box">
+            {% if item.photo %}
+            <img src="{{ item.photo.url }}" alt="{{ item }}">
+            {% else %}
+            <div class="photo-empty">
+              <span class="photo-empty-icon">📦</span>
+              <span>Sem imagem</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if perms.dimrcbp.change_catalogo or perms.dimrcbp.delete_catalogo %}
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-icon">⚙️</span>
+          <span class="card-head-title">Ações</span>
+        </div>
+        <div class="card-body">
+          <div class="btn-bar" style="flex-direction:column;">
+            {% if perms.dimrcbp.change_catalogo %}
+            <a href="{% url 'dimrcbp:catalogo_editar' item.pk %}" class="btn btn-primary" style="justify-content:center;">✏️ Editar Item</a>
+            {% endif %}
+            {% if perms.dimrcbp.delete_catalogo %}
+            <a href="{% url 'dimrcbp:catalogo_excluir' item.pk %}" class="btn btn-danger" style="justify-content:center;">🗑️ Excluir Item</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Coluna Direita -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-icon">📋</span>
+          <span class="card-head-title">Classificação</span>
+        </div>
+        <table class="kv-table">
+          <tr><td>Grupo</td><td class="kv-value">{{ item.description.type.gruop }}</td></tr>
+          <tr><td>Tipo</td><td class="kv-value">{{ item.description.type }}</td></tr>
+          <tr><td>Descrição</td><td class="kv-value">{{ item.description }}</td></tr>
+          {% if item.description.subdescription %}
+          <tr><td>Subdescrição</td><td class="kv-value">{{ item.description.subdescription }}</td></tr>
+          {% endif %}
+          {% if item.description.classification %}
+          <tr><td>Classificação</td><td class="kv-value">{{ item.description.classification }}</td></tr>
+          {% endif %}
+          {% if item.description.color %}
+          <tr><td>Cor</td><td class="kv-value">{{ item.description.get_color_display }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-icon">🔧</span>
+          <span class="card-head-title">Especificações</span>
+        </div>
+        <table class="kv-table">
+          <tr><td>Código Efisco</td><td class="kv-value">{{ item.efisco }}</td></tr>
+          <tr>
+            <td>Valor de Referência</td>
+            <td class="kv-value">{% if item.value %}R$ {{ item.value|floatformat:2 }}{% else %}—{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      {% if item.descricao %}
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-icon">📝</span>
+          <span class="card-head-title">Descrição</span>
+        </div>
+        <div class="card-body" style="font-size:.88rem;line-height:1.65;color:var(--ink-2);white-space:pre-wrap;">{{ item.descricao }}</div>
+      </div>
+      {% endif %}
+
+      <div class="btn-bar">
+        <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-ghost">← Voltar ao Catálogo</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

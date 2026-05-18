@@ -1,0 +1,140 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Finalizar Solicitação{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb span{opacity:.45;}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .card-body{padding:20px 22px;}
+
+  /* Itens do carrinho */
+  .order-item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .order-item:last-child{border-bottom:none;}
+  .order-photo{width:56px;height:56px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--ink-3);flex-shrink:0;}
+  .order-photo img{width:100%;height:100%;object-fit:contain;}
+  .order-info{flex:1;}
+  .order-name{font-size:.9rem;font-weight:700;color:var(--ink);line-height:1.3;}
+  .order-meta{font-size:.75rem;color:var(--ink-3);margin-top:3px;}
+  .order-qty{font-family:var(--mono);font-size:.85rem;font-weight:700;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);padding:3px 10px;border-radius:6px;white-space:nowrap;}
+
+  /* Form */
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  textarea.form-control{min-height:80px;resize:vertical;}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:catalogo_lista' %}">Catálogo</a><span>›</span>
+    Finalizar Solicitação
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📋 Finalizar Solicitação</div>
+      <div class="topbar-sub">Revise os itens e informe sua UA para concluir.</div>
+    </div>
+    <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-ghost">← Continuar comprando</a>
+  </div>
+
+  <div class="layout">
+
+    <!-- Itens do pedido -->
+    <div class="card">
+      <div class="card-head">🛒 Itens Solicitados ({{ cart_itens|length }})</div>
+      <div class="card-body" style="padding:0 22px;">
+        {% for ci in cart_itens %}
+        <div class="order-item">
+          <div class="order-photo">
+            {% if ci.tipo == 'cons' %}
+              {% if ci.item.photo %}<img src="{{ ci.item.photo.url }}" alt="">{% else %}🧴{% endif %}
+            {% else %}
+              {% if ci.item.photo %}<img src="{{ ci.item.photo.url }}" alt="">{% else %}📦{% endif %}
+            {% endif %}
+          </div>
+          <div class="order-info">
+            {% if ci.tipo == 'cons' %}
+              <div class="order-name">{{ ci.item.description }}</div>
+              <div class="order-meta" style="display:flex;align-items:center;gap:6px;">
+                <span style="background:#fffbeb;border:1px solid #fde68a;color:#b45309;border-radius:999px;padding:1px 7px;font-size:.67rem;font-weight:700;">🧴 Consumo</span>
+                {{ ci.item.get_grupo_consumo_display }}
+                {% if ci.item.mark %} · {{ ci.item.mark }}{% endif %}
+                · {{ ci.item.get_medida_display }}
+              </div>
+            {% else %}
+              <div class="order-name">{{ ci.item.description }}</div>
+              <div class="order-meta" style="display:flex;align-items:center;gap:6px;">
+                <span style="background:#eff4ff;border:1px solid #c7d7fd;color:#1d4ed8;border-radius:999px;padding:1px 7px;font-size:.67rem;font-weight:700;">📦 Permanente</span>
+                {{ ci.item.description.type.gruop }} › {{ ci.item.description.type }}
+                {% if ci.item.value %} · Ref: R$ {{ ci.item.value|floatformat:2 }}{% endif %}
+              </div>
+            {% endif %}
+          </div>
+          <span class="order-qty">{{ ci.qty }}x</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Form de confirmação -->
+    <div>
+      <div class="card">
+        <div class="card-head">📍 Dados da Solicitação</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="field-group">
+              <label for="id_ua">UA Destino (sua unidade)</label>
+              <select id="id_ua" name="ua_destino" class="form-control" required>
+                <option value="">— Selecione a UA —</option>
+                {% for ua in uas %}
+                <option value="{{ ua.pk }}">{{ ua.ua }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="id_obs">Observação (opcional)</label>
+              <textarea id="id_obs" name="observacao" class="form-control"
+                        placeholder="Informações adicionais sobre a solicitação…"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;font-size:.95rem;padding:12px;">
+              Enviar Solicitação →
+            </button>
+            <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px;">
+              Cancelar
+            </a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

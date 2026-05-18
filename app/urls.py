@@ -8,6 +8,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from dempam.views import root, home
 
+# Garante que o admin sempre use o login por formulário,
+# independente do LOGIN_URL definido nas settings (ex: OIDC em produção).
+admin.site.login_url = '/login/'
+
 urlpatterns = [
     # url's essencials
     path('admin/', admin.site.urls), # url de admin

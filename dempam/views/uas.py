@@ -98,7 +98,6 @@ def ua_add(request):
     }
     return render(request, "dempam/uas/ua_add.html", context)
 
-'''#' Editar UA existente
 @login_required
 def ua_update(request, pk):
     ua = get_object_or_404(InfoUA, pk=pk)
@@ -108,14 +107,13 @@ def ua_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "UA atualizada com sucesso.")
-            return redirect("dempam:ua_homepage")
+            return redirect("dempam:ua_detail", pk=pk)
     else:
         form = InfoUAForm(instance=ua)
 
-    context = {
+    return render(request, "dempam/uas/ua_update.html", {
         "form": form,
         "ua_obj": ua,
         "page_title": "Editar UA",
         "button_label": "Atualizar UA",
-    }
-    return render(request, "dempam/uas/ua_update.html", context)'''
+    })

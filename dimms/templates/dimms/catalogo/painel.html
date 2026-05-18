@@ -1,0 +1,108 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Aprovações Catálogo Consumo{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.55rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-sm);}
+  .kpi-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
+  .kpi-val{font-size:1.6rem;font-weight:800;font-family:var(--mono);}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);}
+  .tab{padding:8px 18px;font-size:.84rem;font-weight:700;color:var(--ink-3);text-decoration:none;border-radius:var(--r-sm) var(--r-sm) 0 0;border:1px solid transparent;border-bottom:none;transition:all .15s;}
+  .tab:hover{background:var(--surface-2);}
+  .tab.active{background:var(--surface);border-color:var(--border);border-bottom:2px solid var(--surface);margin-bottom:-2px;color:var(--blue);}
+  .search-bar{display:flex;gap:8px;margin-bottom:16px;}
+  .search-input{flex:1;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 14px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);}
+  .search-input:focus{outline:none;border-color:var(--blue);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .card-title{font-size:1rem;font-weight:800;color:var(--ink);}
+  .badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.75rem;font-family:var(--mono);font-weight:700;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:var(--surface-2);}
+  th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:11px 16px;font-size:.85rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-REJEITADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .status-CANCELADA{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+  .mono{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);font-weight:700;}
+  .empty-state{padding:56px 24px;text-align:center;color:var(--ink-3);}
+</style>
+<div class="apage">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🧴 Aprovações — Catálogo de Consumo</div>
+      <div class="topbar-sub">Analise e atenda as solicitações de bens de consumo.</div>
+    </div>
+    <a href="{% url 'dimms:catalogo_consumo_admin' %}" class="btn btn-ghost">⚙️ Gerenciar Catálogo</a>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-label">Pendentes</div><div class="kpi-val" style="color:var(--amber);">{{ total_pendente }}</div></div>
+    <div class="kpi"><div class="kpi-label">Atendidas</div><div class="kpi-val" style="color:var(--green);">{{ total_atendida }}</div></div>
+    <div class="kpi"><div class="kpi-label">Rejeitadas</div><div class="kpi-val" style="color:var(--red);">{{ total_rejeitada }}</div></div>
+  </div>
+  <div class="tabs">
+    <a class="tab {% if filtro == 'PENDENTE' %}active{% endif %}" href="?status=PENDENTE">⏳ Pendentes</a>
+    <a class="tab {% if filtro == 'ATENDIDA' %}active{% endif %}" href="?status=ATENDIDA">✅ Atendidas</a>
+    <a class="tab {% if filtro == 'REJEITADA' %}active{% endif %}" href="?status=REJEITADA">❌ Rejeitadas</a>
+    <a class="tab {% if not filtro %}active{% endif %}" href="?status=">Todas</a>
+  </div>
+  <form method="get" class="search-bar">
+    {% if filtro %}<input type="hidden" name="status" value="{{ filtro }}">{% endif %}
+    <input type="text" name="q" class="search-input" placeholder="Buscar por código ou solicitante…" value="{{ query }}">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    {% if query %}<a href="?status={{ filtro }}" class="btn btn-ghost">Limpar</a>{% endif %}
+  </form>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Solicitações <span class="badge">{{ solicitacoes|length }}</span></div>
+    </div>
+    {% if solicitacoes %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Código</th><th>Solicitante</th><th>UA Destino</th><th>Data</th><th>Itens</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for sol in solicitacoes %}
+          <tr>
+            <td><span class="mono">{{ sol.codigo }}</span></td>
+            <td>{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</td>
+            <td style="font-size:.83rem;">{{ sol.ua_destino.ua }}</td>
+            <td style="font-size:.82rem;white-space:nowrap;">{{ sol.data|date:"d/m/Y H:i" }}</td>
+            <td style="font-family:var(--mono);font-size:.8rem;">{{ sol.total_itens }}</td>
+            <td><span class="pill status-{{ sol.status }}">{{ sol.get_status_display }}</span></td>
+            <td>
+              <a href="{% url 'dimms:analisar_solicitacao_consumo' sol.pk %}" class="btn btn-primary btn-sm">
+                {% if sol.status == 'PENDENTE' %}Analisar →{% else %}Ver →{% endif %}
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div style="font-size:2.4rem;margin-bottom:12px;opacity:.3;">📭</div>
+      <div style="font-weight:700;color:var(--ink-2);font-size:.95rem;">Nenhuma solicitação encontrada</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

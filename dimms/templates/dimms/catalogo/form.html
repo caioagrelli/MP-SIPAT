@@ -1,0 +1,119 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — {{ acao }} Item Catálogo Consumo{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--red:#b91c1c;--red-soft:#fef2f2;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.4rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);}
+  .card-body{padding:20px 22px;}
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  textarea.form-control{min-height:80px;resize:vertical;}
+  .field-error{font-size:.75rem;color:var(--red);margin-top:2px;}
+  .check-row{display:flex;align-items:center;gap:8px;font-size:.87rem;color:var(--ink-2);}
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+<div class="apage">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🧴 {{ acao }} Item — Catálogo de Consumo</div>
+      <div class="topbar-sub">Preencha as informações do item para exibição no catálogo.</div>
+    </div>
+    <a href="{% url 'dimms:catalogo_consumo_admin' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div class="card-head">📝 Identificação</div>
+          <div class="card-body">
+            <div class="field-group">
+              <label>Descrição *</label>
+              <input type="text" name="description" class="form-control" value="{{ val.description }}" placeholder="Ex: Papel A4 75g">
+              {% if erros.description %}<span class="field-error">{{ erros.description }}</span>{% endif %}
+            </div>
+            <div class="field-group">
+              <label>Marca</label>
+              <input type="text" name="mark" class="form-control" value="{{ val.mark }}" placeholder="Ex: Chamex">
+            </div>
+            <div class="field-group">
+              <label>Grupo *</label>
+              <select name="grupo_consumo" class="form-control">
+                <option value="">— Selecione —</option>
+                {% for v, l in grupos %}
+                <option value="{{ v }}" {% if val.grupo_consumo == v %}selected{% endif %}>{{ l }}</option>
+                {% endfor %}
+              </select>
+              {% if erros.grupo_consumo %}<span class="field-error">{{ erros.grupo_consumo }}</span>{% endif %}
+            </div>
+            <div class="field-group">
+              <label>Unidade de Medida</label>
+              <select name="medida" class="form-control">
+                {% for v, l in medidas %}
+                <option value="{{ v }}" {% if val.medida == v %}selected{% endif %}>{{ l }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label>E-Fisco (opcional)</label>
+              <select name="efisco" class="form-control">
+                <option value="">— Sem vínculo —</option>
+                {% for ef in efiscos %}
+                <option value="{{ ef.pk }}" {% if val.efisco == ef.pk|stringformat:"s" %}selected{% endif %}>{{ ef.efisco }} — {{ ef.descricao_efisco|truncatechars:60 }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Detalhes (opcional)</label>
+              <textarea name="detalhes" class="form-control" placeholder="Especificações adicionais…">{{ val.detalhes }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head">🖼️ Foto e Status</div>
+          <div class="card-body">
+            <div class="field-group">
+              <label>Foto do item</label>
+              {% if item.photo %}
+              <div style="margin-bottom:8px;"><img src="{{ item.photo.url }}" style="max-height:80px;border-radius:8px;border:1px solid var(--border);"></div>
+              {% endif %}
+              <input type="file" name="photo" accept="image/*" class="form-control" style="padding:6px;">
+            </div>
+            <div class="field-group">
+              <label>Visibilidade</label>
+              <label class="check-row">
+                <input type="checkbox" name="ativo" {% if val.ativo == 'on' or item.ativo or not item %}checked{% endif %}>
+                Ativo no catálogo
+              </label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:12px;">
+          {{ acao }} Item →
+        </button>
+        <a href="{% url 'dimms:catalogo_consumo_admin' %}" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px;">
+          Cancelar
+        </a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

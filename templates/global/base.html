@@ -287,8 +287,18 @@
       <div class="nav-section-label">Principal</div>
 
       <a class="nav-item-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-         href="{% url 'home' %}">
+         href="{% url 'dimrcbp:catalogo_lista' %}">
         <span class="nav-item-icon">🏠</span> Painel Principal
+      </a>
+
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name in 'meus_bens,detalhe_bem,atualizar_foto' %}active{% endif %}"
+         href="{% url 'dimrcbp:meus_bens' %}">
+        <span class="nav-item-icon">📋</span> Meus Bens
+      </a>
+
+      <a class="nav-item-link {% if request.resolver_match.url_name in 'minhas_solicitacoes,minhas_solicitacoes_consumo' %}active{% endif %}"
+         href="{% url 'dimrcbp:minhas_solicitacoes' %}">
+        <span class="nav-item-icon">📋</span> Minhas Solicitações
       </a>
 
       {% if perms.dimrcbp or perms.dimms %}

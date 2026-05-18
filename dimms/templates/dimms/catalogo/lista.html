@@ -1,0 +1,107 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Catálogo de Bens de Consumo{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.55rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+  .filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+  .filter-grid{display:grid;grid-template-columns:1fr 200px auto auto;gap:10px;align-items:end;}
+  .filter-group label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:8px 11px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+  .cat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;}
+  .cat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .cat-photo{height:160px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--border);}
+  .cat-photo img{max-width:100%;max-height:100%;object-fit:contain;}
+  .cat-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:5px;}
+  .cat-desc{font-size:.9rem;font-weight:700;color:var(--ink);line-height:1.3;}
+  .cat-mark{font-size:.78rem;color:var(--ink-2);}
+  .cat-grupo{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);margin-top:3px;}
+  .cat-medida{font-family:var(--mono);font-size:.75rem;color:var(--ink-3);}
+  .cat-footer{padding:10px 16px 14px;border-top:1px solid var(--border);background:var(--surface-2);}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-3);}
+  @media(max-width:640px){.filter-grid{grid-template-columns:1fr 1fr;}.catalog-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}}
+</style>
+<div class="apage">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🧴 Catálogo de Bens de Consumo</div>
+      <div class="topbar-sub">Itens disponíveis para solicitação via catálogo.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if perms.dimms.add_catalogoconsumo %}
+      <a href="{% url 'dimms:catalogo_consumo_admin' %}" class="btn btn-ghost">⚙️ Gerenciar Catálogo</a>
+      {% endif %}
+      <a href="{% url 'dimms:minhas_solicitacoes_consumo' %}" class="btn btn-ghost">📋 Minhas Solicitações</a>
+      <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-primary">🛍️ Catálogo Geral</a>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <form method="get">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Buscar</label>
+          <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Descrição ou marca…">
+        </div>
+        <div class="filter-group">
+          <label>Grupo</label>
+          <select name="grupo" class="form-control">
+            <option value="">Todos</option>
+            {% for val, label in grupos %}
+            <option value="{{ val }}" {% if q_grupo == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-end;">Filtrar</button>
+        <a href="{% url 'dimms:catalogo_consumo' %}" class="btn btn-ghost" style="align-self:flex-end;">Limpar</a>
+      </div>
+    </form>
+  </div>
+  {% if itens %}
+  <div style="font-size:.82rem;color:var(--ink-3);font-weight:600;margin-bottom:12px;">{{ itens|length }} {% if itens|length == 1 %}item{% else %}itens{% endif %}</div>
+  <div class="catalog-grid">
+    {% for item in itens %}
+    <div class="cat-card">
+      <div class="cat-photo">
+        {% if item.photo %}<img src="{{ item.photo.url }}" alt="{{ item.description }}">
+        {% else %}<span style="font-size:3rem;opacity:.2;">🧴</span>{% endif %}
+      </div>
+      <div class="cat-body">
+        <div class="cat-desc">{{ item.description }}</div>
+        {% if item.mark %}<div class="cat-mark">{{ item.mark }}</div>{% endif %}
+        <div class="cat-grupo">{{ item.get_grupo_consumo_display }}</div>
+        <div class="cat-medida">Unid: {{ item.get_medida_display }}</div>
+        {% if item.detalhes %}<div style="font-size:.76rem;color:var(--ink-3);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ item.detalhes }}</div>{% endif %}
+      </div>
+      <div class="cat-footer">
+        <a href="{% url 'dimrcbp:catalogo_lista' %}?categoria=cons&descricao={{ item.description|urlencode }}"
+           class="btn btn-green btn-sm" style="width:100%;justify-content:center;">
+          🛒 Adicionar ao carrinho
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:3rem;margin-bottom:12px;opacity:.3;">📭</div>
+    <div style="font-weight:700;font-size:.95rem;color:var(--ink-2);margin-bottom:4px;">Nenhum item encontrado</div>
+    <div style="font-size:.83rem;">Ajuste os filtros ou aguarde novos itens serem cadastrados.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

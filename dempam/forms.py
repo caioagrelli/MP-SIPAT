@@ -23,6 +23,7 @@ class InfoUAForm(forms.ModelForm):
             "mat_resp_ua",
             "email_ua",
             "sede",
+            "gestor",
         ]
         widgets = {
             "circunscricao_predio": forms.Select(attrs={"class": "form-control"}),
@@ -32,6 +33,7 @@ class InfoUAForm(forms.ModelForm):
             "mat_resp_ua": forms.NumberInput(attrs={"class": "form-control"}),
             "email_ua": forms.EmailInput(attrs={"class": "form-control"}),
             "sede": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "gestor": forms.Select(attrs={"class": "form-control"}),
         }
 
 

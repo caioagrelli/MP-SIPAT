@@ -1,0 +1,389 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Catálogo de Bens{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;
+    --amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;
+    --red:#b91c1c;--red-soft:#fef2f2;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --shadow-lg:0 10px 30px rgba(15,23,42,.14);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+    --cart-w:360px;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;}
+
+  .shop-main{padding:28px 24px 100px;min-width:0;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-family:var(--font);font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+  .btn-add{background:var(--blue-soft);border-color:var(--blue-mid);color:var(--blue);width:100%;justify-content:center;}
+  .btn-add:hover{background:var(--blue-mid);}
+  .btn-added{background:var(--green-soft);border-color:var(--green-mid);color:var(--green);width:100%;justify-content:center;}
+  .btn-added:hover{background:var(--green-mid);}
+
+  .filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 18px;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+  .filter-grid{display:grid;grid-template-columns:1fr 180px 180px 120px auto auto;gap:10px;align-items:end;}
+  .filter-group label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:8px 11px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+
+  .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;}
+
+  .cat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;}
+  .cat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px);}
+  .cat-card.in-cart{border-color:var(--green-mid);box-shadow:0 0 0 2px var(--green-mid);}
+
+  .cat-photo{height:170px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--border);position:relative;}
+  .cat-photo img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+  .cat-badge-cart{position:absolute;top:10px;right:10px;background:var(--green);color:#fff;border-radius:999px;padding:3px 10px;font-size:.7rem;font-weight:700;display:none;}
+  .cat-card.in-cart .cat-badge-cart{display:block;}
+  .cat-tipo-badge{position:absolute;top:10px;left:10px;border-radius:999px;padding:3px 9px;font-size:.68rem;font-weight:700;border:1px solid;}
+  .tipo-perm{background:var(--blue-soft);color:var(--blue);border-color:var(--blue-mid);}
+  .tipo-cons{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+
+  .cat-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:4px;}
+  .cat-desc{font-size:.9rem;font-weight:700;color:var(--ink);line-height:1.3;flex:1;}
+  .cat-group{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-top:4px;}
+  .cat-stock{font-size:.75rem;font-family:var(--mono);color:var(--green);font-weight:700;}
+
+  .cat-footer{padding:10px 16px 14px;border-top:1px solid var(--border);background:var(--surface-2);}
+
+  /* Quantity input row */
+  .qty-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+  .qty-label{font-size:.72rem;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+  .qty-input{width:64px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:5px 8px;font-family:var(--mono);font-size:.85rem;font-weight:700;color:var(--ink);text-align:center;}
+  .qty-input:focus{outline:none;border-color:var(--blue);}
+  .qty-stepper{display:flex;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);overflow:hidden;}
+  .qty-stepper button{background:var(--surface);border:none;padding:5px 10px;font-size:1rem;cursor:pointer;color:var(--ink-2);transition:background .12s;font-family:var(--font);}
+  .qty-stepper button:hover{background:var(--surface-2);}
+  .qty-stepper input{width:48px;border:none;border-left:1.5px solid var(--border-strong);border-right:1.5px solid var(--border-strong);text-align:center;font-family:var(--mono);font-size:.88rem;font-weight:700;color:var(--ink);padding:0;}
+  .qty-stepper input:focus{outline:none;}
+
+  /* Cart drawer */
+  .cart-drawer{position:fixed;right:0;top:0;bottom:0;width:var(--cart-w);background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:500;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;}
+  .cart-drawer.open{transform:translateX(0);}
+  .cart-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .cart-title{font-family:var(--font);font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .cart-close{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--ink-3);padding:4px;}
+  .cart-close:hover{color:var(--ink);}
+  .cart-items{flex:1;overflow-y:auto;padding:12px 16px;}
+  .cart-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .cart-item:last-child{border-bottom:none;}
+  .cart-item-photo{width:44px;height:44px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--ink-3);}
+  .cart-item-photo img{width:100%;height:100%;object-fit:contain;}
+  .cart-item-info{flex:1;min-width:0;}
+  .cart-item-name{font-size:.82rem;font-weight:700;color:var(--ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cart-item-meta{font-size:.72rem;color:var(--ink-3);margin-top:2px;}
+  .cart-item-remove{background:none;border:none;cursor:pointer;font-size:.9rem;padding:4px;color:var(--ink-3);}
+  .cart-item-remove:hover{color:var(--red);}
+  .cart-footer{padding:16px;border-top:1px solid var(--border);}
+
+  .cart-fab{position:fixed;bottom:28px;right:28px;z-index:400;background:var(--blue);color:#fff;border:none;border-radius:999px;padding:14px 22px;font-family:var(--font);font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(29,78,216,.4);display:flex;align-items:center;gap:10px;transition:background .15s,transform .15s;}
+  .cart-fab:hover{background:#1e40af;transform:scale(1.04);}
+  .cart-fab-badge{background:#fff;color:var(--blue);border-radius:999px;padding:2px 8px;font-size:.78rem;font-weight:800;}
+  .cart-fab.hidden{display:none;}
+
+  .cart-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:499;}
+  .cart-overlay.open{display:block;}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-3);}
+
+  @media(max-width:900px){.filter-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:640px){.catalog-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}.cart-drawer{width:100%;}}
+</style>
+
+<script>
+  const CART_DATA  = {{ cart|safe }};
+  const ADD_URL_PERM   = '{% url "dimrcbp:catalogo_cart_add" "perm" 0 %}'.replace('/0/', '/');
+  const ADD_URL_CONS   = '{% url "dimrcbp:catalogo_cart_add" "cons" 0 %}'.replace('/0/', '/');
+  const REM_URL_PERM   = '{% url "dimrcbp:catalogo_cart_remove" "perm" 0 %}'.replace('/0/', '/');
+  const REM_URL_CONS   = '{% url "dimrcbp:catalogo_cart_remove" "cons" 0 %}'.replace('/0/', '/');
+  const CLEAR_URL  = '{% url "dimrcbp:catalogo_cart_clear" %}';
+  const CSRF       = '{{ csrf_token }}';
+</script>
+
+<div class="shop-main">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🛍️ Catálogo de Bens</div>
+      <div class="topbar-sub">Selecione itens permanentes e de consumo para solicitar à sua UA.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <a href="{% url 'dimrcbp:minhas_solicitacoes_catalogo' %}" class="btn btn-ghost">📋 Minhas Solicitações</a>
+      {% if perms.dimrcbp.change_benspermanentes %}
+      <a href="{% url 'dimrcbp:painel_solicitacoes_catalogo' %}" class="btn btn-ghost">⚖️ Aprovações</a>
+      <a href="{% url 'dimrcbp:catalogo_criar' %}" class="btn btn-primary">+ Cadastrar</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-bar">
+    <form method="get" id="filterForm">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Descrição</label>
+          <input type="text" name="descricao" class="form-control" value="{{ filtros.descricao }}" placeholder="Ex: Mesa, Toner…">
+        </div>
+        <div class="filter-group">
+          <label>Categoria</label>
+          <select name="categoria" class="form-control">
+            <option value="" {% if not filtros.categoria %}selected{% endif %}>Todas</option>
+            <option value="perm" {% if filtros.categoria == 'perm' %}selected{% endif %}>Permanentes</option>
+            <option value="cons" {% if filtros.categoria == 'cons' %}selected{% endif %}>Consumo</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grupo (permanentes)</label>
+          <select name="grupo" class="form-control">
+            <option value="">Todos</option>
+            {% for g in grupos %}
+            <option value="{{ g.pk }}" {% if filtros.grupo == g.pk|stringformat:"s" %}selected{% endif %}>{{ g.group }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Tipo (permanentes)</label>
+          <select name="tipo" class="form-control">
+            <option value="">Todos</option>
+            {% for t in tipos %}
+            <option value="{{ t.pk }}" {% if filtros.tipo == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-end;">Filtrar</button>
+        <a href="{% url 'dimrcbp:catalogo_lista' %}" class="btn btn-ghost" style="align-self:flex-end;">Limpar</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Grid -->
+  {% if itens %}
+  <div style="font-size:.82rem;color:var(--ink-3);font-weight:600;margin-bottom:12px;">
+    {{ itens|length }} {% if itens|length == 1 %}item{% else %}itens{% endif %}
+  </div>
+  <div class="catalog-grid" id="catalogGrid">
+    {% for item in itens %}
+    <div class="cat-card {% if item.no_carrinho %}in-cart{% endif %}" id="card-{{ item.tipo }}-{{ item.pk }}">
+      <div class="cat-photo">
+        {% if item.foto %}
+          <img src="{{ item.foto.url }}" alt="{{ item.nome }}">
+        {% else %}
+          <span style="font-size:3rem;opacity:.2;">{% if item.tipo == 'cons' %}🧴{% else %}📦{% endif %}</span>
+        {% endif %}
+        <span class="cat-tipo-badge tipo-{{ item.tipo }}">
+          {% if item.tipo == 'perm' %}📦 Permanente{% else %}🧴 Consumo{% endif %}
+        </span>
+        <span class="cat-badge-cart">✓ No carrinho</span>
+      </div>
+      <div class="cat-body">
+        <div class="cat-desc">{{ item.nome }}</div>
+        {% if item.tipo == 'perm' and item.descricao %}
+          <div style="font-size:.78rem;color:var(--ink-2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ item.descricao }}</div>
+        {% endif %}
+        {% if item.tipo == 'perm' and item.value %}
+          <div style="font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--green);">Ref: R$ {{ item.value|floatformat:2 }}</div>
+        {% endif %}
+        {% if item.tipo == 'cons' and item.estoque_info is not None %}
+          <div class="cat-stock">Estoque: {{ item.estoque_info }} un.</div>
+        {% endif %}
+        <div class="cat-group">{{ item.grupo_label }}</div>
+      </div>
+      <div class="cat-footer">
+        <!-- Quantity stepper -->
+        <div class="qty-row">
+          <span class="qty-label">Qtd:</span>
+          <div class="qty-stepper">
+            <button type="button" onclick="stepQty('qty-{{ item.tipo }}-{{ item.pk }}', -1)">−</button>
+            <input type="number" id="qty-{{ item.tipo }}-{{ item.pk }}" value="{{ item.qt_carrinho|default:1 }}" min="1" {% if item.tipo == 'cons' and item.estoque_info %}max="{{ item.estoque_info }}"{% endif %}>
+            <button type="button" onclick="stepQty('qty-{{ item.tipo }}-{{ item.pk }}', 1)">+</button>
+          </div>
+        </div>
+        {% if item.no_carrinho %}
+        <button class="btn btn-added btn-sm" id="btn-{{ item.tipo }}-{{ item.pk }}"
+                onclick="removeFromCart('{{ item.tipo }}', {{ item.pk }})">
+          ✓ No carrinho — Remover
+        </button>
+        {% else %}
+        <button class="btn btn-add btn-sm" id="btn-{{ item.tipo }}-{{ item.pk }}"
+                onclick="addToCart('{{ item.tipo }}', {{ item.pk }}, '{{ item.nome|escapejs }}', '{% if item.foto %}{{ item.foto.url }}{% endif %}')">
+          + Adicionar ao carrinho
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:3rem;margin-bottom:12px;opacity:.3;">📭</div>
+    <div style="font-weight:700;font-size:.95rem;color:var(--ink-2);">Nenhum item encontrado</div>
+    <div style="font-size:.83rem;margin-top:4px;">Ajuste os filtros ou cadastre novos itens no catálogo.</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Cart FAB -->
+<button class="cart-fab {% if cart_count == 0 %}hidden{% endif %}" id="cartFab" onclick="openCart()">
+  🛒 Meu Carrinho
+  <span class="cart-fab-badge" id="fabBadge">{{ cart_count }}</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+<!-- Cart Drawer -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <div class="cart-title">
+      🛒 Carrinho
+      <span style="background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:2px 9px;font-size:.73rem;font-family:var(--mono);" id="drawerCount">{{ cart_count }}</span>
+    </div>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+
+  <div class="cart-items" id="cartItems">
+    {% for item in itens %}
+      {% if item.no_carrinho %}
+      <div class="cart-item" id="cart-item-{{ item.tipo }}-{{ item.pk }}">
+        <div class="cart-item-photo">
+          {% if item.foto %}<img src="{{ item.foto.url }}" alt="">{% elif item.tipo == 'cons' %}🧴{% else %}📦{% endif %}
+        </div>
+        <div class="cart-item-info">
+          <div class="cart-item-name" title="{{ item.nome }}">{{ item.nome }}</div>
+          <div class="cart-item-meta">
+            {% if item.tipo == 'perm' %}📦 Permanente{% else %}🧴 Consumo{% endif %}
+            · <span id="drawer-qty-{{ item.tipo }}-{{ item.pk }}">{{ item.qt_carrinho }}</span>x
+          </div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart('{{ item.tipo }}', {{ item.pk }})" title="Remover">✕</button>
+      </div>
+      {% endif %}
+    {% endfor %}
+    <div id="emptyCartMsg" style="text-align:center;padding:40px 16px;color:var(--ink-3);font-size:.85rem;{% if cart_count > 0 %}display:none;{% endif %}">
+      Seu carrinho está vazio.<br>Adicione itens do catálogo.
+    </div>
+  </div>
+
+  <div class="cart-footer">
+    {% if cart_count > 0 %}
+    <a href="{% url 'dimrcbp:catalogo_checkout' %}" class="btn btn-green" style="width:100%;justify-content:center;font-size:.95rem;padding:12px;">
+      Finalizar Solicitação →
+    </a>
+    <a href="{{ CLEAR_URL }}" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:8px;" onclick="return confirm('Limpar carrinho?')">
+      Limpar carrinho
+    </a>
+    {% else %}
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="closeCart()">Continuar navegando</button>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function openCart(){ document.getElementById('cartDrawer').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); }
+function closeCart(){ document.getElementById('cartDrawer').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
+
+function updateCount(count){
+  document.getElementById('fabBadge').textContent = count;
+  document.getElementById('drawerCount').textContent = count;
+  const fab = document.getElementById('cartFab');
+  if(count > 0) fab.classList.remove('hidden'); else fab.classList.add('hidden');
+  document.getElementById('emptyCartMsg').style.display = count > 0 ? 'none' : 'block';
+}
+
+function stepQty(inputId, delta){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  let v = parseInt(inp.value) + delta;
+  const min = parseInt(inp.min) || 1;
+  const max = inp.max ? parseInt(inp.max) : 9999;
+  inp.value = Math.max(min, Math.min(max, v));
+}
+
+function addToCart(tipo, pk, nome, fotoUrl){
+  const qtyInput = document.getElementById('qty-' + tipo + '-' + pk);
+  const qty = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1;
+  const addUrl = tipo === 'perm' ? ADD_URL_PERM : ADD_URL_CONS;
+
+  const fd = new FormData();
+  fd.append('qty', qty);
+
+  fetch(addUrl + pk + '/', {
+    method: 'POST',
+    headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': CSRF},
+    body: fd,
+  }).then(r => r.json()).then(data => {
+    updateCount(data.count);
+    const card = document.getElementById('card-' + tipo + '-' + pk);
+    card.classList.add('in-cart');
+    const btn = document.getElementById('btn-' + tipo + '-' + pk);
+    btn.className = 'btn btn-added btn-sm';
+    btn.textContent = '✓ No carrinho — Remover';
+    btn.setAttribute('onclick', "removeFromCart('" + tipo + "', " + pk + ")");
+    addItemToDrawer(tipo, pk, nome, fotoUrl, data.item_qty);
+    openCart();
+  });
+}
+
+function removeFromCart(tipo, pk){
+  const remUrl = tipo === 'perm' ? REM_URL_PERM : REM_URL_CONS;
+  fetch(remUrl + pk + '/', {
+    method: 'POST',
+    headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': CSRF},
+  }).then(r => r.json()).then(data => {
+    updateCount(data.count);
+    const card = document.getElementById('card-' + tipo + '-' + pk);
+    if(card) card.classList.remove('in-cart');
+    const btn = document.getElementById('btn-' + tipo + '-' + pk);
+    if(btn){
+      btn.className = 'btn btn-add btn-sm';
+      btn.textContent = '+ Adicionar ao carrinho';
+    }
+    const drawerItem = document.getElementById('cart-item-' + tipo + '-' + pk);
+    if(drawerItem) drawerItem.remove();
+  });
+}
+
+function addItemToDrawer(tipo, pk, nome, fotoUrl, qty){
+  const id = 'cart-item-' + tipo + '-' + pk;
+  const existing = document.getElementById(id);
+  if(existing){
+    const qtyEl = document.getElementById('drawer-qty-' + tipo + '-' + pk);
+    if(qtyEl) qtyEl.textContent = qty;
+    return;
+  }
+  const tipoLabel = tipo === 'perm' ? '📦 Permanente' : '🧴 Consumo';
+  const photoHtml = fotoUrl ? '<img src="' + fotoUrl + '" alt="">' : (tipo === 'cons' ? '🧴' : '📦');
+  const div = document.createElement('div');
+  div.className = 'cart-item';
+  div.id = id;
+  div.innerHTML = `
+    <div class="cart-item-photo">${photoHtml}</div>
+    <div class="cart-item-info">
+      <div class="cart-item-name">${nome}</div>
+      <div class="cart-item-meta">${tipoLabel} · <span id="drawer-qty-${tipo}-${pk}">${qty}</span>x</div>
+    </div>
+    <button class="cart-item-remove" onclick="removeFromCart('${tipo}', ${pk})" title="Remover">✕</button>
+  `;
+  document.getElementById('cartItems').insertBefore(div, document.getElementById('emptyCartMsg'));
+}
+</script>
+{% endblock %}

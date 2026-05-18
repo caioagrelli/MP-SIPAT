@@ -73,89 +73,118 @@ def overview_edit(request, pk):
     return render(request, 'dimms/overview_edit.html', {'form': form, 'item': item})
 
 
-''' Etiquetas dos Bem '''   # Pra terminar
-# Grande
+''' Etiquetas dos Bem '''
 @login_required
 def label(request, pk):
     item = get_object_or_404(
-        Estoque.objects.select_related("item_shock"),
+        Estoque.objects.select_related("item_shock", "locate"),
         pk=pk
     )
 
-    # URL que o QR vai abrir
     url = request.build_absolute_uri(
         reverse("dimms:overview", args=[item.pk])
     )
 
-    # --- QR (PIL -> BytesIO) ---
-    qr = qrcode.QRCode(
-        error_correction=ERROR_CORRECT_M,
-        box_size=10,
-        border=1
-    )
+    # QR code
+    qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=10, border=1)
     qr.add_data(url)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white")
-
     qr_buf = BytesIO()
     qr_img.save(qr_buf, format="PNG")
     qr_buf.seek(0)
     qr_reader = ImageReader(qr_buf)
 
-    # --- Logo (STATIC local) ---
+    # Logo
     logo_reader = None
     logo_path = finders.find("img/brasao-mppe.png")
     if logo_path and os.path.exists(logo_path):
         logo_reader = ImageReader(logo_path)
 
-    # --- Dados do item (com fallback) ---
-    efisco = "-"
-    if getattr(item, "item_shock", None) and getattr(item.item_shock, "efisco", None):
-        efisco = f"E-Fisco: {item.item_shock.efisco}"
+    # Dados do item
+    shock = getattr(item, "item_shock", None)
+    efisco_val = getattr(shock, "efisco", None) or "—"
+    medida_val = getattr(shock, "medida", None) or "—"
+    desc_text = (item.description_manual or "Sem descrição")[:55]
+    marca_val = item.mark or "—"
+    qtd_val = str(item.amount_shock) if item.amount_shock is not None else "—"
+    safe_efisco = "".join(ch for ch in efisco_val if ch.isalnum() or ch in ("-", "_")) or "sem_efisco"
 
-    # Filename seguro (evita caracteres estranhos)
-    safe_efisco = "".join(ch for ch in efisco if ch.isalnum() or ch in ("-", "_")) or "sem_efisco"
-
-    # --- PDF (80x50mm) ---
+    # PDF 80×50 mm
     w, h = 80 * mm, 50 * mm
     resp = HttpResponse(content_type="application/pdf")
-    resp["Content-Disposition"] = f'attachment; filename="etiqueta_{safe_efisco}.pdf"'
+    resp["Content-Disposition"] = f'inline; filename="etiqueta_{safe_efisco}.pdf"'
 
     c = canvas.Canvas(resp, pagesize=(w, h))
+    m = 3 * mm
 
     # Fundo branco
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, w, h, fill=1, stroke=0)
 
-    # Margens
-    m = 4 * mm
+    # Faixa superior escura
+    band_h = 16 * mm
+    c.setFillColorRGB(0.12, 0.18, 0.26)
+    c.rect(0, h - band_h, w, band_h, fill=1, stroke=0)
 
-    # Logo (top-left)
+    # Logo sobre a faixa
     if logo_reader:
-        c.drawImage(
-            logo_reader,
-            m,
-            h - 18 * mm,
-            width=18 * mm,
-            height=14 * mm,
-            mask="auto"
-        )
+        c.drawImage(logo_reader, m, h - band_h + 2.5 * mm, width=11 * mm, height=11 * mm, mask="auto")
 
-    # E-FISCO (top-right)
-    c.setFillColorRGB(0, 0, 0)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawRightString(w - m, h - 8 * mm, efisco)
+    # Título na faixa
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 7)
+    c.drawString(16 * mm, h - 7 * mm, "MPPE — Bens de Consumo")
+    c.setFont("Helvetica", 6)
+    c.setFillColorRGB(0.65, 0.72, 0.85)
+    c.drawString(16 * mm, h - 11 * mm, "Sistema de Gestão de Almoxarifado")
 
-    # QR (bottom-left)
-    qr_size = 26 * mm
-    c.drawImage(
-        qr_reader,
-        m,
-        m,
-        width=qr_size,
-        height=qr_size,
-        mask="auto"
-    )
+    # E-Fisco em destaque (direita da faixa)
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawRightString(w - m, h - 8 * mm, f"E-Fisco: {efisco_val}")
+
+    # QR (canto inferior esquerdo)
+    qr_size = 28 * mm
+    c.drawImage(qr_reader, m, m, width=qr_size, height=qr_size, mask="auto")
+
+    # Área de texto à direita do QR
+    x_text = m + qr_size + 3 * mm
+    text_w = w - x_text - m
+
+    # Descrição (quebra de linha automática, até 3 linhas)
+    c.setFillColorRGB(0.1, 0.13, 0.2)
+    c.setFont("Helvetica-Bold", 6.5)
+    words = desc_text.split()
+    line, lines = "", []
+    for word in words:
+        test = f"{line} {word}".strip()
+        if c.stringWidth(test, "Helvetica-Bold", 6.5) < text_w:
+            line = test
+        else:
+            lines.append(line)
+            line = word
+    if line:
+        lines.append(line)
+
+    y = h - band_h - 5 * mm
+    for ln in lines[:3]:
+        c.drawString(x_text, y, ln)
+        y -= 7
+
+    # Linha divisória sutil
+    y -= 2
+    c.setStrokeColorRGB(0.8, 0.83, 0.9)
+    c.setLineWidth(0.4)
+    c.line(x_text, y, w - m, y)
+    y -= 5
+
+    # Marca / Medida / Qtd
+    c.setFont("Helvetica", 6)
+    c.setFillColorRGB(0.3, 0.38, 0.5)
+    c.drawString(x_text, y, f"Marca: {marca_val}")
+    y -= 7
+    c.drawString(x_text, y, f"Und: {medida_val}   Qtd: {qtd_val}")
 
     c.showPage()
     c.save()

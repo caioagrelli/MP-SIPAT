@@ -1,0 +1,221 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Editar Bem — Tombo {{ bem.tombo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;
+    --ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;
+    --blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;
+    --green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;
+    --amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;
+    --red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);background:#1e2d42;display:flex;align-items:center;gap:10px;}
+  .card-head-icon{font-size:1.1rem;}
+  .card-head-title{font-size:.95rem;font-weight:800;color:#fff;}
+  .card-head-sub{font-size:.75rem;color:rgba(210,220,240,.65);margin-top:1px;}
+
+  .info-banner{background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:var(--r-sm);padding:11px 16px;font-size:.84rem;font-weight:600;color:var(--blue);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+
+  .fields-table{width:100%;border-collapse:collapse;}
+  .fields-table thead tr{background:var(--surface-2);}
+  .fields-table th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--border);}
+  .fields-table td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .fields-table tbody tr:last-child td{border-bottom:none;}
+  .fields-table tbody tr:hover td{background:var(--blue-soft);}
+
+  .field-label{font-size:.84rem;font-weight:700;color:var(--ink-2);}
+  .field-current{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:6px;display:inline-block;}
+
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:7px 11px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+
+  .form-footer{padding:16px 24px;border-top:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:flex-end;gap:10px;}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:filtros_operacionais' %}">Filtros Operacionais</a><span>›</span>
+    <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}">Tombo {{ bem.tombo }}</a><span>›</span>
+    Editar
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">✏️ Editar Bem — Tombo {{ bem.tombo }}</div>
+      <div class="topbar-sub">{{ bem.description }}</div>
+    </div>
+    <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}" class="btn btn-ghost">← Cancelar</a>
+  </div>
+
+  <div class="info-banner">
+    ℹ️ Preencha apenas os campos que deseja alterar. Campos em branco serão ignorados. A alteração é registrada no histórico automaticamente.
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Justificativa -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <span class="card-head-icon">📝</span>
+        <div>
+          <div class="card-head-title">Justificativa da Alteração</div>
+          <div class="card-head-sub">Registrada no histórico junto às mudanças</div>
+        </div>
+      </div>
+      <div style="padding:18px 24px;">
+        <textarea name="justificativa" class="form-control"
+                  style="min-height:80px; resize:vertical;"
+                  placeholder="Ex: Correção de dados conforme NF 1234, processo SEI 23480.001/2025…"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-head-icon">🔧</span>
+        <div>
+          <div class="card-head-title">Campos do Bem</div>
+          <div class="card-head-sub">Deixe em branco para manter o valor atual</div>
+        </div>
+      </div>
+
+      <table class="fields-table">
+        <thead>
+          <tr>
+            <th style="width:26%">Campo</th>
+            <th style="width:32%">Valor Atual</th>
+            <th>Novo Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="field-label">Tombo</span></td>
+            <td><span class="field-current">{{ bem.tombo }}</span></td>
+            <td><input type="text" name="tombo" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Marca / Fabricante</span></td>
+            <td><span class="field-current">{{ bem.mark }}</span></td>
+            <td><input type="text" name="mark" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Modelo</span></td>
+            <td><span class="field-current">{{ bem.model }}</span></td>
+            <td><input type="text" name="model" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Número de Série</span></td>
+            <td><span class="field-current">{{ bem.n_series }}</span></td>
+            <td><input type="text" name="n_series" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Data de Aquisição</span></td>
+            <td><span class="field-current">{{ bem.acquisition_date|date:"Y-m-d" }}</span></td>
+            <td><input type="date" name="acquisition_date" class="form-control"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Vencimento da Garantia</span></td>
+            <td><span class="field-current">{{ bem.garantia_vencimento|date:"Y-m-d"|default:"—" }}</span></td>
+            <td><input type="date" name="garantia_vencimento" class="form-control"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Valor Unitário (R$)</span></td>
+            <td><span class="field-current">{{ bem.value }}</span></td>
+            <td><input type="number" step="0.01" name="value" class="form-control" placeholder="0,00"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Forma de Ingresso</span></td>
+            <td><span class="field-current">{{ bem.entry_method|default:"—" }}</span></td>
+            <td><input type="text" name="entry_method" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">N° Empenho</span></td>
+            <td><span class="field-current">{{ bem.n_empenho|default:"—" }}</span></td>
+            <td><input type="text" name="n_empenho" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">N° Processo</span></td>
+            <td><span class="field-current">{{ bem.n_process|default:"—" }}</span></td>
+            <td><input type="text" name="n_process" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Modalidade</span></td>
+            <td><span class="field-current">{{ bem.modality|default:"—" }}</span></td>
+            <td><input type="text" name="modality" class="form-control" placeholder="Deixe em branco para não alterar"></td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Estado de Conservação</span></td>
+            <td><span class="field-current">{{ bem.get_state_display|default:"—" }}</span></td>
+            <td>
+              <select name="state" class="form-control">
+                <option value="">— Não alterar —</option>
+                <option value="BOM">Bom</option>
+                <option value="NOVO">Novo</option>
+                <option value="REGULAR">Regular</option>
+                <option value="PRECARIO">Precário</option>
+                <option value="SUCATA">Sucata</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Situação Física</span></td>
+            <td><span class="field-current">{{ bem.get_situacion_display|default:"—" }}</span></td>
+            <td>
+              <select name="situacion" class="form-control">
+                <option value="">— Não alterar —</option>
+                <option value="ANTIECONOMICO">Antieconômico</option>
+                <option value="EM_USO">Em Uso</option>
+                <option value="IRRECUPERAVEL">Irrecuperável</option>
+                <option value="OCIOSO">Ocioso</option>
+                <option value="RECUPERAVEL">Recuperável</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="field-label">Foto do Bem</span></td>
+            <td>
+              {% if bem.photo %}
+                <img src="{{ bem.photo.url }}" alt="foto atual"
+                     style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+              {% else %}
+                <span class="field-current">Sem foto</span>
+              {% endif %}
+            </td>
+            <td><input type="file" name="foto" accept="image/*" class="form-control"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-footer">
+        <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

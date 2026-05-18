@@ -19,7 +19,9 @@ from dimms.models import Estoque, Solicitacao
 def root(request):
     if request.user.is_authenticated:
         return redirect('home')  # Página quando o usuário estiver logado
-    return redirect(f"{settings.OIDC_OP_AUTHORIZATION_ENDPOINT}?next={request.GET.get('next', '')}")
+    next_url = request.GET.get('next', '')
+    login_url = f"{settings.LOGIN_URL}?next={next_url}" if next_url else settings.LOGIN_URL
+    return redirect(login_url)
 
 #homepage central (futuramente vai ser um app a parte)
 @login_required

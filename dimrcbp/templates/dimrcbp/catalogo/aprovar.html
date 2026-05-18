@@ -1,0 +1,196 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Atender Solicitação {{ sol.codigo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+  .btn-reject{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .btn-reject:hover{background:var(--red-mid);}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb span{opacity:.45;}
+
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card:last-child{margin-bottom:0;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .card-body{padding:20px 22px;}
+
+  .kv-table{width:100%;border-collapse:collapse;}
+  .kv-table tr{border-bottom:1px solid var(--border);}
+  .kv-table tr:last-child{border-bottom:none;}
+  .kv-table td{padding:10px 12px;font-size:.87rem;vertical-align:top;}
+  .kv-table td:first-child{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);width:38%;white-space:nowrap;}
+  .kv-table td:last-child{font-weight:600;color:var(--ink);word-break:break-word;}
+
+  /* Item card */
+  .item-card{border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-bottom:14px;background:var(--surface);}
+  .item-card.atendido{border-color:var(--green-mid);background:var(--green-soft);}
+  .item-card:last-child{margin-bottom:0;}
+  .item-desc{font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .item-status-badge{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid;}
+  .atendido-badge{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .pendente-badge{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+
+  .atribuido-info{background:var(--green-soft);border:1px solid var(--green-mid);border-radius:var(--r-sm);padding:10px 14px;font-size:.85rem;margin-bottom:10px;}
+  .atribuido-tombo{font-family:var(--mono);font-weight:700;color:var(--green);}
+
+  /* Select de bens */
+  .bem-select-wrap{display:flex;gap:8px;align-items:flex-end;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);}
+  textarea.form-control{min-height:70px;resize:vertical;}
+
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:painel_solicitacoes_catalogo' %}">Aprovações</a><span>›</span>
+    {{ sol.codigo }}
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">⚖️ Atender Solicitação</div>
+      <div class="topbar-sub">
+        <span style="font-family:var(--mono);font-weight:700;color:var(--blue);">{{ sol.codigo }}</span>
+        · {{ sol.solicitante.get_full_name|default:sol.solicitante.username }}
+        · UA: {{ sol.ua_destino.ua }}
+        · {{ sol.data|date:"d/m/Y H:i" }}
+      </div>
+    </div>
+    <a href="{% url 'dimrcbp:painel_solicitacoes_catalogo' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="layout">
+
+    <!-- Itens -->
+    <div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--ink-2);margin-bottom:12px;">
+        📦 Itens solicitados — atribua um bem permanente a cada item:
+      </div>
+
+      {% for oc in itens_com_opcoes %}
+      <div class="item-card {% if oc.item.bem_atribuido %}atendido{% endif %}">
+        <div class="item-desc">
+          {{ oc.item.catalogo.description }}
+          {% if oc.item.bem_atribuido %}
+          <span class="item-status-badge atendido-badge">✓ Atendido</span>
+          {% else %}
+          <span class="item-status-badge pendente-badge">⏳ Pendente</span>
+          {% endif %}
+        </div>
+
+        {% if oc.item.bem_atribuido %}
+        <div class="atribuido-info">
+          Bem atribuído: <span class="atribuido-tombo">{{ oc.item.bem_atribuido.tombo }}</span>
+          — {{ oc.item.bem_atribuido.description }}
+          {% if oc.item.bem_atribuido.history_tombo.current_ua %}
+          · UA: {{ oc.item.bem_atribuido.history_tombo.current_ua.ua }}
+          {% endif %}
+        </div>
+        {% else %}
+          {% if oc.disponiveis %}
+          <form method="post" style="display:flex;gap:8px;align-items:flex-end;">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="atribuir">
+            <input type="hidden" name="item_id" value="{{ oc.item.pk }}">
+            <select name="bem_id" class="form-control" required>
+              <option value="">— Selecione o bem (Tombo) —</option>
+              {% for bem in oc.disponiveis %}
+              <option value="{{ bem.pk }}">
+                {{ bem.tombo }} — {{ bem.mark }} {{ bem.model }}
+                {% if bem.history_tombo.current_ua %} [{{ bem.history_tombo.current_ua.ua }}]{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-green btn-sm" style="white-space:nowrap;">
+              Atribuir →
+            </button>
+          </form>
+          {% else %}
+          <div style="font-size:.83rem;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);padding:9px 12px;">
+            ⚠️ Nenhum bem disponível do tipo <strong>{{ oc.item.catalogo.description }}</strong> encontrado no sistema.
+          </div>
+          {% endif %}
+        {% endif %}
+
+        {% if oc.item.observacao %}
+        <div style="margin-top:8px;font-size:.78rem;color:var(--ink-3);">Obs: {{ oc.item.observacao }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Painel lateral -->
+    <div>
+      <div class="card">
+        <div class="card-head">🗂️ Solicitação</div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Código</td><td style="font-family:var(--mono);font-size:.8rem;">{{ sol.codigo }}</td></tr>
+            <tr><td>Solicitante</td><td>{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</td></tr>
+            <tr><td>UA Destino</td><td>{{ sol.ua_destino.ua }}</td></tr>
+            <tr><td>Data</td><td>{{ sol.data|date:"d/m/Y H:i" }}</td></tr>
+            <tr><td>Itens</td><td>{{ itens_com_opcoes|length }}</td></tr>
+            <tr><td>Status</td><td><span class="pill status-{{ sol.status }}">{{ sol.get_status_display }}</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      {% if sol.observacao %}
+      <div class="card">
+        <div class="card-head">📝 Observação</div>
+        <div class="card-body">
+          <p style="font-size:.87rem;color:var(--ink-2);line-height:1.6;margin:0;">{{ sol.observacao }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if sol.status == 'PENDENTE' %}
+      <div class="card">
+        <div class="card-head">❌ Rejeitar</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="rejeitar">
+            <div class="field-group">
+              <label>Motivo da rejeição</label>
+              <textarea name="obs_decisao" class="form-control" placeholder="Descreva o motivo…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-reject" style="width:100%;justify-content:center;"
+                    onclick="return confirm('Rejeitar esta solicitação?')">
+              ❌ Rejeitar Solicitação
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

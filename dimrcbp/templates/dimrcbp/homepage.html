@@ -1,176 +1,279 @@
 {% extends 'global/base.html' %}
 
-{% block title %}Bens Permanentes{% endblock %}
+{% block title %}Bens Permanentes — Início{% endblock %}
 
 {% block content %}
 <style>
-  :root{
-    --cinza-fundo:#f9fafc;
-    --cinza-card:#ffffff;
-    --cinza-texto:#444;
-    --cinza-borda:#e2e6ea;
-    --azul-suave:#2f4f6f;
-    --azul-botao:#406080;
-    --verde-suave:#5cb85c;
-    --vermelho-suave:#d9534f;
+  :root {
+    --blue-dark: #1e3a5f;
+    --blue-mid:  #2f5a8e;
+    --blue-btn:  #1d4ed8;
+    --card-bg:   #ffffff;
+    --card-border: #e2e8f0;
+    --label-muted: #64748b;
   }
 
-  .page-wrap{
-    background:var(--cinza-fundo);
-    color:var(--cinza-texto);
-    font-family:"Inter","Segoe UI",sans-serif;
-    padding:18px;
-    border-radius:12px;
+  .hp-header {
+    margin-bottom: 28px;
+  }
+  .hp-header h1 {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--blue-dark);
+    margin: 0 0 4px;
+  }
+  .hp-header p {
+    color: var(--label-muted);
+    font-size: .9rem;
+    margin: 0;
   }
 
-  h1,h4{ color:var(--azul-suave); font-weight:600; }
-
-  .btn-primary{
-    background-color:var(--azul-botao);
-    border:none;
-    border-radius:8px;
-    font-weight:500;
-    padding:8px 18px;
-  }
-  .btn-primary:hover{ background-color:#324b66; }
-
-  .btn-outline-secondary{
-    border-radius:8px;
-    padding:8px 14px;
+  /* grid dos fluxos */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
   }
 
-  .card{
-    background-color:var(--cinza-card);
-    border:1px solid var(--cinza-borda);
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  .flow-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow .2s;
   }
-  .card-header{
-    background:transparent;
-    border-bottom:1px solid var(--cinza-borda);
-    color:var(--azul-suave);
-    font-weight:600;
-  }
-
-  .filter-label{ font-size:.85rem; color:#6c757d; margin-bottom:6px; }
-  .form-control, .form-select{
-    border:1px solid var(--cinza-borda);
-    border-radius:10px;
-    padding:10px 12px;
+  .flow-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,.1);
   }
 
-  table thead{
-    background:#f0f2f5;
-    color:var(--azul-suave);
-    font-weight:600;
+  .flow-card-header {
+    padding: 16px 18px 12px;
+    background: #1e2d42;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  table tbody tr:hover{ background:#f9f9f9; }
-  .table td,.table th{ vertical-align:middle; }
 
-  .badge-soft{
-    background:#e9eef6;
-    color:#2f4f6f;
-    border:1px solid #d7e2f3;
-    font-weight:600;
+  .flow-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.15);
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .flow-card-header .flow-meta { flex: 1; min-width: 0; }
+.flow-card-header .flow-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+  .flow-card-header .flow-desc {
+    font-size: .78rem;
+    color: rgba(255,255,255,.65);
+    margin-top: 2px;
+  }
+
+  .flow-card-body {
+    padding: 14px 18px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+    align-content: flex-start;
+  }
+
+  .flow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: #f8fafc;
+    color: #334155;
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s, border-color .15s, color .15s;
+    cursor: not-allowed;
+    opacity: .7;
+  }
+  .flow-btn:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: var(--blue-btn);
+    opacity: 1;
+    cursor: pointer;
+  }
+  .flow-btn .btn-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .45;
+    flex-shrink: 0;
+  }
+
+
+  .badge-wip {
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.15);
+    color: rgba(255,255,255,.85);
+    border: 1px solid rgba(255,255,255,.25);
+    letter-spacing: .04em;
+    flex-shrink: 0;
+    align-self: center;
   }
 </style>
 
-<div class="page-wrap">
+<div class="hp-header">
+  <h1>Bens Permanentes</h1>
+  <p>Selecione um módulo para acessar os fluxos de trabalho.</p>
+</div>
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="mb-0">Bens Permanentes</h1>
-      <p class="text-muted mb-0">Consulta e acompanhamento dos bens permanentes cadastrados.</p>
+<div class="flow-grid">
+
+  <!-- 1 · Administração do Sistema -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-1">⚙️</div>
+      <div class="flow-meta">
+        <div class="flow-title">Administração do Sistema</div>
+        <div class="flow-desc">Gestão central de parâmetros e controle de acessos.</div>
+      </div>
+      <span class="badge-wip">Em breve</span>
     </div>
-
-    <!-- Botão provisório (troca depois por uma URL real) -->
-    <a href="#" class="btn btn-primary shadow-sm">↔ Movimentações (provisório)</a>
-  </div>
-
-  <!-- FILTROS -->
-  <div class="card mb-4">
-    <div class="card-header">Filtros</div>
-    <div class="card-body">
-      <form method="get" class="row g-3">
-
-        <div class="col-md-4">
-          <div class="filter-label">Buscar (nome / marca / tombo)</div>
-          <input class="form-control" type="text" name="q"
-                 value="{{ query|default_if_none:'' }}"
-                 placeholder="Ex: cadeira, dell, 12345...">
-        </div>
-
-        <div class="col-md-3">
-          <div class="filter-label">Localização</div>
-          <input class="form-control" type="text" name="local"
-                 value="{{ filtro_local|default_if_none:'' }}"
-                 placeholder="Ex: Sala 203, Almox...">
-        </div>
-
-        <div class="col-md-3">
-          <div class="filter-label">Situação</div>
-          <select class="form-select" name="situacao">
-            <option value="">Todas</option>
-            <option value="ATIVO" {% if filtro_situacao == "ATIVO" %}selected{% endif %}>Ativo</option>
-            <option value="BAIXA" {% if filtro_situacao == "BAIXA" %}selected{% endif %}>Baixa</option>
-            <option value="MANUTENCAO" {% if filtro_situacao == "MANUTENCAO" %}selected{% endif %}>Manutenção</option>
-            <option value="EMPRESTADO" {% if filtro_situacao == "EMPRESTADO" %}selected{% endif %}>Emprestado</option>
-          </select>
-        </div>
-
-        <div class="col-md-2 d-flex align-items-end gap-2">
-          <button class="btn btn-primary w-100" type="submit">Filtrar</button>
-          <a class="btn btn-outline-secondary w-100" href="">Limpar</a>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  <!-- LISTAGEM -->
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Todos os Bens Permanentes ({{ total_bens|default:0 }})</h4>
-      {% if total_ativos is not None %}
-        <span class="badge badge-soft px-3 py-2">Ativos: {{ total_ativos }}</span>
-      {% endif %}
-    </div>
-
-    <div class="card-body">
-      {% if bens %}
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Tombo</th>
-                <th>Bem</th>
-                <th>Localização</th>
-                <th>Marca</th>
-                <th>Situação</th>
-                <th style="width:170px;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for bem in bens %}
-                <tr>
-                  <td>{{ bem.numero_identificacao|default:"-" }}</td>
-                  <td class="fw-semibold">{{ bem.nome|default:"-" }}</td>
-                  <td>{{ bem.localizacao|default:"N/A" }}</td>
-                  <td>{{ bem.marca|default:"N/A" }}</td>
-                  <td>{{ bem.situacao|default:"-" }}</td>
-                  <td>
-                    <!-- Ações provisórias (liga depois em rotas reais) -->
-                    <a href="#" class="btn btn-sm btn-outline-secondary">Detalhes</a>
-                    <a href="#" class="btn btn-sm btn-outline-primary">Movimentar</a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+    <div class="flow-card-body">
+      {% if perms.dimrcbp.add_benspermanentes %}
+      <a href="{% url 'dimrcbp:cadastro_bem' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Cadastro de Bens</a>
       {% else %}
-        <div class="alert alert-info text-center py-3 mb-0">Nenhum bem permanente encontrado.</div>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Cadastro de Bens</a>
       {% endif %}
+      <a href="{% url 'dempam:ua_homepage' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Cadastro de Locais</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Solicitações de Mudança</a>
+    </div>
+  </div>
+
+  <!-- 2 · Movimentação de Bens -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-2">↔️</div>
+      <div class="flow-meta">
+        <div class="flow-title">Movimentação de Bens</div>
+        <div class="flow-desc">Controle operacional de entrada, saída e custódia.</div>
+      </div>
+      <span class="badge-wip">Em breve</span>
+    </div>
+    <div class="flow-card-body">
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Entradas</a>
+      <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Solicitações</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Transferências e Devoluções</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Movimentações Internas</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Acautelamento</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Gestão de Responsáveis</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Manutenção e Baixas</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Doações</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Espaço Físico</a>
+    </div>
+  </div>
+
+  <!-- 3 · Consultas -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-3">🔍</div>
+      <div class="flow-meta">
+        <div class="flow-title">Consultas</div>
+        <div class="flow-desc">Relatórios de busca rápida e visualização de dados.</div>
+      </div>
+    </div>
+    <div class="flow-card-body">
+      <a href="{% url 'dimrcbp:meus_bens' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Meus Bens</a>
+      <a href="{% url 'dimrcbp:filtros_operacionais' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Filtros Operacionais</a>
+      <a href="{% url 'dimrcbp:controle_prazos' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Controle de Prazos</a>
+      <a href="{% url 'dimrcbp:catalogo_lista' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Catálogo de Bens</a>
+    </div>
+  </div>
+
+  <!-- 4 · Contratação -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-4">📄</div>
+      <div class="flow-meta">
+        <div class="flow-title">Contratação</div>
+        <div class="flow-desc">Gestão da fase interna e seleção de fornecedores.</div>
+      </div>
+      <span class="badge-wip">Em breve</span>
+    </div>
+    <div class="flow-card-body">
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Planejamento</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Precificação</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Contratos e ARPs</a>
+    </div>
+  </div>
+
+  <!-- 5 · Execução -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-5">⚡</div>
+      <div class="flow-meta">
+        <div class="flow-title">Execução</div>
+        <div class="flow-desc">Gestão do dia a dia contratual e operacional.</div>
+      </div>
+      <span class="badge-wip">Em breve</span>
+    </div>
+    <div class="flow-card-body">
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Ressuprimento</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Fornecimento</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Serviços e Manutenção</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Fiscalização</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Financeiro</a>
+    </div>
+  </div>
+
+  <!-- 6 · Inventário -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-6">📊</div>
+      <div class="flow-meta">
+        <div class="flow-title">Inventário</div>
+        <div class="flow-desc">Módulo de auditoria e conferência física.</div>
+      </div>
+    </div>
+    <div class="flow-card-body">
+      {% if perms.dimrcbp.view_inventario %}
+      <a href="{% url 'dimrcbp:painel_inventario' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Painel Operacional</a>
+      {% else %}
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Painel Operacional</a>
+      {% endif %}
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Abertura</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Fechamento</a>
+    </div>
+  </div>
+
+  <!-- 7 · Gerencial -->
+  <div class="flow-card">
+    <div class="flow-card-header">
+      <div class="flow-icon fi-7">📈</div>
+      <div class="flow-meta">
+        <div class="flow-title">Gerencial</div>
+        <div class="flow-desc">Inteligência de dados e suporte à decisão.</div>
+      </div>
+      <span class="badge-wip">Em breve</span>
+    </div>
+    <div class="flow-card-body">
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Custos</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Valoração</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Estratégico</a>
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Segurança / Auditoria</a>
     </div>
   </div>
 
