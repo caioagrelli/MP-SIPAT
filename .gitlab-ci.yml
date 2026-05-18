@@ -75,13 +75,14 @@ build-frontend:
     - echo "--------------------------------------------------"
 
 
-#trigger-manifests:
-#  stage: build
-#  needs:
-#    - job: generate-tag-job
-#      artifacts: true
-#    - job: build
-#  trigger:
-#    project: devops/applications/sipat
-#  variables:
-#    IMAGE_TAG: ${VERSION}
+trigger-manifests:
+  stage: build
+  needs:
+    - job: generate-tag-job
+      artifacts: true
+    - job: build-backend
+    - job: build-frontend
+  trigger:
+    project: devops/applications/sipat
+  variables:
+    IMAGE_TAG: ${VERSION}
