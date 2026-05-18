@@ -1,0 +1,33 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Excluir Item{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--font:'Sora',sans-serif;--r-sm:10px;--r-lg:22px;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--border:#e2e5ef;--surface:#fff;--ink:#1a2035;--ink-3:#7380a0;--shadow-md:0 4px 12px rgba(15,23,42,.08);}
+  *{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:40px 24px;max-width:480px;margin:0 auto;color:var(--ink);}
+  .card{background:var(--surface);border:1px solid var(--red-mid);border-radius:var(--r-lg);box-shadow:var(--shadow-md);padding:28px;text-align:center;}
+  .icon{font-size:2.5rem;margin-bottom:12px;}
+  h2{font-size:1.2rem;font-weight:800;margin:0 0 8px;}
+  p{font-size:.88rem;color:var(--ink-3);margin:0 0 20px;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;}
+  .btn-red{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .btn-red:hover{background:var(--red-mid);}
+  .btn-ghost{background:#fff;border-color:var(--border);color:var(--ink-3);}
+  .btn-ghost:hover{background:#f7f8fc;}
+  .actions{display:flex;gap:10px;justify-content:center;}
+</style>
+<div class="apage">
+  <div class="card">
+    <div class="icon">⚠️</div>
+    <h2>Excluir item do catálogo?</h2>
+    <p><strong>{{ item }}</strong> será removido permanentemente do catálogo de bens de consumo.</p>
+    <div class="actions">
+      <a href="{% url 'dimms:catalogo_consumo_admin' %}" class="btn btn-ghost">Cancelar</a>
+      <form method="post" style="display:inline;">{% csrf_token %}
+        <button type="submit" class="btn btn-red">Sim, excluir</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

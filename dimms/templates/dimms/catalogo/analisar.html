@@ -1,0 +1,162 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Analisar Solicitação {{ sol.codigo }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb span{opacity:.45;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.4rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+  .btn-green:hover{background:#166534;}
+  .btn-reject{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .btn-reject:hover{background:var(--red-mid);}
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card:last-child{margin-bottom:0;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);}
+  .card-body{padding:20px 22px;}
+  .kv-table{width:100%;border-collapse:collapse;}
+  .kv-table tr{border-bottom:1px solid var(--border);}
+  .kv-table tr:last-child{border-bottom:none;}
+  .kv-table td{padding:10px 12px;font-size:.87rem;vertical-align:top;}
+  .kv-table td:first-child{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);width:38%;white-space:nowrap;}
+  .kv-table td:last-child{font-weight:600;color:var(--ink);}
+  .item-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .item-row:last-child{border-bottom:none;}
+  .item-photo{width:48px;height:48px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+  .item-photo img{width:100%;height:100%;object-fit:contain;}
+  .item-info{flex:1;}
+  .item-name{font-size:.9rem;font-weight:700;color:var(--ink);}
+  .item-meta{font-size:.75rem;color:var(--ink-3);margin-top:3px;}
+  .item-qty{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);padding:4px 12px;border-radius:6px;white-space:nowrap;}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-REJEITADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;}
+  .form-control:focus{outline:none;border-color:var(--blue);}
+  textarea.form-control{min-height:70px;resize:vertical;}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+<div class="apage">
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:painel_solicitacoes_consumo' %}">Aprovações</a><span>›</span>
+    {{ sol.codigo }}
+  </nav>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🧴 Analisar Solicitação</div>
+      <div class="topbar-sub">
+        <span style="font-family:var(--mono);font-weight:700;color:var(--blue);">{{ sol.codigo }}</span>
+        · {{ sol.solicitante.get_full_name|default:sol.solicitante.username }}
+        · UA: {{ sol.ua_destino.ua }}
+        · {{ sol.data|date:"d/m/Y H:i" }}
+      </div>
+    </div>
+    <a href="{% url 'dimms:painel_solicitacoes_consumo' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+  <div class="layout">
+    <!-- Itens -->
+    <div>
+      <div class="card">
+        <div class="card-head">🧴 Itens Solicitados</div>
+        <div class="card-body" style="padding:0 22px;">
+          {% for item in sol.itens.all %}
+          <div class="item-row">
+            <div class="item-photo">
+              {% if item.catalogo.photo %}<img src="{{ item.catalogo.photo.url }}" alt="">{% else %}🧴{% endif %}
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ item.catalogo.description }}</div>
+              <div class="item-meta">{{ item.catalogo.get_grupo_consumo_display }} · {{ item.catalogo.get_medida_display }}</div>
+              {% if item.observacao %}<div class="item-meta" style="margin-top:2px;">Obs: {{ item.observacao }}</div>{% endif %}
+            </div>
+            <span class="item-qty">{{ item.quantidade }}x</span>
+          </div>
+          {% empty %}
+          <p style="color:var(--ink-3);font-size:.85rem;padding:16px 0;">Nenhum item nesta solicitação.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <!-- Lateral -->
+    <div>
+      <div class="card">
+        <div class="card-head">🗂️ Solicitação</div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Código</td><td style="font-family:var(--mono);font-size:.8rem;">{{ sol.codigo }}</td></tr>
+            <tr><td>Solicitante</td><td>{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</td></tr>
+            <tr><td>UA Destino</td><td>{{ sol.ua_destino.ua }}</td></tr>
+            <tr><td>Data</td><td>{{ sol.data|date:"d/m/Y H:i" }}</td></tr>
+            <tr><td>Itens</td><td>{{ sol.total_itens }}</td></tr>
+            <tr><td>Status</td><td><span class="pill status-{{ sol.status }}">{{ sol.get_status_display }}</span></td></tr>
+          </table>
+        </div>
+      </div>
+      {% if sol.observacao %}
+      <div class="card">
+        <div class="card-head">📝 Observação</div>
+        <div class="card-body"><p style="font-size:.87rem;color:var(--ink-2);line-height:1.6;margin:0;">{{ sol.observacao }}</p></div>
+      </div>
+      {% endif %}
+      {% if sol.status == 'PENDENTE' %}
+      <div class="card">
+        <div class="card-head">✅ Atender</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="atender">
+            <div class="field-group">
+              <label>Observação (opcional)</label>
+              <textarea name="obs_decisao" class="form-control" placeholder="Informações sobre o atendimento…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;"
+                    onclick="return confirm('Marcar como atendida?')">
+              ✅ Marcar como Atendida
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">❌ Rejeitar</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="rejeitar">
+            <div class="field-group">
+              <label>Motivo da rejeição</label>
+              <textarea name="obs_decisao" class="form-control" placeholder="Descreva o motivo…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-reject" style="width:100%;justify-content:center;"
+                    onclick="return confirm('Rejeitar esta solicitação?')">
+              ❌ Rejeitar Solicitação
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% if sol.obs_decisao %}
+      <div class="card">
+        <div class="card-head">📋 Decisão</div>
+        <div class="card-body">
+          <p style="font-size:.87rem;color:var(--ink-2);margin:0;">{{ sol.obs_decisao }}</p>
+          {% if sol.decidido_por %}<p style="font-size:.78rem;color:var(--ink-3);margin:6px 0 0;">Por {{ sol.decidido_por.get_full_name|default:sol.decidido_por.username }} em {{ sol.data_decisao|date:"d/m/Y H:i" }}</p>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

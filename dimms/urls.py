@@ -66,6 +66,20 @@ urlpatterns = [
     path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
 
 
+    # Catálogo de Bens de Consumo — listagem pública
+    path('catalogo/', catalogo_consumo_lista, name='catalogo_consumo'),
+
+    # Catálogo de Bens de Consumo — gestão (admin)
+    path('catalogo/admin/',                      catalogo_consumo_admin_lista, name='catalogo_consumo_admin'),
+    path('catalogo/admin/novo/',                 catalogo_consumo_criar,       name='catalogo_consumo_criar'),
+    path('catalogo/admin/<int:pk>/editar/',      catalogo_consumo_editar,      name='catalogo_consumo_editar'),
+    path('catalogo/admin/<int:pk>/excluir/',     catalogo_consumo_excluir,     name='catalogo_consumo_excluir'),
+
+    # Catálogo — solicitações
+    path('catalogo/minhas-solicitacoes/',        minhas_solicitacoes_consumo,     name='minhas_solicitacoes_consumo'),
+    path('catalogo/aprovacao/',                  painel_solicitacoes_consumo,     name='painel_solicitacoes_consumo'),
+    path('catalogo/aprovacao/<int:pk>/',         analisar_solicitacao_consumo,    name='analisar_solicitacao_consumo'),
+
     # Url's das Ações no estoque
     path('stock_add/', stock_add, name='stock_add'),
     path('stock_up/', stock_up, name='stock_up'),

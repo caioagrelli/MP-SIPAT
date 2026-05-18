@@ -552,3 +552,29 @@ class TramitacaoAdmin(admin.ModelAdmin):
         if not obj.user_update_id:
             obj.user_update = request.user
         super().save_model(request, obj, form, change)
+
+@admin.register(CatalogoConsumo)
+class CatalogoConsumoAdmin(admin.ModelAdmin):
+    list_display  = ('description', 'marca_ou_dash', 'grupo_consumo', 'medida', 'ativo')
+    list_filter   = ('grupo_consumo', 'ativo')
+    search_fields = ('description', 'mark')
+    list_editable = ('ativo',)
+
+    def marca_ou_dash(self, obj):
+        return obj.mark or '—'
+    marca_ou_dash.short_description = 'Marca'
+
+
+@admin.register(SolicitacaoCatalogoConsumo)
+class SolicitacaoCatalogoConsumoAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'solicitante', 'ua_destino', 'data', 'status')
+    list_filter   = ('status',)
+    search_fields = ('codigo', 'solicitante__username', 'solicitante__first_name')
+    readonly_fields = ('codigo', 'data', 'data_decisao')
+
+
+@admin.register(ItemSolicitacaoCatalogoConsumo)
+class ItemSolicitacaoCatalogoConsumoAdmin(admin.ModelAdmin):
+    list_display  = ('solicitacao', 'catalogo', 'quantidade')
+    search_fields = ('solicitacao__codigo', 'catalogo__description')
+

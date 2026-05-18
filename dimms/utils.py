@@ -12,6 +12,11 @@ from django.utils import timezone
 
 
 ''' Paths '''
+def path_photo_catalogo_consumo(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    return f'bens/catalogo_consumo/{instance.pk or "novo"}{ext}'
+
+
 def path_photo_bens(instance, filename):
     item_shock = instance.item_shock or 'sem_efisco'
     ext = os.path.splitext(filename)[1]
@@ -131,6 +136,13 @@ class StatusProposal(models.TextChoices):
     analise = 'ANALISE', 'Em Análise'
     aprovado = 'APROVADO', 'Aprovado'
     recusado = 'RECUSADO', 'Recusado'
+
+# Status das solicitações do catálogo de consumo
+class StatusSolicitacaoCatalogoConsumo(models.TextChoices):
+    pendente  = 'PENDENTE',  'Pendente'
+    atendida  = 'ATENDIDA',  'Atendida'
+    rejeitada = 'REJEITADA', 'Rejeitada'
+    cancelada = 'CANCELADA', 'Cancelada'
 
 # Status do artefato
 class StatusArtifacts(models.TextChoices):
