@@ -1,0 +1,211 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Analisar Solicitação {{ sol.codigo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-approve{background:var(--green);color:#fff;border-color:#166534;}
+  .btn-approve:hover{background:#166534;}
+  .btn-reject{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .btn-reject:hover{background:var(--red-mid);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card:last-child{margin-bottom:0;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .card-body{padding:20px 22px;}
+
+  .kv-table{width:100%;border-collapse:collapse;}
+  .kv-table tr{border-bottom:1px solid var(--border);}
+  .kv-table tr:last-child{border-bottom:none;}
+  .kv-table td{padding:10px 12px;font-size:.87rem;vertical-align:top;}
+  .kv-table td:first-child{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);width:38%;white-space:nowrap;}
+  .kv-table td:last-child{font-weight:600;color:var(--ink);word-break:break-word;}
+
+  /* Seta de transferência */
+  .transfer-arrow{display:flex;align-items:center;gap:16px;padding:16px;background:var(--surface-2);border-radius:var(--r-md);border:1px solid var(--border);}
+  .transfer-box{flex:1;text-align:center;}
+  .transfer-box-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:6px;}
+  .transfer-box-value{font-size:.95rem;font-weight:800;color:var(--ink);}
+  .transfer-icon{font-size:1.4rem;flex-shrink:0;}
+
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:8px 12px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  textarea.form-control{min-height:80px;resize:vertical;}
+
+  .decision-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:lista_solicitacoes' %}">Movimentações</a><span>›</span>
+    Analisar {{ sol.codigo }}
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔍 Analisar Solicitação</div>
+      <div class="topbar-sub">
+        <span style="font-family:var(--mono);font-weight:700;color:var(--blue);">{{ sol.codigo }}</span>
+        · Solicitado por {{ sol.solicitante.get_full_name|default:sol.solicitante.username }}
+        em {{ sol.data|date:"d/m/Y H:i" }}
+      </div>
+    </div>
+    <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="layout">
+
+    <!-- Coluna principal -->
+    <div>
+
+      <!-- Bem -->
+      <div class="card">
+        <div class="card-head">📦 Bem Permanente</div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Tombo</td>
+                <td><a href="{% url 'dimrcbp:bem_detalhe_admin' sol.bem.tombo %}"
+                       style="font-family:var(--mono);color:var(--blue);font-weight:700;text-decoration:none;">
+                  {{ sol.bem.tombo }}
+                </a></td></tr>
+            <tr><td>Descrição</td><td>{{ sol.bem.description }}</td></tr>
+            <tr><td>Marca / Modelo</td><td>{{ sol.bem.mark }} — {{ sol.bem.model }}</td></tr>
+            <tr><td>N° de Série</td><td>{{ sol.bem.n_series|default:"—" }}</td></tr>
+            <tr><td>Situação</td><td>{{ sol.bem.get_situacion_display|default:"—" }}</td></tr>
+            <tr><td>Estado</td><td>{{ sol.bem.get_state_display|default:"—" }}</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Movimentação proposta -->
+      <div class="card">
+        <div class="card-head">🔄 Transferência Proposta</div>
+        <div class="card-body">
+          <div class="transfer-arrow">
+            <div class="transfer-box">
+              <div class="transfer-box-label">UA Atual (Origem)</div>
+              <div class="transfer-box-value">
+                {% if sol.bem.history_tombo and sol.bem.history_tombo.current_ua %}
+                  {{ sol.bem.history_tombo.current_ua.ua }}
+                {% else %}
+                  <span style="color:var(--ink-3);">Não definida</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="transfer-icon">→</div>
+            <div class="transfer-box">
+              <div class="transfer-box-label">UA Destino (Solicitada)</div>
+              <div class="transfer-box-value" style="color:var(--blue);">{{ sol.ua_destino.ua }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivo -->
+      <div class="card">
+        <div class="card-head">📝 Motivo / Justificativa</div>
+        <div class="card-body">
+          <p style="font-size:.88rem;color:var(--ink-2);line-height:1.7;margin:0;">{{ sol.motivo }}</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Coluna decisão -->
+    <div>
+
+      {% if sol.status == 'PENDENTE' %}
+      <div class="card">
+        <div class="card-head">⚖️ Decisão</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="field-group">
+              <label for="id_obs">Observação (opcional)</label>
+              <textarea id="id_obs" name="obs_decisao" class="form-control"
+                        placeholder="Motivo da aprovação ou rejeição…"></textarea>
+            </div>
+
+            <div class="decision-actions">
+              <button type="submit" name="decisao" value="APROVADA" class="btn btn-approve"
+                      onclick="return confirm('Aprovar esta solicitação? O bem será transferido imediatamente para a UA destino.')">
+                ✅ Aprovar e Transferir
+              </button>
+              <button type="submit" name="decisao" value="REJEITADA" class="btn btn-reject"
+                      onclick="return confirm('Rejeitar esta solicitação?')">
+                ❌ Rejeitar Solicitação
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <div class="card-head">ℹ️ Decisão Já Tomada</div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Status</td><td><span class="pill status-{{ sol.status }}">{{ sol.get_status_display }}</span></td></tr>
+            {% if sol.decidido_por %}
+            <tr><td>Decidido por</td><td>{{ sol.decidido_por.get_full_name|default:sol.decidido_por.username }}</td></tr>
+            {% endif %}
+            {% if sol.data_decisao %}
+            <tr><td>Data</td><td>{{ sol.data_decisao|date:"d/m/Y H:i" }}</td></tr>
+            {% endif %}
+            {% if sol.obs_decisao %}
+            <tr><td>Observação</td><td>{{ sol.obs_decisao }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+      {% if sol.status == 'APROVADA' and sol.movimentacao %}
+      <div style="margin-top:12px;">
+        <a href="{% url 'dimrcbp:termo_transferencia' sol.movimentacao.pk %}" class="btn btn-approve" style="width:100%;justify-content:center;" target="_blank">
+          📄 Baixar Termo de Transferência
+        </a>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <!-- Detalhes da solicitação -->
+      <div class="card" style="margin-top:12px;">
+        <div class="card-head">🗂️ Detalhes</div>
+        <div class="card-body" style="padding:0;">
+          <table class="kv-table">
+            <tr><td>Código</td><td style="font-family:var(--mono);font-size:.8rem;">{{ sol.codigo }}</td></tr>
+            <tr><td>Solicitante</td><td>{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</td></tr>
+            <tr><td>Data</td><td>{{ sol.data|date:"d/m/Y H:i" }}</td></tr>
+            <tr><td>Status</td><td><span class="pill status-{{ sol.status }}">{{ sol.get_status_display }}</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

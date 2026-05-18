@@ -1,0 +1,133 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Transferir Bem {{ bem.tombo }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px;}
+  .card-head{padding:14px 22px;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .card-body{padding:20px 22px;}
+
+  .kv-table{width:100%;border-collapse:collapse;}
+  .kv-table tr{border-bottom:1px solid var(--border);}
+  .kv-table tr:last-child{border-bottom:none;}
+  .kv-table td{padding:10px 12px;font-size:.87rem;vertical-align:top;}
+  .kv-table td:first-child{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);width:40%;white-space:nowrap;}
+  .kv-table td:last-child{font-weight:600;color:var(--ink);word-break:break-word;}
+
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  textarea.form-control{min-height:90px;resize:vertical;}
+
+  .warn-banner{background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);padding:12px 16px;font-size:.84rem;font-weight:600;color:var(--amber);margin-bottom:20px;}
+
+  .ua-origem-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:18px;}
+  .ua-origem-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}">Tombo {{ bem.tombo }}</a><span>›</span>
+    Transferir
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔄 Transferir Bem</div>
+      <div class="topbar-sub">
+        Tombo <span style="font-family:var(--mono);font-weight:700;color:var(--blue);">{{ bem.tombo }}</span>
+        — {{ bem.description }}
+      </div>
+    </div>
+    <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="warn-banner">
+    ⚠️ Esta ação é imediata e registrada no histórico do bem. A UA atual será substituída pela UA destino selecionada.
+  </div>
+
+  <div class="layout">
+
+    <!-- Form -->
+    <div class="card">
+      <div class="card-head">🔄 Dados da Transferência</div>
+      <div class="card-body">
+        <form method="post" onsubmit="return confirm('Confirmar a transferência deste bem para a UA selecionada? Esta ação será registrada no histórico.')">
+          {% csrf_token %}
+
+          <div class="ua-origem-label">UA de Origem (Atual)</div>
+          <div class="ua-origem-box">
+            {% if bem.history_tombo and bem.history_tombo.current_ua %}
+              {{ bem.history_tombo.current_ua.ua }}
+            {% else %}
+              <span style="color:var(--ink-3);">Não definida</span>
+            {% endif %}
+          </div>
+
+          <div class="field-group">
+            <label for="id_ua_destino">UA Destino</label>
+            <select id="id_ua_destino" name="ua_destino" class="form-control" required>
+              <option value="">— Selecione a UA destino —</option>
+              {% for ua in uas %}
+              <option value="{{ ua.pk }}">{{ ua.ua }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="id_motivo">Motivo (opcional)</label>
+            <textarea id="id_motivo" name="motivo" class="form-control"
+                      placeholder="Descreva o motivo da transferência…"></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;">
+            <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}" class="btn btn-ghost">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Confirmar Transferência →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Info do bem -->
+    <div class="card">
+      <div class="card-head">📦 Bem</div>
+      <div class="card-body" style="padding:0;">
+        <table class="kv-table">
+          <tr><td>Tombo</td><td style="font-family:var(--mono);">{{ bem.tombo }}</td></tr>
+          <tr><td>Descrição</td><td>{{ bem.description }}</td></tr>
+          <tr><td>Marca / Modelo</td><td>{{ bem.mark }} — {{ bem.model }}</td></tr>
+          <tr><td>N° de Série</td><td>{{ bem.n_series|default:"—" }}</td></tr>
+          <tr><td>Situação</td><td>{{ bem.get_situacion_display|default:"—" }}</td></tr>
+          <tr><td>Estado</td><td>{{ bem.get_state_display|default:"—" }}</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

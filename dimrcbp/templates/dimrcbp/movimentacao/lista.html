@@ -1,0 +1,176 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Solicitações de Transferência{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-sm);}
+  .kpi-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
+  .kpi-val{font-size:1.6rem;font-weight:800;color:var(--ink);font-family:var(--mono);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);}
+  .tab{padding:8px 18px;font-size:.84rem;font-weight:700;color:var(--ink-3);text-decoration:none;border-radius:var(--r-sm) var(--r-sm) 0 0;border:1px solid transparent;border-bottom:none;transition:all .15s;}
+  .tab:hover{background:var(--surface-2);color:var(--ink);}
+  .tab.active{background:var(--surface);border-color:var(--border);border-bottom:2px solid var(--surface);margin-bottom:-2px;color:var(--blue);}
+
+  /* Busca */
+  .search-bar{display:flex;gap:8px;margin-bottom:16px;}
+  .search-input{flex:1;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 14px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);}
+  .search-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+
+  /* Tabela */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .card-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.75rem;font-family:var(--mono);font-weight:700;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:var(--surface-2);}
+  th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:11px 16px;font-size:.85rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+
+  /* Pills */
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-PENDENTE {background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-APROVADA {background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-REJEITADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .status-CANCELADA{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+
+  .empty-state{padding:56px 24px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.4rem;display:block;margin-bottom:12px;opacity:.35;}
+  .mono{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);font-weight:700;}
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔄 Movimentações de Bens</div>
+      <div class="topbar-sub">Gerencie as solicitações de transferência de bens permanentes entre UAs.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Bens Permanentes</a>
+      <a href="{% url 'dimrcbp:criar_solicitacao' %}" class="btn btn-primary">+ Nova Solicitação</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Pendentes</div>
+      <div class="kpi-val" style="color:var(--amber);">{{ total_pendente }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Aprovadas</div>
+      <div class="kpi-val" style="color:var(--green);">{{ total_aprovada }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Rejeitadas</div>
+      <div class="kpi-val" style="color:var(--red);">{{ total_rejeitada }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Canceladas</div>
+      <div class="kpi-val" style="color:var(--ink-3);">{{ total_cancelada }}</div>
+    </div>
+  </div>
+
+  <!-- Tabs por status -->
+  <div class="tabs">
+    <a class="tab {% if filtro_status == 'PENDENTE' %}active{% endif %}" href="?status=PENDENTE">⏳ Pendentes</a>
+    <a class="tab {% if filtro_status == 'APROVADA' %}active{% endif %}" href="?status=APROVADA">✅ Aprovadas</a>
+    <a class="tab {% if filtro_status == 'REJEITADA' %}active{% endif %}" href="?status=REJEITADA">❌ Rejeitadas</a>
+    <a class="tab {% if filtro_status == 'CANCELADA' %}active{% endif %}" href="?status=CANCELADA">🚫 Canceladas</a>
+    <a class="tab {% if not filtro_status %}active{% endif %}" href="?status=">Todas</a>
+  </div>
+
+  <!-- Busca -->
+  <form method="get" class="search-bar">
+    {% if filtro_status %}<input type="hidden" name="status" value="{{ filtro_status }}">{% endif %}
+    <input type="text" name="q" class="search-input" placeholder="Buscar por código, tombo, solicitante…" value="{{ query }}">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    {% if query %}<a href="?status={{ filtro_status }}" class="btn btn-ghost">Limpar</a>{% endif %}
+  </form>
+
+  <!-- Tabela -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        Solicitações <span class="badge">{{ total }}</span>
+      </div>
+    </div>
+
+    {% if solicitacoes %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Tombo</th>
+            <th>Descrição</th>
+            <th>UA Destino</th>
+            <th>Solicitante</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in solicitacoes %}
+          <tr>
+            <td><span class="mono">{{ s.codigo }}</span></td>
+            <td>
+              <a href="{% url 'dimrcbp:bem_detalhe_admin' s.bem.tombo %}"
+                 style="font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--blue);text-decoration:none;">
+                {{ s.bem.tombo }}
+              </a>
+            </td>
+            <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              {{ s.bem.description }}
+            </td>
+            <td style="font-size:.82rem;">{{ s.ua_destino.ua }}</td>
+            <td style="font-size:.82rem;">{{ s.solicitante.get_full_name|default:s.solicitante.username }}</td>
+            <td style="font-size:.82rem;white-space:nowrap;">{{ s.data|date:"d/m/Y H:i" }}</td>
+            <td><span class="pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
+            <td>
+              {% if s.status == 'PENDENTE' %}
+                {% if perms.dimrcbp.change_benspermanentes %}
+                  <a href="{% url 'dimrcbp:analisar_solicitacao' s.pk %}" class="btn btn-primary btn-sm">Analisar →</a>
+                {% endif %}
+              {% elif s.status == 'APROVADA' and s.movimentacao %}
+                <a href="{% url 'dimrcbp:termo_transferencia' s.movimentacao.pk %}" class="btn btn-ghost btn-sm" target="_blank">📄 Termo</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-icon">📭</span>
+      <div style="font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;">Nenhuma solicitação encontrada</div>
+      <div style="font-size:.84rem;">Não há solicitações com o filtro selecionado.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

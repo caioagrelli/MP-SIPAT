@@ -1,0 +1,136 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Nova Solicitação de Transferência{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn-primary:hover{background:#1e40af;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:16px;font-weight:500;}
+  .breadcrumb a{color:var(--blue);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:20px;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);background:#1e2d42;display:flex;align-items:center;gap:10px;}
+  .card-head-title{font-size:.95rem;font-weight:800;color:#fff;}
+  .card-body{padding:24px;}
+
+  .info-banner{background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);padding:12px 16px;font-size:.84rem;font-weight:600;color:var(--amber);margin-bottom:20px;}
+
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;}
+  .field-group label{font-size:.75rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  .form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  textarea.form-control{min-height:100px;resize:vertical;}
+
+  .form-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:8px;}
+
+  /* Bem info box */
+  .bem-info{background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:var(--r-sm);padding:14px 16px;font-size:.85rem;color:var(--ink-2);margin-top:8px;display:none;}
+  .bem-info.visible{display:block;}
+  .bem-info-title{font-weight:700;color:var(--ink);font-size:.9rem;margin-bottom:4px;}
+</style>
+
+<div class="apage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimrcbp:homepage' %}">Bens Permanentes</a><span>›</span>
+    <a href="{% url 'dimrcbp:lista_solicitacoes' %}">Movimentações</a><span>›</span>
+    Nova Solicitação
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📝 Nova Solicitação de Transferência</div>
+      <div class="topbar-sub">Solicite a transferência de um bem permanente para outra UA.</div>
+    </div>
+    <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  <div class="info-banner">
+    ℹ️ A solicitação será analisada pela equipe responsável. Após aprovação, o bem será registrado na UA destino.
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-title">📦 Dados da Solicitação</div>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label for="id_bem">Bem Permanente</label>
+          <select id="id_bem" name="bem" class="form-control" required onchange="showBemInfo(this)">
+            <option value="">— Selecione o bem —</option>
+            {% for b in bens %}
+            <option value="{{ b.pk }}"
+              data-tombo="{{ b.tombo }}"
+              data-desc="{{ b.description }}"
+              data-ua="{% if b.history_tombo %}{{ b.history_tombo.current_ua.ua|default:'—' }}{% else %}—{% endif %}"
+              {% if bem_pre and b.pk == bem_pre.pk %}selected{% endif %}>
+              {{ b.tombo }} — {{ b.description }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="bem-info" id="bemInfoBox">
+            <div class="bem-info-title" id="bemInfoDesc"></div>
+            <div>Tombo: <strong id="bemInfoTombo" style="font-family:var(--mono);"></strong></div>
+            <div>UA Atual: <strong id="bemInfoUA"></strong></div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="id_ua_destino">UA Destino (para onde o bem deve ir)</label>
+          <select id="id_ua_destino" name="ua_destino" class="form-control" required>
+            <option value="">— Selecione a UA —</option>
+            {% for ua in uas %}
+            <option value="{{ ua.pk }}">{{ ua.ua }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="id_motivo">Motivo / Justificativa</label>
+          <textarea id="id_motivo" name="motivo" class="form-control"
+                    placeholder="Descreva o motivo da solicitação de transferência…" required></textarea>
+        </div>
+
+        <div class="form-footer">
+          <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="btn btn-ghost">Cancelar</a>
+          <button type="submit" class="btn btn-primary">Enviar Solicitação →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showBemInfo(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const box = document.getElementById('bemInfoBox');
+  if (!opt.value) { box.classList.remove('visible'); return; }
+  document.getElementById('bemInfoDesc').textContent  = opt.dataset.desc  || '—';
+  document.getElementById('bemInfoTombo').textContent = opt.dataset.tombo || '—';
+  document.getElementById('bemInfoUA').textContent    = opt.dataset.ua    || '—';
+  box.classList.add('visible');
+}
+// Inicializa se ja houver bem pré-selecionado
+window.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('id_bem');
+  if (sel.value) showBemInfo(sel);
+});
+</script>
+{% endblock %}
