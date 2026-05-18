@@ -87,7 +87,16 @@ class InfoUA(models.Model):
         default=False,
         blank=True,
         verbose_name='Sede',
-    )   
+    )
+
+    gestor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uas_gerenciadas',
+        verbose_name='Gestor da UA',
+    )
 
     class Meta():
         verbose_name='UA'

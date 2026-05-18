@@ -11,7 +11,7 @@ urlpatterns = [
     path("uas/", ua_homepage, name="ua_homepage"),
     path("uas/add/", ua_add, name="ua_add"),
     path("uas/<int:pk>/", ua_detail, name="ua_detail"),
-    #path("uas/<int:pk>/update/", ua_update, name="ua_update"),
+    path("uas/<int:pk>/update/", ua_update, name="ua_update"),
 
     # Url's dos Prédios e Circunscrição
     path("locate/", locate_homepage, name="locate_homepage"),

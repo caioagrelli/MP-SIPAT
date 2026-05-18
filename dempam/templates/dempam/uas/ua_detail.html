@@ -124,6 +124,10 @@
       <div class="page-title">🏢 {{ ua.ua }}</div>
       <div class="page-sub">Painel geral e solicitações vinculadas a esta unidade.</div>
     </div>
+    <a href="{% url 'dempam:ua_update' ua.pk %}"
+       style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;font-family:var(--font);font-size:.85rem;font-weight:600;background:var(--accent);color:#fff;text-decoration:none;border:none;cursor:pointer;">
+      ✏️ Editar UA
+    </a>
   </div>
 
   <!-- ── Info panel ── -->
@@ -152,6 +156,16 @@
         {% if ua.email_ua %}
           <a href="mailto:{{ ua.email_ua }}">{{ ua.email_ua }}</a>
         {% else %}—{% endif %}
+      </span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Gestor</span>
+      <span class="info-value">
+        {% if ua.gestor %}
+          {{ ua.gestor.get_full_name|default:ua.gestor.username }}
+        {% else %}
+          <span style="color:var(--amber);font-size:.82rem;font-weight:600;">⚠ Sem gestor</span>
+        {% endif %}
       </span>
     </div>
     <div class="info-item">
