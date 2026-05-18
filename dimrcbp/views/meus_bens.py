@@ -2,7 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 
-from dimrcbp.models import AtribuicaoBem, PeriodoInventario
+from dimrcbp.models import AtribuicaoBem, PeriodoInventario, Inventario
+from dimrcbp.forms import InventarioForm
 
 
 @login_required
@@ -16,10 +17,22 @@ def meus_bens(request):
         )
         .order_by('bem__tombo')
     )
+    periodo = PeriodoInventario.get_periodo_ativo()
+
+    # Para cada bem, verifica se já tem registro no inventário ativo
+    tombos_registrados = set()
+    if periodo:
+        tombos_registrados = set(
+            Inventario.objects.filter(n_inventario=periodo)
+            .values_list('bem__tombo', flat=True)
+        )
+
     return render(request, 'dimrcbp/meus_bens.html', {
-        'atribuicoes':     atribuicoes,
-        'total':           atribuicoes.count(),
-        'inventario_ativo': PeriodoInventario.em_andamento(),
+        'atribuicoes':       atribuicoes,
+        'total':             atribuicoes.count(),
+        'inventario_ativo':  bool(periodo),
+        'periodo':           periodo,
+        'tombos_registrados': tombos_registrados,
     })
 
 
@@ -35,11 +48,59 @@ def detalhe_bem(request, tombo):
         user=request.user,
         ativo=True,
     )
+    periodo = PeriodoInventario.get_periodo_ativo()
+    registro_inventario = None
+    if periodo:
+        registro_inventario = Inventario.objects.filter(
+            n_inventario=periodo, bem=atribuicao.bem
+        ).first()
+
     return render(request, 'dimrcbp/meus_bens_detalhe.html', {
-        'atribuicao':      atribuicao,
-        'bem':             atribuicao.bem,
-        'inventario_ativo': PeriodoInventario.em_andamento(),
+        'atribuicao':         atribuicao,
+        'bem':                atribuicao.bem,
+        'inventario_ativo':   bool(periodo),
+        'periodo':            periodo,
+        'registro_inventario': registro_inventario,
+        'form_inventario':    InventarioForm(instance=registro_inventario) if periodo else None,
     })
+
+
+@login_required
+def registrar_inventario(request, tombo):
+    periodo = PeriodoInventario.get_periodo_ativo()
+    if not periodo:
+        messages.error(request, 'Não há período de inventário ativo.')
+        return redirect('dimrcbp:detalhe_bem', tombo=tombo)
+
+    atribuicao = get_object_or_404(
+        AtribuicaoBem,
+        bem__tombo=tombo,
+        user=request.user,
+        ativo=True,
+    )
+
+    if request.method != 'POST':
+        return redirect('dimrcbp:detalhe_bem', tombo=tombo)
+
+    registro_existente = Inventario.objects.filter(
+        n_inventario=periodo, bem=atribuicao.bem
+    ).first()
+
+    form = InventarioForm(request.POST, request.FILES, instance=registro_existente)
+    if form.is_valid():
+        registro = form.save(commit=False)
+        registro.n_inventario  = periodo
+        registro.bem           = atribuicao.bem
+        registro.registrado_por = request.user
+        registro.save()
+        acao = 'atualizado' if registro_existente else 'registrado'
+        messages.success(request, f'Bem {acao} no inventário com sucesso.')
+    else:
+        for erros in form.errors.values():
+            for erro in erros:
+                messages.error(request, erro)
+
+    return redirect('dimrcbp:detalhe_bem', tombo=tombo)
 
 
 @login_required

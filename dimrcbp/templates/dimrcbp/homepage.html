@@ -175,7 +175,7 @@
     </div>
     <div class="flow-card-body">
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Entradas</a>
-      <a href="#" class="flow-btn"><span class="btn-dot"></span>Solicitações</a>
+      <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Solicitações</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Transferências e Devoluções</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Movimentações Internas</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Acautelamento</a>
@@ -247,11 +247,14 @@
         <div class="flow-title">Inventário</div>
         <div class="flow-desc">Módulo de auditoria e conferência física.</div>
       </div>
-      <span class="badge-wip">Em breve</span>
     </div>
     <div class="flow-card-body">
+      {% if perms.dimrcbp.view_inventario %}
+      <a href="{% url 'dimrcbp:painel_inventario' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Painel Operacional</a>
+      {% else %}
+      <a href="#" class="flow-btn"><span class="btn-dot"></span>Painel Operacional</a>
+      {% endif %}
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Abertura</a>
-      <a href="#" class="flow-btn"><span class="btn-dot"></span>Análise</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Fechamento</a>
     </div>
   </div>

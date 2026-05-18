@@ -116,7 +116,7 @@
 
   {% if inventario_ativo %}
   <div class="inventario-banner">
-    📋 Período de inventário ativo — você pode atualizar as fotos dos seus bens.
+    📋 Inventário ativo: <strong>{{ periodo }}</strong> — registre a situação dos seus bens.
   </div>
   {% endif %}
 
@@ -175,6 +175,14 @@
             <span class="situacao-pill situ-{{ bem.situacion|lower }}">
               {{ bem.get_situacion_display }}
             </span>
+          {% endif %}
+
+          {% if inventario_ativo %}
+            {% if bem.tombo in tombos_registrados %}
+              <span class="situacao-pill" style="background:var(--green-soft);color:var(--green);border-color:var(--green-mid);">✓ Inv. registrado</span>
+            {% else %}
+              <span class="situacao-pill" style="background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);">⚠ Inv. pendente</span>
+            {% endif %}
           {% endif %}
         </div>
 

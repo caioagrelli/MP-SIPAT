@@ -282,18 +282,6 @@
               {% for e in form.current_year.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
             </div>
 
-            <div class="field-group {% if form.current_responsible.errors %}field-has-error{% endif %}">
-              <label for="{{ form.current_responsible.id_for_label }}">Responsável</label>
-              {{ form.current_responsible }}
-              {% for e in form.current_responsible.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-            </div>
-
-            <div class="field-group {% if form.current_registration.errors %}field-has-error{% endif %}">
-              <label for="{{ form.current_registration.id_for_label }}">Matrícula do Responsável</label>
-              {{ form.current_registration }}
-              {% for e in form.current_registration.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-            </div>
-
           </div>
         </div>
 

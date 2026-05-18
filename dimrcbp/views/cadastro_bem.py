@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 from dimrcbp.forms import CadastroBemForm
-from dimrcbp.models import HistoryUas
+from dimrcbp.models import HistoryUas, sincronizar_atribuicao
 
 
 @login_required
@@ -15,13 +15,15 @@ def cadastro_bem(request):
             bem = form.save()
 
             # Cria o HistoryUas vinculado
+            ua_inicial = form.cleaned_data.get('current_ua')
             HistoryUas.objects.create(
                 tombo=bem,
-                current_ua=form.cleaned_data.get('current_ua'),
+                current_ua=ua_inicial,
                 current_year=form.cleaned_data.get('current_year'),
-                current_responsible=form.cleaned_data.get('current_responsible') or '',
-                current_registration=form.cleaned_data.get('current_registration') or '',
             )
+
+            # Atribui o bem ao gestor da UA inicial (se houver)
+            sincronizar_atribuicao(bem, ua_inicial)
 
             messages.success(request, f'Bem "{bem}" cadastrado com sucesso.')
             return redirect('dimrcbp:homepage')

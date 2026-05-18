@@ -17,6 +17,12 @@ def caminho_catalogo(instance, filename):
 
     return f'bens/permanentes/catalogo/{nome_aquivo}'
 
+def caminho_inventario(instance, filename):
+    periodo = getattr(instance, 'n_inventario', None)
+    year = periodo.inicio.year if periodo and periodo.inicio else 'sem_data'
+    tombo = instance.bem.tombo if getattr(instance, 'bem', None) else 'sem_tombo'
+    ext = os.path.splitext(filename)[1]
+    return f'bens/permanentes/inventarios/{year}/{tombo}{ext}'
 
 
 # --- Choices ---
@@ -39,6 +45,12 @@ class EstadoConservacao(models.TextChoices):
     regular = 'REGULAR', 'Regular'
     sucata = 'SUCATA', 'Sucata'
 
+class SituacaoInventario(models.TextChoices):
+    bom = 'BOM', 'Bom'
+    regular = 'REGULAR', 'Regular'
+    precario = 'PRECARIO', 'Precário'
+    sucata = 'SUCATA', 'Sucata'
+
 class GruposPermanentes(models.TextChoices):
     condicionador = 'CONDICIONADOR', 'Condicionador de Ar'
     eletroeletronico = 'ELETROELETRONICO', 'Eletroeletrônico'
@@ -46,6 +58,18 @@ class GruposPermanentes(models.TextChoices):
     mobiliario = 'MOBILIARIO', 'Mobiliário'
     outros = 'OUTROS', 'Outros'
     
+class StatusSolicitacaoCatalogo(models.TextChoices):
+    pendente  = 'PENDENTE',  'Pendente'
+    aprovada  = 'APROVADA',  'Aprovada'
+    rejeitada = 'REJEITADA', 'Rejeitada'
+    cancelada = 'CANCELADA', 'Cancelada'
+
+class StatusSolicitacaoTransferencia(models.TextChoices):
+    pendente  = 'PENDENTE',  'Pendente'
+    aprovada  = 'APROVADA',  'Aprovada'
+    rejeitada = 'REJEITADA', 'Rejeitada'
+    cancelada = 'CANCELADA', 'Cancelada'
+
 class Cores(models.TextChoices):
     BRANCO = 'BRANCO', 'Branco'
     PRETO = 'PRETO', 'Preto'
@@ -88,3 +112,4 @@ class Cores(models.TextChoices):
     IMBUIA = 'IMBUIA', 'Imbuia'
     MOGNO = 'MOGNO', 'Mogno'
     NOGUEIRA = 'NOGUEIRA', 'Nogueira'
+    

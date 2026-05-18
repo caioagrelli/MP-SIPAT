@@ -213,14 +213,10 @@ class HistoryUasAdmin(admin.ModelAdmin):
         'tombo',
         'current_ua',
         'current_year',
-        'current_responsible',
     )
 
     search_fields = (
-        'current_responsible',
-        'current_registration',
-        'last_responsible',
-        'last_registration',
+        'tombo__tombo',
     )
 
     list_filter = (
@@ -247,8 +243,6 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'current_ua',
                 'current_year',
-                'current_responsible',
-                'current_registration',
             )
         }),
 
@@ -256,8 +250,6 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'last_ua',
                 'last_year',
-                'last_responsible',
-                'last_registration',
             )
         }),
 
@@ -265,8 +257,6 @@ class HistoryUasAdmin(admin.ModelAdmin):
             'fields': (
                 'penultimate_ua',
                 'penultimate_year',
-                'penultimate_responsible',
-                'penultimate_registration',
             )
         }),
 
@@ -390,3 +380,39 @@ class UseExternalAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+
+''' MOVIMENTAÇÕES '''
+
+@admin.register(SolicitacaoTransferencia)
+class SolicitacaoTransferenciaAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'bem', 'ua_destino', 'solicitante', 'data', 'status')
+    list_filter   = ('status',)
+    search_fields = ('codigo', 'bem__tombo', 'solicitante__username')
+    readonly_fields = ('codigo', 'data', 'data_decisao')
+
+
+@admin.register(MovimentacaoBem)
+class MovimentacaoBemAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'bem', 'ua_origem', 'ua_destino', 'responsavel', 'data')
+    search_fields = ('codigo', 'bem__tombo')
+    readonly_fields = ('codigo', 'data')
+
+
+''' CATÁLOGO — SOLICITAÇÕES '''
+
+@admin.register(SolicitacaoCatalogo)
+class SolicitacaoCatalogoAdmin(admin.ModelAdmin):
+    list_display  = ('codigo', 'solicitante', 'ua_destino', 'data', 'status')
+    list_filter   = ('status',)
+    search_fields = ('codigo', 'solicitante__username', 'solicitante__first_name', 'solicitante__last_name')
+    readonly_fields = ('codigo', 'data', 'data_decisao')
+
+
+@admin.register(ItemSolicitacaoCatalogo)
+class ItemSolicitacaoCatalogoAdmin(admin.ModelAdmin):
+    list_display  = ('solicitacao', 'catalogo', 'bem_atribuido')
+    search_fields = ('solicitacao__codigo', 'catalogo__description__description')
+    list_filter   = ('solicitacao__status',)
+    autocomplete_fields = ('bem_atribuido',)
+

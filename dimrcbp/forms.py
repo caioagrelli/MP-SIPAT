@@ -1,5 +1,7 @@
+from django.utils import timezone
+
 from django import forms
-from .models import BensPermanentes, Description, Supplier, HistoryUas
+from .models import BensPermanentes, Description, Supplier, HistoryUas, Inventario
 from dempam.models import InfoUA
 
 
@@ -16,19 +18,6 @@ class CadastroBemForm(forms.ModelForm):
         label='Ano de Entrada na UA',
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 2024'}),
     )
-    current_responsible = forms.CharField(
-        max_length=50,
-        required=False,
-        label='Responsável',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
-    )
-    current_registration = forms.CharField(
-        max_length=50,
-        required=False,
-        label='Matrícula do Responsável',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 123456'}),
-    )
-
     class Meta:
         model = BensPermanentes
         fields = [
@@ -55,3 +44,33 @@ class CadastroBemForm(forms.ModelForm):
             'situacion':            forms.Select(attrs={'class': 'form-select'}),
             'photo':                forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+
+
+class InventarioForm(forms.ModelForm):
+    class Meta:
+        model = Inventario
+        fields = ['situation', 'observation', 'photo']
+        widgets = {
+            'situation':   forms.Select(attrs={'class': 'form-select'}),
+            'observation': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Observações sobre o estado do bem…'}),
+            'photo':       forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'situation':   'Situação no Inventário',
+            'observation': 'Observação',
+            'photo':       'Foto do Bem (inventário)',
+        }
+
+
+class AbrirInventarioForm(forms.Form):
+    ano = forms.IntegerField(
+        label='Ano',
+        min_value=2000,
+        max_value=2099,
+        initial=timezone.now().year,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: 2025',
+            'style': 'width:120px;',
+        }),
+    )
