@@ -2,6 +2,7 @@
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
+from django.db import models, transaction
 from django.utils import timezone
 
 # Importações do codigo
@@ -294,20 +295,6 @@ class HistoryUas(models.Model):
         verbose_name='Ano Entrada Ua Atual'
         )
 
-    current_responsible = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Responsável da Ua Atual'
-        )
-
-    current_registration = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Matrícula do Responsável da Ua Atual'
-        )
-
 
     # Ua Anterior
     last_ua = models.ForeignKey(
@@ -325,20 +312,6 @@ class HistoryUas(models.Model):
         verbose_name='Ano Entrada Ua Anterior'
         )
 
-    last_responsible = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Responsável da última Ua'
-        )
-
-    last_registration = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Matrícula do Responsável da Ua Anterior'
-        )
-
 
     # Penúltima Ua
     penultimate_ua = models.ForeignKey(
@@ -354,20 +327,6 @@ class HistoryUas(models.Model):
         blank=True,
         null=True,
         verbose_name='Ano Entrada Ua Penúltima'
-    )
-
-    penultimate_responsible = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Responsável da penúltima'
-    )
-
-    penultimate_registration = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Matrícula do Responsável da Ua penúltima'
     )
 
 
@@ -460,8 +419,8 @@ class UseExternal(models.Model):
         return self.description[:60]
 
 
-'''ATRIBUIÇÃO DE BENS A USUÁRIOS'''
-
+'''ATRIBUIÇÃO DE BENS'''
+# Atribuição de Bens a Usuários
 class AtribuicaoBem(models.Model):
     bem   = models.ForeignKey(
         BensPermanentes,
@@ -469,16 +428,19 @@ class AtribuicaoBem(models.Model):
         related_name='atribuicoes',
         verbose_name='Bem Permanente',
     )
+    
     user  = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name='bens_atribuidos',
         verbose_name='Usuário',
     )
+    
     desde = models.DateField(
         auto_now_add=True,
         verbose_name='Atribuído desde',
     )
+
     ativo = models.BooleanField(
         default=True,
         verbose_name='Atribuição ativa',
@@ -493,6 +455,14 @@ class AtribuicaoBem(models.Model):
         return f'{nome} → Tombo {self.bem.tombo}'
 
 
+def sincronizar_atribuicao(bem, ua):
+    """Desativa atribuições ativas do bem e cria uma nova para o gestor da UA (se houver)."""
+    AtribuicaoBem.objects.filter(bem=bem, ativo=True).update(ativo=False)
+    gestor = getattr(ua, 'gestor', None) if ua else None
+    if gestor:
+        AtribuicaoBem.objects.create(bem=bem, user=gestor, ativo=True)
+
+
 '''HISTÓRICO DE MUDANÇAS'''
 
 class HistoricoMudanca(models.Model):
@@ -502,15 +472,18 @@ class HistoricoMudanca(models.Model):
         related_name='historico_mudancas',
         verbose_name='Bem',
     )
+    
     alterado_por = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name='mudancas_realizadas',
         verbose_name='Alterado por',
     )
+    
     data = models.DateTimeField(auto_now_add=True, verbose_name='Data da Alteração')
+    
     justificativa = models.TextField(blank=True, verbose_name='Justificativa')
-    # JSON: {"campo": {"label": "Rótulo", "de": "valor antigo", "para": "novo valor"}}
+    
     campos = models.JSONField(verbose_name='Campos Alterados')
 
     class Meta:
@@ -529,9 +502,11 @@ class PeriodoInventario(models.Model):
         max_length=100,
         verbose_name='Descrição',
     )
+
     inicio = models.DateField(
         verbose_name='Início',
     )
+
     fim = models.DateField(
         verbose_name='Fim',
     )
@@ -548,7 +523,346 @@ class PeriodoInventario(models.Model):
     def em_andamento(cls):
         hoje = timezone.now().date()
         return cls.objects.filter(inicio__lte=hoje, fim__gte=hoje).exists()
+
+    @classmethod
+    def get_periodo_ativo(cls):
+        hoje = timezone.now().date()
+        return cls.objects.filter(inicio__lte=hoje, fim__gte=hoje).first()
+
+# Registro do bem em um período de inventário — um bem só pode ser registrado uma vez por inventário
+class Inventario(models.Model):
+    n_inventario = models.ForeignKey(
+        PeriodoInventario,
+        on_delete=models.PROTECT,
+        related_name='n_inventarios',
+        verbose_name='Período de Inventário',
+    )
+
+    bem = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        related_name='inventarios',
+        verbose_name='Bem',
+    )
+
+    photo = models.ImageField(
+        upload_to=caminho_inventario,
+        verbose_name='Foto do Inventário',
+    )
+
+    observation = models.TextField(
+        blank=True,
+        verbose_name='Observação do Inventário',
+    )
+
+    situation = models.CharField(
+        max_length=20,
+        choices=SituacaoInventario.choices,
+        verbose_name='Situação no Inventário',
+    )
+
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='registros_inventario',
+        verbose_name='Registrado por',
+    )
+
+    data_registro = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data do Registro',
+    )
+
+    class Meta:
+        verbose_name        = 'Registro de Inventário'
+        verbose_name_plural = '10 - Registros de Inventário'
+        ordering            = ['-n_inventario__inicio', 'bem__tombo']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['n_inventario', 'bem'],
+                name='unique_bem_por_inventario',
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.n_inventario} — Tombo {self.bem.tombo}'
+
     
+
+'''SOLICITAÇÕES DO CATÁLOGO (CARRINHO)'''
+
+class SolicitacaoCatalogo(models.Model):
+    codigo = models.CharField(
+        max_length=30, unique=True, editable=False, verbose_name='Código',
+    )
+    
+    solicitante = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        related_name='solicitacoes_catalogo', verbose_name='Solicitante',
+    )
+    
+    ua_destino = models.ForeignKey(
+        InfoUA, on_delete=models.PROTECT,
+        related_name='solicitacoes_catalogo', verbose_name='UA Destino',
+    )
+    
+    status = models.CharField(
+        max_length=15,
+        choices=StatusSolicitacaoCatalogo.choices,
+        default=StatusSolicitacaoCatalogo.pendente,
+        verbose_name='Status',
+    )
+    
+    data = models.DateTimeField(auto_now_add=True, verbose_name='Data')
+    
+    observacao = models.TextField(blank=True, verbose_name='Observação')
+    
+    obs_decisao = models.TextField(blank=True, verbose_name='Obs. Decisão')
+    
+    decidido_por = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='decisoes_catalogo', verbose_name='Decidido por',
+    )
+    
+    data_decisao = models.DateTimeField(null=True, blank=True, verbose_name='Data Decisão')
+
+    class Meta:
+        verbose_name        = 'Solicitação Catálogo'
+        verbose_name_plural = '13 - Solicitações Catálogo'
+        ordering            = ['-data']
+
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            n = SolicitacaoCatalogo.objects.filter(codigo__startswith=f'STC-{ano}').count() + 1
+            self.codigo = f'STC-{ano}-{n:04d}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.codigo
+
+    @property
+    def total_itens(self):
+        return self.itens.count()
+
+    @property
+    def atendida(self):
+        return self.itens.filter(bem_atribuido__isnull=False).count() == self.itens.count()
+
+
+class ItemSolicitacaoCatalogo(models.Model):
+    solicitacao = models.ForeignKey(
+        SolicitacaoCatalogo, on_delete=models.CASCADE,
+        related_name='itens', verbose_name='Solicitação',
+    )
+
+    catalogo = models.ForeignKey(
+        'Catalogo', on_delete=models.PROTECT,
+        related_name='itens_solicitados', verbose_name='Item do Catálogo',
+    )
+
+    observacao = models.TextField(blank=True, verbose_name='Observação do Item')
+
+    bem_atribuido = models.ForeignKey(
+        BensPermanentes, on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='atribuicoes_catalogo', verbose_name='Bem Atribuído',
+    )
+
+    class Meta:
+        verbose_name        = 'Item Solicitação Catálogo'
+        verbose_name_plural = '14 - Itens Solicitação Catálogo'
+
+    def __str__(self):
+        return f'{self.solicitacao} → {self.catalogo}'
+
+
+'''SOLICITAÇÕES DE TRANSFERÊNCIA'''
+
+class SolicitacaoTransferencia(models.Model):
+    codigo = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name='Código',
+    )
+
+    bem = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        related_name='solicitacoes_transferencia',
+        verbose_name='Bem',
+    )
+
+    ua_destino = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        related_name='solicitacoes_recebimento',
+        verbose_name='UA Destino',
+    )
+
+    solicitante = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='solicitacoes_transferencia',
+        verbose_name='Solicitante',
+    )
+
+    data = models.DateTimeField(auto_now_add=True, verbose_name='Data da Solicitação')
+
+    motivo = models.TextField(verbose_name='Motivo / Justificativa')
+
+    status = models.CharField(
+        max_length=15,
+        choices=StatusSolicitacaoTransferencia.choices,
+        default=StatusSolicitacaoTransferencia.pendente,
+        verbose_name='Status',
+    )
+
+    obs_decisao = models.TextField(blank=True, verbose_name='Observação da Decisão')
+
+    decidido_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='decisoes_transferencia',
+        verbose_name='Decidido por',
+    )
+
+    data_decisao = models.DateTimeField(null=True, blank=True, verbose_name='Data da Decisão')
+
+    class Meta:
+        verbose_name        = 'Solicitação de Transferência'
+        verbose_name_plural = '11 - Solicitações de Transferência'
+        ordering            = ['-data']
+
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            ultimo = SolicitacaoTransferencia.objects.filter(
+                codigo__startswith=f'STF-{ano}'
+            ).count() + 1
+            self.codigo = f'STF-{ano}-{ultimo:04d}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.codigo
+
+
+'''MOVIMENTAÇÕES DE BENS PERMANENTES'''
+
+class MovimentacaoBem(models.Model):
+    codigo = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name='Código',
+    )
+
+    bem = models.ForeignKey(
+        BensPermanentes,
+        on_delete=models.PROTECT,
+        related_name='movimentacoes',
+        verbose_name='Bem',
+    )
+
+    ua_origem = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='saidas_movimentacao',
+        verbose_name='UA Origem',
+    )
+
+    ua_destino = models.ForeignKey(
+        InfoUA,
+        on_delete=models.PROTECT,
+        related_name='entradas_movimentacao',
+        verbose_name='UA Destino',
+    )
+
+    responsavel = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='movimentacoes_realizadas',
+        verbose_name='Responsável',
+    )
+
+    data = models.DateTimeField(auto_now_add=True, verbose_name='Data da Movimentação')
+
+    motivo = models.TextField(blank=True, verbose_name='Motivo')
+
+    solicitacao = models.OneToOneField(
+        SolicitacaoTransferencia,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='movimentacao',
+        verbose_name='Solicitação Origem',
+    )
+
+    class Meta:
+        verbose_name        = 'Movimentação de Bem'
+        verbose_name_plural = '12 - Movimentações de Bens'
+        ordering            = ['-data']
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
+        if not self.codigo:
+            ano = timezone.now().year
+            ultimo = MovimentacaoBem.objects.filter(
+                codigo__startswith=f'TRF-{ano}'
+            ).count() + 1
+            self.codigo = f'TRF-{ano}-{ultimo:04d}'
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            if is_new:
+                # Atualiza HistoryUas: desloca current→last→penultimate→third_last
+                try:
+                    history = self.bem.history_tombo
+                    history.third_last_ua   = history.penultimate_ua
+                    history.third_last_year = history.penultimate_year
+
+                    history.penultimate_ua   = history.last_ua
+                    history.penultimate_year = history.last_year
+
+                    history.last_ua   = history.current_ua
+                    history.last_year = history.current_year
+
+                    history.current_ua   = self.ua_destino
+                    history.current_year = self.data.year if self.data else timezone.now().year
+                    history.save()
+                except Exception:
+                    pass
+
+                # Atualiza responsável: desativa atribuições antigas e cria para o gestor da UA destino
+                sincronizar_atribuicao(self.bem, self.ua_destino)
+
+                # Registra no HistoricoMudanca
+                ua_origem_label  = str(self.ua_origem.ua)  if self.ua_origem  else '—'
+                ua_destino_label = str(self.ua_destino.ua) if self.ua_destino else '—'
+                HistoricoMudanca.objects.create(
+                    bem=self.bem,
+                    alterado_por=self.responsavel,
+                    justificativa=f'Transferência {self.codigo}',
+                    campos={
+                        'current_ua': {
+                            'label': 'UA Atual',
+                            'de':    ua_origem_label,
+                            'para':  ua_destino_label,
+                        }
+                    },
+                )
+
+    def __str__(self):
+        return self.codigo
+
 
 class Catalogo(models.Model):
     efisco = models.CharField(
