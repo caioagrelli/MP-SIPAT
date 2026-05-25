@@ -90,4 +90,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_RP_SCOPES = "openid email profile"
 OIDC_USE_PKCE = True
-OIDC_CREATE_USER = True
+OIDC_CREATE_USER = False
