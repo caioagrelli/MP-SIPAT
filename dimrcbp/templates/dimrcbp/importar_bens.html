@@ -1,0 +1,246 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Importar Bens Permanentes{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --yellow: #92400e; --yellow-soft: #fffbeb; --yellow-mid: #fde68a;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  .apage { font-family: var(--font); padding: 28px 24px 48px; color: var(--ink); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1.5px solid transparent;
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: var(--shadow-sm); }
+  .btn-primary:hover { background: #1e40af; border-color: #1e40af; }
+
+  .card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r-lg); padding: 28px 28px 24px;
+    box-shadow: var(--shadow-sm); margin-bottom: 24px;
+  }
+  .card-title { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 18px; }
+
+  .form-label { font-size: .82rem; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; display: block; }
+  .form-control {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm); font-family: var(--font); font-size: .88rem;
+    color: var(--ink); background: var(--surface-2);
+    transition: border-color .15s;
+  }
+  .form-control:focus { outline: none; border-color: var(--blue); background: #fff; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .checkbox-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+  .checkbox-row label { font-size: .88rem; color: var(--ink-2); cursor: pointer; }
+
+  .info-box {
+    background: var(--blue-soft); border: 1.5px solid var(--blue-mid);
+    border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 20px;
+    font-size: .83rem; color: var(--ink-2); line-height: 1.6;
+  }
+  .info-box strong { color: var(--ink); }
+
+  /* Resumo de resultado */
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .summary-card {
+    border-radius: var(--r-md); padding: 18px 20px; border: 1.5px solid;
+  }
+  .summary-card.green { background: var(--green-soft); border-color: var(--green-mid); }
+  .summary-card.yellow { background: var(--yellow-soft); border-color: var(--yellow-mid); }
+  .summary-card.red { background: var(--red-soft); border-color: var(--red-mid); }
+  .summary-num { font-size: 2rem; font-weight: 800; letter-spacing: -.04em; }
+  .summary-card.green .summary-num { color: var(--green); }
+  .summary-card.yellow .summary-num { color: var(--yellow); }
+  .summary-card.red .summary-num { color: var(--red); }
+  .summary-label { font-size: .82rem; font-weight: 600; margin-top: 2px; color: var(--ink-3); }
+
+  /* Tabela de resultados */
+  .results-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+  .results-table th {
+    background: var(--surface-2); border-bottom: 1.5px solid var(--border);
+    padding: 9px 12px; text-align: left; font-weight: 700; color: var(--ink-2);
+  }
+  .results-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .results-table tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block; padding: 3px 9px; border-radius: 99px;
+    font-size: .73rem; font-weight: 700; letter-spacing: .02em;
+  }
+  .badge-green { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-mid); }
+  .badge-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid var(--yellow-mid); }
+  .badge-red { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-mid); }
+
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: .80rem; }
+
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-tab {
+    padding: 6px 14px; border-radius: 99px; font-size: .80rem; font-weight: 600;
+    border: 1.5px solid var(--border-strong); background: var(--surface);
+    color: var(--ink-2); cursor: pointer; transition: all .15s;
+  }
+  .filter-tab.active, .filter-tab:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  @media (max-width: 600px) {
+    .summary { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="apage">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Importar Bens Permanentes</div>
+      <div class="topbar-sub">Carga em lote a partir de planilha .xlsx</div>
+    </div>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Voltar</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div style="background:var(--red-soft);border:1.5px solid var(--red-mid);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:16px;color:var(--red);font-size:.88rem;font-weight:600;">
+        {{ m }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not concluido %}
+  <!-- Formulário de upload -->
+  <div class="card">
+    <div class="card-title">Selecionar Planilha</div>
+
+    <div class="info-box">
+      <strong>Colunas esperadas na primeira linha da planilha:</strong><br>
+      TOMBAMENTO LEGADO · DESCRIÇÃO · TIPO DO BEM · MARCA · FABRICANTE · MODELO ·
+      NÚMERO DE SÉRIE · CNPJ FORNECEDOR · DATA AQUISICAO · DATA DA ENTREGA ·
+      GARANTIA EM DIAS · VALOR UNITÁRIO · SITUAÇÃO FÍSICA · ESTADO DE CONSERVÇÃO ·
+      FORMA DE INGRESSO · NÚMERO DO EMPENHO · NÚMERO DO PROCESSO · MODALIDADE · UNIDADE GESTORA
+      <br><br>
+      <strong>Observações:</strong> Descricões e tipos de bem não encontrados no cadastro serão criados automaticamente
+      no grupo <em>"Importado"</em>. Fornecedores são buscados pelo CNPJ.
+      UAs são buscadas pelo código exato do campo <em>UNIDADE GESTORA</em>.
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="margin-bottom:16px;">
+        <label class="form-label" for="arquivo">Arquivo .xlsx</label>
+        <input type="file" id="arquivo" name="arquivo" accept=".xlsx" class="form-control" required>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="sobrescrever" name="sobrescrever" value="1">
+        <label for="sobrescrever">Sobrescrever bens que já existem (pelo tombo)</label>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button type="submit" class="btn btn-primary">Importar Planilha</button>
+      </div>
+    </form>
+  </div>
+
+  {% else %}
+  <!-- Resultado da importação -->
+  <div class="summary">
+    <div class="summary-card green">
+      <div class="summary-num">{{ criados|length }}</div>
+      <div class="summary-label">Importados</div>
+    </div>
+    <div class="summary-card yellow">
+      <div class="summary-num">{{ pulados|length }}</div>
+      <div class="summary-label">Pulados (já existiam)</div>
+    </div>
+    <div class="summary-card red">
+      <div class="summary-num">{{ erros|length }}</div>
+      <div class="summary-label">Erros</div>
+    </div>
+  </div>
+
+  {% if erros %}
+  <div style="background:var(--red-soft);border:1.5px solid var(--red-mid);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;font-size:.85rem;color:var(--red);">
+    <strong>Atenção:</strong> {{ erros|length }} registro(s) não puderam ser importados. Veja os detalhes abaixo.
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-title">Detalhes da Importação</div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filtrar('todos', this)">Todos ({{ resultados|length }})</button>
+      <button class="filter-tab" onclick="filtrar('criado', this)">Importados ({{ criados|length }})</button>
+      <button class="filter-tab" onclick="filtrar('pulado', this)">Pulados ({{ pulados|length }})</button>
+      <button class="filter-tab" onclick="filtrar('erro', this)">Erros ({{ erros|length }})</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="results-table" id="results-table">
+        <thead>
+          <tr>
+            <th>Tombo</th>
+            <th>Status</th>
+            <th>Mensagem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in resultados %}
+          <tr data-status="{{ r.status }}">
+            <td class="mono">{{ r.tombo }}</td>
+            <td>
+              {% if r.status == 'criado' %}
+                <span class="badge badge-green">Importado</span>
+              {% elif r.status == 'pulado' %}
+                <span class="badge badge-yellow">Pulado</span>
+              {% else %}
+                <span class="badge badge-red">Erro</span>
+              {% endif %}
+            </td>
+            <td style="color:var(--ink-3);">{{ r.msg }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="{% url 'dimrcbp:importar_bens' %}" class="btn btn-primary">Nova Importação</a>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">Ir para o Painel</a>
+  </div>
+
+  <script>
+    function filtrar(status, btn) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#results-table tbody tr').forEach(tr => {
+        tr.style.display = (status === 'todos' || tr.dataset.status === status) ? '' : 'none';
+      });
+    }
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

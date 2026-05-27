@@ -1,6 +1,7 @@
 from .homepage             import homepage
 from .meus_bens            import meus_bens, detalhe_bem, atualizar_foto, registrar_inventario
 from .cadastro_bem         import cadastro_bem
+from .importar_bens        import importar_bens
 from .filtros_operacionais import filtros_operacionais
 from .bem_detalhe_admin    import bem_detalhe_admin
 from .qrcode_bem           import qrcode_bem

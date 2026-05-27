@@ -6,6 +6,7 @@ app_name = 'dimrcbp'
 urlpatterns = [
     path('',                                            homepage,             name='homepage'),
     path('cadastro-bem/',                               cadastro_bem,         name='cadastro_bem'),
+    path('importar-bens/',                              importar_bens,        name='importar_bens'),
     path('consultas/filtros-operacionais/',             filtros_operacionais, name='filtros_operacionais'),
     path('consultas/bem/<str:tombo>/',                  bem_detalhe_admin,    name='bem_detalhe_admin'),
     path('consultas/bem/<str:tombo>/qrcode/',           qrcode_bem,           name='qrcode_bem'),
