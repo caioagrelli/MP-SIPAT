@@ -27,6 +27,5 @@ media/
 .DS_Store
 Thumbs.db
 
-# Planilhas de migração (dados sensíveis)
-*.xlsx
+# Planilhas temporárias do Office
 ~$*.xlsx
