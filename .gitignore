@@ -8,6 +8,7 @@ venv/
 # Variáveis de ambiente
 .env
 .env.*
+!.env.example
 
 # Database
 db.sqlite3
