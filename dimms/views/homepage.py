@@ -14,6 +14,7 @@ from ..models import Estoque, BensConsumo
 
 ''' Homepage '''
 # Página Principail
+@login_required
 def homepage(request):
 
     query = request.GET.get('q', '').strip()
