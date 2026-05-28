@@ -7,6 +7,9 @@ urlpatterns = [
     # Url's da Homepage 
     path('', homepage, name='homepage'),
 
+    # Busca de UA (autocomplete)
+    path("uas/search/", ua_search, name="ua_search"),
+
     # Url's das UAs (Unidades Administrativas)
     path("uas/", ua_homepage, name="ua_homepage"),
     path("uas/add/", ua_add, name="ua_add"),

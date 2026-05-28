@@ -395,9 +395,17 @@
           <div class="card-body">
             <div class="form-grid">
 
-              <div class="form-group">
+              <div class="form-group" style="position:relative;">
                 <label class="form-label">Solicitante (UA)</label>
-                {{ form.ua_order }}
+                <input type="text"
+                       id="ua-text"
+                       placeholder="Digite o nome da UA…"
+                       autocomplete="off">
+                <input type="hidden"
+                       name="ua_order"
+                       id="id_ua_order">
+                <div class="efisco-dropdown" id="ua-dropdown" style="display:none;"></div>
+                <div class="efisco-selected" id="ua-selected" style="display:none;"></div>
               </div>
 
               <div class="form-group">
@@ -564,7 +572,7 @@
   }
   .efisco-option .efisco-desc {
     color: var(--ink-2); font-size: .8rem; margin-top: 1px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word;
   }
   .efisco-option .efisco-qty {
     color: var(--ink-3); font-size: .75rem; margin-top: 2px;
@@ -764,6 +772,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Começa com 1 item
   addItem();
+
+  /* ── Autocomplete da UA ── */
+  const UA_SEARCH_URL = "{% url 'dempam:ua_search' %}";
+  const uaText     = document.getElementById('ua-text');
+  const uaHidden   = document.getElementById('id_ua_order');
+  const uaDrop     = document.getElementById('ua-dropdown');
+  const uaSelected = document.getElementById('ua-selected');
+  let uaTimer      = null;
+
+  function closeUaDrop() { uaDrop.style.display = 'none'; uaDrop.innerHTML = ''; }
+
+  function selectUa(ua) {
+    uaHidden.value = ua.id;
+    uaSelected.innerHTML = `
+      <span><strong>${ua.ua}</strong>${ua.responsavel_ua ? ' · ' + ua.responsavel_ua : ''}</span>
+      <button type="button" class="efisco-clear" title="Limpar">✕</button>
+    `;
+    uaSelected.style.display = 'flex';
+    uaText.style.display = 'none';
+    closeUaDrop();
+  }
+
+  uaSelected.addEventListener('click', e => {
+    if (e.target.classList.contains('efisco-clear')) {
+      uaHidden.value = '';
+      uaText.value = '';
+      uaSelected.innerHTML = '';
+      uaSelected.style.display = 'none';
+      uaText.style.display = '';
+      uaText.focus();
+    }
+  });
+
+  uaText.addEventListener('input', () => {
+    clearTimeout(uaTimer);
+    const q = uaText.value.trim();
+    if (q.length < 2) { closeUaDrop(); return; }
+    uaTimer = setTimeout(() => {
+      fetch(`${UA_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          closeUaDrop();
+          if (!data.length) {
+            uaDrop.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhuma UA encontrada</div>';
+            uaDrop.style.display = 'block';
+            return;
+          }
+          data.forEach(ua => {
+            const opt = document.createElement('div');
+            opt.className = 'efisco-option';
+            opt.innerHTML = `
+              <div class="efisco-code">${ua.ua}</div>
+              ${ua.responsavel_ua ? `<div class="efisco-desc">${ua.responsavel_ua}</div>` : ''}
+            `;
+            opt.addEventListener('mousedown', e => { e.preventDefault(); selectUa(ua); });
+            uaDrop.appendChild(opt);
+          });
+          uaDrop.style.display = 'block';
+        });
+    }, 250);
+  });
+
+  uaText.addEventListener('blur', () => setTimeout(closeUaDrop, 200));
+  uaText.addEventListener('keydown', e => { if (e.key === 'Escape') closeUaDrop(); });
 });
 </script>
 

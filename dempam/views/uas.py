@@ -117,3 +117,18 @@ def ua_update(request, pk):
         "page_title": "Editar UA",
         "button_label": "Atualizar UA",
     })
+
+# Busca de UA por nome (autocomplete)
+@login_required
+def ua_search(request):
+    from django.http import JsonResponse
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse([], safe=False)
+    uas = (
+        InfoUA.objects
+        .filter(Q(ua__icontains=q) | Q(responsavel_ua__icontains=q))
+        .values('id', 'ua', 'responsavel_ua')
+        [:20]
+    )
+    return JsonResponse(list(uas), safe=False)
