@@ -79,36 +79,38 @@ def criar_solicitacao(request):
         bem_pre = BensPermanentes.objects.filter(tombo=tombo).first()
 
     if request.method == 'POST':
-        bem_id     = request.POST.get('bem')
+        bem_ids    = request.POST.getlist('bem')
         ua_dest_id = request.POST.get('ua_destino')
         motivo     = request.POST.get('motivo', '').strip()
 
         errors = []
-        if not bem_id:
-            errors.append('Selecione o bem.')
+        if not bem_ids:
+            errors.append('Selecione ao menos um bem.')
         if not ua_dest_id:
             errors.append('Selecione a UA destino.')
         if not motivo:
             errors.append('Informe o motivo.')
 
+        bens_validos = []
         if not errors:
-            bem       = get_object_or_404(BensPermanentes, pk=bem_id)
             ua_destino = get_object_or_404(InfoUA, pk=ua_dest_id)
-
-            pendente_existente = SolicitacaoTransferencia.objects.filter(
-                bem=bem, status='PENDENTE'
-            ).exists()
-            if pendente_existente:
-                errors.append('Já existe uma solicitação pendente para este bem.')
+            for bid in bem_ids:
+                bem = get_object_or_404(BensPermanentes, pk=bid)
+                if SolicitacaoTransferencia.objects.filter(bem=bem, status='PENDENTE').exists():
+                    errors.append(f'Já existe uma solicitação pendente para o bem {bem.tombo}.')
+                else:
+                    bens_validos.append(bem)
 
         if not errors:
-            SolicitacaoTransferencia.objects.create(
-                bem=bem,
-                ua_destino=ua_destino,
-                solicitante=request.user,
-                motivo=motivo,
-            )
-            messages.success(request, 'Solicitação de transferência criada com sucesso.')
+            for bem in bens_validos:
+                SolicitacaoTransferencia.objects.create(
+                    bem=bem,
+                    ua_destino=ua_destino,
+                    solicitante=request.user,
+                    motivo=motivo,
+                )
+            qty = len(bens_validos)
+            messages.success(request, f'{qty} solicitação(ões) de transferência criada(s) com sucesso.')
             return redirect('dimrcbp:lista_solicitacoes')
 
         for e in errors:

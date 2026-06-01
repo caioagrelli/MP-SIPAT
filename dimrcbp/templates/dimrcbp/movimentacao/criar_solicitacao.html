@@ -3,6 +3,7 @@
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
   :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
   *,*::before,*::after{box-sizing:border-box;}
@@ -36,10 +37,22 @@
 
   .form-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:8px;}
 
-  /* Bem info box */
-  .bem-info{background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:var(--r-sm);padding:14px 16px;font-size:.85rem;color:var(--ink-2);margin-top:8px;display:none;}
-  .bem-info.visible{display:block;}
-  .bem-info-title{font-weight:700;color:var(--ink);font-size:.9rem;margin-bottom:4px;}
+  /* Tom Select overrides */
+  .ts-wrapper{font-family:var(--font);}
+  .ts-wrapper .ts-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:7px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);min-height:42px;box-shadow:none;}
+  .ts-wrapper.focus .ts-control{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .ts-wrapper .ts-control .item{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:.8rem;font-weight:600;font-family:var(--mono);}
+  .ts-wrapper .ts-control .item .remove{color:var(--blue);opacity:.7;margin-left:4px;}
+  .ts-dropdown{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);box-shadow:var(--shadow-md);font-family:var(--font);font-size:.87rem;}
+  .ts-dropdown .option{padding:9px 14px;color:var(--ink);}
+  .ts-dropdown .option:hover,.ts-dropdown .option.active{background:var(--blue-soft);color:var(--blue);}
+  .ts-dropdown .option .opt-tombo{font-family:var(--mono);font-weight:700;color:var(--blue);font-size:.82rem;}
+  .ts-dropdown .option .opt-desc{color:var(--ink-2);font-size:.82rem;margin-top:1px;}
+  .ts-dropdown .no-results{padding:10px 14px;color:var(--ink-3);}
+
+  /* UA select */
+  select.form-select-ua{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s;}
+  select.form-select-ua:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
 </style>
 
 <div class="apage">
@@ -53,7 +66,7 @@
   <div class="topbar">
     <div>
       <div class="topbar-title">📝 Nova Solicitação de Transferência</div>
-      <div class="topbar-sub">Solicite a transferência de um bem permanente para outra UA.</div>
+      <div class="topbar-sub">Solicite a transferência de um ou mais bens permanentes para outra UA.</div>
     </div>
     <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="btn btn-ghost">← Voltar</a>
   </div>
@@ -71,29 +84,20 @@
         {% csrf_token %}
 
         <div class="field-group">
-          <label for="id_bem">Bem Permanente</label>
-          <select id="id_bem" name="bem" class="form-control" required onchange="showBemInfo(this)">
-            <option value="">— Selecione o bem —</option>
+          <label for="id_bem">Bens Permanentes <span style="font-weight:400;color:var(--ink-3);">(pesquise pelo tombo ou descrição — pode selecionar vários)</span></label>
+          <select id="id_bem" name="bem" multiple required>
             {% for b in bens %}
             <option value="{{ b.pk }}"
-              data-tombo="{{ b.tombo }}"
-              data-desc="{{ b.description }}"
-              data-ua="{% if b.history_tombo %}{{ b.history_tombo.current_ua.ua|default:'—' }}{% else %}—{% endif %}"
               {% if bem_pre and b.pk == bem_pre.pk %}selected{% endif %}>
               {{ b.tombo }} — {{ b.description }}
             </option>
             {% endfor %}
           </select>
-          <div class="bem-info" id="bemInfoBox">
-            <div class="bem-info-title" id="bemInfoDesc"></div>
-            <div>Tombo: <strong id="bemInfoTombo" style="font-family:var(--mono);"></strong></div>
-            <div>UA Atual: <strong id="bemInfoUA"></strong></div>
-          </div>
         </div>
 
         <div class="field-group">
-          <label for="id_ua_destino">UA Destino (para onde o bem deve ir)</label>
-          <select id="id_ua_destino" name="ua_destino" class="form-control" required>
+          <label for="id_ua_destino">UA Destino (para onde os bens devem ir)</label>
+          <select id="id_ua_destino" name="ua_destino" class="form-select-ua" required>
             <option value="">— Selecione a UA —</option>
             {% for ua in uas %}
             <option value="{{ ua.pk }}">{{ ua.ua }}</option>
@@ -117,20 +121,32 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
-function showBemInfo(sel) {
-  const opt = sel.options[sel.selectedIndex];
-  const box = document.getElementById('bemInfoBox');
-  if (!opt.value) { box.classList.remove('visible'); return; }
-  document.getElementById('bemInfoDesc').textContent  = opt.dataset.desc  || '—';
-  document.getElementById('bemInfoTombo').textContent = opt.dataset.tombo || '—';
-  document.getElementById('bemInfoUA').textContent    = opt.dataset.ua    || '—';
-  box.classList.add('visible');
-}
-// Inicializa se ja houver bem pré-selecionado
-window.addEventListener('DOMContentLoaded', () => {
-  const sel = document.getElementById('id_bem');
-  if (sel.value) showBemInfo(sel);
+new TomSelect('#id_bem', {
+  plugins: ['remove_button', 'clear_button'],
+  placeholder: 'Digite o tombo ou descrição para pesquisar…',
+  maxOptions: 200,
+  render: {
+    option: function(data, escape) {
+      const parts = escape(data.text).split(' — ');
+      const tombo = parts[0] || '';
+      const desc  = parts.slice(1).join(' — ') || '';
+      return `<div class="option">
+        <div class="opt-tombo">${tombo}</div>
+        <div class="opt-desc">${desc}</div>
+      </div>`;
+    },
+    item: function(data, escape) {
+      const tombo = escape(data.text).split(' — ')[0] || escape(data.text);
+      return `<div>${tombo}</div>`;
+    },
+  },
+});
+
+new TomSelect('#id_ua_destino', {
+  placeholder: 'Digite para pesquisar a UA…',
+  maxOptions: 300,
 });
 </script>
 {% endblock %}

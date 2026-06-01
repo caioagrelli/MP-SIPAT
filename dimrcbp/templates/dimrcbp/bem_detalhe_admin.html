@@ -348,12 +348,10 @@
               UA Atual{% if h.current_year %} · {{ h.current_year }}{% endif %}
             </span>
           </div>
-          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.current_ua.ua }}</div>
-          {% with gestor=h.current_ua.gestor %}
-          {% if gestor %}
-          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
-          {% endif %}
-          {% endwith %}
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink); margin-bottom:6px;">{{ h.current_ua.ua }}</div>
+          {% if h.current_ua.responsavel_ua %}<div style="font-size:.78rem; color:var(--ink-2); font-weight:600;">{{ h.current_ua.responsavel_ua }}</div>{% endif %}
+          {% if h.current_ua.mat_resp_ua %}<div style="font-size:.75rem; color:var(--ink-3); font-family:var(--mono);">Mat. {{ h.current_ua.mat_resp_ua }}</div>{% endif %}
+          {% if h.current_ua.email_ua %}<div style="font-size:.75rem; color:var(--ink-3); margin-top:2px;">{{ h.current_ua.email_ua }}</div>{% endif %}
         </div>
         {% endif %}
 
@@ -365,12 +363,10 @@
               UA Anterior{% if h.last_year %} · {{ h.last_year }}{% endif %}
             </span>
           </div>
-          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.last_ua.ua }}</div>
-          {% with gestor=h.last_ua.gestor %}
-          {% if gestor %}
-          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
-          {% endif %}
-          {% endwith %}
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink); margin-bottom:6px;">{{ h.last_ua.ua }}</div>
+          {% if h.last_ua.responsavel_ua %}<div style="font-size:.78rem; color:var(--ink-2); font-weight:600;">{{ h.last_ua.responsavel_ua }}</div>{% endif %}
+          {% if h.last_ua.mat_resp_ua %}<div style="font-size:.75rem; color:var(--ink-3); font-family:var(--mono);">Mat. {{ h.last_ua.mat_resp_ua }}</div>{% endif %}
+          {% if h.last_ua.email_ua %}<div style="font-size:.75rem; color:var(--ink-3); margin-top:2px;">{{ h.last_ua.email_ua }}</div>{% endif %}
         </div>
         {% endif %}
 
@@ -382,12 +378,10 @@
               Penúltima{% if h.penultimate_year %} · {{ h.penultimate_year }}{% endif %}
             </span>
           </div>
-          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.penultimate_ua.ua }}</div>
-          {% with gestor=h.penultimate_ua.gestor %}
-          {% if gestor %}
-          <div style="font-size:.78rem; color:var(--ink-3); margin-top:4px;">{{ gestor.get_full_name|default:gestor.username }}</div>
-          {% endif %}
-          {% endwith %}
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink); margin-bottom:6px;">{{ h.penultimate_ua.ua }}</div>
+          {% if h.penultimate_ua.responsavel_ua %}<div style="font-size:.78rem; color:var(--ink-2); font-weight:600;">{{ h.penultimate_ua.responsavel_ua }}</div>{% endif %}
+          {% if h.penultimate_ua.mat_resp_ua %}<div style="font-size:.75rem; color:var(--ink-3); font-family:var(--mono);">Mat. {{ h.penultimate_ua.mat_resp_ua }}</div>{% endif %}
+          {% if h.penultimate_ua.email_ua %}<div style="font-size:.75rem; color:var(--ink-3); margin-top:2px;">{{ h.penultimate_ua.email_ua }}</div>{% endif %}
         </div>
         {% endif %}
 
@@ -399,7 +393,10 @@
               Antepenúltima{% if h.third_last_year %} · {{ h.third_last_year }}{% endif %}
             </span>
           </div>
-          <div style="font-size:.9rem; font-weight:700; color:var(--ink);">{{ h.third_last_ua.ua }}</div>
+          <div style="font-size:.9rem; font-weight:700; color:var(--ink); margin-bottom:6px;">{{ h.third_last_ua.ua }}</div>
+          {% if h.third_last_ua.responsavel_ua %}<div style="font-size:.78rem; color:var(--ink-2); font-weight:600;">{{ h.third_last_ua.responsavel_ua }}</div>{% endif %}
+          {% if h.third_last_ua.mat_resp_ua %}<div style="font-size:.75rem; color:var(--ink-3); font-family:var(--mono);">Mat. {{ h.third_last_ua.mat_resp_ua }}</div>{% endif %}
+          {% if h.third_last_ua.email_ua %}<div style="font-size:.75rem; color:var(--ink-3); margin-top:2px;">{{ h.third_last_ua.email_ua }}</div>{% endif %}
         </div>
         {% endif %}
 
