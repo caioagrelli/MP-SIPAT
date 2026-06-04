@@ -187,6 +187,8 @@ class BensPermanentes(models.Model):
         )
     
     acquisition_date = models.DateField(
+        blank=True,
+        null=True,
         verbose_name='Data da Aquisição'
         )
 
@@ -678,7 +680,7 @@ class ItemSolicitacaoCatalogo(models.Model):
         return f'{self.solicitacao} → {self.catalogo}'
 
 
-'''SOLICITAÇÕES DE TRANSFERÊNCIA'''
+'''TRANSFERÊNCIA BEM PERMANENTE'''
 
 class SolicitacaoTransferencia(models.Model):
     codigo = models.CharField(
@@ -750,9 +752,6 @@ class SolicitacaoTransferencia(models.Model):
     def __str__(self):
         return self.codigo
 
-
-'''MOVIMENTAÇÕES DE BENS PERMANENTES'''
-
 class MovimentacaoBem(models.Model):
     codigo = models.CharField(
         max_length=30,
@@ -810,59 +809,42 @@ class MovimentacaoBem(models.Model):
         ordering            = ['-data']
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
-
         if not self.codigo:
             ano = timezone.now().year
             ultimo = MovimentacaoBem.objects.filter(
                 codigo__startswith=f'TRF-{ano}'
             ).count() + 1
             self.codigo = f'TRF-{ano}-{ultimo:04d}'
+        super().save(*args, **kwargs)
 
-        with transaction.atomic():
-            super().save(*args, **kwargs)
+        # Atualiza o histórico de UAs do bem
+        try:
+            hist = self.bem.history_tombo
+            hist.penultimate_ua   = hist.last_ua
+            hist.penultimate_year = hist.last_year
+            hist.last_ua          = hist.current_ua
+            hist.last_year        = hist.current_year
+            hist.current_ua       = self.ua_destino
+            hist.current_year     = timezone.now().year
+            hist.save()
+        except HistoryUas.DoesNotExist:
+            HistoryUas.objects.create(
+                tombo=self.bem,
+                current_ua=self.ua_destino,
+                current_year=timezone.now().year,
+            )
 
-            if is_new:
-                # Atualiza HistoryUas: desloca current→last→penultimate→third_last
-                try:
-                    history = self.bem.history_tombo
-                    history.third_last_ua   = history.penultimate_ua
-                    history.third_last_year = history.penultimate_year
+        sincronizar_atribuicao(self.bem, self.ua_destino)
 
-                    history.penultimate_ua   = history.last_ua
-                    history.penultimate_year = history.last_year
-
-                    history.last_ua   = history.current_ua
-                    history.last_year = history.current_year
-
-                    history.current_ua   = self.ua_destino
-                    history.current_year = self.data.year if self.data else timezone.now().year
-                    history.save()
-                except Exception:
-                    pass
-
-                # Atualiza responsável: desativa atribuições antigas e cria para o gestor da UA destino
-                sincronizar_atribuicao(self.bem, self.ua_destino)
-
-                # Registra no HistoricoMudanca
-                ua_origem_label  = str(self.ua_origem.ua)  if self.ua_origem  else '—'
-                ua_destino_label = str(self.ua_destino.ua) if self.ua_destino else '—'
-                HistoricoMudanca.objects.create(
-                    bem=self.bem,
-                    alterado_por=self.responsavel,
-                    justificativa=f'Transferência {self.codigo}',
-                    campos={
-                        'current_ua': {
-                            'label': 'UA Atual',
-                            'de':    ua_origem_label,
-                            'para':  ua_destino_label,
-                        }
-                    },
-                )
+        HistoricoMudanca.objects.create(
+            bem=self.bem,
+            alterado_por=self.responsavel,
+            justificativa=self.motivo or f'Transferência {self.codigo}',
+            campos={'ua_destino': str(self.ua_destino)},
+        )
 
     def __str__(self):
         return self.codigo
-
 
 class Catalogo(models.Model):
     efisco = models.CharField(

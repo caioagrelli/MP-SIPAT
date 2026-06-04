@@ -8,6 +8,7 @@ venv/
 # Variáveis de ambiente
 .env
 .env.*
+!.env.example
 
 # Database
 db.sqlite3
@@ -23,5 +24,8 @@ media/
 .idea/
 
 # Operating System
-.DS_Store 
+.DS_Store
 Thumbs.db
+
+# Planilhas temporárias do Office
+~$*.xlsx

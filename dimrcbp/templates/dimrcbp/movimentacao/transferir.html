@@ -3,6 +3,7 @@
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
   :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
   *,*::before,*::after{box-sizing:border-box;}
@@ -46,6 +47,12 @@
   .ua-origem-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:4px;}
 
   @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  .ts-wrapper .ts-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:7px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);min-height:42px;box-shadow:none;}
+  .ts-wrapper.focus .ts-control{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .ts-dropdown{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);box-shadow:var(--shadow-md);font-family:var(--font);font-size:.87rem;}
+  .ts-dropdown .option{padding:9px 14px;color:var(--ink);}
+  .ts-dropdown .option:hover,.ts-dropdown .option.active{background:var(--blue-soft);color:var(--blue);}
 </style>
 
 <div class="apage">
@@ -91,8 +98,8 @@
 
           <div class="field-group">
             <label for="id_ua_destino">UA Destino</label>
-            <select id="id_ua_destino" name="ua_destino" class="form-control" required>
-              <option value="">— Selecione a UA destino —</option>
+            <select id="id_ua_destino" name="ua_destino" required>
+              <option value="">— Digite para pesquisar a UA —</option>
               {% for ua in uas %}
               <option value="{{ ua.pk }}">{{ ua.ua }}</option>
               {% endfor %}
@@ -130,4 +137,12 @@
 
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+new TomSelect('#id_ua_destino', {
+  placeholder: 'Digite para pesquisar a UA…',
+  maxOptions: 300,
+});
+</script>
 {% endblock %}

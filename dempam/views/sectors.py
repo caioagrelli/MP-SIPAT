@@ -1,6 +1,7 @@
 # Importações do Django
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 # Importações do código
 from ..models import SetorDEMPAM, LocalizacaoDEMPAM
@@ -14,6 +15,7 @@ from dimms.models import Estoque
 
 
 ''' Funções para setores e salas '''
+@login_required
 def sector_homepage(request):
     setores = SetorDEMPAM.objects.all()
     localizacoes = LocalizacaoDEMPAM.objects.all()
@@ -55,6 +57,7 @@ def sector_homepage(request):
         'form_localizacao': form_localizacao
     })
 
+@login_required
 def sector_add(request):
     if request.method == 'POST':
         form = SetorDEMPAMForm(request.POST)
@@ -71,6 +74,7 @@ def sector_add(request):
     return render(request, 'dempam/sectors/sector_add.html', {'form': form})
 
 
+@login_required
 def sector_detail(request, pk):
     setor = get_object_or_404(SetorDEMPAM, pk=pk)
     localizacoes = setor.localizacao_interna.all()
@@ -84,6 +88,7 @@ def sector_detail(request, pk):
     })
 
 
+@login_required
 def locate_detail(request, pk):
     localizacao = get_object_or_404(LocalizacaoDEMPAM, pk=pk)
     itens = localizacao.localizacao_consumo.select_related('item_shock').all()
@@ -95,6 +100,7 @@ def locate_detail(request, pk):
     })
 
 
+@login_required
 def sector_locate_add(request):
     if request.method == 'POST':
         form = LocalizacaoDEMPAMForm(request.POST)

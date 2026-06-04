@@ -392,13 +392,6 @@ class SolicitacaoTransferenciaAdmin(admin.ModelAdmin):
     readonly_fields = ('codigo', 'data', 'data_decisao')
 
 
-@admin.register(MovimentacaoBem)
-class MovimentacaoBemAdmin(admin.ModelAdmin):
-    list_display  = ('codigo', 'bem', 'ua_origem', 'ua_destino', 'responsavel', 'data')
-    search_fields = ('codigo', 'bem__tombo')
-    readonly_fields = ('codigo', 'data')
-
-
 ''' CATÁLOGO — SOLICITAÇÕES '''
 
 @admin.register(SolicitacaoCatalogo)

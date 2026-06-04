@@ -41,6 +41,9 @@ urlpatterns = [
     # Busca de E-Fisco (autocomplete)
     path('efisco/search/', efisco_search, name='efisco_search'),
 
+    # Busca de item do Estoque por E-Fisco (autocomplete nas solicitações)
+    path('estoque/search/', estoque_search, name='estoque_search'),
+
     # Url's dos Artefatos e das Propostas
     path('artifacts/', artifacts, name='artifacts'),
     path('artifacts/<int:pk>/', artifacts_details, name='artifacts_details'),

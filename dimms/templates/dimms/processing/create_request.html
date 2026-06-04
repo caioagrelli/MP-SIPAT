@@ -395,9 +395,17 @@
           <div class="card-body">
             <div class="form-grid">
 
-              <div class="form-group">
+              <div class="form-group" style="position:relative;">
                 <label class="form-label">Solicitante (UA)</label>
-                {{ form.ua_order }}
+                <input type="text"
+                       id="ua-text"
+                       placeholder="Digite o nome da UA…"
+                       autocomplete="off">
+                <input type="hidden"
+                       name="ua_order"
+                       id="id_ua_order">
+                <div class="efisco-dropdown" id="ua-dropdown" style="display:none;"></div>
+                <div class="efisco-selected" id="ua-selected" style="display:none;"></div>
               </div>
 
               <div class="form-group">
@@ -519,9 +527,18 @@
 <!-- ── Template oculto do form de item vazio ── -->
 <div id="empty-form" style="display:none;">
   <div class="item-row">
-    <div class="form-group">
+    <div class="form-group" style="position:relative;">
       <label class="form-label">Item do Estoque</label>
-      {{ formset.empty_form.item_order }}
+      <input type="text"
+             class="efisco-text"
+             placeholder="Digite o código E-Fisco ou descrição…"
+             autocomplete="off">
+      <input type="hidden"
+             name="bens_solicitados-__prefix__-item_order"
+             id="id_bens_solicitados-__prefix__-item_order"
+             class="efisco-hidden">
+      <div class="efisco-dropdown" style="display:none;"></div>
+      <div class="efisco-selected" style="display:none;"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Quantidade</label>
@@ -537,7 +554,46 @@
   </div>
 </div>
 
+<style>
+  .efisco-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    border-top: none; border-radius: 0 0 var(--r-sm) var(--r-sm);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+  }
+  .efisco-option {
+    padding: 9px 13px; cursor: pointer; font-size: .85rem;
+    border-bottom: 1px solid var(--border); transition: background .1s;
+  }
+  .efisco-option:last-child { border-bottom: none; }
+  .efisco-option:hover, .efisco-option.active { background: var(--blue-soft); }
+  .efisco-option .efisco-code {
+    font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: .8rem;
+  }
+  .efisco-option .efisco-desc {
+    color: var(--ink-2); font-size: .8rem; margin-top: 1px;
+    white-space: normal; word-break: break-word;
+  }
+  .efisco-option .efisco-qty {
+    color: var(--ink-3); font-size: .75rem; margin-top: 2px;
+  }
+  .efisco-selected {
+    margin-top: 6px; padding: 7px 11px;
+    background: var(--green-soft); border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm); font-size: .8rem; color: var(--green);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .efisco-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--green); font-size: .75rem; font-weight: 700;
+    padding: 0; opacity: .7;
+  }
+  .efisco-clear:hover { opacity: 1; }
+</style>
+
 <script>
+const ESTOQUE_SEARCH_URL = "{% url 'dimms:estoque_search' %}";
+
 document.addEventListener('DOMContentLoaded', function () {
   const addBtn     = document.getElementById('add-item');
   const container  = document.getElementById('formset-container');
@@ -552,7 +608,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const rows = () => Array.from(container.querySelectorAll('.item-row'));
 
-  /* ── sync ── */
   function syncBadge() {
     const n = rows().length;
     badge.textContent  = n;
@@ -610,6 +665,82 @@ document.addEventListener('DOMContentLoaded', function () {
     totalForms.value = rows().length;
   }
 
+  /* ── Autocomplete de E-Fisco ── */
+  let debounceTimer = null;
+
+  function bindAutocomplete(row) {
+    const textInput   = row.querySelector('.efisco-text');
+    const hiddenInput = row.querySelector('.efisco-hidden');
+    const dropdown    = row.querySelector('.efisco-dropdown');
+    const selected    = row.querySelector('.efisco-selected');
+
+    if (!textInput) return;
+
+    function closeDropdown() {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+    }
+
+    function selectItem(item) {
+      hiddenInput.value = item.id;
+      textInput.value   = item['item_shock__efisco'];
+      selected.innerHTML = `
+        <span><strong>${item['item_shock__efisco']}</strong> — ${item['item_shock__descricao_efisco']} · Estoque: ${item.amount_shock}</span>
+        <button type="button" class="efisco-clear" title="Limpar">✕</button>
+      `;
+      selected.style.display = 'flex';
+      textInput.style.display = 'none';
+      closeDropdown();
+      syncQty();
+    }
+
+    selected.addEventListener('click', e => {
+      if (e.target.classList.contains('efisco-clear')) {
+        hiddenInput.value = '';
+        textInput.value   = '';
+        selected.innerHTML = '';
+        selected.style.display = 'none';
+        textInput.style.display = '';
+        textInput.focus();
+      }
+    });
+
+    textInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = textInput.value.trim();
+      if (q.length < 2) { closeDropdown(); return; }
+      debounceTimer = setTimeout(() => {
+        fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            closeDropdown();
+            if (!data.length) {
+              dropdown.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhum item encontrado</div>';
+              dropdown.style.display = 'block';
+              return;
+            }
+            data.forEach(item => {
+              const opt = document.createElement('div');
+              opt.className = 'efisco-option';
+              opt.innerHTML = `
+                <div class="efisco-code">${item['item_shock__efisco']}</div>
+                <div class="efisco-desc">${item['item_shock__descricao_efisco']}</div>
+                <div class="efisco-qty">Estoque disponível: ${item.amount_shock} · Marca: ${item.mark || '—'}</div>
+              `;
+              opt.addEventListener('mousedown', e => { e.preventDefault(); selectItem(item); });
+              dropdown.appendChild(opt);
+            });
+            dropdown.style.display = 'block';
+          });
+      }, 250);
+    });
+
+    textInput.addEventListener('blur', () => setTimeout(closeDropdown, 200));
+    textInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDropdown();
+    });
+  }
+
   function addItem() {
     const idx = parseInt(totalForms.value);
     const div = document.createElement('div');
@@ -618,6 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
     container.appendChild(row);
     totalForms.value = idx + 1;
     row.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('input', syncQty));
+    bindAutocomplete(row);
     syncBadge(); renumber(); lockRemove(); syncQty();
   }
 
@@ -640,6 +772,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Começa com 1 item
   addItem();
+
+  /* ── Autocomplete da UA ── */
+  const UA_SEARCH_URL = "{% url 'dempam:ua_search' %}";
+  const uaText     = document.getElementById('ua-text');
+  const uaHidden   = document.getElementById('id_ua_order');
+  const uaDrop     = document.getElementById('ua-dropdown');
+  const uaSelected = document.getElementById('ua-selected');
+  let uaTimer      = null;
+
+  function closeUaDrop() { uaDrop.style.display = 'none'; uaDrop.innerHTML = ''; }
+
+  function selectUa(ua) {
+    uaHidden.value = ua.id;
+    uaSelected.innerHTML = `
+      <span><strong>${ua.ua}</strong>${ua.responsavel_ua ? ' · ' + ua.responsavel_ua : ''}</span>
+      <button type="button" class="efisco-clear" title="Limpar">✕</button>
+    `;
+    uaSelected.style.display = 'flex';
+    uaText.style.display = 'none';
+    closeUaDrop();
+  }
+
+  uaSelected.addEventListener('click', e => {
+    if (e.target.classList.contains('efisco-clear')) {
+      uaHidden.value = '';
+      uaText.value = '';
+      uaSelected.innerHTML = '';
+      uaSelected.style.display = 'none';
+      uaText.style.display = '';
+      uaText.focus();
+    }
+  });
+
+  uaText.addEventListener('input', () => {
+    clearTimeout(uaTimer);
+    const q = uaText.value.trim();
+    if (q.length < 2) { closeUaDrop(); return; }
+    uaTimer = setTimeout(() => {
+      fetch(`${UA_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          closeUaDrop();
+          if (!data.length) {
+            uaDrop.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhuma UA encontrada</div>';
+            uaDrop.style.display = 'block';
+            return;
+          }
+          data.forEach(ua => {
+            const opt = document.createElement('div');
+            opt.className = 'efisco-option';
+            opt.innerHTML = `
+              <div class="efisco-code">${ua.ua}</div>
+              ${ua.responsavel_ua ? `<div class="efisco-desc">${ua.responsavel_ua}</div>` : ''}
+            `;
+            opt.addEventListener('mousedown', e => { e.preventDefault(); selectUa(ua); });
+            uaDrop.appendChild(opt);
+          });
+          uaDrop.style.display = 'block';
+        });
+    }, 250);
+  });
+
+  uaText.addEventListener('blur', () => setTimeout(closeUaDrop, 200));
+  uaText.addEventListener('keydown', e => { if (e.key === 'Escape') closeUaDrop(); });
 });
 </script>
 

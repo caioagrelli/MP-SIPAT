@@ -6,7 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.contrib.staticfiles import finders
 
@@ -21,7 +21,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 # Importações do Código
-from ..models import Solicitacao, Tramitacao
+from ..models import Solicitacao, Tramitacao, Estoque
 from ..forms import SolicitacaoForm, SolicitacaoItemFormSet, TramitacaoCreateForm, SolicitacaoStatusUpdateForm
 
 # =========================================================
@@ -400,3 +400,22 @@ def label_update(request, pk):
     c.showPage()
     c.save()
     return resp
+
+# Busca de item do Estoque por código E-Fisco (autocomplete nas solicitações)
+@login_required
+def estoque_search(request):
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse([], safe=False)
+    resultados = (
+        Estoque.objects
+        .filter(
+            Q(item_shock__efisco__icontains=q) |
+            Q(item_shock__descricao_efisco__icontains=q) |
+            Q(description_manual__icontains=q)
+        )
+        .select_related('item_shock')
+        .values('id', 'item_shock__efisco', 'item_shock__descricao_efisco', 'amount_shock', 'mark')
+        [:20]
+    )
+    return JsonResponse(list(resultados), safe=False)

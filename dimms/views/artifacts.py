@@ -211,6 +211,7 @@ def artifacts_create(request):
 
 ''' Propostas '''
 # ver os detalhes de cada proposta (página individual)
+@login_required
 def proposal_details(request, pk):
     proposal = get_object_or_404(
         Proposal.objects.select_related('supplier', 'artifacts_proposal'),

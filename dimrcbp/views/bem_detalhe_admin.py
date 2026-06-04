@@ -13,6 +13,7 @@ def bem_detalhe_admin(request, tombo):
             'history_tombo__current_ua',
             'history_tombo__last_ua',
             'history_tombo__penultimate_ua',
+            'history_tombo__third_last_ua',
             'supllier',
         ),
         tombo=tombo,
