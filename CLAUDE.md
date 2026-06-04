@@ -97,6 +97,47 @@ app/
 
 ---
 
+## Management commands
+
+| Comando | App | O que faz |
+|---------|-----|-----------|
+| `init_superuser` | `accounts` | Cria superusuário inicial de forma idempotente a partir de env vars (`DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`). Seguro para rodar em todo deploy. |
+| `importar_bens_consumo_xlsx` | `dimms` | Importa bens de consumo de planilha `.xlsx`. Suporta `--sobrescrever` para atualizar registros existentes. Normaliza acentos, mapeia grupos e unidades de medida automaticamente. |
+| `recalcular_consumo` | `dimms` | Chama `dimms/services.py:recalcular_consumo()` — recalcula `monthly_consumption` de cada item do estoque com base nas saídas dos últimos 30 dias. |
+| `importar_bens_xlsx` | `dimrcbp` | Importa bens permanentes de planilha e-fisco `.xlsx`. Usa `_ImportCache` para evitar queries repetidas. Suporta `--sobrescrever`. Chama `sincronizar_atribuicao()` ao final de cada linha. |
+| `sincronizar_atribuicoes` | `dimrcbp` | Ressincroniza `AtribuicaoBem` para todos os bens com base no gestor atual de cada UA. Útil após migração de dados ou troca em massa de gestores. |
+
+---
+
+## Utils e choices
+
+Os `utils.py` de cada app centralizam as enumerações (TextChoices) e as funções de upload path dos campos de arquivo/imagem. **Não redefinir choices inline nos models — sempre importar de `utils.py`.**
+
+| App | Choices relevantes |
+|-----|--------------------|
+| `dimms` | `GrupoConsumo`, `UnidadesMedida`, `StatusTramitacao`, `StatusProposal`, `StatusSolicitacaoCatalogoConsumo`, `StatusArtifacts`, `Cota` |
+| `dimrcbp` | `EstadoConservacao`, `SituacaoFisica`, `AcaoPermanente`, `GruposPermanentes`, `Cores` (31 opções), `StatusSolicitacaoTransferencia` |
+| `dempam` | `TipoLocalizacao` (PALLET, PRATELEIRA) |
+
+Funções de upload path em `dimms/utils.py`: `path_photo_bens`, `path_solicitation`, `path_documents_artifacts` e derivadas (`path_tr`, `path_etp`, `path_rgpp`, `path_dode`, `path_tapp`, `path_risk_analysis`).
+
+Função utilitária em `dimms/utils.py`: `calcular_duracao(amount_shock, monthly_consumption)` — retorna duração do estoque em meses/dias.
+
+---
+
+## Importação de planilhas
+
+A lógica de importação de bens permanentes vive em `dimrcbp/views/importar_bens.py` (também usada pelo management command).
+
+**`_ImportCache`** — cache em memória durante a importação para evitar queries repetidas:
+- `get_or_create_type()`, `get_or_create_description()`, `get_or_create_supplier()`, `get_or_create_ua()`
+- UAs inexistentes são criadas automaticamente com circunscrição padrão "A Definir"
+- CNPJs zerados pelo Excel são tratados em `_clean_cnpj()`
+
+**`_process_row(row, cache, sobrescrever)`** — por linha: cria/atualiza `BensPermanentes` + `HistoryUas` + chama `sincronizar_atribuicao()`.
+
+---
+
 ## Fluxos de negócio críticos
 
 ### Solicitação de bem de consumo (DIMMS)
