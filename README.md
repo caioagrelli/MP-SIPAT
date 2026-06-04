@@ -281,5 +281,5 @@ Consulte os documentos abaixo antes de contribuir:
 
 ## Autor
 
-**Caio Agrelli** — Líder do projeto  
+**Caio Agrelli** — Engenheiro de Software Responsável
 Desenvolvimento e gestão do SIPAT — MPPE/DEMPAM
