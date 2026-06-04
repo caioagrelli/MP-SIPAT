@@ -164,13 +164,30 @@ Veja [`docs/architecture.md`](docs/architecture.md) para os diagramas C4 complet
 
 ## Git
 
-Branch naming:
+### Branches principais
+
+| Branch | Propósito | Atualizada por |
+|--------|-----------|---------------|
+| `development` | Integração contínua — recebe todas as features e fixes | PRs de branches de trabalho |
+| `main` | Código estável em produção | PR de `development` → `main` (release) |
+
+**Todo PR deve ter `development` como destino.** A `main` só é atualizada via PR de `development`.
+
+### Branch naming
+
 ```
 feat/descricao-curta
 fix/descricao-curta
 refactor/descricao-curta
 docs/descricao-curta
 chore/descricao-curta
+```
+
+Sempre criar a branch a partir de `development`:
+
+```bash
+git checkout development && git pull origin development
+git checkout -b tipo/descricao-curta
 ```
 
 Commits seguem [Conventional Commits](https://www.conventionalcommits.org/pt-br). Veja [`CONTRIBUTING.md`](CONTRIBUTING.md) para o guia completo.

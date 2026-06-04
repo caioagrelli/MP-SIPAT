@@ -2,6 +2,8 @@
 
 <!-- Descreva o que foi feito e por quê. Evite descrever o "como" — o código já faz isso. -->
 
+> **Branch de destino:** este PR deve ser aberto contra `development`. PRs direto para `main` não serão aceitos.
+
 ## Tipo de mudança
 
 - [ ] `feat` — nova funcionalidade
