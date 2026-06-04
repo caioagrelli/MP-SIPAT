@@ -2,7 +2,7 @@
 
 <div align="center">
 
-> _[ logo / foto do Ministério Público aqui ]_
+<img src="static/img/brasao-mppe.png" alt="Brasão MPPE" width="120"/>
 
 **Desenvolvido para o Ministério Público de Pernambuco**
 

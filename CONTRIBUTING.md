@@ -74,11 +74,22 @@ O servidor estará disponível em `http://localhost:8000`.
 
 ## Fluxo de trabalho com Git
 
-1. Crie uma branch a partir de `main`:
+O repositório segue um modelo de duas branches principais:
+
+| Branch | Propósito | Atualizada por |
+|--------|-----------|---------------|
+| `development` | Integração contínua — recebe todas as features e fixes | PRs de branches de trabalho |
+| `main` | Código estável em produção | PR de `development` → `main` (release) |
+
+**Nunca abra PR diretamente para `main`.** A `main` só é atualizada via PR de `development`.
+
+### Passo a passo
+
+1. Crie uma branch a partir de `development`:
 
 ```bash
-git checkout main
-git pull origin main
+git checkout development
+git pull origin development
 git checkout -b tipo/descricao-curta
 ```
 
@@ -89,12 +100,18 @@ Exemplos de nomes de branch:
 
 2. Faça suas alterações em commits pequenos e coesos.
 
-3. Antes de abrir o PR, sincronize com `main`:
+3. Antes de abrir o PR, sincronize com `development`:
 
 ```bash
 git fetch origin
-git rebase origin/main
+git rebase origin/development
 ```
+
+4. Abra o PR com destino em **`development`**.
+
+### Release para produção
+
+Quando `development` estiver estável e validado em staging, um mantenedor abre um PR de `development` → `main`. Esse PR representa uma release e deve conter no título o escopo das mudanças (ex.: `release: v1.2.0 — filtros de estoque e inventário`).
 
 ---
 
@@ -128,10 +145,11 @@ docs: atualiza README com instruções de deploy
 
 ## Abrindo um Pull Request
 
-1. Certifique-se de que o código está funcionando e sem erros de lint.
-2. Descreva claramente **o que** foi feito e **por quê** no corpo do PR.
-3. Referencie a issue relacionada, se houver (ex.: `Closes #42`).
-4. Aguarde revisão de pelo menos um mantenedor antes do merge.
+1. O PR deve ter como destino a branch **`developmentment`**, nunca `main`.
+2. Certifique-se de que o código está funcionando e sem erros de lint.
+3. Descreva claramente **o que** foi feito e **por quê** no corpo do PR.
+4. Referencie a issue relacionada, se houver (ex.: `Closes #42`).
+5. Aguarde revisão de pelo menos um mantenedor antes do merge.
 
 ---
 
