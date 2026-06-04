@@ -1,4 +1,4 @@
-# SIPAT — Sistema Integrado de Patrimônio e Almoxarifado
+# SIPAT — Sistema Integrado Patrimonial
 
 <div align="center">
 
