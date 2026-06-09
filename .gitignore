@@ -29,3 +29,5 @@ Thumbs.db
 
 # Planilhas temporárias do Office
 ~$*.xlsx
+
+.github/
