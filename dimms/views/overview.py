@@ -1,6 +1,7 @@
-# Importações do Python 
+# Importações do Python
 import os
 from io import BytesIO
+from datetime import datetime
 
 # Importações do Dj Ango
 from django.shortcuts import render, get_object_or_404, redirect
@@ -8,17 +9,19 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles import finders
+from django.core.paginator import Paginator
 
 # Bibliotecas externas
 import qrcode
 from qrcode.constants import ERROR_CORRECT_M
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import mm
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, mm
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 # Importações do Código
-from .. models import Estoque
+from .. models import Estoque, Tramitacao
 from .. forms import EstoqueForm
 
 # =============================================================
@@ -31,8 +34,20 @@ from .. forms import EstoqueForm
 @login_required
 def overview(request, pk):
     item = get_object_or_404(Estoque.objects.select_related("item_shock", "locate"), pk=pk)
+
+    tram_qs = (
+        Tramitacao.objects
+        .filter(request_update__bens_solicitados__item_order=item)
+        .select_related('request_update__ua_order', 'user_update')
+        .distinct()
+        .order_by('-date_update', '-id')
+    )
+    paginator = Paginator(tram_qs, 10)
+    page_obj  = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'dimms/overview.html', {
-        'item': item
+        'item':     item,
+        'page_obj': page_obj,
     })
     
 # Gerar QR Code da página da Overview
@@ -71,6 +86,193 @@ def overview_edit(request, pk):
     else:
         form = EstoqueForm(instance=item)
     return render(request, 'dimms/overview_edit.html', {'form': form, 'item': item})
+
+
+''' Ficha Técnica PDF '''
+@login_required
+def ficha_tecnica(request, pk):
+    item  = get_object_or_404(Estoque.objects.select_related('item_shock', 'locate', 'updated_by'), pk=pk)
+    shock = item.item_shock
+
+    logo_reader = None
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        logo_reader = ImageReader(logo_path)
+
+    safe_name = "".join(c for c in str(shock.efisco) if c.isalnum() or c in ('-', '_')) or f'item_{pk}'
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="ficha_tecnica_{safe_name}.pdf"'
+
+    w, h_page = A4
+    c = canvas.Canvas(resp, pagesize=A4)
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def section(title, y):
+        c.setFillColor(colors.HexColor('#1e2d42'))
+        c.rect(14 * mm, y - 7 * mm, w - 28 * mm, 8 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 8.5)
+        c.drawString(17 * mm, y - 4.5 * mm, title.upper())
+        return y - 15 * mm
+
+    def row(label, value, y, shade=False):
+        rh = 7 * mm
+        if shade:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica-Bold', 7.5)
+        c.drawString(17 * mm, y - 4.8 * mm, label.upper())
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 8.5)
+        c.drawString(75 * mm, y - 4.8 * mm, str(value) if value else '—')
+        c.setStrokeColor(colors.HexColor('#e2e5ef'))
+        c.setLineWidth(0.3)
+        c.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        return y - rh
+
+    def footer():
+        c.setFillColor(colors.HexColor('#e2e5ef'))
+        c.rect(0, 0, w, 10 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica', 7)
+        c.drawCentredString(
+            w / 2, 3.8 * mm,
+            f'SIPAT — Gerado em {datetime.now().strftime("%d/%m/%Y às %H:%M")} | '
+            f'E-Fisco {shock.efisco}'
+        )
+
+    def new_page():
+        footer()
+        c.showPage()
+        return h_page - 30 * mm
+
+    # ── Cabeçalho ─────────────────────────────────────────────────────────────
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(0, h_page - 44 * mm, w, 44 * mm, fill=1, stroke=0)
+
+    if logo_reader:
+        c.drawImage(logo_reader, 14 * mm, h_page - 37 * mm, width=22 * mm, height=22 * mm, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 13)
+    c.drawString(42 * mm, h_page - 18 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    c.setFont('Helvetica', 9)
+    c.drawString(42 * mm, h_page - 25 * mm, 'SIPAT — Sistema Integrado Patrimonial')
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(42 * mm, h_page - 34 * mm, 'FICHA TÉCNICA DE BEM DE CONSUMO')
+
+    c.setFont('Helvetica', 8)
+    c.drawRightString(w - 14 * mm, h_page - 18 * mm, f'E-Fisco: {shock.efisco}')
+    c.drawRightString(w - 14 * mm, h_page - 25 * mm, datetime.now().strftime('%d/%m/%Y %H:%M'))
+
+    y = h_page - 57 * mm
+
+    # ── Identificação ─────────────────────────────────────────────────────────
+    y = section('Identificação do Item', y)
+    for i, (lbl, val) in enumerate([
+        ('Código E-Fisco',      shock.efisco),
+        ('Descrição E-Fisco',   shock.descricao_efisco),
+        ('Descrição Manual',    item.description_manual),
+        ('Grupo',               shock.get_grupo_consumo_display() if shock.grupo_consumo else '—'),
+        ('Unidade de Medida',   shock.get_medida_display() if shock.medida else '—'),
+        ('Marca',               item.mark or '—'),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Estoque ───────────────────────────────────────────────────────────────
+    if y < 55 * mm:
+        y = new_page()
+
+    y = section('Dados de Estoque', y)
+    validade_str = item.validity.strftime('%d/%m/%Y') if item.validity else '—'
+    duracao_str  = str(item.duration) if item.duration else '—'
+    for i, (lbl, val) in enumerate([
+        ('Quantidade em Estoque', item.amount_shock),
+        ('Consumo Mensal',        item.monthly_consumption or '—'),
+        ('Duração Estimada',      duracao_str),
+        ('Validade',              validade_str),
+        ('Essencial',             'Sim' if item.essential else 'Não'),
+        ('Forma de Entrada',      item.form_input or '—'),
+        ('Método de Entrada',     item.method or '—'),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Localização ───────────────────────────────────────────────────────────
+    if y < 40 * mm:
+        y = new_page()
+
+    y = section('Localização', y)
+    if item.locate:
+        loc_vals = [
+            ('Setor / Sala',           item.locate.setor_sala or '—'),
+            ('Tipo de Armazenamento',  item.locate.get_tipo_localizacao_display() if hasattr(item.locate, 'get_tipo_localizacao_display') else (item.locate.tipo_localizacao or '—')),
+        ]
+    else:
+        loc_vals = [('Localização', 'Não informada')]
+    for i, (lbl, val) in enumerate(loc_vals):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Gestão ────────────────────────────────────────────────────────────────
+    if y < 40 * mm:
+        y = new_page()
+
+    y = section('Informações de Gestão', y)
+    cadastro_str  = item.created_at.strftime('%d/%m/%Y às %H:%M') if item.created_at else '—'
+    atualizacao_str = item.updated_at.strftime('%d/%m/%Y às %H:%M') if item.updated_at else '—'
+    editado_por   = '—'
+    if item.updated_by:
+        editado_por = item.updated_by.get_full_name() or item.updated_by.username
+    for i, (lbl, val) in enumerate([
+        ('Cadastrado em',       cadastro_str),
+        ('Última Modificação',  atualizacao_str),
+        ('Última Edição por',   editado_por),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Foto ──────────────────────────────────────────────────────────────────
+    if item.photo:
+        try:
+            photo_path = item.photo.path
+            if os.path.exists(photo_path):
+                max_img_h = 100 * mm
+                max_img_w = w - 28 * mm
+
+                if y < max_img_h + 30 * mm:
+                    y = new_page()
+
+                y = section('Foto do Item', y)
+
+                from PIL import Image as PILImage
+                with PILImage.open(photo_path) as pil_img:
+                    orig_w, orig_h = pil_img.size
+
+                ratio = orig_w / orig_h
+                img_w = min(max_img_w, max_img_h * ratio)
+                img_h = img_w / ratio
+                if img_h > max_img_h:
+                    img_h = max_img_h
+                    img_w = img_h * ratio
+
+                img_x = 14 * mm + (max_img_w - img_w) / 2
+                img_y = y - img_h
+                c.drawImage(ImageReader(photo_path), img_x, img_y, width=img_w, height=img_h, mask='auto')
+                y = img_y - 8 * mm
+        except Exception:
+            pass
+
+    footer()
+    c.showPage()
+    c.save()
+    return resp
 
 
 ''' Etiquetas dos Bem '''

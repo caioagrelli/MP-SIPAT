@@ -340,6 +340,21 @@ def proposal_item_delete(request, pk):
     return redirect('dimms:proposal_details', pk=proposal_pk)
 
 
+# Criar contrato diretamente (sem proposta), acessível pelo saldo ativo
+@login_required
+def contrato_criar_saldoativo(request):
+    if request.method == 'POST':
+        form = ContratoForm(request.POST)
+        if form.is_valid():
+            contrato = form.save()
+            messages.success(request, f'Contrato {contrato.contrato} criado. Adicione os itens ao saldo ativo abaixo.')
+            return redirect('dimms:contrato_detail', pk=contrato.pk)
+    else:
+        form = ContratoForm()
+
+    return render(request, 'dimms/saldo_ativo/contrato_create.html', {'form': form})
+
+
 # Criar contrato a partir de uma proposta aprovada
 @login_required
 def contrato_create(request, pk):

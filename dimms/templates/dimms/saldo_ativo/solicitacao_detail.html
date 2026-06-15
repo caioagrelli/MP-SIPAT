@@ -15,8 +15,8 @@
     --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
     --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
     --accent: #2563eb;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08);
     --r-sm: 10px; --r-md: 16px;
     --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
   }
@@ -26,116 +26,117 @@
 
   .breadcrumb { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--ink-3); margin-bottom:20px; font-weight:500; }
   .breadcrumb a { color:var(--accent); text-decoration:none; }
-  .breadcrumb a:hover { text-decoration:underline; }
 
   .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
-  .topbar-left { min-width:0; flex:1; }
-  .page-title { font-size:1.6rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; line-height:1.2; }
+  .page-title { font-size:1.6rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
   .page-sub { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
 
-  /* ─── STATUS CHIP ─── */
-  .status-chip {
-    padding: 10px 18px; border-radius: var(--r-sm); text-align:center;
-    min-width: 140px; flex-shrink: 0;
-  }
+  .status-chip { padding:10px 18px; border-radius:var(--r-sm); text-align:center; min-width:140px; flex-shrink:0; }
   .status-chip-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; opacity:.7; }
-  .status-chip-value { font-size:1rem; font-weight:800; letter-spacing:-.01em; }
+  .status-chip-value { font-size:1rem; font-weight:800; }
   .sc-RASCUNHO { background:#1e2d42; color:#a0b3d4; }
   .sc-RASCUNHO .status-chip-value { color:#e2eaff; }
   .sc-ATENDIDA { background:#14532d; color:#86efac; }
   .sc-ATENDIDA .status-chip-value { color:#bbf7d0; }
   .sc-CANCELADA { background:#7f1d1d; color:#fca5a5; }
   .sc-CANCELADA .status-chip-value { color:#fecaca; }
-  .sc-EM_ANÁLISE { background:#78350f; color:#fde68a; }
-  .sc-EM_ANÁLISE .status-chip-value { color:#fef3c7; }
+  .sc-EM_ANÁLISE,.sc-EM\ ANÁLISE { background:#78350f; color:#fde68a; }
+  .sc-EM_ANÁLISE .status-chip-value,.sc-EM\ ANÁLISE .status-chip-value { color:#fef3c7; }
 
-  /* ─── LAYOUT ─── */
-  .layout { display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:start; margin-bottom:20px; }
+  .layout { display:grid; grid-template-columns: 300px 1fr; gap:20px; align-items:start; }
 
-  /* ─── CARD ─── */
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:16px; animation:fadeUp .3s ease both; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:16px; }
   .card:last-child { margin-bottom:0; }
   .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .card-head-left { display:flex; align-items:center; gap:9px; }
   .card-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:14px; flex-shrink:0; }
-  .ci-blue   { background:var(--blue-soft); }
-  .ci-green  { background:var(--green-soft); }
-  .ci-amber  { background:var(--amber-soft); }
-  .ci-red    { background:var(--red-soft); }
+  .ci-blue { background:var(--blue-soft); }
+  .ci-green { background:var(--green-soft); }
+  .ci-amber { background:var(--amber-soft); }
   .card-title { font-size:.88rem; font-weight:700; color:var(--ink); }
-  .card-body { padding:18px; }
 
-  /* ─── KV TABLE ─── */
   .kv-table { width:100%; border-collapse:collapse; }
   .kv-table tr { border-bottom:1px solid var(--border); }
   .kv-table tr:last-child { border-bottom:none; }
   .kv-table tr:hover td { background:var(--blue-soft); }
   .kv-table td { padding:10px 12px; font-size:.87rem; vertical-align:middle; }
   .kv-table td:first-child { font-size:.73rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); width:40%; white-space:nowrap; }
-  .kv-table td:last-child { font-weight:600; color:var(--ink); word-break:break-word; }
+  .kv-table td:last-child { font-weight:600; color:var(--ink); }
 
-  /* ─── MAIN TABLE ─── */
-  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; }
-  .data-table { width:100%; border-collapse:collapse; }
-  .data-table thead tr { background:var(--surface-2); border-bottom:2px solid var(--border); }
-  .data-table th { padding:11px 14px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); text-align:left; white-space:nowrap; }
-  .data-table td { padding:12px 14px; font-size:.86rem; color:var(--ink-2); border-bottom:1px solid var(--border); vertical-align:middle; }
-  .data-table tbody tr:last-child td { border-bottom:none; }
-  .data-table tbody tr:hover td { background:var(--blue-soft); }
+  /* Item cards */
+  .item-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); margin-bottom:14px; overflow:hidden; }
+  .item-card:last-child { margin-bottom:0; }
+  .item-head { padding:14px 18px; background:var(--surface-2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .item-efisco { font-family:var(--mono); font-size:.85rem; font-weight:800; color:var(--blue); }
+  .item-desc { font-size:.82rem; color:var(--ink-2); margin-top:2px; }
+  .item-head-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
-  /* ─── PILLS ─── */
-  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:700; border:1px solid; white-space:nowrap; }
-  .pill .dot { width:6px; height:6px; border-radius:50%; }
-  .pill-ok      { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
-  .pill-ok .dot { background:var(--green); }
-  .pill-pending { background:var(--amber-soft); color:var(--amber); border-color:var(--amber-mid); }
-  .pill-pending .dot { background:var(--amber); }
-  .pill-sent    { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
-  .pill-sent .dot { background:var(--blue); }
+  /* Progresso do item */
+  .item-progress { padding:14px 18px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .prog-stat { display:flex; flex-direction:column; gap:3px; }
+  .prog-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); }
+  .prog-val { font-size:1.1rem; font-weight:800; color:var(--ink); }
+  .prog-val.blue { color:var(--blue); }
+  .prog-val.green { color:var(--green); }
+  .prog-val.amber { color:var(--amber); }
+  .prog-bar-row { grid-column:1/-1; display:flex; align-items:center; gap:10px; margin-top:4px; }
+  .prog-bar-bg { flex:1; height:6px; background:var(--border); border-radius:999px; overflow:hidden; }
+  .prog-bar-fill { height:100%; border-radius:999px; }
+  .fill-green { background:var(--green); }
+  .fill-blue { background:var(--blue); }
 
-  /* ─── ADD ITEM FORM ─── */
+  /* Remessas */
+  .remessas-list { padding:0; }
+  .remessa-row { display:flex; align-items:center; gap:12px; padding:11px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .remessa-row:last-child { border-bottom:none; }
+  .remessa-icon { font-size:16px; flex-shrink:0; }
+  .remessa-info { flex:1; min-width:0; }
+  .remessa-qtd { font-family:var(--mono); font-size:.9rem; font-weight:800; color:var(--ink); }
+  .remessa-meta { font-size:.75rem; color:var(--ink-3); margin-top:1px; }
+  .remessa-obs { font-size:.78rem; color:var(--ink-2); margin-top:2px; font-style:italic; }
+  .remessa-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+
+  .item-footer { padding:12px 18px; background:var(--surface-2); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+
+  /* Adicionar item */
   .add-form { display:grid; grid-template-columns:1fr 120px auto; gap:12px; align-items:end; padding:16px 18px; background:var(--surface-2); border-top:1px solid var(--border); }
   .form-group { display:flex; flex-direction:column; gap:5px; }
   .form-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); }
-  .form-input, .form-select {
-    height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
-    padding:0 12px; font-family:var(--font); font-size:.87rem; color:var(--ink);
-    background:var(--surface); outline:none;
-  }
-  .form-input:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+  .form-input, .form-select { height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 12px; font-family:var(--font); font-size:.87rem; color:var(--ink); background:var(--surface); outline:none; }
+  .form-input:focus, .form-select:focus { border-color:var(--accent); }
 
-  /* ─── BUTTONS ─── */
-  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; border:1px solid transparent; transition:all .15s ease; white-space:nowrap; }
-  .btn-primary  { background:var(--accent); color:#fff; border-color:#1d4ed8; box-shadow:0 2px 8px rgba(37,99,235,.3); }
+  /* Pills */
+  .pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:.72rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-pending { background:var(--amber-soft); color:var(--amber); border-color:var(--amber-mid); }
+  .pill-received { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
+  .pill-complete { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:var(--r-sm); font-family:var(--font); font-size:.82rem; font-weight:600; cursor:pointer; text-decoration:none; border:1px solid transparent; transition:all .15s ease; white-space:nowrap; }
+  .btn-primary { background:var(--accent); color:#fff; border-color:#1d4ed8; box-shadow:0 2px 8px rgba(37,99,235,.3); }
   .btn-primary:hover { background:#1d4ed8; }
-  .btn-green    { background:var(--green); color:#fff; border-color:#166534; box-shadow:0 2px 8px rgba(21,128,61,.2); }
+  .btn-green { background:var(--green); color:#fff; border-color:#166534; box-shadow:0 2px 8px rgba(21,128,61,.2); }
   .btn-green:hover { background:#166534; }
-  .btn-ghost    { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
-  .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
-  .btn-danger   { background:var(--red-soft); border-color:var(--red-mid); color:var(--red); }
+  .btn-ghost { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost:hover { background:var(--surface-2); }
+  .btn-danger { background:var(--red-soft); border-color:var(--red-mid); color:var(--red); }
   .btn-danger:hover { background:var(--red-mid); }
-  .btn-sm { padding:6px 12px; font-size:.8rem; }
+  .btn-sm { padding:5px 10px; font-size:.78rem; }
   .btn-bar { display:flex; gap:10px; flex-wrap:wrap; padding:14px 18px; border-top:1px solid var(--border); background:var(--surface-2); justify-content:flex-end; }
 
-  /* ─── STATUS CHANGE ─── */
   .status-select { height:36px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 10px; font-family:var(--font); font-size:.84rem; color:var(--ink); background:var(--surface); }
 
-  /* ─── EMPTY ─── */
-  .empty-state { padding:32px; text-align:center; color:var(--ink-3); }
-  .empty-icon  { font-size:2rem; margin-bottom:8px; opacity:.4; }
-
-  /* ─── MONO ─── */
+  .empty-state { padding:28px; text-align:center; color:var(--ink-3); }
+  .empty-icon { font-size:1.8rem; margin-bottom:8px; opacity:.4; }
   .mono { font-family:var(--mono); font-size:.82rem; }
 
   @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-
   @media (max-width:960px) { .layout { grid-template-columns:1fr; } }
-  @media (max-width:640px) { .sdpage { padding:14px 12px; } .add-form { grid-template-columns:1fr; } }
+  @media (max-width:640px) { .item-progress { grid-template-columns:1fr 1fr; } .add-form { grid-template-columns:1fr; } }
 </style>
 
 <div class="sdpage">
 
-  <!-- BREADCRUMB -->
   <nav class="breadcrumb">
     <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
     <span>›</span>
@@ -144,9 +145,8 @@
     {{ solicitacao.codigo }}
   </nav>
 
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">
+    <div>
       <div class="page-title">{{ solicitacao.codigo }}</div>
       <div class="page-sub">Contrato {{ solicitacao.contrato.contrato }} — {{ solicitacao.data_hora|date:"d/m/Y H:i"|default:"—" }}</div>
     </div>
@@ -158,10 +158,8 @@
 
   <div class="layout">
 
-    <!-- ESQUERDA: Detalhes da solicitação + alterar status -->
+    <!-- SIDEBAR -->
     <div>
-
-      <!-- INFO CARD -->
       <div class="card">
         <div class="card-head">
           <div class="card-head-left">
@@ -169,20 +167,19 @@
             <div class="card-title">Dados da Solicitação</div>
           </div>
         </div>
-        <div class="card-body" style="padding:0;">
+        <div style="padding:0;">
           <table class="kv-table">
             <tr><td>Código</td><td><span class="mono" style="font-weight:700;">{{ solicitacao.codigo }}</span></td></tr>
             <tr><td>Contrato</td><td><span class="mono" style="color:var(--blue); font-weight:700;">{{ solicitacao.contrato.contrato }}</span></td></tr>
             <tr><td>Fornecedor</td><td>{{ solicitacao.contrato.supplier_contract|default:"—" }}</td></tr>
             <tr><td>Responsável</td><td>{{ solicitacao.usuario.get_full_name|default:solicitacao.usuario.username|default:"—" }}</td></tr>
             <tr><td>Data/Hora</td><td style="font-size:.82rem;">{{ solicitacao.data_hora|date:"d/m/Y \à\s H:i"|default:"—" }}</td></tr>
-            <tr><td>Status</td><td><span style="font-weight:700;">{{ solicitacao.get_status_display }}</span></td></tr>
-            <tr><td>Itens</td><td><span class="mono" style="font-weight:700;">{{ itens_solicitados.count }}</span></td></tr>
+            <tr><td>Itens</td><td><span class="mono" style="font-weight:700;">{{ itens_com_progresso|length }}</span></td></tr>
           </table>
         </div>
       </div>
 
-      <!-- ALTERAR STATUS -->
+      <!-- Status -->
       <div class="card">
         <div class="card-head">
           <div class="card-head-left">
@@ -190,11 +187,11 @@
             <div class="card-title">Alterar Status</div>
           </div>
         </div>
-        <div class="card-body">
+        <div style="padding:16px 18px;">
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="alterar_status" value="1">
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:10px;">
               <label class="form-label">Novo Status</label>
               <select name="novo_status" class="status-select" style="width:100%;">
                 {% for value, label in status_choices %}
@@ -202,12 +199,12 @@
                 {% endfor %}
               </select>
             </div>
-            <button type="submit" class="btn btn-ghost" style="width:100%; justify-content:center;">Atualizar Status</button>
+            <button type="submit" class="btn btn-ghost" style="width:100%; justify-content:center;">Atualizar</button>
           </form>
         </div>
       </div>
 
-      <!-- SALDO DO CONTRATO (para adicionar itens) -->
+      <!-- Adicionar item -->
       {% if pode_editar %}
       <div class="card">
         <div class="card-head">
@@ -216,119 +213,172 @@
             <div class="card-title">Adicionar Item</div>
           </div>
         </div>
-        <div class="card-body">
+        <div style="padding:16px 18px;">
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="adicionar_item" value="1">
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Item do Saldo (Contrato)</label>
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label">Item do Saldo</label>
               <select name="bem_id" class="form-select" style="width:100%; height:auto; min-height:38px; padding:8px 10px;">
-                <option value="">Selecione um item...</option>
+                <option value="">Selecione...</option>
                 {% for saldo in saldo_contrato %}
                   <option value="{{ saldo.pk }}">
-                    {{ saldo.efisco.efisco }} — {{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco }}
-                    (Disp: {{ saldo.saldo_disponivel|default:0 }})
+                    {{ saldo.efisco.efisco }} — {{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco }} (Disp: {{ saldo.saldo_disponivel|default:0 }})
                   </option>
                 {% endfor %}
               </select>
             </div>
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:10px;">
               <label class="form-label">Quantidade</label>
               <input type="number" name="quantidade" min="1" class="form-input" style="width:100%;" placeholder="Ex: 10">
             </div>
             <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar Item
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar
             </button>
           </form>
         </div>
       </div>
       {% endif %}
-
     </div>
 
-    <!-- DIREITA: Itens solicitados -->
+    <!-- ITENS COM REMESSAS -->
     <div>
-      <div class="card">
-        <div class="card-head">
-          <div class="card-head-left">
-            <div class="card-icon ci-green">📦</div>
-            <div class="card-title">Itens Solicitados</div>
-          </div>
-          <span style="font-size:.78rem; color:var(--ink-3);">{{ itens_solicitados.count }} item(s)</span>
-        </div>
+      {% if itens_com_progresso %}
+        {% for entry in itens_com_progresso %}
+        {% with item=entry.item %}
+        <div class="item-card">
 
-        {% if itens_solicitados %}
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>E-Fisco</th>
-              <th>Descrição</th>
-              <th>Marca</th>
-              <th>Qtd. Solicitada</th>
-              <th>Saldo Disponível</th>
-              <th>Envio</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in itens_solicitados %}
-            <tr>
-              <td><span class="mono" style="color:var(--blue); font-weight:700;">{{ item.bem.efisco.efisco }}</span></td>
-              <td style="max-width:200px;">
-                <div style="font-weight:600; color:var(--ink);">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}</div>
-              </td>
-              <td style="color:var(--ink-3);">{{ item.bem.marca|default:"—" }}</td>
-              <td class="mono" style="font-weight:700;">{{ item.quantidade }}</td>
-              <td>
-                <span class="mono {% if item.bem.saldo_disponivel == 0 %}style="color:var(--red);"{% endif %}">
-                  {{ item.bem.saldo_disponivel|default:0 }}
-                </span>
-              </td>
-              <td>
-                {% if item.itemenviado %}
-                  <span class="pill pill-sent"><span class="dot"></span>Enviado ({{ item.itemenviado.quantidade_enviada }})</span>
+          <!-- Cabeçalho do item -->
+          <div class="item-head">
+            <div>
+              <div class="item-efisco">{{ item.bem.efisco.efisco }}</div>
+              <div class="item-desc">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}{% if item.bem.marca %} — {{ item.bem.marca }}{% endif %}</div>
+            </div>
+            <div class="item-head-right">
+              {% if entry.total_recebido >= item.quantidade %}
+                <span class="pill pill-complete">✓ Recebido completo</span>
+              {% elif entry.total_recebido > 0 %}
+                <span class="pill pill-received">Parcialmente recebido</span>
+              {% elif entry.total_enviado > 0 %}
+                <span class="pill pill-pending">Em trânsito</span>
+              {% else %}
+                <span class="pill" style="background:var(--surface-2);color:var(--ink-3);border-color:var(--border);">Aguardando remessa</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Progresso -->
+          <div class="item-progress">
+            <div class="prog-stat">
+              <div class="prog-label">Solicitado</div>
+              <div class="prog-val">{{ item.quantidade }}</div>
+            </div>
+            <div class="prog-stat">
+              <div class="prog-label">Em Remessas</div>
+              <div class="prog-val blue">{{ entry.total_enviado }}</div>
+            </div>
+            <div class="prog-stat">
+              <div class="prog-label">Recebido</div>
+              <div class="prog-val green">{{ entry.total_recebido }}</div>
+            </div>
+            {% if item.quantidade > 0 %}
+            <div class="prog-bar-row">
+              <span style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);white-space:nowrap;">Recebido</span>
+              <div class="prog-bar-bg">
+                {% widthratio entry.total_recebido item.quantidade 100 as pct_r %}
+                {% widthratio entry.total_enviado item.quantidade 100 as pct_e %}
+                <div class="prog-bar-fill fill-blue" style="width:{{ pct_e }}%; opacity:.3;"></div>
+              </div>
+              <div class="prog-bar-bg" style="position:relative; margin-left:-100%; width:0; flex:0;">
+              </div>
+            </div>
+            <!-- barra dupla simplificada -->
+            <div class="prog-bar-row" style="margin-top:-8px;">
+              <span style="font-size:.68rem;color:transparent;white-space:nowrap;">Recebido</span>
+              <div class="prog-bar-bg">
+                {% widthratio entry.total_recebido item.quantidade 100 as pct_r %}
+                <div class="prog-bar-fill fill-green" style="width:{{ pct_r }}%"></div>
+              </div>
+              <span style="font-family:var(--mono);font-size:.75rem;font-weight:700;color:var(--green);white-space:nowrap;">{{ pct_r }}%</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Lista de remessas -->
+          {% if entry.remessas %}
+          <div class="remessas-list">
+            {% for remessa in entry.remessas %}
+            <div class="remessa-row">
+              <span class="remessa-icon">{% if remessa.recebida %}✅{% else %}🚚{% endif %}</span>
+              <div class="remessa-info">
+                <div class="remessa-qtd">{{ remessa.quantidade_enviada }} unidade(s)</div>
+                <div class="remessa-meta">
+                  Registrada em {{ remessa.data_envio|date:"d/m/Y H:i"|default:"—" }}
+                  {% if remessa.recebida %} · Recebida em {{ remessa.data_recebimento|date:"d/m/Y H:i"|default:"—" }}{% endif %}
+                </div>
+                {% if remessa.observacao %}<div class="remessa-obs">{{ remessa.observacao }}</div>{% endif %}
+              </div>
+              <div class="remessa-actions">
+                {% if remessa.recebida %}
+                  <span class="pill pill-received">Recebida</span>
                 {% else %}
-                  <span class="pill pill-pending"><span class="dot"></span>Pendente</span>
-                {% endif %}
-              </td>
-              <td style="text-align:right; white-space:nowrap;">
-                {% if not item.itemenviado %}
-                  <a href="{% url 'dimms:saldo_ativo_confirmar_envio' item.pk %}" class="btn btn-green btn-sm">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    Confirmar Envio
+                  <a href="{% url 'dimms:saldo_ativo_confirmar_recebimento' remessa.pk %}" class="btn btn-green btn-sm">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Confirmar Recebimento
                   </a>
-                  {% if pode_editar %}
-                  <form method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="remover_item" value="1">
-                    <input type="hidden" name="item_id" value="{{ item.pk }}">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover este item?')">✕</button>
-                  </form>
-                  {% endif %}
-                {% else %}
-                  <span style="font-size:.75rem; color:var(--ink-3);">{{ item.itemenviado.data_envio|date:"d/m/Y" }}</span>
                 {% endif %}
-              </td>
-            </tr>
+              </div>
+            </div>
             {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
+          </div>
+          {% endif %}
+
+          <!-- Rodapé do item -->
+          <div class="item-footer">
+            <div style="font-size:.78rem;color:var(--ink-3);">
+              {% if entry.pode_nova_remessa %}
+                Faltam {{ item.quantidade|add:"-"|add:entry.total_enviado|stringformat:"d" }} unidade(s) para completar as remessas
+              {% else %}
+                Todas as unidades foram registradas em remessas
+              {% endif %}
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              {% if entry.pode_nova_remessa %}
+                <a href="{% url 'dimms:saldo_ativo_confirmar_envio' item.pk %}" class="btn btn-primary btn-sm">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Registrar Remessa
+                </a>
+              {% endif %}
+              {% if pode_editar and not entry.remessas %}
+                <form method="post" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="remover_item" value="1">
+                  <input type="hidden" name="item_id" value="{{ item.pk }}">
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover este item?')">✕</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+        {% endwith %}
+        {% endfor %}
+      {% else %}
+      <div class="card">
         <div class="empty-state">
           <div class="empty-icon">📦</div>
-          <div style="font-size:.88rem; font-weight:600; margin-bottom:4px;">Nenhum item adicionado</div>
-          <div style="font-size:.8rem;">Use o painel ao lado para adicionar itens à solicitação.</div>
+          <div style="font-size:.9rem;font-weight:600;margin-bottom:5px;">Nenhum item adicionado</div>
+          <div style="font-size:.82rem;">Use o painel ao lado para adicionar itens à solicitação.</div>
         </div>
-        {% endif %}
+      </div>
+      {% endif %}
 
-        <div class="btn-bar">
-          <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Voltar
-          </a>
-        </div>
-
+      <div class="btn-bar" style="background:transparent;border:none;padding:12px 0 0;">
+        <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Voltar
+        </a>
       </div>
     </div>
 

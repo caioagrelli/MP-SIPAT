@@ -97,6 +97,18 @@
                             </div>
                         {% endif %}
                     </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.almoxarifado.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.almoxarifado.label }}
+                        </label>
+                        {{ form.almoxarifado }}
+                        {% if form.almoxarifado.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.almoxarifado.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2 mt-3">

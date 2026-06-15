@@ -1,0 +1,595 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Editar Itens — {{ solicitacao.request_code }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7;
+    --surface: #ffffff;
+    --surface-2: #f7f8fc;
+    --border: #e2e5ef;
+    --border-strong: #c8cfe0;
+    --ink: #1a2035;
+    --ink-2: #3d4966;
+    --ink-3: #7380a0;
+    --blue: #1d4ed8;
+    --blue-soft: #eff4ff;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --green-mid: #bbf7d0;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 16px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .epage {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px 40px;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .78rem; color: var(--ink-3);
+    margin-bottom: 18px; font-weight: 500;
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { opacity: .4; }
+
+  .topbar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .topbar-title {
+    font-size: 1.7rem; font-weight: 800; color: var(--ink);
+    letter-spacing: -.035em; line-height: 1.1;
+  }
+  .topbar-sub { margin-top: 5px; font-size: .875rem; color: var(--ink-3); font-weight: 500; }
+  .topbar-sub strong { color: var(--accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 304px;
+    gap: 20px;
+    align-items: start;
+  }
+  .main-col > * + * { margin-top: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: visible;
+    animation: fadeUp .32s ease both;
+  }
+  .card-head {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--surface-2);
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    overflow: hidden;
+  }
+  .card-head-left { display: flex; align-items: center; gap: 9px; }
+
+  .card-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 13px; flex-shrink: 0;
+  }
+  .ci-green { background: var(--green-soft); }
+  .ci-blue { background: var(--blue-soft); }
+
+  .card-title { font-size: .88rem; font-weight: 700; color: var(--ink); }
+  .card-body { padding: 18px 20px; }
+
+  .item-count-badge {
+    background: var(--accent); color: #fff; font-size: .7rem;
+    font-weight: 700; padding: 1px 9px; border-radius: 99px;
+    font-family: var(--mono);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 10px; font-weight: 600;
+    text-decoration: none; font-size: .82rem; border: none;
+    cursor: pointer; transition: .15s ease; font-family: var(--font);
+  }
+  .btn-add {
+    background: var(--accent); color: #fff; font-size: .78rem; padding: 7px 14px;
+  }
+  .btn-add:hover { background: var(--accent-dark); }
+  .btn-green {
+    background: var(--green); color: #fff;
+  }
+  .btn-green:hover { opacity: .9; }
+  .btn-ghost {
+    border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--ink-2);
+  }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-ghost-dark {
+    border: 1.5px solid var(--border); background: transparent; color: var(--ink-2);
+  }
+  .btn-ghost-dark:hover { background: var(--surface-2); }
+
+  .form-actions {
+    display: flex; gap: 10px; margin-top: 4px;
+  }
+
+  .item-row {
+    display: grid;
+    grid-template-columns: 1fr 100px auto;
+    gap: 12px;
+    align-items: flex-end;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-row:first-child { padding-top: 0; }
+  .item-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
+  .form-label { font-size: .75rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .03em; }
+
+  input[type="text"], input[type="number"], select, textarea {
+    font-family: var(--font); font-size: .85rem; padding: 9px 12px;
+    border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--ink); width: 100%; outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+  .btn-remove {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--red-soft); color: var(--red); border: none;
+    padding: 8px 13px; border-radius: 8px; font-size: .78rem;
+    font-weight: 600; cursor: pointer; font-family: var(--font);
+    transition: .15s;
+  }
+  .btn-remove:hover { background: #fee2e2; }
+
+  .items-empty {
+    text-align: center; padding: 36px 20px; color: var(--ink-3);
+  }
+  .items-empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+  .items-empty-title { font-weight: 700; font-size: .95rem; color: var(--ink-2); margin-bottom: 4px; }
+
+  .efisco-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    border-top: none; border-radius: 0 0 var(--r-sm) var(--r-sm);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+  }
+  .efisco-option {
+    padding: 9px 13px; cursor: pointer; font-size: .85rem;
+    border-bottom: 1px solid var(--border); transition: background .1s;
+  }
+  .efisco-option:last-child { border-bottom: none; }
+  .efisco-option:hover, .efisco-option.active { background: var(--blue-soft); }
+  .efisco-option .efisco-code {
+    font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: .8rem;
+  }
+  .efisco-option .efisco-desc {
+    color: var(--ink-2); font-size: .8rem; margin-top: 1px;
+  }
+  .efisco-option .efisco-qty {
+    color: var(--ink-3); font-size: .75rem; margin-top: 2px;
+  }
+  .efisco-selected {
+    margin-top: 6px; padding: 7px 11px;
+    background: var(--green-soft); border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm); font-size: .8rem; color: var(--green);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .efisco-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--green); font-size: .75rem; font-weight: 700;
+    padding: 0; opacity: .7;
+  }
+  .efisco-clear:hover { opacity: 1; }
+
+  .side-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .summary-list { display: flex; flex-direction: column; gap: 8px; }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .s-key { font-size: .8rem; color: var(--ink-3); font-weight: 600; }
+  .s-val { font-size: .9rem; font-weight: 700; color: var(--ink); }
+  .s-val.text { font-size: .8rem; }
+
+  .tip-card {
+    background: var(--amber-soft); border: 1px solid #fde68a;
+    border-radius: var(--r-md); padding: 16px 18px; margin-top: 14px;
+  }
+  .tip-title { font-weight: 700; font-size: .85rem; color: var(--amber); margin-bottom: 10px; }
+  .tip-item { display: flex; gap: 8px; font-size: .8rem; color: var(--ink-2); margin-bottom: 6px; }
+  .tip-item:last-child { margin-bottom: 0; }
+  .tip-arrow { color: var(--amber); font-weight: 700; flex-shrink: 0; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .info-box {
+    background: var(--blue-soft); border: 1px solid #c7d7fd;
+    border-radius: var(--r-sm); padding: 12px 16px; margin-bottom: 16px;
+    font-size: .85rem; color: var(--ink-2);
+  }
+</style>
+
+<div class="epage">
+
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:processing' %}">Solicitações</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'dimms:details_processing' solicitacao.pk %}">{{ solicitacao.request_code }}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Editar Itens</span>
+  </div>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Editar Itens</div>
+      <div class="topbar-sub">
+        Solicitação <strong>{{ solicitacao.request_code }}</strong>
+        &middot; Status: {{ solicitacao.get_situation_display }}
+      </div>
+    </div>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="layout">
+      <div class="main-col">
+
+        <div class="info-box">
+          <strong>⚠</strong> Apenas itens podem ser alterados.
+          Solicitação em <strong>{{ solicitacao.get_situation_display }}</strong>.
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <div class="card-icon ci-green">📦</div>
+              <span class="card-title">Itens Solicitados</span>
+              <span class="item-count-badge" id="item-count">0</span>
+            </div>
+            <button type="button" class="btn btn-add" id="add-item">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar item
+            </button>
+          </div>
+          <div class="card-body">
+            {{ formset.management_form }}
+            <div id="formset-container">
+              {% for form in formset %}
+              {% if form.instance.pk %}
+              <div class="item-row" data-form-idx="{{ forloop.counter0 }}">
+                <div class="form-group" style="position:relative;">
+                  <label class="form-label">Item do Estoque</label>
+                  <div style="display:none;">{{ form.item_order }}</div>
+                  <input type="text"
+                         class="efisco-text"
+                         placeholder="Digite o código E-Fisco ou descrição…"
+                         autocomplete="off"
+                         data-target="id_bens_solicitados-{{ forloop.counter0 }}-item_order">
+                  <div class="efisco-dropdown" style="display:none;"></div>
+                  <div class="efisco-selected" style="display:none;"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Quantidade</label>
+                  {{ form.amount_order }}
+                </div>
+                <div style="align-self:flex-end;">
+                  <button type="button" class="btn-remove remove-item">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Remover
+                  </button>
+                  {% if form.DELETE %}{{ form.DELETE }}{% endif %}
+                </div>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            <div class="items-empty" id="items-empty">
+              <span class="items-empty-icon">📭</span>
+              <div class="items-empty-title">Nenhum item adicionado</div>
+              Clique em "Adicionar item" para começar.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-green">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Salvar Itens
+          </button>
+          <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+
+      </div>
+
+      <div class="side-col">
+        <div class="side-card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <div class="card-icon ci-blue">⚡</div>
+              <span class="card-title">Resumo</span>
+            </div>
+          </div>
+          <div class="card-body" style="padding-top:14px; padding-bottom:14px;">
+            <div class="summary-list">
+              <div class="summary-row">
+                <span class="s-key">Itens</span>
+                <span class="s-val" id="s-count">0</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Qtd. Total</span>
+                <span class="s-val" id="s-qty">0</span>
+              </div>
+              <div class="summary-row">
+                <span class="s-key">Código</span>
+                <span class="s-val text">{{ solicitacao.request_code }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-title">💡 Dicas</div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>Você pode adicionar ou remover itens livremente.</span></div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>As alterações salvam todos os itens de uma vez.</span></div>
+          <div class="tip-item"><span class="tip-arrow">→</span><span>Itens removidos são desvinculados da solicitação.</span></div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>
+
+<div id="empty-form" style="display:none;">
+  <div class="item-row">
+    <div class="form-group" style="position:relative;">
+      <label class="form-label">Item do Estoque</label>
+      <input type="text"
+             class="efisco-text"
+             placeholder="Digite o código E-Fisco ou descrição…"
+             autocomplete="off"
+             data-target="id_bens_solicitados-__prefix__-item_order">
+      <select name="bens_solicitados-__prefix__-item_order"
+              id="id_bens_solicitados-__prefix__-item_order"
+              class="efisco-hidden"
+              style="display:none;">
+        <option value="">---------</option>
+      </select>
+      <div class="efisco-dropdown" style="display:none;"></div>
+      <div class="efisco-selected" style="display:none;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Quantidade</label>
+      {{ formset.empty_form.amount_order }}
+    </div>
+    <div style="align-self:flex-end;">
+      <button type="button" class="btn-remove remove-item">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Remover
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ESTOQUE_SEARCH_URL = "{% url 'dimms:estoque_search' %}";
+const ITENS_INICIAIS = {{ itens_iniciais_json|safe }};
+
+document.addEventListener('DOMContentLoaded', function () {
+  const addBtn     = document.getElementById('add-item');
+  const container  = document.getElementById('formset-container');
+  const totalForms = document.getElementById('id_bens_solicitados-TOTAL_FORMS');
+  const emptyTpl   = document.getElementById('empty-form').innerHTML;
+  const emptyMsg   = document.getElementById('items-empty');
+  const badge      = document.getElementById('item-count');
+  const sCount     = document.getElementById('s-count');
+  const sQty       = document.getElementById('s-qty');
+
+  // Contador monotônico: começa no número atual de forms (iniciais)
+  let nextFormIdx = parseInt(totalForms.value);
+
+  function getHiddenSelect(row) {
+    return row.querySelector('select[id^="id_bens_solicitados"][id$="-item_order"]');
+  }
+
+  function getVisibleRows() {
+    return Array.from(container.querySelectorAll('.item-row')).filter(r => r.style.display !== 'none');
+  }
+
+  function syncBadge() {
+    const n = getVisibleRows().length;
+    badge.textContent  = n;
+    sCount.textContent = n;
+    emptyMsg.style.display = n === 0 ? 'block' : 'none';
+  }
+
+  function syncQty() {
+    let t = 0;
+    getVisibleRows().forEach(row => {
+      const i = row.querySelector('input[type="number"]');
+      if (i) t += parseInt(i.value) || 0;
+    });
+    sQty.textContent = t;
+  }
+
+  function lockRemove() {
+    const visiveis = getVisibleRows();
+    visiveis.forEach(row => {
+      const btn = row.querySelector('.remove-item');
+      if (btn) btn.disabled = visiveis.length <= 1;
+    });
+  }
+
+  function bindAutocomplete(row) {
+    const textInput = row.querySelector('.efisco-text');
+    const hidden    = getHiddenSelect(row);
+    const dropdown  = row.querySelector('.efisco-dropdown');
+    const selected  = row.querySelector('.efisco-selected');
+    let timer = null;
+
+    if (!hidden || !textInput) return;
+
+    function showDropdown(items) {
+      dropdown.innerHTML = '';
+      dropdown.style.display = items.length ? 'block' : 'none';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'efisco-option';
+        div.innerHTML = `
+          <div class="efisco-code">${item.item_shock__efisco || item.efisco || ''}</div>
+          <div class="efisco-desc">${item.item_shock__descricao_efisco || item.descricao || ''}</div>
+          <div class="efisco-qty">Estoque: ${item.amount_shock || item.estoque || 0} un.</div>
+        `;
+        div.addEventListener('mousedown', (e) => { e.preventDefault(); selectItem(item); });
+        dropdown.appendChild(div);
+      });
+    }
+
+    function selectItem(item) {
+      const id    = item.id || item.item_id;
+      const efisco = item.item_shock__efisco || item.efisco || '';
+      const desc   = item.item_shock__descricao_efisco || item.descricao || '';
+      textInput.value = efisco;
+      // Cria a option dinamicamente se ainda não existir (caso de linhas novas)
+      let opt = Array.from(hidden.options).find(o => o.value === String(id));
+      if (!opt) {
+        opt = document.createElement('option');
+        opt.value = String(id);
+        hidden.appendChild(opt);
+      }
+      hidden.value = String(id);
+      dropdown.style.display = 'none';
+      selected.style.display = 'flex';
+      selected.innerHTML = `<span>${efisco} — ${desc}</span><button type="button" class="efisco-clear">✕</button>`;
+      selected.querySelector('.efisco-clear').addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearItem();
+      });
+      syncBadge(); syncQty();
+    }
+
+    function clearItem() {
+      textInput.value = '';
+      hidden.value = '';
+      selected.style.display = 'none';
+      syncBadge(); syncQty();
+    }
+
+    textInput.addEventListener('input', function () {
+      clearTimeout(timer);
+      const q = this.value.trim();
+      if (q.length < 2) { dropdown.style.display = 'none'; return; }
+      timer = setTimeout(() => {
+        fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            if (Array.isArray(data)) showDropdown(data);
+            else if (data.results) showDropdown(data.results);
+          }).catch(() => {});
+      }, 250);
+    });
+
+    textInput.addEventListener('blur', () => {
+      setTimeout(() => { dropdown.style.display = 'none'; }, 200);
+    });
+    textInput.addEventListener('focus', function () {
+      if (this.value.trim().length >= 2) this.dispatchEvent(new Event('input'));
+    });
+  }
+
+  function addNewRow() {
+    const idx = nextFormIdx;
+    nextFormIdx++;
+    totalForms.value = nextFormIdx; // TOTAL_FORMS só cresce, nunca diminui
+    const html = emptyTpl.replace(/__prefix__/g, idx);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const row = wrapper.firstElementChild;
+    container.appendChild(row);
+    bindAutocomplete(row);
+    lockRemove();
+    syncBadge(); syncQty();
+  }
+
+  addBtn.addEventListener('click', addNewRow);
+
+  container.addEventListener('click', function (e) {
+    const btn = e.target.closest('.remove-item');
+    if (!btn) return;
+    const row = btn.closest('.item-row');
+    if (!row) return;
+    const deleteCheck = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+    if (deleteCheck) {
+      // Item existente: mantém no DOM (hidden) com DELETE marcado — Django precisa do valor
+      deleteCheck.checked = true;
+      row.style.display = 'none';
+    } else {
+      // Item novo (sem pk): pode remover do DOM sem afetar TOTAL_FORMS
+      row.remove();
+      nextFormIdx--;
+      totalForms.value = nextFormIdx;
+    }
+    lockRemove();
+    syncBadge(); syncQty();
+  });
+
+  container.addEventListener('input', function (e) {
+    if (e.target.closest('input[type="number"]')) syncQty();
+  });
+
+  // Inicializa linhas existentes com autocomplete e exibe item selecionado
+  getVisibleRows().forEach(row => {
+    bindAutocomplete(row);
+    const hidden = getHiddenSelect(row);
+    if (hidden && hidden.value) {
+      const match = ITENS_INICIAIS.find(i => i.item_order_id === parseInt(hidden.value));
+      const efisco = match ? (match.item_order__item_shock__efisco || '') : (hidden.options[hidden.selectedIndex]?.text || '');
+      const desc   = match ? (match.item_order__item_shock__descricao_efisco || '') : '';
+      const textInput = row.querySelector('.efisco-text');
+      const selected  = row.querySelector('.efisco-selected');
+      if (textInput) textInput.value = efisco;
+      if (selected && efisco) {
+        selected.style.display = 'flex';
+        selected.innerHTML = `<span>${efisco}${desc ? ' — ' + desc : ''}</span><button type="button" class="efisco-clear">✕</button>`;
+        selected.querySelector('.efisco-clear').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (textInput) textInput.value = '';
+          hidden.value = '';
+          selected.style.display = 'none';
+          syncBadge(); syncQty();
+        });
+      }
+    }
+  });
+
+  lockRemove();
+  syncBadge(); syncQty();
+});
+</script>
+{% endblock %}

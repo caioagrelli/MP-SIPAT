@@ -2,6 +2,7 @@
 from django.db import models
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -204,56 +205,89 @@ class ItensSolicitados(models.Model):
             )
         ]
 
-# Itens que realmente foram enviados
+# Remessas enviadas pelo fornecedor (pode ser parcial, pode ter várias por item)
 class BensEnviados(models.Model):
-    item_enviado = models.OneToOneField(
+    item_enviado = models.ForeignKey(
         ItensSolicitados,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name='itemenviado',
-        verbose_name='Bens Enviados',
+        related_name='remessas',
+        verbose_name='Item Solicitado',
     )
 
     quantidade_enviada = models.PositiveIntegerField(
-        verbose_name='Quantidade Enviada',
+        verbose_name='Quantidade Enviada pelo Fornecedor',
         blank=True,
         null=True,
+    )
+
+    recebida = models.BooleanField(
+        default=False,
+        verbose_name='Recebida',
     )
 
     data_envio = models.DateTimeField(
         auto_now_add=True,
         blank=True,
         null=True,
-        verbose_name='Data/Hora do Envio'
+        verbose_name='Data/Hora do Registro da Remessa'
+    )
+
+    data_recebimento = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Data/Hora do Recebimento',
+    )
+
+    observacao = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name='Observação',
     )
 
     def clean(self):
         super().clean()
 
-        # não enviar mais do que foi enviado
-        if self.item_enviado_id and self.quantidade_enviada:
-            if self.quantidade_enviada > (self.item_enviado.quantidade or 0):
-                raise ValidationError('Quantidade enviada maior que a quantidade solicitada.')
+        if not self.item_enviado_id or not self.quantidade_enviada:
+            return
 
-            # não enviar mais do que o saldo atual permite
-            bem = self.item_enviado.bem
-            if bem and self.quantidade_enviada > (bem.saldo_disponivel or 0):
-                raise ValidationError('Quantidade enviada maior que o saldo disponível.')
+        # Total já enviado por remessas anteriores (excluindo a atual)
+        total_ja_enviado = BensEnviados.objects.filter(
+            item_enviado=self.item_enviado
+        ).exclude(pk=self.pk).aggregate(t=Sum('quantidade_enviada'))['t'] or 0
+
+        if total_ja_enviado + self.quantidade_enviada > (self.item_enviado.quantidade or 0):
+            raise ValidationError(
+                f'Total de remessas ({total_ja_enviado + self.quantidade_enviada}) '
+                f'excede a quantidade solicitada ({self.item_enviado.quantidade}).'
+            )
+
+        bem = self.item_enviado.bem
+        if bem and self.quantidade_enviada > (bem.saldo_disponivel or 0):
+            raise ValidationError('Quantidade enviada maior que o saldo disponível no contrato.')
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         self.full_clean()
         with transaction.atomic():
             super().save(*args, **kwargs)
-            bem = self.item_enviado.bem
-            if bem:
-                bem.saldo_disponivel = (bem.saldo_disponivel or 0) - self.quantidade_enviada
-                bem.save(update_fields=['saldo_disponivel'])
+            # Desconta do saldo do contrato ao registrar a remessa
+            if is_new:
+                bem = self.item_enviado.bem
+                if bem:
+                    bem.saldo_disponivel = (bem.saldo_disponivel or 0) - self.quantidade_enviada
+                    bem.save(update_fields=['saldo_disponivel'])
+
+    @property
+    def quantidade_recebida(self):
+        return self.quantidade_enviada if self.recebida else 0
 
     class Meta:
-        verbose_name = 'Item Enviado'
-        verbose_name_plural = '07 - Bens Enviados'
+        verbose_name = 'Remessa'
+        verbose_name_plural = '07 - Remessas'
 
     def __str__(self):
-        return f'Envio de {self.quantidade_enviada} - {self.item_enviado}'
+        status = 'Recebida' if self.recebida else 'Pendente'
+        return f'Remessa {status} — {self.quantidade_enviada} un. — {self.item_enviado}'
    

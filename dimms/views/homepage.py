@@ -1,8 +1,15 @@
 # Importação Django (acabaram as minhas piadas - Desculpa)
+from datetime import datetime
+from io import BytesIO
+
 from django.shortcuts import render
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 # Importações do código
 from ..models import Estoque, BensConsumo
@@ -61,6 +68,119 @@ def homepage(request):
     }
 
     return render(request, 'dimms/homepage.html', context)
+
+
+''' Exportar Planilha '''
+@login_required
+def exportar_planilha(request):
+    itens = (
+        Estoque.objects
+        .select_related('item_shock', 'locate__setor_sala')
+        .order_by('item_shock__grupo_consumo', 'description_manual')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Estoque'
+
+    # ── estilos ───────────────────────────────────────────────────────────────
+    navy        = PatternFill('solid', fgColor='1E2D42')
+    stripe      = PatternFill('solid', fgColor='F0F4FB')
+    header_font = Font(name='Calibri', bold=True, color='FFFFFF', size=10)
+    cell_font   = Font(name='Calibri', size=10)
+    center      = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    left        = Alignment(horizontal='left',   vertical='center', wrap_text=True)
+    thin        = Side(style='thin', color='C8CFE0')
+    border      = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    headers = [
+        ('Essencial',          12),
+        ('Almoxarifado',       22),
+        ('Grupo',              20),
+        ('E-Fisco',            14),
+        ('Descrição',          40),
+        ('Unidade',            14),
+        ('Endereço',           22),
+        ('Marca',              18),
+        ('Cons. mes. hist.',   16),
+        ('Consumo mensal',     16),
+        ('Custo unit.',        14),
+        ('Duração',            16),
+        ('Validade',           14),
+        ('Qtd. Estoque',       14),
+    ]
+
+    # cabeçalho
+    for col, (title, width) in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col, value=title)
+        cell.fill      = navy
+        cell.font      = header_font
+        cell.alignment = center
+        cell.border    = border
+        ws.column_dimensions[get_column_letter(col)].width = width
+
+    ws.row_dimensions[1].height = 22
+    ws.freeze_panes = 'A2'
+
+    # dados
+    for row_idx, item in enumerate(itens, start=2):
+        shade = (row_idx % 2 == 0)
+        bg    = stripe if shade else PatternFill('solid', fgColor='FFFFFF')
+
+        locate     = item.locate
+        almox      = item.item_shock.get_almoxarifado_display() if item.item_shock.almoxarifado else '—'
+        endereco   = str(locate) if locate else '—'
+        grupo      = item.item_shock.get_grupo_consumo_display() if item.item_shock.grupo_consumo else '—'
+        unidade    = item.item_shock.get_medida_display()        if item.item_shock.medida        else '—'
+        validade   = item.validity.strftime('%d/%m/%Y')          if item.validity                 else '—'
+        duracao    = str(item.duration)                          if item.duration                 else '—'
+
+        values = [
+            'Sim' if item.essential else 'Não',
+            almox,
+            grupo,
+            item.item_shock.efisco or '—',
+            item.description_manual or '—',
+            unidade,
+            endereco,
+            item.mark or '—',
+            item.monthly_consumption if item.monthly_consumption is not None else '—',
+            item.monthly_consumption if item.monthly_consumption is not None else '—',
+            '',        # Custo unit. — sem campo no modelo
+            duracao,
+            validade,
+            item.amount_shock,
+        ]
+
+        for col, val in enumerate(values, start=1):
+            cell = ws.cell(row=row_idx, column=col, value=val)
+            cell.font      = cell_font
+            cell.fill      = bg
+            cell.border    = border
+            cell.alignment = center if col in (1, 6, 9, 10, 11, 13, 14) else left
+
+    # ── aba de metadados ──────────────────────────────────────────────────────
+    ws_meta = wb.create_sheet('Info')
+    ws_meta['A1'] = 'Gerado em'
+    ws_meta['B1'] = datetime.now().strftime('%d/%m/%Y às %H:%M')
+    ws_meta['A2'] = 'Total de itens'
+    ws_meta['B2'] = itens.count()
+    ws_meta['A1'].font = Font(bold=True)
+    ws_meta['A2'].font = Font(bold=True)
+    ws_meta.column_dimensions['A'].width = 18
+    ws_meta.column_dimensions['B'].width = 24
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    filename = f'estoque_dimms_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx'
+    resp = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return resp
 
 
 ''' Páginas de Alertas '''

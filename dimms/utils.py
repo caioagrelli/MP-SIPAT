@@ -100,6 +100,11 @@ class GrupoConsumo(models.TextChoices):
     refrigeracao = 'REFRIGERACAO', 'Refrigeração'
     toner = 'TONER', 'Toner'
 
+# Classificação do Almoxarifado
+class TipoAlmoxarifado(models.TextChoices):
+    geral     = 'GERAL',     'Almoxarifado Geral'
+    reservado = 'RESERVADO', 'Almoxarifado Reservado'
+
 # Cotas Existentes
 class Cota(models.TextChoices):
     principal = 'PRINCIPAL', 'Principal'

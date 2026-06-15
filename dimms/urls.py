@@ -15,6 +15,7 @@ app_name = 'dimms'
 urlpatterns = [
     # Url's da Homepage e Páginas de Aviso
     path('', homepage, name='homepage'),
+    path('exportar-planilha/', exportar_planilha, name='exportar_planilha'),
     path('essential/', essential, name='essential'),
     path('low_stock/', low_stock, name='low_stock'),
     path('expiration_alert/', expiration_alert, name='expiration_alert'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('overview/<int:pk>/', overview, name='overview'),
     path('overview/<int:pk>/qrcode/', qrcode_view, name='qrcode'),
     path('overview/<int:pk>/label/', label, name='label'),
+    path('overview/<int:pk>/ficha-tecnica/', ficha_tecnica, name='ficha_tecnica'),
     path('overview/<int:pk>/edit/', overview_edit, name='overview_edit'),
     
 
@@ -36,6 +38,9 @@ urlpatterns = [
     path('processing/<int:pk>/update_request/qrcode/', qrcode_update, name='qrcode_update'),
     path('processing/<int:pk>/update_request/label/', label_update, name='label_update'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
+    path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/comprovante/', comprovante_tramitacao, name='comprovante_tramitacao'),
+    path('processing/<int:pk>/edit-itens/', edit_solicitacao_itens, name='edit_solicitacao_itens'),
+    
     
     
     # Busca de E-Fisco (autocomplete)
@@ -63,10 +68,13 @@ urlpatterns = [
 
     # Url's do Saldo Ativo
     path('saldo-ativo/', saldo_ativo_homepage, name='saldo_ativo_homepage'),
+    path('saldo-ativo/contrato/criar/', contrato_criar_saldoativo, name='contrato_criar_saldoativo'),
+    path('saldo-ativo/fornecedor/criar/', fornecedor_criar_saldoativo, name='fornecedor_criar_saldoativo'),
     path('saldo-ativo/solicitacoes/', saldo_ativo_solicitacoes, name='saldo_ativo_solicitacoes'),
     path('saldo-ativo/solicitacao/criar/', saldo_ativo_solicitacao_create, name='saldo_ativo_solicitacao_create'),
     path('saldo-ativo/solicitacao/<int:pk>/', saldo_ativo_solicitacao_detail, name='saldo_ativo_solicitacao_detail'),
     path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
+    path('saldo-ativo/remessa/<int:remessa_pk>/receber/', saldo_ativo_confirmar_recebimento, name='saldo_ativo_confirmar_recebimento'),
 
 
     # Catálogo de Bens de Consumo — listagem pública
@@ -89,6 +97,7 @@ urlpatterns = [
     path('bensconsumo/', bensconsumo, name='bensconsumo'),
     path('bensconsumo/add/', bensconsumo_add, name='bensconsumo_add'),
     path('bensconsumo/<int:pk>/edit/', bensconsumo_edit, name='bensconsumo_edit'),
-    path('bensconsumo/<int:pk>/delete/', bensconsumo_delete, name='bensconsumo_delete'),      
+    path('bensconsumo/<int:pk>/delete/', bensconsumo_delete, name='bensconsumo_delete'),
+    path('bensconsumo/recalcular-consumo/', recalcular_consumo_view, name='recalcular_consumo'),
     ]
 

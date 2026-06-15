@@ -434,7 +434,7 @@ class SaldoAtivoItemForm(forms.ModelForm):
 class BensConsumoForm(forms.ModelForm):
     class Meta:
         model = BensConsumo
-        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo']
+        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo', 'almoxarifado']
         widgets = {
             'efisco': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -451,10 +451,14 @@ class BensConsumoForm(forms.ModelForm):
             'grupo_consumo': forms.Select(attrs={
                 'class': 'form-select'
             }),
+            'almoxarifado': forms.Select(attrs={
+                'class': 'form-select'
+            }),
         }
         labels = {
             'efisco': 'E-Fisco',
             'descricao_efisco': 'Descrição Efisco',
             'medida': 'Unidade de Medida',
             'grupo_consumo': 'Grupo',
-        } 
+            'almoxarifado': 'Almoxarifado',
+        }
