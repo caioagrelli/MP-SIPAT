@@ -246,6 +246,14 @@ class BensEnviados(models.Model):
         verbose_name='Observação',
     )
 
+    comprovante = models.FileField(
+        upload_to=path_comprovante_remessa,
+        blank=True,
+        null=True,
+        verbose_name='Comprovante de Recebimento',
+        help_text='Nota fiscal, termo de recebimento ou outro documento (PDF, imagem)',
+    )
+
     def clean(self):
         super().clean()
 

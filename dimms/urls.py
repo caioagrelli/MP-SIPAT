@@ -69,12 +69,17 @@ urlpatterns = [
     # Url's do Saldo Ativo
     path('saldo-ativo/', saldo_ativo_homepage, name='saldo_ativo_homepage'),
     path('saldo-ativo/contrato/criar/', contrato_criar_saldoativo, name='contrato_criar_saldoativo'),
+    path('saldo-ativo/fornecedores/', fornecedor_lista, name='fornecedor_lista'),
+    path('saldo-ativo/fornecedor/<int:pk>/', fornecedor_detail, name='fornecedor_detail'),
+    path('saldo-ativo/fornecedor/buscar/', fornecedor_search, name='fornecedor_search'),
     path('saldo-ativo/fornecedor/criar/', fornecedor_criar_saldoativo, name='fornecedor_criar_saldoativo'),
     path('saldo-ativo/solicitacoes/', saldo_ativo_solicitacoes, name='saldo_ativo_solicitacoes'),
     path('saldo-ativo/solicitacao/criar/', saldo_ativo_solicitacao_create, name='saldo_ativo_solicitacao_create'),
     path('saldo-ativo/solicitacao/<int:pk>/', saldo_ativo_solicitacao_detail, name='saldo_ativo_solicitacao_detail'),
     path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
     path('saldo-ativo/remessa/<int:remessa_pk>/receber/', saldo_ativo_confirmar_recebimento, name='saldo_ativo_confirmar_recebimento'),
+    path('saldo-ativo/solicitacao/<int:pk>/pdf/', pdf_relatorio_solicitacao, name='pdf_relatorio_solicitacao'),
+    path('saldo-ativo/relatorio/recebimentos/', relatorio_recebimentos, name='relatorio_recebimentos'),
 
 
     # Catálogo de Bens de Consumo — listagem pública

@@ -67,6 +67,33 @@
     display:flex;align-items:flex-start;gap:10px;grid-column:1/-1;
   }
 
+  /* ─── AUTOCOMPLETE FORNECEDOR ─── */
+  .ac-wrap{position:relative;width:100%;}
+  .ac-dropdown{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;
+    background:var(--surface);border:1px solid var(--border-strong);
+    border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(15,23,42,.14);
+    max-height:240px;overflow-y:auto;display:none;
+  }
+  .ac-dropdown.open{display:block;}
+  .ac-item{
+    padding:10px 14px;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);
+    transition:background .1s;
+  }
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item:hover,.ac-item.focused{background:var(--blue-soft);}
+  .ac-item-name{font-size:.88rem;font-weight:600;color:var(--ink);}
+  .ac-item-cnpj{font-size:.75rem;color:var(--ink-3);font-family:var(--mono);}
+  .ac-loading,.ac-empty{padding:12px 14px;font-size:.83rem;color:var(--ink-3);text-align:center;}
+  .ac-selected-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--blue-soft);border:1px solid var(--blue-mid);
+    border-radius:var(--r-sm);padding:6px 12px;margin-top:6px;
+    font-size:.84rem;font-weight:600;color:var(--blue);
+  }
+  .ac-selected-tag button{background:none;border:none;cursor:pointer;color:var(--blue);font-size:1rem;line-height:1;padding:0;}
+
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 </style>
 
@@ -97,8 +124,18 @@
 
         <div class="form-group full">
           <label class="form-label">Fornecedor</label>
-          {{ form.supplier_contract }}
-          {% if form.supplier_contract.errors %}<ul class="errorlist">{% for e in form.supplier_contract.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          <input type="hidden" name="supplier_name" id="supplierHidden">
+          <div class="ac-wrap">
+            <input
+              type="text"
+              id="supplierInput"
+              class="form-control"
+              placeholder="Digite o nome do fornecedor…"
+              autocomplete="off">
+            <div class="ac-dropdown" id="supplierDropdown"></div>
+          </div>
+          <div id="supplierTag" style="display:none;"></div>
+          <div style="font-size:.73rem;color:var(--ink-3);margin-top:4px;">Se o fornecedor não existir, ele será criado automaticamente com o nome digitado.</div>
         </div>
 
         <div class="form-group full">
@@ -156,4 +193,92 @@
   </div>
 
 </div>
+
+<script>
+const SUPPLIER_URL = "{% url 'dimms:fornecedor_search' %}";
+const input    = document.getElementById('supplierInput');
+const hidden   = document.getElementById('supplierHidden');
+const dropdown = document.getElementById('supplierDropdown');
+const tagWrap  = document.getElementById('supplierTag');
+
+let timer = null;
+let focusedIdx = -1;
+let results = [];
+
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  focusedIdx = -1;
+  const q = input.value.trim();
+  if (!q) { closeDropdown(); hidden.value = ''; return; }
+  dropdown.innerHTML = '<div class="ac-loading">Buscando…</div>';
+  dropdown.classList.add('open');
+  timer = setTimeout(() => search(q), 250);
+});
+
+async function search(q) {
+  try {
+    const r = await fetch(`${SUPPLIER_URL}?q=${encodeURIComponent(q)}`);
+    results = await r.json();
+    render(results, q);
+  } catch { dropdown.innerHTML = '<div class="ac-empty">Erro ao buscar.</div>'; }
+}
+
+function render(items, q) {
+  if (!items.length) {
+    dropdown.innerHTML = `<div class="ac-empty">Nenhum fornecedor encontrado. Será criado "<strong>${esc(q)}</strong>".</div>`;
+    hidden.value = q;
+    return;
+  }
+  dropdown.innerHTML = items.map((it, i) => `
+    <div class="ac-item" data-idx="${i}" onmousedown="select(${i})">
+      <span class="ac-item-name">${esc(it.supplier)}</span>
+      ${it.cnpj_supplier ? `<span class="ac-item-cnpj">${esc(it.cnpj_supplier)}</span>` : ''}
+    </div>`).join('');
+}
+
+function select(idx) {
+  const it = results[idx];
+  if (!it) return;
+  hidden.value = it.supplier;
+  input.value  = '';
+  closeDropdown();
+  tagWrap.style.display = 'block';
+  tagWrap.innerHTML = `
+    <div class="ac-selected-tag">
+      🏢 ${esc(it.supplier)}
+      <button type="button" onclick="clear()">✕</button>
+    </div>`;
+  input.style.display = 'none';
+}
+
+function clear() {
+  hidden.value = '';
+  tagWrap.style.display = 'none';
+  tagWrap.innerHTML = '';
+  input.style.display = '';
+  input.value = '';
+  input.focus();
+}
+
+function closeDropdown() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; }
+
+document.addEventListener('click', e => { if (!e.target.closest('.ac-wrap')) closeDropdown(); });
+
+input.addEventListener('keydown', e => {
+  const items = dropdown.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, items.length - 1); highlight(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); highlight(items); }
+  else if (e.key === 'Enter' && focusedIdx >= 0) { e.preventDefault(); select(focusedIdx); }
+  else if (e.key === 'Escape') closeDropdown();
+});
+
+function highlight(items) { items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx)); }
+
+// ao submeter, se nada selecionado usa o texto digitado
+document.querySelector('form').addEventListener('submit', () => {
+  if (!hidden.value && input.value.trim()) hidden.value = input.value.trim();
+});
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
 {% endblock %}

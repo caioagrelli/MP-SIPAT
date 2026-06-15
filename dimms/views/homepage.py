@@ -12,7 +12,9 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 # Importações do código
-from ..models import Estoque, BensConsumo
+from django.db.models import Sum
+
+from ..models import Estoque, BensConsumo, SaldoAtivo
 
 # ===================================================
 # CAMPOS DESTINADOS PARA GERENCIAR PÁGINAS INICIAIS
@@ -56,6 +58,14 @@ def homepage(request):
     # ordenar estoque_baixo pelos dias restantes, do maior para o menor
     estoque_baixo = sorted(estoque_baixo, key=lambda x: x.duration, reverse=True)
 
+    # Saldo disponível por efisco (para exibir na tabela)
+    saldo_por_efisco = dict(
+        SaldoAtivo.objects
+        .values('efisco_id')
+        .annotate(total=Sum('saldo_disponivel'))
+        .values_list('efisco_id', 'total')
+    )
+
     context = {
         'itens': itens,
         'total_itens': itens.count(),
@@ -65,6 +75,7 @@ def homepage(request):
         'item_essential': item_essential,
         'estoque_baixo': estoque_baixo,
         'alerta_vencimento': alerta_vencimento,
+        'saldo_por_efisco': saldo_por_efisco,
     }
 
     return render(request, 'dimms/homepage.html', context)

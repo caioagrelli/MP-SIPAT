@@ -13,6 +13,7 @@
     --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
     --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
     --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
     --accent:#2563eb;
     --shadow-sm:0 1px 3px rgba(15,23,42,.06);
     --shadow-md:0 4px 20px rgba(15,23,42,.1);
@@ -57,6 +58,19 @@
   .form-textarea{border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:10px 14px;font-family:var(--font);font-size:.88rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;resize:vertical;min-height:72px;}
   .form-textarea:focus{border-color:var(--accent);}
   .form-hint{font-size:.75rem;color:var(--ink-3);text-align:center;}
+
+  .file-drop{border:2px dashed var(--border-strong);border-radius:var(--r-sm);background:var(--surface-2);cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+  .file-drop:hover,.file-drop.drag-over{border-color:var(--accent);background:var(--blue-soft);}
+  .file-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .file-drop-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:4px;pointer-events:none;}
+  .file-drop-icon{font-size:1.6rem;}
+  .file-drop-text{font-size:.85rem;font-weight:600;color:var(--ink-2);}
+  .file-drop-hint{font-size:.75rem;color:var(--ink-3);}
+  .file-selected{display:flex;align-items:center;gap:10px;padding:12px 16px;}
+  .file-selected-icon{font-size:1.3rem;flex-shrink:0;}
+  .file-selected-name{font-size:.85rem;font-weight:600;color:var(--ink);flex:1;word-break:break-all;}
+  .file-clear{background:none;border:1px solid var(--border-strong);border-radius:6px;padding:3px 8px;font-size:.8rem;cursor:pointer;color:var(--ink-3);flex-shrink:0;}
+  .file-clear:hover{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
   .form-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);}
   .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
   .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
@@ -82,7 +96,7 @@
     <div class="confirm-header">
       <div class="confirm-header-icon">🚚</div>
       <div>
-        <div class="confirm-header-title">Registrar Remessa do Fornecedor</div>
+        <div class="confirm-header-title">Registrar Entrada do Fornecedor</div>
         <div class="confirm-header-sub">Solicitação {{ item.solicitacao.codigo }}</div>
       </div>
     </div>
@@ -100,13 +114,8 @@
       </div>
       <div class="flow-arrow-icon">→</div>
       <div class="flow-node">
-        <div class="flow-node-icon muted">✅</div>
-        <div class="flow-node-label" style="color:var(--ink-3);">Recebimento</div>
-      </div>
-      <div class="flow-arrow-icon">→</div>
-      <div class="flow-node">
-        <div class="flow-node-icon muted">📦</div>
-        <div class="flow-node-label" style="color:var(--ink-3);">Estoque</div>
+        <div class="flow-node-icon active">📦</div>
+        <div class="flow-node-label" style="color:var(--blue);">Estoque</div>
       </div>
     </div>
 
@@ -143,11 +152,11 @@
       <div class="notice-box">
         <span style="font-size:1rem; flex-shrink:0;">ℹ️</span>
         <div>
-          O item entrará no estoque somente após <strong>confirmar o recebimento</strong>. O fornecedor pode fazer envios parciais — registre cada remessa separadamente.
+          Ao registrar, as unidades entram <strong>imediatamente no estoque</strong>. O fornecedor pode fazer envios parciais — registre cada entrada separadamente.
         </div>
       </div>
 
-      <form method="post">
+      <form method="post" enctype="multipart/form-data" id="remessa-form">
         {% csrf_token %}
         <div class="form-group">
           <label class="form-label">Quantidade desta Remessa</label>
@@ -158,23 +167,71 @@
           <label class="form-label">Observação (opcional)</label>
           <textarea name="observacao" class="form-textarea" placeholder="Ex: Nota fiscal 1234, remessa parcial..."></textarea>
         </div>
+        <div class="form-group">
+          <label class="form-label">Comprovante de Recebimento <span style="font-weight:400;color:var(--ink-3);">(opcional)</span></label>
+          <div class="file-drop" id="fileDrop">
+            <input type="file" name="comprovante" id="fileInput" class="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp">
+            <div class="file-drop-inner" id="fileDropInner">
+              <div class="file-drop-icon">📎</div>
+              <div class="file-drop-text">Clique ou arraste o arquivo aqui</div>
+              <div class="file-drop-hint">PDF, PNG ou JPEG — nota fiscal, termo de entrega…</div>
+            </div>
+            <div class="file-selected" id="fileSelected" style="display:none;">
+              <span class="file-selected-icon">📄</span>
+              <span class="file-selected-name" id="fileSelectedName"></span>
+              <button type="button" class="file-clear" id="fileClear" title="Remover">✕</button>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
 
     <div class="form-footer">
       <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
-      <button type="submit" form="remessa-form" class="btn btn-primary" onclick="this.closest('.confirm-card').querySelector('form').submit();">
+      <button type="submit" form="remessa-form" class="btn btn-primary">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Registrar Remessa
+        Registrar → Estoque
       </button>
     </div>
   </div>
 </div>
 
 <script>
-  document.querySelector('.btn-primary[onclick]').addEventListener('click', function(e){
+  const fileInput    = document.getElementById('fileInput');
+  const fileDrop     = document.getElementById('fileDrop');
+  const fileDropInner= document.getElementById('fileDropInner');
+  const fileSelected = document.getElementById('fileSelected');
+  const fileSelName  = document.getElementById('fileSelectedName');
+  const fileClear    = document.getElementById('fileClear');
+
+  function showFile(name) {
+    fileDropInner.style.display = 'none';
+    fileSelected.style.display  = 'flex';
+    fileSelName.textContent = name;
+  }
+  function clearFile() {
+    fileInput.value = '';
+    fileDropInner.style.display = '';
+    fileSelected.style.display  = 'none';
+  }
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) showFile(fileInput.files[0].name);
+  });
+  fileClear.addEventListener('click', clearFile);
+
+  fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('drag-over'); });
+  fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag-over'));
+  fileDrop.addEventListener('drop', e => {
     e.preventDefault();
-    document.querySelector('.form-body form').submit();
+    fileDrop.classList.remove('drag-over');
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      const transfer = new DataTransfer();
+      transfer.items.add(dt.files[0]);
+      fileInput.files = transfer.files;
+      showFile(dt.files[0].name);
+    }
   });
 </script>
 {% endblock %}

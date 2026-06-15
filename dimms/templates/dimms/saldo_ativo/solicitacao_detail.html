@@ -275,11 +275,11 @@
               <div class="prog-val">{{ item.quantidade }}</div>
             </div>
             <div class="prog-stat">
-              <div class="prog-label">Em Remessas</div>
+              <div class="prog-label">Entradas Registradas</div>
               <div class="prog-val blue">{{ entry.total_enviado }}</div>
             </div>
             <div class="prog-stat">
-              <div class="prog-label">Recebido</div>
+              <div class="prog-label">No Estoque</div>
               <div class="prog-val green">{{ entry.total_recebido }}</div>
             </div>
             {% if item.quantidade > 0 %}
@@ -320,13 +320,12 @@
                 {% if remessa.observacao %}<div class="remessa-obs">{{ remessa.observacao }}</div>{% endif %}
               </div>
               <div class="remessa-actions">
-                {% if remessa.recebida %}
-                  <span class="pill pill-received">Recebida</span>
-                {% else %}
-                  <a href="{% url 'dimms:saldo_ativo_confirmar_recebimento' remessa.pk %}" class="btn btn-green btn-sm">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    Confirmar Recebimento
-                  </a>
+                <span class="pill pill-received">✓ No Estoque</span>
+                {% if remessa.comprovante %}
+                <a href="{{ remessa.comprovante.url }}" target="_blank" class="btn btn-ghost btn-sm" title="Ver comprovante">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Comprovante
+                </a>
                 {% endif %}
               </div>
             </div>
@@ -338,7 +337,7 @@
           <div class="item-footer">
             <div style="font-size:.78rem;color:var(--ink-3);">
               {% if entry.pode_nova_remessa %}
-                Faltam {{ item.quantidade|add:"-"|add:entry.total_enviado|stringformat:"d" }} unidade(s) para completar as remessas
+                Faltam {{ entry.restante }} unidade(s) para completar as remessas
               {% else %}
                 Todas as unidades foram registradas em remessas
               {% endif %}
@@ -378,6 +377,10 @@
         <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           Voltar
+        </a>
+        <a href="{% url 'dimms:pdf_relatorio_solicitacao' solicitacao.pk %}" class="btn btn-primary" target="_blank">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+          Gerar PDF
         </a>
       </div>
     </div>
