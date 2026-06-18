@@ -1,0 +1,284 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Novo Contrato (Saldo Ativo){% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .ccpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .form-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+    box-shadow:var(--shadow-md);max-width:620px;margin:0 auto;
+    animation:fadeUp .3s ease both;overflow:hidden;
+  }
+  .form-header{
+    background:linear-gradient(135deg,#1e2d42 0%,#1d4ed8 100%);
+    padding:24px 28px;color:#fff;
+  }
+  .form-header-title{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;}
+  .form-header-sub{font-size:.82rem;color:rgba(160,195,255,.8);margin-top:5px;}
+
+  .form-body{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-control,.form-select{
+    height:42px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 12px;font-family:var(--font);font-size:.88rem;color:var(--ink);
+    background:var(--surface-2);outline:none;width:100%;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .form-control:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--surface);}
+  .errorlist{list-style:none;margin-top:4px;}
+  .errorlist li{font-size:.78rem;color:#b91c1c;}
+
+  .form-footer{
+    display:flex;gap:10px;justify-content:flex-end;
+    padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);
+  }
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  .info-box{
+    background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:var(--r-sm);
+    padding:14px 16px;margin-bottom:4px;font-size:.84rem;color:var(--blue);
+    display:flex;align-items:flex-start;gap:10px;grid-column:1/-1;
+  }
+
+  /* ─── AUTOCOMPLETE FORNECEDOR ─── */
+  .ac-wrap{position:relative;width:100%;}
+  .ac-dropdown{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;
+    background:var(--surface);border:1px solid var(--border-strong);
+    border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(15,23,42,.14);
+    max-height:240px;overflow-y:auto;display:none;
+  }
+  .ac-dropdown.open{display:block;}
+  .ac-item{
+    padding:10px 14px;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);
+    transition:background .1s;
+  }
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item:hover,.ac-item.focused{background:var(--blue-soft);}
+  .ac-item-name{font-size:.88rem;font-weight:600;color:var(--ink);}
+  .ac-item-cnpj{font-size:.75rem;color:var(--ink-3);font-family:var(--mono);}
+  .ac-loading,.ac-empty{padding:12px 14px;font-size:.83rem;color:var(--ink-3);text-align:center;}
+  .ac-selected-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--blue-soft);border:1px solid var(--blue-mid);
+    border-radius:var(--r-sm);padding:6px 12px;margin-top:6px;
+    font-size:.84rem;font-weight:600;color:var(--blue);
+  }
+  .ac-selected-tag button{background:none;border:none;cursor:pointer;color:var(--blue);font-size:1rem;line-height:1;padding:0;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="ccpage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    Novo Contrato
+  </nav>
+
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-header-title">Novo Contrato</div>
+      <div class="form-header-sub">Registre um contrato para gerenciar o saldo ativo de bens de consumo</div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-body">
+
+        <div class="info-box">
+          <span style="font-size:1.1rem;">ℹ️</span>
+          <div>
+            Após criar o contrato, você será redirecionado para a página de detalhes onde poderá adicionar os itens do saldo ativo.
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Fornecedor</label>
+          <input type="hidden" name="supplier_name" id="supplierHidden">
+          <div class="ac-wrap">
+            <input
+              type="text"
+              id="supplierInput"
+              class="form-control"
+              placeholder="Digite o nome do fornecedor…"
+              autocomplete="off">
+            <div class="ac-dropdown" id="supplierDropdown"></div>
+          </div>
+          <div id="supplierTag" style="display:none;"></div>
+          <div style="font-size:.73rem;color:var(--ink-3);margin-top:4px;">Se o fornecedor não existir, ele será criado automaticamente com o nome digitado.</div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">N° do Contrato</label>
+          {{ form.contrato }}
+          {% if form.contrato.errors %}<ul class="errorlist">{% for e in form.contrato.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Início da Vigência</label>
+          {{ form.inicio_vigencia }}
+          {% if form.inicio_vigencia.errors %}<ul class="errorlist">{% for e in form.inicio_vigencia.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Final da Vigência</label>
+          {{ form.final_vigencia }}
+          {% if form.final_vigencia.errors %}<ul class="errorlist">{% for e in form.final_vigencia.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Data de Homologação</label>
+          {{ form.homologacao }}
+          {% if form.homologacao.errors %}<ul class="errorlist">{% for e in form.homologacao.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}<ul class="errorlist">{% for e in form.status.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">N° CS</label>
+          {{ form.cs }}
+          {% if form.cs.errors %}<ul class="errorlist">{% for e in form.cs.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Código de Licitação</label>
+          {{ form.cod_liquidacao }}
+          {% if form.cod_liquidacao.errors %}<ul class="errorlist">{% for e in form.cod_liquidacao.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <a href="{% url 'dimms:saldo_ativo_homepage' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar Contrato
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script>
+const SUPPLIER_URL = "{% url 'dimms:fornecedor_search' %}";
+const input    = document.getElementById('supplierInput');
+const hidden   = document.getElementById('supplierHidden');
+const dropdown = document.getElementById('supplierDropdown');
+const tagWrap  = document.getElementById('supplierTag');
+
+let timer = null;
+let focusedIdx = -1;
+let results = [];
+
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  focusedIdx = -1;
+  const q = input.value.trim();
+  if (!q) { closeDropdown(); hidden.value = ''; return; }
+  dropdown.innerHTML = '<div class="ac-loading">Buscando…</div>';
+  dropdown.classList.add('open');
+  timer = setTimeout(() => search(q), 250);
+});
+
+async function search(q) {
+  try {
+    const r = await fetch(`${SUPPLIER_URL}?q=${encodeURIComponent(q)}`);
+    results = await r.json();
+    render(results, q);
+  } catch { dropdown.innerHTML = '<div class="ac-empty">Erro ao buscar.</div>'; }
+}
+
+function render(items, q) {
+  if (!items.length) {
+    dropdown.innerHTML = `<div class="ac-empty">Nenhum fornecedor encontrado. Será criado "<strong>${esc(q)}</strong>".</div>`;
+    hidden.value = q;
+    return;
+  }
+  dropdown.innerHTML = items.map((it, i) => `
+    <div class="ac-item" data-idx="${i}" onmousedown="select(${i})">
+      <span class="ac-item-name">${esc(it.supplier)}</span>
+      ${it.cnpj_supplier ? `<span class="ac-item-cnpj">${esc(it.cnpj_supplier)}</span>` : ''}
+    </div>`).join('');
+}
+
+function select(idx) {
+  const it = results[idx];
+  if (!it) return;
+  hidden.value = it.supplier;
+  input.value  = '';
+  closeDropdown();
+  tagWrap.style.display = 'block';
+  tagWrap.innerHTML = `
+    <div class="ac-selected-tag">
+      🏢 ${esc(it.supplier)}
+      <button type="button" onclick="clear()">✕</button>
+    </div>`;
+  input.style.display = 'none';
+}
+
+function clear() {
+  hidden.value = '';
+  tagWrap.style.display = 'none';
+  tagWrap.innerHTML = '';
+  input.style.display = '';
+  input.value = '';
+  input.focus();
+}
+
+function closeDropdown() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; }
+
+document.addEventListener('click', e => { if (!e.target.closest('.ac-wrap')) closeDropdown(); });
+
+input.addEventListener('keydown', e => {
+  const items = dropdown.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, items.length - 1); highlight(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); highlight(items); }
+  else if (e.key === 'Enter' && focusedIdx >= 0) { e.preventDefault(); select(focusedIdx); }
+  else if (e.key === 'Escape') closeDropdown();
+});
+
+function highlight(items) { items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx)); }
+
+// ao submeter, se nada selecionado usa o texto digitado
+document.querySelector('form').addEventListener('submit', () => {
+  if (!hidden.value && input.value.trim()) hidden.value = input.value.trim();
+});
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+{% endblock %}

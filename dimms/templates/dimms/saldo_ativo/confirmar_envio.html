@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT — Confirmar Envio{% endblock %}
+{% block title %}SIPAT — Registrar Remessa{% endblock %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -13,106 +13,75 @@
     --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
     --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
     --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
     --accent:#2563eb;
-    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
-    --shadow-md:0 4px 20px rgba(15,23,42,.1),0 2px 6px rgba(15,23,42,.06);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 20px rgba(15,23,42,.1);
     --r-sm:10px; --r-md:16px;
     --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-
   .cepage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
-
   .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
   .breadcrumb a{color:var(--accent);text-decoration:none;}
-
-  .confirm-card{
-    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
-    box-shadow:var(--shadow-md);max-width:600px;margin:0 auto;
-    animation:fadeUp .3s ease both;overflow:hidden;
-  }
-
-  .confirm-header{
-    background:linear-gradient(135deg,#14532d 0%,#15803d 100%);
-    padding:22px 28px;color:#fff;
-    display:flex;align-items:center;gap:16px;
-  }
-  .confirm-header-icon{
-    width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:12px;
-    display:grid;place-items:center;font-size:22px;flex-shrink:0;
-    border:1px solid rgba(255,255,255,.2);
-  }
+  .confirm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);max-width:600px;margin:0 auto;overflow:hidden;animation:fadeUp .3s ease both;}
+  .confirm-header{background:linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 100%);padding:22px 28px;color:#fff;display:flex;align-items:center;gap:16px;}
+  .confirm-header-icon{width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:12px;display:grid;place-items:center;font-size:22px;flex-shrink:0;border:1px solid rgba(255,255,255,.2);}
   .confirm-header-title{font-size:1.2rem;font-weight:800;letter-spacing:-.02em;}
-  .confirm-header-sub{font-size:.82rem;color:rgba(187,247,208,.8);margin-top:4px;}
+  .confirm-header-sub{font-size:.82rem;color:rgba(160,195,255,.8);margin-top:4px;}
 
-  /* Item Summary */
-  .item-summary{
-    background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
-    padding:16px 18px;margin-bottom:22px;
-  }
-  .item-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
-  .item-row:last-child{margin-bottom:0;}
-  .item-key{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
-  .item-val{font-size:.9rem;font-weight:600;color:var(--ink);}
-
-  .saldo-pill{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:6px 14px;border-radius:999px;font-size:.82rem;font-weight:700;
-    background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid);
-  }
-
-  /* Flow arrow */
-  .flow-arrow-wrap{
-    display:flex;align-items:center;justify-content:center;gap:16px;
-    padding:16px 0;margin-bottom:20px;
-    border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);
-    background:var(--surface-2);
-    font-size:.82rem;font-weight:600;color:var(--ink-3);
-  }
-  .flow-node{
-    display:flex;flex-direction:column;align-items:center;gap:6px;
-  }
-  .flow-node-icon{
-    width:42px;height:42px;border-radius:10px;display:grid;place-items:center;
-    font-size:18px;border:1px solid var(--border);background:var(--surface);
-  }
-  .flow-node-icon.active{background:var(--green-soft);border-color:var(--green-mid);}
+  .flow-arrow-wrap{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 0;margin-bottom:0;border-bottom:1px solid var(--border);background:var(--surface-2);font-size:.82rem;font-weight:600;color:var(--ink-3);}
+  .flow-node{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .flow-node-icon{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-size:18px;border:1px solid var(--border);background:var(--surface);}
+  .flow-node-icon.active{background:var(--blue-soft);border-color:var(--blue-mid);}
+  .flow-node-icon.muted{opacity:.35;}
   .flow-node-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
   .flow-arrow-icon{font-size:1.3rem;color:var(--border-strong);}
 
   .form-body{padding:24px 28px;}
-  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;}
+  .item-summary{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 18px;margin-bottom:20px;}
+  .item-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
+  .item-row:last-child{margin-bottom:0;}
+  .item-key{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .item-val{font-size:.9rem;font-weight:600;color:var(--ink);}
+  .progress-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+  .progress-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);white-space:nowrap;}
+  .progress-bar-bg{flex:1;height:8px;background:var(--border);border-radius:999px;overflow:hidden;}
+  .progress-bar-fill{height:100%;border-radius:999px;background:var(--blue);}
+  .progress-val{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--blue);white-space:nowrap;}
+
+  .notice-box{background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;font-size:.84rem;color:var(--amber);display:flex;align-items:flex-start;gap:10px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
   .form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
-  .form-input{
-    height:48px;border:2px solid var(--border-strong);border-radius:var(--r-sm);
-    padding:0 16px;font-family:var(--mono);font-size:1.2rem;font-weight:700;
-    color:var(--ink);background:var(--surface-2);outline:none;
-    transition:border-color .15s,box-shadow .15s;text-align:center;
-  }
-  .form-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(21,128,61,.15);background:var(--surface);}
+  .form-input{height:48px;border:2px solid var(--border-strong);border-radius:var(--r-sm);padding:0 16px;font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--ink);background:var(--surface-2);outline:none;transition:border-color .15s;text-align:center;}
+  .form-input:focus{border-color:var(--accent);background:var(--surface);}
+  .form-textarea{border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:10px 14px;font-family:var(--font);font-size:.88rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;resize:vertical;min-height:72px;}
+  .form-textarea:focus{border-color:var(--accent);}
   .form-hint{font-size:.75rem;color:var(--ink-3);text-align:center;}
 
-  .notice-box{
-    background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);
-    padding:12px 16px;margin-bottom:20px;font-size:.84rem;color:var(--amber);
-    display:flex;align-items:flex-start;gap:10px;
-  }
-
+  .file-drop{border:2px dashed var(--border-strong);border-radius:var(--r-sm);background:var(--surface-2);cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+  .file-drop:hover,.file-drop.drag-over{border-color:var(--accent);background:var(--blue-soft);}
+  .file-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .file-drop-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:4px;pointer-events:none;}
+  .file-drop-icon{font-size:1.6rem;}
+  .file-drop-text{font-size:.85rem;font-weight:600;color:var(--ink-2);}
+  .file-drop-hint{font-size:.75rem;color:var(--ink-3);}
+  .file-selected{display:flex;align-items:center;gap:10px;padding:12px 16px;}
+  .file-selected-icon{font-size:1.3rem;flex-shrink:0;}
+  .file-selected-name{font-size:.85rem;font-weight:600;color:var(--ink);flex:1;word-break:break-all;}
+  .file-clear{background:none;border:1px solid var(--border-strong);border-radius:6px;padding:3px 8px;font-size:.8rem;cursor:pointer;color:var(--ink-3);flex-shrink:0;}
+  .file-clear:hover{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
   .form-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);}
   .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
-  .btn-green{background:var(--green);color:#fff;border-color:#166534;box-shadow:0 2px 8px rgba(21,128,61,.3);}
-  .btn-green:hover{background:#166534;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
   .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
-  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
-
-  .mono{font-family:var(--mono); font-size:.82rem;}
-
+  .btn-ghost:hover{background:var(--surface-2);}
+  .mono{font-family:var(--mono);font-size:.82rem;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-  @media(max-width:640px){.cepage{padding:14px 12px;}.form-body{padding:18px;}.form-footer{padding:14px 18px;}}
 </style>
 
 <div class="cepage">
-
   <nav class="breadcrumb">
     <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
     <span>›</span>
@@ -120,101 +89,149 @@
     <span>›</span>
     <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}">{{ item.solicitacao.codigo }}</a>
     <span>›</span>
-    Confirmar Envio
+    Registrar Remessa
   </nav>
 
   <div class="confirm-card">
-
     <div class="confirm-header">
-      <div class="confirm-header-icon">📤</div>
+      <div class="confirm-header-icon">🚚</div>
       <div>
-        <div class="confirm-header-title">Confirmar Envio de Item</div>
+        <div class="confirm-header-title">Registrar Entrada do Fornecedor</div>
         <div class="confirm-header-sub">Solicitação {{ item.solicitacao.codigo }}</div>
       </div>
     </div>
 
-    <!-- FLUXO VISUAL: Saldo Ativo → Envio → Estoque -->
+    <!-- Fluxo -->
     <div class="flow-arrow-wrap">
       <div class="flow-node">
         <div class="flow-node-icon">🏦</div>
-        <div class="flow-node-label" style="color:var(--ink-3);">Saldo Ativo</div>
+        <div class="flow-node-label" style="color:var(--ink-3);">Contrato</div>
       </div>
       <div class="flow-arrow-icon">→</div>
       <div class="flow-node">
-        <div class="flow-node-icon active">📤</div>
-        <div class="flow-node-label" style="color:var(--green);">Envio</div>
+        <div class="flow-node-icon active">🚚</div>
+        <div class="flow-node-label" style="color:var(--blue);">Remessa</div>
       </div>
       <div class="flow-arrow-icon">→</div>
       <div class="flow-node">
         <div class="flow-node-icon active">📦</div>
-        <div class="flow-node-label" style="color:var(--green);">Estoque</div>
+        <div class="flow-node-label" style="color:var(--blue);">Estoque</div>
       </div>
     </div>
 
     <div class="form-body">
-
-      <!-- Resumo do item -->
       <div class="item-summary">
         <div class="item-row">
           <div class="item-key">E-Fisco</div>
-          <div class="item-val mono" style="color:var(--blue); font-size:.9rem;">{{ item.bem.efisco.efisco }}</div>
+          <div class="item-val mono" style="color:var(--blue);">{{ item.bem.efisco.efisco }}</div>
         </div>
         <div class="item-row">
           <div class="item-key">Descrição</div>
           <div class="item-val" style="text-align:right; max-width:70%;">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}</div>
         </div>
         <div class="item-row">
-          <div class="item-key">Marca</div>
-          <div class="item-val">{{ item.bem.marca|default:"—" }}</div>
-        </div>
-        <div class="item-row">
           <div class="item-key">Qtd. Solicitada</div>
           <div class="item-val mono" style="font-size:1rem;">{{ item.quantidade }}</div>
         </div>
         <div class="item-row">
-          <div class="item-key">Saldo Disponível Atual</div>
-          <div class="item-val">
-            <span class="saldo-pill">{{ item.bem.saldo_disponivel|default:0 }} disponíveis</span>
-          </div>
+          <div class="item-key">Já enviado em remessas anteriores</div>
+          <div class="item-val mono">{{ total_ja_enviado }}</div>
         </div>
+        {% if total_ja_enviado > 0 %}
+        <div class="progress-row">
+          <span class="progress-label">Progresso</span>
+          <div class="progress-bar-bg">
+            {% widthratio total_ja_enviado item.quantidade 100 as pct %}
+            <div class="progress-bar-fill" style="width:{{ pct }}%"></div>
+          </div>
+          <span class="progress-val">{{ total_ja_enviado }}/{{ item.quantidade }}</span>
+        </div>
+        {% endif %}
       </div>
 
       <div class="notice-box">
-        <span style="font-size:1rem; flex-shrink:0;">⚠️</span>
+        <span style="font-size:1rem; flex-shrink:0;">ℹ️</span>
         <div>
-          Ao confirmar o envio, o saldo disponível será decrementado automaticamente e o item será <strong>registrado no Estoque</strong>.
-          Esta ação não pode ser desfeita.
+          Ao registrar, as unidades entram <strong>imediatamente no estoque</strong>. O fornecedor pode fazer envios parciais — registre cada entrada separadamente.
         </div>
       </div>
 
-      <form method="post">
+      <form method="post" enctype="multipart/form-data" id="remessa-form">
         {% csrf_token %}
         <div class="form-group">
-          <label class="form-label">Quantidade Enviada</label>
-          <input
-            type="number"
-            name="quantidade_enviada"
-            class="form-input"
-            min="1"
-            max="{{ item.quantidade }}"
-            value="{{ item.quantidade }}"
-            required
-          >
-          <div class="form-hint">Máximo: {{ item.quantidade }} (quantidade solicitada)</div>
+          <label class="form-label">Quantidade desta Remessa</label>
+          <input type="number" name="quantidade_enviada" class="form-input" min="1" max="{{ restante }}" value="{{ restante }}" required>
+          <div class="form-hint">Restante a enviar: {{ restante }} unidade(s)</div>
         </div>
-
-        <div class="form-footer" style="padding:0; border:none; background:none; margin-top:4px;">
-          <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
-          <button type="submit" class="btn btn-green">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Confirmar Envio → Estoque
-          </button>
+        <div class="form-group">
+          <label class="form-label">Observação (opcional)</label>
+          <textarea name="observacao" class="form-textarea" placeholder="Ex: Nota fiscal 1234, remessa parcial..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comprovante de Recebimento <span style="font-weight:400;color:var(--ink-3);">(opcional)</span></label>
+          <div class="file-drop" id="fileDrop">
+            <input type="file" name="comprovante" id="fileInput" class="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp">
+            <div class="file-drop-inner" id="fileDropInner">
+              <div class="file-drop-icon">📎</div>
+              <div class="file-drop-text">Clique ou arraste o arquivo aqui</div>
+              <div class="file-drop-hint">PDF, PNG ou JPEG — nota fiscal, termo de entrega…</div>
+            </div>
+            <div class="file-selected" id="fileSelected" style="display:none;">
+              <span class="file-selected-icon">📄</span>
+              <span class="file-selected-name" id="fileSelectedName"></span>
+              <button type="button" class="file-clear" id="fileClear" title="Remover">✕</button>
+            </div>
+          </div>
         </div>
       </form>
-
     </div>
 
+    <div class="form-footer">
+      <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' item.solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" form="remessa-form" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Registrar → Estoque
+      </button>
+    </div>
   </div>
-
 </div>
+
+<script>
+  const fileInput    = document.getElementById('fileInput');
+  const fileDrop     = document.getElementById('fileDrop');
+  const fileDropInner= document.getElementById('fileDropInner');
+  const fileSelected = document.getElementById('fileSelected');
+  const fileSelName  = document.getElementById('fileSelectedName');
+  const fileClear    = document.getElementById('fileClear');
+
+  function showFile(name) {
+    fileDropInner.style.display = 'none';
+    fileSelected.style.display  = 'flex';
+    fileSelName.textContent = name;
+  }
+  function clearFile() {
+    fileInput.value = '';
+    fileDropInner.style.display = '';
+    fileSelected.style.display  = 'none';
+  }
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) showFile(fileInput.files[0].name);
+  });
+  fileClear.addEventListener('click', clearFile);
+
+  fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('drag-over'); });
+  fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag-over'));
+  fileDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    fileDrop.classList.remove('drag-over');
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      const transfer = new DataTransfer();
+      transfer.items.add(dt.files[0]);
+      fileInput.files = transfer.files;
+      showFile(dt.files[0].name);
+    }
+  });
+</script>
 {% endblock %}

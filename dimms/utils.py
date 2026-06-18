@@ -79,6 +79,10 @@ def path_tapp(instance, filename):
 def path_risk_analysis(instance, filename):
     return path_documents_artifacts(instance, filename, 'risk_analysis')
 
+def path_comprovante_remessa(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    return f'saldo_ativo/remessas/comprovantes/{instance.pk or "novo"}{ext}'
+
 
 ''' Choices'''
 # Grupos dos bens de consumo 
@@ -99,6 +103,11 @@ class GrupoConsumo(models.TextChoices):
     papeis_limpeza = 'PAPEIS_LIMPEZA', 'Papéis de Limpeza'
     refrigeracao = 'REFRIGERACAO', 'Refrigeração'
     toner = 'TONER', 'Toner'
+
+# Classificação do Almoxarifado
+class TipoAlmoxarifado(models.TextChoices):
+    geral     = 'GERAL',     'Almoxarifado Geral'
+    reservado = 'RESERVADO', 'Almoxarifado Reservado'
 
 # Cotas Existentes
 class Cota(models.TextChoices):

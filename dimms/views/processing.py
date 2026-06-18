@@ -1,7 +1,8 @@
 # bibliotecas padrões do Python
 import os
+from datetime import datetime
 
-# Importações padrões do Django Unchained   'What kind of dentist are you?' - Quentin Tarantino 
+# Importações padrões do Django Unchained   'What kind of dentist are you?' - Quentin Tarantino
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
@@ -14,6 +15,7 @@ from django.contrib.staticfiles import finders
 import qrcode
 from io import BytesIO
 from qrcode.constants import ERROR_CORRECT_M
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 
@@ -124,7 +126,7 @@ def details_processing(request, pk):
 
     ordem_status = {
         "ATENDIMENTO": 0,
-        "AGUARD_SEPARACAO": 1,
+        "AGUAR_SEPARACAO": 1,
         "SEPARADA": 2,
         "EXPEDICAO": 3,
         "RECEBIDA": 4,
@@ -170,6 +172,206 @@ def course(request, solicitacao_pk, tramitacao_pk):
 
     return render(request, "dimms/processing/course.html", context)
 
+# Comprovante PDF de uma etapa de tramitação
+@login_required
+def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
+    solicitacao = get_object_or_404(
+        Solicitacao.objects.select_related('ua_order', 'user_responsible'),
+        pk=solicitacao_pk,
+    )
+    tramitacao = get_object_or_404(
+        Tramitacao.objects.select_related('request_update', 'user_update'),
+        pk=tramitacao_pk,
+        request_update=solicitacao,
+    )
+
+    logo_reader = None
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        logo_reader = ImageReader(logo_path)
+
+    resp = HttpResponse(content_type='application/pdf')
+    safe_code = "".join(c for c in str(solicitacao.request_code) if c.isalnum() or c in ('-', '_'))
+    resp['Content-Disposition'] = f'inline; filename="comprovante_{safe_code}_etapa{tramitacao.pk}.pdf"'
+
+    w, h_page = A4
+    c = canvas.Canvas(resp, pagesize=A4)
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def section(title, y):
+        c.setFillColor(colors.HexColor('#1e2d42'))
+        c.rect(14 * mm, y - 7 * mm, w - 28 * mm, 8 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 8.5)
+        c.drawString(17 * mm, y - 4.5 * mm, title.upper())
+        return y - 15 * mm
+
+    def row(label, value, y, shade=False):
+        rh = 7 * mm
+        if shade:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica-Bold', 7.5)
+        c.drawString(17 * mm, y - 4.8 * mm, label.upper())
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 8.5)
+        c.drawString(75 * mm, y - 4.8 * mm, str(value) if value else '—')
+        c.setStrokeColor(colors.HexColor('#e2e5ef'))
+        c.setLineWidth(0.3)
+        c.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        return y - rh
+
+    def footer():
+        c.setFillColor(colors.HexColor('#e2e5ef'))
+        c.rect(0, 0, w, 10 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica', 7)
+        c.drawCentredString(
+            w / 2, 3.8 * mm,
+            f'SIPAT — Gerado em {datetime.now().strftime("%d/%m/%Y às %H:%M")} | '
+            f'{solicitacao.request_code} | Etapa #{tramitacao.pk}'
+        )
+
+    # ── Cabeçalho ─────────────────────────────────────────────────────────────
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(0, h_page - 44 * mm, w, 44 * mm, fill=1, stroke=0)
+
+    if logo_reader:
+        c.drawImage(logo_reader, 14 * mm, h_page - 37 * mm, width=22 * mm, height=22 * mm, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 13)
+    c.drawString(42 * mm, h_page - 18 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    c.setFont('Helvetica', 9)
+    c.drawString(42 * mm, h_page - 25 * mm, 'SIPAT — Sistema Integrado Patrimonial')
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(42 * mm, h_page - 34 * mm, 'COMPROVANTE DE ETAPA DE TRAMITAÇÃO')
+
+    c.setFont('Helvetica', 8)
+    c.drawRightString(w - 14 * mm, h_page - 18 * mm, f'Solicitação: {solicitacao.request_code}')
+    c.drawRightString(w - 14 * mm, h_page - 25 * mm, f'Etapa #: {tramitacao.pk}')
+    if tramitacao.date_update:
+        c.drawRightString(w - 14 * mm, h_page - 32 * mm, tramitacao.date_update.strftime('%d/%m/%Y %H:%M'))
+
+    y = h_page - 57 * mm
+
+    # ── Dados da Solicitação ──────────────────────────────────────────────────
+    y = section('Dados da Solicitação', y)
+    user_resp = solicitacao.user_responsible
+    resp_nome = user_resp.get_full_name() or user_resp.username if user_resp else '—'
+    for i, (lbl, val) in enumerate([
+        ('Código',              solicitacao.request_code),
+        ('UA Solicitante',      str(solicitacao.ua_order) if solicitacao.ua_order else '—'),
+        ('Usuário Solicitante', solicitacao.user_order or '—'),
+        ('Responsável',         resp_nome),
+        ('Situação Atual',      solicitacao.get_situation_display() if hasattr(solicitacao, 'get_situation_display') else solicitacao.situation),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Dados da Etapa ────────────────────────────────────────────────────────
+    y = section('Dados da Etapa', y)
+    registrado_por = '—'
+    if tramitacao.user_update:
+        registrado_por = tramitacao.user_update.get_full_name() or tramitacao.user_update.username
+    data_str = tramitacao.date_update.strftime('%d/%m/%Y às %H:%M') if tramitacao.date_update else '—'
+    etapa_display = tramitacao.get_update_display() if hasattr(tramitacao, 'get_update_display') else tramitacao.update
+    for i, (lbl, val) in enumerate([
+        ('ID da Etapa',              f'#{tramitacao.pk}'),
+        ('Status / Etapa',           etapa_display or '—'),
+        ('Data de Registro',         data_str),
+        ('Registrado por',           registrado_por),
+        ('Responsável Operacional',  tramitacao.responsible_update or '—'),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Observação ────────────────────────────────────────────────────────────
+    if tramitacao.observation_update:
+        if y < 50 * mm:
+            footer()
+            c.showPage()
+            y = h_page - 30 * mm
+
+        y = section('Observação', y)
+        obs_text = tramitacao.observation_update or ''
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 8.5)
+        max_w = w - 34 * mm
+        words = obs_text.replace('\r\n', '\n').replace('\r', '\n')
+        from reportlab.lib.utils import simpleSplit
+        lines = []
+        for paragraph in words.split('\n'):
+            lines += simpleSplit(paragraph, 'Helvetica', 8.5, max_w) or ['']
+        for line in lines[:20]:
+            if y < 20 * mm:
+                footer()
+                c.showPage()
+                y = h_page - 30 * mm
+            c.drawString(17 * mm, y - 4 * mm, line)
+            y -= 6 * mm
+        y -= 4 * mm
+
+    # ── Foto ──────────────────────────────────────────────────────────────────
+    if tramitacao.photo_update:
+        try:
+            photo_path = tramitacao.photo_update.path
+            if os.path.exists(photo_path):
+                max_img_h = 90 * mm
+                max_img_w = w - 28 * mm
+
+                if y < max_img_h + 30 * mm:
+                    footer()
+                    c.showPage()
+                    y = h_page - 30 * mm
+
+                y = section('Foto / Evidência Visual', y)
+
+                from PIL import Image as PILImage
+                with PILImage.open(photo_path) as pil_img:
+                    orig_w, orig_h = pil_img.size
+
+                ratio = orig_w / orig_h
+                img_w = min(max_img_w, max_img_h * ratio)
+                img_h = img_w / ratio
+                if img_h > max_img_h:
+                    img_h = max_img_h
+                    img_w = img_h * ratio
+
+                img_x = 14 * mm + (max_img_w - img_w) / 2
+                img_y = y - img_h
+
+                c.drawImage(ImageReader(photo_path), img_x, img_y, width=img_w, height=img_h, mask='auto')
+                y = img_y - 8 * mm
+        except Exception:
+            pass
+
+    # ── Assinatura ────────────────────────────────────────────────────────────
+    if y < 40 * mm:
+        footer()
+        c.showPage()
+        y = h_page - 30 * mm
+
+    y -= 10 * mm
+    sig_w = 80 * mm
+    sig_x = (w - sig_w) / 2
+    c.setStrokeColor(colors.HexColor('#c8cfe0'))
+    c.setLineWidth(0.6)
+    c.line(sig_x, y, sig_x + sig_w, y)
+    c.setFillColor(colors.HexColor('#7380a0'))
+    c.setFont('Helvetica', 7.5)
+    c.drawCentredString(sig_x + sig_w / 2, y - 5 * mm, registrado_por)
+    c.drawCentredString(sig_x + sig_w / 2, y - 9.5 * mm, 'Responsável pela Atualização')
+
+    footer()
+    c.showPage()
+    c.save()
+    return resp
+
+
 # Criar uma nova solicitação
 @login_required
 def create_request(request):
@@ -184,6 +386,13 @@ def create_request(request):
 
             formset.instance = solicitacao
             formset.save()
+
+            Tramitacao.objects.create(
+                request_update=solicitacao,
+                update=solicitacao.situation,
+                responsible_update=request.user.get_full_name() or request.user.username,
+                user_update=request.user,
+            )
 
             messages.success(request, 'Solicitação criada com sucesso.')
             return redirect('dimms:processing')

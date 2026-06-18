@@ -43,6 +43,66 @@
   .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
   .topbar-sub   { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
 
+  /* ─── MODE SELECTOR ─── */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .mode-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    user-select: none;
+  }
+
+  .mode-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .mode-card.active {
+    border-color: var(--accent);
+    background: var(--blue-soft);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .mode-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    display: grid; place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+
+  .mode-card.active .mode-icon {
+    background: rgba(37,99,235,.12);
+  }
+
+  .mode-label {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .mode-desc {
+    font-size: .78rem;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  .mode-card.active .mode-label { color: var(--accent); }
+
   /* ─── HERO ─── */
   .hero {
     background: linear-gradient(135deg, #1e2d42 0%, #243451 100%);
@@ -61,7 +121,7 @@
     border: 1px solid var(--border);
     border-radius: var(--r-md);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    overflow: visible;
     animation: fadeUp .32s ease both;
   }
 
@@ -70,11 +130,14 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 9px;
     background: var(--surface-2);
+    overflow: hidden;
+    border-radius: var(--r-md) var(--r-md) 0 0;
   }
   .card-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:13px; flex-shrink:0; }
   .ci-blue  { background: var(--blue-soft); }
   .ci-green { background: var(--green-soft); }
   .ci-amber { background: var(--amber-soft); }
+  .ci-teal  { background: var(--teal-soft); }
   .card-title { font-size:.875rem; font-weight:700; color:var(--ink); }
 
   .card-body { padding: 20px; }
@@ -103,25 +166,29 @@
   .field input[type="date"],
   .field input[type="file"],
   .field select,
-  .field textarea {
+  .field textarea,
+  .field .form-control,
+  .field .form-select {
     font-family: var(--font);
     font-size: .875rem;
     color: var(--ink);
     background: var(--surface);
-    border: 1.5px solid var(--border-strong);
-    border-radius: var(--r-sm);
+    border: 1.5px solid var(--border-strong) !important;
+    border-radius: var(--r-sm) !important;
     padding: 9px 12px;
     width: 100%;
     transition: border-color .15s, box-shadow .15s;
     outline: none;
     appearance: none;
+    box-shadow: none !important;
   }
 
   .field input:focus,
   .field select:focus,
-  .field textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+  .field textarea:focus,
+  .field .form-control:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-glow) !important;
   }
 
   .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
@@ -132,11 +199,14 @@
     background: var(--surface-2);
   }
 
-  .field select {
+  .field select,
+  .field .form-control[size],
+  .field select.form-control {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 36px;
+    min-height: unset;
   }
 
   /* ─── CHECKBOX ESSENCIAL ─── */
@@ -188,6 +258,14 @@
     font-size: .83rem; color: var(--red); margin-bottom: 16px; line-height: 1.4;
   }
 
+  /* ─── INFO REMESSA ─── */
+  .remessa-info {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--teal-soft); border: 1px solid var(--teal-mid);
+    border-radius: var(--r-sm); padding: 12px 14px;
+    font-size: .83rem; color: var(--teal); margin-bottom: 16px; line-height: 1.4;
+  }
+
   /* ─── DIVISOR DE SEÇÃO ─── */
   .section-divider {
     display: flex; align-items: center; gap: 10px;
@@ -212,6 +290,8 @@
   .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
   .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; box-shadow:0 2px 8px var(--accent-glow); }
   .btn-primary:hover { background:var(--accent-dark); }
+  .btn-teal { background:var(--teal); border-color:#0d6461; color:#fff; box-shadow:0 2px 8px rgba(15,118,110,.2); }
+  .btn-teal:hover { background:#0d6461; }
 
   /* ─── FILE PREVIEW ─── */
   .file-hint {
@@ -226,6 +306,7 @@
     .form-grid { grid-template-columns: 1fr; }
     .form-grid .span-2 { grid-column: 1; }
     .hero { padding: 18px; }
+    .mode-grid { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -242,7 +323,7 @@
   <div class="topbar">
     <div>
       <div class="topbar-title">Entrada de Estoque</div>
-      <div class="topbar-sub">Registre um novo item ou lote no estoque do sistema.</div>
+      <div class="topbar-sub">Registre um novo item ou adicione quantidade a uma remessa existente.</div>
     </div>
     <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -250,156 +331,277 @@
     </a>
   </div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-icon">📦</div>
-    <div>
-      <div class="hero-title">Novo Registro de Entrada</div>
-      <div class="hero-sub">Preencha os campos abaixo para registrar a entrada no estoque.</div>
+  <!-- SELETOR DE MODO -->
+  <div class="mode-grid">
+    <div class="mode-card {% if mode == 'novo' %}active{% endif %}" id="mc-novo" onclick="setMode('novo')">
+      <div class="mode-icon">📦</div>
+      <div>
+        <div class="mode-label">Novo Item</div>
+        <div class="mode-desc">Cadastre um item ou lote inédito no estoque</div>
+      </div>
+    </div>
+    <div class="mode-card {% if mode == 'remessa' %}active{% endif %}" id="mc-remessa" onclick="setMode('remessa')">
+      <div class="mode-icon">➕</div>
+      <div>
+        <div class="mode-label">Aumentar Remessa</div>
+        <div class="mode-desc">Adicione quantidade a um item já existente</div>
+      </div>
     </div>
   </div>
 
-  <!-- FORMULÁRIO -->
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-icon ci-blue">🏷️</div>
-        <span class="card-title">Identificação do Item</span>
-      </div>
-      <div class="card-body">
-
-        {% if form.non_field_errors %}
-        <div class="form-error-banner">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          {{ form.non_field_errors }}
-        </div>
-        {% endif %}
-
-        <div class="form-grid">
-
-          <!-- Item Shock -->
-          <div class="field span-2">
-            <label class="field-label">{{ form.item_shock.label }}</label>
-            {{ form.item_shock }}
-            {% if form.item_shock.errors %}<div class="field-errors">⚠ {{ form.item_shock.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Descrição manual -->
-          <div class="field span-2">
-            <label class="field-label">{{ form.description_manual.label }}</label>
-            {{ form.description_manual }}
-            {% if form.description_manual.errors %}<div class="field-errors">⚠ {{ form.description_manual.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Marca -->
-          <div class="field">
-            <label class="field-label">{{ form.mark.label }}</label>
-            {{ form.mark }}
-            {% if form.mark.errors %}<div class="field-errors">⚠ {{ form.mark.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Localização -->
-          <div class="field">
-            <label class="field-label">{{ form.locate.label }}</label>
-            {{ form.locate }}
-            {% if form.locate.errors %}<div class="field-errors">⚠ {{ form.locate.errors|join:", " }}</div>{% endif %}
-          </div>
-
-        </div>
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO: NOVO ITEM
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="section-novo" {% if mode == 'remessa' %}style="display:none"{% endif %}>
+    <div class="hero" style="margin-bottom:24px;">
+      <div class="hero-icon">📦</div>
+      <div>
+        <div class="hero-title">Novo Registro de Entrada</div>
+        <div class="hero-sub">Preencha os campos abaixo para registrar um novo item no estoque.</div>
       </div>
     </div>
 
-    <!-- CARD: Quantidades e Validade -->
-    <div class="card" style="margin-top:14px; animation-delay:.07s;">
-      <div class="card-head">
-        <div class="card-icon ci-green">📊</div>
-        <span class="card-title">Quantidades e Validade</span>
-      </div>
-      <div class="card-body">
-        <div class="form-grid">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="novo">
 
-          <!-- Quantidade -->
-          <div class="field">
-            <label class="field-label">{{ form.amount_shock.label }}</label>
-            {{ form.amount_shock }}
-            {% if form.amount_shock.errors %}<div class="field-errors">⚠ {{ form.amount_shock.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Consumo mensal -->
-          <div class="field">
-            <label class="field-label">{{ form.monthly_consumption.label }}</label>
-            {{ form.monthly_consumption }}
-            {% if form.monthly_consumption.errors %}<div class="field-errors">⚠ {{ form.monthly_consumption.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Validade -->
-          <div class="field">
-            <label class="field-label">{{ form.validity.label }}</label>
-            {{ form.validity }}
-            {% if form.validity.errors %}<div class="field-errors">⚠ {{ form.validity.errors|join:", " }}</div>{% endif %}
-          </div>
-
-          <!-- Essencial -->
-          <div class="field" style="justify-content:flex-end;">
-            <label class="field-label" style="margin-bottom:2px;">{{ form.essential.label }}</label>
-            <label class="field-check">
-              {{ form.essential }}
-              <div>
-                <div class="field-check-label">Item essencial</div>
-                <div class="field-check-sub">Marque se este item é crítico para operação</div>
-              </div>
-            </label>
-            {% if form.essential.errors %}<div class="field-errors">⚠ {{ form.essential.errors|join:", " }}</div>{% endif %}
-          </div>
-
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon ci-blue">🏷️</div>
+          <span class="card-title">Identificação do Item</span>
         </div>
-      </div>
-    </div>
+        <div class="card-body">
 
-    <!-- CARD: Forma e Método -->
-    <div class="card" style="margin-top:14px; animation-delay:.13s;">
-      <div class="card-head">
-        <div class="card-icon ci-amber">⚙️</div>
-        <span class="card-title">Forma de Entrada (Provisório)</span>
-      </div>
-      <div class="card-body">
-        <div class="form-grid">
-
-          <!-- Forma de entrada -->
-          <div class="field">
-            <label class="field-label">{{ form.form_input.label }}</label>
-            {{ form.form_input }}
-            {% if form.form_input.errors %}<div class="field-errors">⚠ {{ form.form_input.errors|join:", " }}</div>{% endif %}
+          {% if form.non_field_errors %}
+          <div class="form-error-banner">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            {{ form.non_field_errors }}
           </div>
+          {% endif %}
 
-          <!-- Foto -->
-          <div class="field span-2">
-            <label class="field-label">{{ form.photo.label }}</label>
-            {{ form.photo }}
-            <div class="file-hint">
-              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Formatos aceitos: JPG, PNG, WEBP. Tamanho máximo recomendado: 5 MB.
+          <div class="form-grid">
+
+            <div class="field span-2">
+              <label class="field-label">{{ form.item_shock.label }}</label>
+              {{ form.item_shock }}
+              {% if form.item_shock.errors %}<div class="field-errors">⚠ {{ form.item_shock.errors|join:", " }}</div>{% endif %}
             </div>
-            {% if form.photo.errors %}<div class="field-errors">⚠ {{ form.photo.errors|join:", " }}</div>{% endif %}
-          </div>
 
+            <div class="field span-2">
+              <label class="field-label">{{ form.description_manual.label }}</label>
+              {{ form.description_manual }}
+              {% if form.description_manual.errors %}<div class="field-errors">⚠ {{ form.description_manual.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field-label">{{ form.mark.label }}</label>
+              {{ form.mark }}
+              {% if form.mark.errors %}<div class="field-errors">⚠ {{ form.mark.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field-label">{{ form.locate.label }}</label>
+              {{ form.locate }}
+              {% if form.locate.errors %}<div class="field-errors">⚠ {{ form.locate.errors|join:", " }}</div>{% endif %}
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- ACTIONS -->
-    <div class="card" style="margin-top:14px; animation-delay:.18s;">
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          Salvar entrada
-        </button>
+      <div class="card" style="margin-top:14px; animation-delay:.07s;">
+        <div class="card-head">
+          <div class="card-icon ci-green">📊</div>
+          <span class="card-title">Quantidades e Validade</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+
+            <div class="field">
+              <label class="field-label">{{ form.amount_shock.label }}</label>
+              {{ form.amount_shock }}
+              {% if form.amount_shock.errors %}<div class="field-errors">⚠ {{ form.amount_shock.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field-label">{{ form.monthly_consumption.label }}</label>
+              {{ form.monthly_consumption }}
+              {% if form.monthly_consumption.errors %}<div class="field-errors">⚠ {{ form.monthly_consumption.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field-label">{{ form.validity.label }}</label>
+              {{ form.validity }}
+              {% if form.validity.errors %}<div class="field-errors">⚠ {{ form.validity.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field" style="justify-content:flex-end;">
+              <label class="field-label" style="margin-bottom:2px;">{{ form.essential.label }}</label>
+              <label class="field-check">
+                {{ form.essential }}
+                <div>
+                  <div class="field-check-label">Item essencial</div>
+                  <div class="field-check-sub">Marque se este item é crítico para operação</div>
+                </div>
+              </label>
+              {% if form.essential.errors %}<div class="field-errors">⚠ {{ form.essential.errors|join:", " }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px; animation-delay:.13s;">
+        <div class="card-head">
+          <div class="card-icon ci-amber">⚙️</div>
+          <span class="card-title">Forma de Entrada (Provisório)</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+
+            <div class="field">
+              <label class="field-label">{{ form.form_input.label }}</label>
+              {{ form.form_input }}
+              {% if form.form_input.errors %}<div class="field-errors">⚠ {{ form.form_input.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="field span-2">
+              <label class="field-label">{{ form.photo.label }}</label>
+              {{ form.photo }}
+              <div class="file-hint">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Formatos aceitos: JPG, PNG, WEBP. Tamanho máximo recomendado: 5 MB.
+              </div>
+              {% if form.photo.errors %}<div class="field-errors">⚠ {{ form.photo.errors|join:", " }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px; animation-delay:.18s;">
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Salvar entrada
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO: AUMENTAR REMESSA
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="section-remessa" {% if mode != 'remessa' %}style="display:none"{% endif %}>
+    <div class="hero" style="margin-bottom:24px; background: linear-gradient(135deg, #0f4c41 0%, #0f766e 100%);">
+      <div class="hero-icon">➕</div>
+      <div>
+        <div class="hero-title">Aumentar Remessa Existente</div>
+        <div class="hero-sub">Selecione o item e informe a quantidade a adicionar ao estoque atual.</div>
       </div>
     </div>
 
-  </form>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="remessa">
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon ci-teal">🔍</div>
+          <span class="card-title">Selecionar Item</span>
+        </div>
+        <div class="card-body">
+
+          {% if remessa_errors %}
+          <div class="form-error-banner">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+              {% for key, msg in remessa_errors.items %}{{ msg }}{% if not forloop.last %} &nbsp;·&nbsp; {% endif %}{% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-grid">
+
+            <div class="field span-2">
+              <label class="field-label">Item em Estoque</label>
+              <select name="remessa_item" id="id_remessa_item">
+                <option value="">— Selecione um item —</option>
+                {% for item in estoque_items %}
+                  <option value="{{ item.pk }}" {% if remessa_item_pk == item.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ item.description_manual|default:item.item_shock }} — {{ item.mark|default:"sem marca" }} ({{ item.amount_shock }} em estoque)
+                  </option>
+                {% endfor %}
+              </select>
+              {% if remessa_errors.item %}<div class="field-errors">⚠ {{ remessa_errors.item }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field-label">Quantidade a Adicionar</label>
+              <input type="number" name="remessa_qty" id="id_remessa_qty" min="1" value="{{ remessa_qty }}" placeholder="Ex: 50">
+              {% if remessa_errors.qty %}<div class="field-errors">⚠ {{ remessa_errors.qty }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px; animation-delay:.07s;">
+        <div class="card-head">
+          <div class="card-icon ci-amber">⚙️</div>
+          <span class="card-title">Forma de Entrada (Opcional)</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+
+            <div class="field">
+              <label class="field-label">Forma de Entrada</label>
+              <input type="text" name="remessa_form_input" placeholder="Ex: Compra direta, Doação…">
+            </div>
+
+            <div class="field">
+              <label class="field-label">Método</label>
+              <input type="text" name="remessa_method" placeholder="Ex: Pregão, Dispensa…">
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px; animation-delay:.13s;">
+        <div class="form-actions">
+          <button type="submit" class="btn btn-teal">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Adicionar ao estoque
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
 
 </div>
+
+<script>
+  function setMode(mode) {
+    const sNovo    = document.getElementById('section-novo');
+    const sRemessa = document.getElementById('section-remessa');
+    const mcNovo   = document.getElementById('mc-novo');
+    const mcRemessa = document.getElementById('mc-remessa');
+
+    if (mode === 'remessa') {
+      sNovo.style.display    = 'none';
+      sRemessa.style.display = '';
+      mcNovo.classList.remove('active');
+      mcRemessa.classList.add('active');
+    } else {
+      sRemessa.style.display = 'none';
+      sNovo.style.display    = '';
+      mcRemessa.classList.remove('active');
+      mcNovo.classList.add('active');
+    }
+  }
+</script>
 {% endblock %}

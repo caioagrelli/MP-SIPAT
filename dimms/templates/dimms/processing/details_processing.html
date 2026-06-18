@@ -709,6 +709,12 @@
             <div class="card-icon ci-blue">📋</div>
             <div class="card-title">Itens da Solicitação</div>
           </div>
+          {% if solicitacao.situation == "ATENDIMENTO" or solicitacao.situation == "AGUAR_SEPARACAO" or solicitacao.situation == "RASCUNHO" %}
+          <a href="{% url 'dimms:edit_solicitacao_itens' solicitacao.pk %}" class="btn btn-ghost-dark" style="font-size:.78rem;padding:6px 12px;white-space:nowrap;">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Adicionar Itens
+          </a>
+          {% endif %}
         </div>
         <div style="overflow-x:auto;">
           <table class="items-table">
