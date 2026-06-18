@@ -38,18 +38,46 @@ class CircunscricaoPredio(models.Model):
     def __str__(self):
         return self.local
 
-class InfoUA(models.Model): 
+class InfoUA(models.Model):
     circunscricao_predio = models.ForeignKey(
         CircunscricaoPredio,
-        on_delete=models.PROTECT, 
+        on_delete=models.PROTECT,
         related_name='circunscricoes_predios',
         verbose_name='Circunscricao/Prédio',
     )
-     
-     
+
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='filhas',
+        verbose_name='UA Pai',
+    )
+
+    codigo = models.CharField(
+        max_length=12,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name='Código',
+    )
+
     ua = models.CharField(
         max_length=100,
         verbose_name='UA',
+    )
+
+    sigla = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='Sigla',
+    )
+
+    nivel = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Nível',
     )
 
 
@@ -103,6 +131,8 @@ class InfoUA(models.Model):
         verbose_name_plural='02 - UAs'
 
     def __str__(self):
+        if self.sigla:
+            return f'{self.sigla} — {self.ua}'
         return self.ua
 
 
