@@ -14,54 +14,64 @@ class CircunscricaoPredioAdmin(admin.ModelAdmin):
 
 @admin.register(InfoUA)
 class InfoUaAdmin(admin.ModelAdmin):
-    list_display=(
+    list_display = (
+        'codigo',
+        'sigla',
         'ua',
+        'nivel',
+        'parent',
         'circunscricao_predio',
         'responsavel_ua',
-        'mat_resp_ua',
-        'contato_ua',
+    )
+
+    search_fields = (
+        'ua',
+        'sigla',
+        'codigo',
+        'responsavel_ua',
         'email_ua',
     )
 
-    search_fields=(
-        'circunscricao_predio',
-        'ua',
-        'contato_ua',
-        'responsavel_ua',
-        'mat_resp_ua',
-        'email_ua',
-    )
-
-    list_filter=(
-        'circunscricao_predio',
-    )
-    
-    autocomplete_fields=(
+    list_filter = (
+        'nivel',
         'circunscricao_predio',
     )
 
-    fieldsets=(
+    autocomplete_fields = (
+        'circunscricao_predio',
+        'parent',
+    )
+
+    fieldsets = (
+        ('Hierarquia', {
+            'fields': (
+                'codigo',
+                'sigla',
+                'nivel',
+                'parent',
+            )
+        }),
+
         ('Local', {
             'fields': (
                 'circunscricao_predio',
             )
         }),
-        
+
         ('Informações da UA', {
             'fields': (
-                'ua', 
+                'ua',
                 'contato_ua',
                 'email_ua',
             )
         }),
-        
+
         ('Informações do Responsável', {
             'fields': (
                 'responsavel_ua',
                 'mat_resp_ua',
                 'gestor',
             )
-
         }),
     )
 
