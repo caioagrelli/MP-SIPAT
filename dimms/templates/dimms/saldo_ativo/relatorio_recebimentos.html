@@ -1,0 +1,281 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Relatório de Recebimentos{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06); --shadow-md:0 4px 16px rgba(15,23,42,.1);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .rrpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+  .topbar-title{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:4px;font-size:.85rem;color:var(--ink-3);}
+
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+  @media(max-width:800px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm);}
+  .kpi-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);}
+  .kpi-val{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:4px;}
+  .kpi-val.blue{color:var(--blue);}
+  .kpi-val.green{color:var(--green);}
+  .kpi-val.amber{color:var(--amber);}
+
+  /* Filtros */
+  .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 20px;margin-bottom:20px;}
+  .filter-grid{display:grid;grid-template-columns:1fr 1fr 160px 160px auto;gap:12px;align-items:end;}
+  @media(max-width:900px){.filter-grid{grid-template-columns:1fr 1fr;}}
+  .fg{display:flex;flex-direction:column;gap:5px;}
+  .fl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .fi{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;}
+  .fi:focus{border-color:var(--accent);}
+
+  /* Tabela */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .card-title{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .badge{display:inline-flex;padding:3px 9px;border-radius:999px;font-size:.73rem;font-family:var(--mono);font-weight:700;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid);}
+
+  table{width:100%;border-collapse:collapse;font-size:.84rem;}
+  thead th{padding:10px 14px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody td{padding:11px 14px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover td{background:#f5f8ff;}
+
+  .mono{font-family:var(--mono);font-size:.8rem;}
+  .fw{font-weight:700;color:var(--ink);}
+  .date-cell{display:flex;flex-direction:column;gap:2px;}
+  .date-main{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--ink);}
+  .date-time{font-size:.72rem;color:var(--ink-3);}
+  .date-empty{font-size:.8rem;color:var(--ink-3);font-style:italic;}
+
+  .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-green{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .pill-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .btn-comprovante{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid);font-size:.76rem;font-weight:700;text-decoration:none;transition:all .15s;}
+  .btn-comprovante:hover{background:var(--blue);color:#fff;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-green{background:var(--green);color:#fff;border-color:#166534;}
+  .btn-green:hover{background:#166534;}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  .empty-state{padding:48px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.2rem;margin-bottom:8px;opacity:.35;}
+
+  /* Print */
+  @media print {
+    .rrpage{padding:0;background:#fff;}
+    .no-print{display:none!important;}
+    .print-header{display:block!important;}
+    .main-card{box-shadow:none;border:1px solid #ccc;}
+    .filter-card{display:none;}
+    .kpi-row{break-inside:avoid;}
+    table{font-size:.75rem;}
+    thead th{background:#1e2d42!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    tbody tr:nth-child(even) td{background:#f7f8fc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+  .print-header{display:none;text-align:center;padding:12px 0 20px;border-bottom:2px solid #1e2d42;margin-bottom:16px;}
+  .print-header h1{font-size:14pt;font-weight:800;color:#1e2d42;}
+  .print-header p{font-size:9pt;color:#7380a0;margin-top:4px;}
+</style>
+
+<div class="rrpage">
+
+  <nav class="breadcrumb no-print">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    Relatório de Recebimentos
+  </nav>
+
+  <!-- Print header (só aparece na impressão) -->
+  <div class="print-header">
+    <h1>MINISTÉRIO PÚBLICO DE PERNAMBUCO — SIPAT</h1>
+    <p>Relatório de Recebimentos — Saldo Ativo &nbsp;|&nbsp; Gerado em {{ gerado_em }}</p>
+  </div>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Relatório de Recebimentos</div>
+      <div class="topbar-sub">Gerado em {{ gerado_em }}</div>
+    </div>
+    <div style="display:flex;gap:10px;" class="no-print">
+      <button onclick="window.print()" class="btn btn-green">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir / PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total de Remessas</div>
+      <div class="kpi-val blue">{{ total }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Recebidas</div>
+      <div class="kpi-val green">{{ total_rec }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Pendentes</div>
+      <div class="kpi-val amber">{{ total_pend }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Unidades Enviadas</div>
+      <div class="kpi-val">{{ qtd_total }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Unidades Recebidas</div>
+      <div class="kpi-val green">{{ qtd_recebida }}</div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="no-print">
+    <div class="filter-card">
+      <div class="filter-grid">
+        <div class="fg">
+          <label class="fl">Contrato</label>
+          <select name="contrato" class="fi">
+            <option value="">Todos os contratos</option>
+            {% for c in contratos %}
+            <option value="{{ c.pk }}" {% if contrato_f == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.contrato }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select name="status" class="fi">
+            <option value="">Todos</option>
+            <option value="recebida" {% if status_f == 'recebida' %}selected{% endif %}>Recebidas</option>
+            <option value="pendente" {% if status_f == 'pendente' %}selected{% endif %}>Pendentes</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Data Início</label>
+          <input type="date" name="data_ini" class="fi" value="{{ data_ini_str }}">
+        </div>
+        <div class="fg">
+          <label class="fl">Data Fim</label>
+          <input type="date" name="data_fim" class="fi" value="{{ data_fim_str }}">
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+          <a href="{% url 'dimms:relatorio_recebimentos' %}" class="btn btn-ghost btn-sm">Limpar</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Tabela -->
+  <div class="main-card">
+    <div class="card-head">
+      <div class="card-title">
+        📦 Remessas
+        <span class="badge">{{ total }}</span>
+      </div>
+    </div>
+
+    {% if remessas %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Solicitação</th>
+            <th>Contrato</th>
+            <th>E-Fisco</th>
+            <th>Descrição</th>
+            <th style="text-align:center;">Qtde</th>
+            <th>Data da Remessa</th>
+            <th>Data do Recebimento</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;" class="no-print">Comprovante</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in remessas %}
+          <tr>
+            <td>
+              <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' r.item_enviado.solicitacao.pk %}" class="mono fw" style="color:var(--accent);text-decoration:none;">
+                {{ r.item_enviado.solicitacao.codigo }}
+              </a>
+            </td>
+            <td><span class="mono">{{ r.item_enviado.solicitacao.contrato.contrato }}</span></td>
+            <td><span class="mono fw" style="color:var(--blue);">{{ r.item_enviado.bem.efisco.efisco }}</span></td>
+            <td style="max-width:180px;">{{ r.item_enviado.bem.descricao_manual|default:r.item_enviado.bem.efisco.descricao_efisco }}</td>
+            <td style="text-align:center;"><span class="mono fw">{{ r.quantidade_enviada }}</span></td>
+
+            <!-- Data Remessa -->
+            <td>
+              {% if r.data_envio %}
+              <div class="date-cell">
+                <span class="date-main">{{ r.data_envio|date:"d/m/Y" }}</span>
+                <span class="date-time">{{ r.data_envio|date:"H:i" }}</span>
+              </div>
+              {% else %}<span class="date-empty">—</span>{% endif %}
+            </td>
+
+            <!-- Data Recebimento -->
+            <td>
+              {% if r.data_recebimento %}
+              <div class="date-cell">
+                <span class="date-main">{{ r.data_recebimento|date:"d/m/Y" }}</span>
+                <span class="date-time">{{ r.data_recebimento|date:"H:i" }}</span>
+              </div>
+              {% else %}<span class="date-empty">—</span>{% endif %}
+            </td>
+
+            <td style="text-align:center;">
+              {% if r.recebida %}
+                <span class="pill pill-green">✔ Recebida</span>
+              {% else %}
+                <span class="pill pill-amber">🚚 Pendente</span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;" class="no-print">
+              {% if r.comprovante %}
+                <a href="{{ r.comprovante.url }}" target="_blank" class="btn-comprovante" title="Ver comprovante">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Ver
+                </a>
+              {% else %}
+                <span style="color:var(--ink-3);font-size:.78rem;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      Nenhuma remessa encontrada com os filtros aplicados.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

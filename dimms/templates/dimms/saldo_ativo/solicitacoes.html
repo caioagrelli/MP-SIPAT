@@ -1,5 +1,4 @@
 {% extends 'global/base.html' %}
-
 {% block title %}SIPAT — Solicitações de Saldo Ativo{% endblock %}
 
 {% block content %}
@@ -7,7 +6,7 @@
 
 <style>
   :root {
-    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
     --border:#e2e5ef; --border-strong:#c8cfe0;
     --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
     --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
@@ -15,61 +14,118 @@
     --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
     --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
     --accent:#2563eb;
-    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 16px rgba(15,23,42,.1);
     --r-sm:10px; --r-md:16px;
     --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-
   .slpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
 
   .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
   .breadcrumb a{color:var(--accent);text-decoration:none;}
-  .breadcrumb a:hover{text-decoration:underline;}
 
-  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
-  .topbar-title{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.2;}
-  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+  .topbar-title{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:4px;font-size:.87rem;color:var(--ink-3);}
+  .topbar-actions{display:flex;gap:10px;flex-wrap:wrap;}
 
-  .filter-bar{
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+  @media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi{
     background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
-    padding:14px 18px;margin-bottom:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;
-    box-shadow:var(--shadow-sm);
+    padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px;
+    cursor:pointer;text-decoration:none;transition:box-shadow .15s,border-color .15s;
   }
-  .filter-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
-  .filter-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
-  .filter-input,.filter-select{
-    height:36px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
-    padding:0 10px;font-family:var(--font);font-size:.84rem;color:var(--ink);background:var(--surface-2);outline:none;
-  }
-  .filter-input:focus,.filter-select:focus{border-color:var(--accent);}
+  .kpi:hover{box-shadow:var(--shadow-md);border-color:var(--border-strong);}
+  .kpi.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+  .kpi-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0;}
+  .ki-grey{background:var(--surface-2);}
+  .ki-amber{background:var(--amber-soft);}
+  .ki-green{background:var(--green-soft);}
+  .ki-red{background:var(--red-soft);}
+  .kpi-body{min-width:0;}
+  .kpi-val{font-size:1.7rem;font-weight:800;letter-spacing:-.03em;line-height:1;}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-top:3px;}
+  .kv-grey{color:var(--ink);}
+  .kv-amber{color:var(--amber);}
+  .kv-green{color:var(--green);}
+  .kv-red{color:var(--red);}
 
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
-  .data-table{width:100%;border-collapse:collapse;}
-  .data-table thead tr{background:var(--surface-2);border-bottom:2px solid var(--border);}
-  .data-table th{padding:11px 14px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);text-align:left;white-space:nowrap;}
-  .data-table td{padding:13px 14px;font-size:.86rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
-  .data-table tbody tr:last-child td{border-bottom:none;}
-  .data-table tbody tr:hover td{background:var(--blue-soft);}
+  /* Filtros */
+  .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow-sm);}
+  .filter-grid{display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px;align-items:end;}
+  @media(max-width:800px){.filter-grid{grid-template-columns:1fr 1fr;}}
+  .fg{display:flex;flex-direction:column;gap:5px;}
+  .fl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .fi{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.86rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;transition:border-color .15s;}
+  .fi:focus{border-color:var(--accent);}
+  .filter-actions{display:flex;gap:8px;align-items:flex-end;}
 
+  /* Card principal */
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .card-title{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .count-badge{display:inline-flex;padding:3px 9px;border-radius:999px;font-size:.73rem;font-family:var(--mono);font-weight:700;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid);}
+
+  /* Tabela */
+  table{width:100%;border-collapse:collapse;}
+  thead th{padding:10px 16px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody td{padding:0;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover td{background:#f5f8ff;}
+
+  /* Célula principal clicável */
+  .row-link{display:flex;align-items:center;padding:13px 16px;gap:14px;text-decoration:none;color:inherit;}
+
+  .sol-code{font-family:var(--mono);font-size:.9rem;font-weight:800;color:var(--ink);white-space:nowrap;}
+  .sol-contrato{font-family:var(--mono);font-size:.78rem;color:var(--blue);font-weight:700;}
+  .sol-supplier{font-size:.76rem;color:var(--ink-3);margin-top:1px;}
+
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1e2d42,#2563eb);color:#fff;display:grid;place-items:center;font-size:.72rem;font-weight:800;flex-shrink:0;}
+  .user-name{font-size:.82rem;font-weight:600;color:var(--ink-2);}
+
+  .date-block{display:flex;flex-direction:column;gap:1px;}
+  .date-day{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .date-time{font-size:.72rem;color:var(--ink-3);}
+
+  .items-block{display:flex;flex-direction:column;gap:4px;min-width:80px;}
+  .items-count{font-family:var(--mono);font-size:.9rem;font-weight:800;color:var(--ink);text-align:center;}
+  .items-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);text-align:center;}
+
+  /* Status pills */
   .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;border:1px solid;white-space:nowrap;}
-  .pill .dot{width:6px;height:6px;border-radius:50%;}
+  .p-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .status-RASCUNHO .p-dot{background:var(--ink-3);}
   .status-RASCUNHO{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+  .status-ATENDIDA .p-dot{background:var(--green);}
   .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-CANCELADA .p-dot{background:var(--red);}
   .status-CANCELADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
-  .status-EM_ANÁLISE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-EM_ANÁLISE .p-dot,.status-EM\ ANÁLISE .p-dot{background:var(--amber);}
+  .status-EM_ANÁLISE,.status-EM\ ANÁLISE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
 
-  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
-  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  /* Ações */
+  .action-cell{padding:0 12px;white-space:nowrap;}
+  .action-cell .btn{opacity:0;}
+  tbody tr:hover .action-cell .btn{opacity:1;}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-sm);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
   .btn-primary:hover{background:#1d4ed8;}
-  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
-  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
-  .btn-sm{padding:6px 12px;font-size:.8rem;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+  .btn-icon{padding:6px 8px;}
 
-  .empty-state{padding:48px;text-align:center;color:var(--ink-3);}
-  .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.4;}
+  .empty-state{padding:56px 24px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.8rem;margin-bottom:10px;opacity:.3;}
+  .empty-title{font-size:.95rem;font-weight:700;color:var(--ink-2);margin-bottom:6px;}
+  .empty-sub{font-size:.83rem;}
 
-  .mono{font-family:var(--mono);font-size:.82rem;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .main-card{animation:fadeUp .25s ease both;}
 </style>
 
 <div class="slpage">
@@ -82,87 +138,205 @@
 
   <div class="topbar">
     <div>
-      <div class="topbar-title">Solicitações de Saldo Ativo</div>
-      <div class="topbar-sub">{{ total }} solicitação(ões) encontrada(s)</div>
+      <div class="topbar-title">Solicitações</div>
+      <div class="topbar-sub">Saldo Ativo — acompanhamento de todas as solicitações</div>
     </div>
-    <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}" class="btn btn-primary">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nova Solicitação
+    <div class="topbar-actions">
+      <a href="{% url 'dimms:relatorio_recebimentos' %}" class="btn btn-ghost">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Relatório
+      </a>
+      <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}" class="btn btn-primary">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova Solicitação
+      </a>
+    </div>
+  </div>
+
+  <!-- KPIs clicáveis como filtro rápido -->
+  <div class="kpi-row">
+    <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="kpi {% if not status_f %}active{% endif %}">
+      <div class="kpi-icon ki-grey">📋</div>
+      <div class="kpi-body">
+        <div class="kpi-val kv-grey">{{ kpi_total }}</div>
+        <div class="kpi-label">Total</div>
+      </div>
+    </a>
+    <a href="?status=RASCUNHO{% if contrato_f %}&contrato={{ contrato_f }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="kpi {% if status_f == 'RASCUNHO' %}active{% endif %}">
+      <div class="kpi-icon ki-grey">✏️</div>
+      <div class="kpi-body">
+        <div class="kpi-val kv-grey">{{ kpi_abertas }}</div>
+        <div class="kpi-label">Em aberto</div>
+      </div>
+    </a>
+    <a href="?status=ATENDIDA{% if contrato_f %}&contrato={{ contrato_f }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="kpi {% if status_f == 'ATENDIDA' %}active{% endif %}">
+      <div class="kpi-icon ki-green">✅</div>
+      <div class="kpi-body">
+        <div class="kpi-val kv-green">{{ kpi_atendidas }}</div>
+        <div class="kpi-label">Atendidas</div>
+      </div>
+    </a>
+    <a href="?status=CANCELADA{% if contrato_f %}&contrato={{ contrato_f }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="kpi {% if status_f == 'CANCELADA' %}active{% endif %}">
+      <div class="kpi-icon ki-red">✕</div>
+      <div class="kpi-body">
+        <div class="kpi-val kv-red">{{ kpi_canceladas }}</div>
+        <div class="kpi-label">Canceladas</div>
+      </div>
     </a>
   </div>
 
+  <!-- Filtros -->
   <form method="get">
-    <div class="filter-bar">
-      <div class="filter-group" style="flex:2;">
-        <label class="filter-label">Busca</label>
-        <input type="text" name="q" class="filter-input" value="{{ query }}" placeholder="Código, contrato...">
+    <div class="filter-card">
+      <div class="filter-grid">
+        <div class="fg">
+          <label class="fl">Buscar</label>
+          <input type="text" name="q" class="fi" value="{{ query }}" placeholder="Código, contrato, fornecedor…">
+        </div>
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select name="status" class="fi">
+            <option value="">Todos os status</option>
+            {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if status_f == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Contrato</label>
+          <select name="contrato" class="fi">
+            <option value="">Todos os contratos</option>
+            {% for c in contratos %}
+              <option value="{{ c.pk }}" {% if contrato_f == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.contrato }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+          {% if query or status_f or contrato_f %}
+          <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost btn-sm">Limpar</a>
+          {% endif %}
+        </div>
       </div>
-      <div class="filter-group">
-        <label class="filter-label">Status</label>
-        <select name="status" class="filter-select">
-          <option value="">Todos</option>
-          {% for value, label in status_choices %}
-            <option value="{{ value }}" {% if status_f == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Contrato</label>
-        <select name="contrato" class="filter-select">
-          <option value="">Todos</option>
-          {% for c in contratos %}
-            <option value="{{ c.pk }}" {% if contrato_f == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.contrato }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="filter-group" style="flex:0; justify-content:flex-end;">
-        <label class="filter-label">&nbsp;</label>
-        <button type="submit" class="btn btn-ghost" style="height:36px; padding:0 16px;">Filtrar</button>
-      </div>
-      {% if query or status_f or contrato_f %}
-      <div class="filter-group" style="flex:0; justify-content:flex-end;">
-        <label class="filter-label">&nbsp;</label>
-        <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost" style="height:36px; padding:0 12px; font-size:.8rem; color:var(--red);">✕ Limpar</a>
-      </div>
-      {% endif %}
     </div>
   </form>
 
-  <div class="table-wrap">
+  <!-- Tabela -->
+  <div class="main-card">
+    <div class="card-head">
+      <div class="card-title">
+        📬 Solicitações
+        <span class="count-badge">{{ total }}</span>
+      </div>
+      {% if query or status_f or contrato_f %}
+      <span style="font-size:.78rem;color:var(--ink-3);">Filtros ativos</span>
+      {% endif %}
+    </div>
+
     {% if solicitacoes %}
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Contrato</th>
-          <th>Responsável</th>
-          <th>Data/Hora</th>
-          <th>Status</th>
-          <th>Itens</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in solicitacoes %}
-        <tr>
-          <td><span class="mono" style="font-weight:700; color:var(--ink);">{{ s.codigo }}</span></td>
-          <td><span class="mono" style="color:var(--blue); font-weight:700;">{{ s.contrato.contrato }}</span></td>
-          <td style="color:var(--ink-2);">{{ s.usuario.get_full_name|default:s.usuario.username|default:"—" }}</td>
-          <td style="color:var(--ink-3); font-size:.82rem;">{{ s.data_hora|date:"d/m/Y H:i"|default:"—" }}</td>
-          <td><span class="pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
-          <td class="mono" style="font-weight:700;">{{ s.bensenviados_saldoativo.count }}</td>
-          <td style="text-align:right;">
-            <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' s.pk %}" class="btn btn-ghost btn-sm">Ver detalhes</a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Solicitação</th>
+            <th>Responsável</th>
+            <th>Data</th>
+            <th style="text-align:center;">Itens</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in solicitacoes %}
+          <tr>
+            <!-- Código + Contrato + Fornecedor -->
+            <td>
+              <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' s.pk %}" class="row-link" style="gap:10px;">
+                <div>
+                  <div class="sol-code">{{ s.codigo }}</div>
+                  <div class="sol-contrato">{{ s.contrato.contrato }}</div>
+                  {% if s.contrato.supplier_contract %}
+                  <div class="sol-supplier">{{ s.contrato.supplier_contract }}</div>
+                  {% endif %}
+                </div>
+              </a>
+            </td>
+
+            <!-- Responsável -->
+            <td>
+              <div class="row-link" style="gap:10px;">
+                {% with nome=s.usuario.get_full_name|default:s.usuario.username|default:"—" %}
+                <div class="user-avatar">{{ nome|slice:":1"|upper }}</div>
+                <span class="user-name">{{ nome }}</span>
+                {% endwith %}
+              </div>
+            </td>
+
+            <!-- Data -->
+            <td>
+              <div class="row-link">
+                <div class="date-block">
+                  <span class="date-day">{{ s.data_hora|date:"d/m/Y"|default:"—" }}</span>
+                  <span class="date-time">{{ s.data_hora|date:"H:i"|default:"" }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Itens -->
+            <td style="text-align:center;">
+              <div class="items-block">
+                <div class="items-count">{{ s.num_itens }}</div>
+                <div class="items-label">item{% if s.num_itens != 1 %}s{% endif %}</div>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td>
+              <div class="row-link">
+                {% if s.status == 'ATENDIDA' %}
+                  <span class="pill" style="background:var(--green-soft);color:var(--green);border-color:var(--green-mid);"><span class="p-dot" style="background:var(--green);"></span>
+                {% elif s.status == 'CANCELADA' %}
+                  <span class="pill" style="background:var(--red-soft);color:var(--red);border-color:var(--red-mid);"><span class="p-dot" style="background:var(--red);"></span>
+                {% elif s.status == 'EM ANÁLISE' %}
+                  <span class="pill" style="background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);"><span class="p-dot" style="background:var(--amber);"></span>
+                {% else %}
+                  <span class="pill" style="background:var(--surface-2);color:var(--ink-3);border-color:var(--border);"><span class="p-dot" style="background:var(--ink-3);"></span>
+                {% endif %}
+                  {{ s.get_status_display }}</span>
+              </div>
+            </td>
+
+            <!-- Ações -->
+            <td class="action-cell">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' s.pk %}" class="btn btn-ghost btn-sm">
+                  Ver
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="{% url 'dimms:pdf_relatorio_solicitacao' s.pk %}" class="btn btn-ghost btn-sm btn-icon" target="_blank" title="Gerar PDF">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
     {% else %}
     <div class="empty-state">
       <div class="empty-icon">📬</div>
-      <div style="font-size:.9rem; font-weight:600; margin-bottom:6px;">Nenhuma solicitação encontrada</div>
-      <div style="font-size:.82rem;">Crie uma nova solicitação para retirar itens do saldo ativo.</div>
+      <div class="empty-title">
+        {% if query or status_f or contrato_f %}Nenhuma solicitação encontrada{% else %}Nenhuma solicitação ainda{% endif %}
+      </div>
+      <div class="empty-sub">
+        {% if query or status_f or contrato_f %}
+          Tente ajustar os filtros acima.
+        {% else %}
+          <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}" style="color:var(--accent);">Criar a primeira solicitação →</a>
+        {% endif %}
+      </div>
     </div>
     {% endif %}
   </div>

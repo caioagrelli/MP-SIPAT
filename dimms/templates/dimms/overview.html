@@ -402,18 +402,104 @@
     filter: grayscale(25%);
   }
 
-  /* ─── COMING SOON CARD ─── */
-  .soon-badge {
+  /* ─── HISTORY TABLE ─── */
+  .hist-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  .hist-table thead th {
+    padding: 9px 14px;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    text-align: left;
+  }
+  .hist-table tbody td {
+    padding: 11px 14px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-weight: 500;
+  }
+  .hist-table tbody tr:last-child td { border-bottom: none; }
+  .hist-table tbody tr:hover td { background: var(--blue-soft); }
+
+  .tram-code {
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--blue-soft);
+    border: 1px solid var(--blue-mid);
+    border-radius: 6px;
+    padding: 2px 8px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .tram-code:hover { background: #dbeafe; }
+
+  .tram-status {
     display: inline-flex;
     align-items: center;
-    padding: 3px 10px;
+    gap: 5px;
+    padding: 3px 9px;
     border-radius: 999px;
     font-size: .72rem;
     font-weight: 700;
-    background: var(--blue-soft);
-    color: var(--blue);
-    border: 1px solid var(--blue-mid);
+    border: 1px solid;
+    white-space: nowrap;
   }
+  .tram-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .ts-atend  { background: var(--blue-soft);   color: var(--blue);   border-color: var(--blue-mid); }
+  .ts-atend  .tram-dot { background: var(--blue); }
+  .ts-aguar  { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+  .ts-aguar  .tram-dot { background: #6d28d9; }
+  .ts-sep    { background: var(--amber-soft);  color: var(--amber);  border-color: var(--amber-mid); }
+  .ts-sep    .tram-dot { background: var(--amber); }
+  .ts-exped  { background: #f0fdfa; color: #0f766e; border-color: #99f6e4; }
+  .ts-exped  .tram-dot { background: #0f766e; }
+  .ts-rec    { background: var(--green-soft);  color: var(--green);  border-color: var(--green-mid); }
+  .ts-rec    .tram-dot { background: var(--green); }
+  .ts-can    { background: var(--red-soft);    color: var(--red);    border-color: var(--red-mid); }
+  .ts-can    .tram-dot { background: var(--red); }
+  .ts-ras    { background: var(--surface-2);   color: var(--ink-3);  border-color: var(--border-strong); }
+  .ts-ras    .tram-dot { background: var(--ink-3); }
+
+  /* ─── PAGINATION ─── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    flex-wrap: wrap;
+  }
+  .pagination-info { font-size: .78rem; color: var(--ink-3); font-weight: 500; }
+  .pagination-btns { display: flex; gap: 6px; }
+  .page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink-2);
+    transition: all .15s;
+  }
+  .page-btn:hover { background: var(--blue-soft); border-color: var(--blue-mid); color: var(--blue); }
+  .page-btn.active { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+  .page-btn.disabled { opacity: .4; pointer-events: none; }
 
   /* ─── MOVIMENTAÇÃO FORM ─── */
   .move-form {
@@ -658,6 +744,10 @@
         <div class="card-body" style="padding:0;">
           <table class="kv-table">
             <tr>
+              <td>Almoxarifado</td>
+              <td>{{ item.item_shock.get_almoxarifado_display|default:"—" }}</td>
+            </tr>
+            <tr>
               <td>Grupo</td>
               <td>
                 {% if item.item_shock.grupo_consumo %}
@@ -715,7 +805,7 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Editar
           </a>
-          <a href="#" class="btn btn-orange btn-disabled">
+          <a href="{% url 'dimms:ficha_tecnica' item.pk %}" class="btn btn-orange" target="_blank">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             Ficha Técnica
           </a>
@@ -729,52 +819,115 @@
     </div>
   </div>
 
-  <!-- MOVIMENTAÇÃO -->
-  <div class="card">
-    <div class="card-head">
-      <div class="card-head-left">
-        <div class="card-icon ci-amber">🔄</div>
-        <div class="card-title">Registrar Movimentação</div>
-      </div>
-      <span class="soon-badge">Em breve</span>
-    </div>
-    <div class="card-body">
-      <div class="move-form">
-        <div class="form-group">
-          <label class="form-label">Quantidade</label>
-          <input type="number" class="form-input" placeholder="Ex: 5" disabled>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Observação</label>
-          <input type="text" class="form-input" placeholder="Motivo da movimentação" disabled>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Documento</label>
-          <input type="file" class="form-input" disabled>
-        </div>
-        <div class="move-actions" style="padding-bottom:0; align-self:flex-end;">
-          <button class="btn btn-retirar btn-disabled" disabled>↓ Retirar</button>
-          <button class="btn btn-adicionar btn-disabled" disabled>↑ Adicionar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- HISTÓRICO -->
+  <!-- HISTÓRICO DE TRAMITAÇÕES -->
   <div class="card" style="margin-top:16px;">
     <div class="card-head">
       <div class="card-head-left">
         <div class="card-icon ci-blue">🕒</div>
         <div class="card-title">Histórico de Tramitações</div>
       </div>
-      <span class="soon-badge">Em breve</span>
+      {% if page_obj.paginator.count %}
+      <span style="font-size:.75rem; color:var(--ink-3); font-weight:600;">
+        {{ page_obj.paginator.count }} registro{{ page_obj.paginator.count|pluralize }}
+      </span>
+      {% endif %}
     </div>
+
+    {% if page_obj.object_list %}
+    <div style="overflow-x:auto;">
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Solicitação</th>
+            <th>UA Solicitante</th>
+            <th>Etapa</th>
+            <th>Responsável</th>
+            <th>Data</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tram in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'dimms:details_processing' tram.request_update.pk %}" class="tram-code">
+                {{ tram.request_update.request_code|default:"—" }}
+              </a>
+            </td>
+            <td>{{ tram.request_update.ua_order|default:"—" }}</td>
+            <td>
+              {% with s=tram.update %}
+              <span class="tram-status
+                {% if s == 'ATENDIMENTO' %}ts-atend
+                {% elif s == 'AGUAR_SEPARACAO' %}ts-aguar
+                {% elif s == 'SEPARADA' %}ts-sep
+                {% elif s == 'EXPEDICAO' %}ts-exped
+                {% elif s == 'RECEBIDA' %}ts-rec
+                {% elif s == 'CANCELADA' %}ts-can
+                {% else %}ts-ras{% endif %}">
+                <span class="tram-dot"></span>
+                {{ tram.get_update_display|default:tram.update|default:"—" }}
+              </span>
+              {% endwith %}
+            </td>
+            <td>
+              {% if tram.user_update %}
+                {{ tram.user_update.get_full_name|default:tram.user_update.username }}
+              {% else %}—{% endif %}
+            </td>
+            <td style="font-family:var(--mono); font-size:.8rem; white-space:nowrap;">
+              {{ tram.date_update|date:"d/m/Y H:i"|default:"—" }}
+            </td>
+            <td>
+              <a href="{% url 'dimms:course' tram.request_update.pk tram.pk %}" class="btn btn-ghost" style="font-size:.75rem; padding:5px 10px;">
+                Ver etapa
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+      <div class="pagination-info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+      </div>
+      <div class="pagination-btns">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="page-btn">«</a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="page-btn">‹</a>
+        {% else %}
+          <span class="page-btn disabled">«</span>
+          <span class="page-btn disabled">‹</span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+            <a href="?page={{ num }}" class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="page-btn">›</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="page-btn">»</a>
+        {% else %}
+          <span class="page-btn disabled">›</span>
+          <span class="page-btn disabled">»</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
     <div class="card-body">
       <div class="empty-state">
         <div class="empty-state-icon">📋</div>
-        Nenhuma tramitação registrada ainda.
+        Este item ainda não foi incluído em nenhuma solicitação.
       </div>
     </div>
+    {% endif %}
   </div>
 
 </div>

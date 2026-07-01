@@ -7,567 +7,265 @@
 
 <style>
   :root {
-    --bg: #f0f2f7;
-    --surface: #ffffff;
-    --surface-2: #f7f8fc;
-    --border: #e2e5ef;
-    --border-strong: #c8cfe0;
-    --ink: #1a2035;
-    --ink-2: #3d4966;
-    --ink-3: #7380a0;
-    --blue: #1d4ed8;
-    --blue-soft: #eff4ff;
-    --blue-mid: #c7d7fd;
-    --green: #15803d;
-    --green-soft: #f0fdf4;
-    --green-mid: #bbf7d0;
-    --amber: #b45309;
-    --amber-soft: #fffbeb;
-    --amber-mid: #fde68a;
-    --red: #b91c1c;
-    --red-soft: #fef2f2;
-    --red-mid: #fecaca;
-    --accent: #2563eb;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
-    --r-sm: 10px;
-    --r-md: 16px;
-    --font: 'Sora', sans-serif;
-    --mono: 'JetBrains Mono', monospace;
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
   }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .sapage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
 
-  .sapage {
-    font-family: var(--font);
-    background: var(--bg);
-    padding: 28px 24px;
-    color: var(--ink);
-  }
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+  .topbar-title{font-size:1.75rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.15;}
+  .topbar-sub{margin-top:6px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .topbar-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 
-  /* ─── TOPBAR ─── */
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-  }
-  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; line-height: 1.2; }
-  .topbar-sub   { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
-  .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+  @media(max-width:640px){.kpi-row{grid-template-columns:1fr;}}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:20px 22px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:6px;}
+  .kpi-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);}
+  .kpi-value{font-size:2rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1;}
+  .kpi-desc{font-size:.78rem;color:var(--ink-3);}
+  .kpi-card.blue .kpi-value{color:var(--blue);}
+  .kpi-card.amber .kpi-value{color:var(--amber);}
 
-  /* ─── FLOW BANNER ─── */
-  .flow-banner {
-    background: linear-gradient(135deg, #1e2d42 0%, #1d4ed8 100%);
-    border-radius: var(--r-md);
-    padding: 18px 22px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    box-shadow: 0 4px 20px rgba(29,78,216,.25);
-  }
-  .flow-step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 140px;
-  }
-  .flow-icon {
-    width: 40px; height: 40px;
-    background: rgba(255,255,255,.12);
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    font-size: 18px;
-    flex-shrink: 0;
-    border: 1px solid rgba(255,255,255,.15);
-  }
-  .flow-text-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(160,195,255,.7); margin-bottom: 2px; }
-  .flow-text-value { font-size: .88rem; font-weight: 700; color: #fff; }
-  .flow-arrow { font-size: 1.2rem; color: rgba(255,255,255,.35); flex-shrink: 0; }
+  /* Layout principal */
+  .main-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+  @media(max-width:1024px){.main-grid{grid-template-columns:1fr;}}
 
-  /* ─── KPI GRID ─── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
-    animation: fadeUp .3s ease both;
-  }
-  .kpi-card:nth-child(2) { animation-delay: .05s; }
-  .kpi-card:nth-child(3) { animation-delay: .10s; }
-  .kpi-card:nth-child(4) { animation-delay: .15s; }
-  .kpi-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin-bottom: 8px; }
-  .kpi-value { font-size: 2rem; font-weight: 900; font-family: var(--mono); line-height: 1; letter-spacing: -.04em; }
-  .kpi-value.blue   { color: var(--blue); }
-  .kpi-value.green  { color: var(--green); }
-  .kpi-value.amber  { color: var(--amber); }
-  .kpi-value.red    { color: var(--red); }
-  .kpi-sub { margin-top: 5px; font-size: .75rem; color: var(--ink-3); font-weight: 500; }
+  /* Seção */
+  .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .section-title{font-size:1rem;font-weight:700;color:var(--ink);}
 
-  /* ─── SECTION ─── */
-  .section { margin-bottom: 28px; }
-  .section-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
+  /* Cards de contratos */
+  .contrato-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm);margin-bottom:12px;overflow:hidden;
+    transition:box-shadow .15s;
   }
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--ink);
-    letter-spacing: -.02em;
+  .contrato-card:last-child{margin-bottom:0;}
+  .contrato-card:hover{box-shadow:var(--shadow-md);}
+  .contrato-card-head{
+    padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    border-bottom:1px solid var(--border);background:var(--surface-2);
   }
-  .section-icon {
-    width: 30px; height: 30px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  .si-blue   { background: var(--blue-soft); }
-  .si-green  { background: var(--green-soft); }
-  .si-amber  { background: var(--amber-soft); }
+  .contrato-id{font-family:var(--mono);font-size:1rem;font-weight:800;color:var(--ink);}
+  .contrato-supplier{font-size:.82rem;color:var(--ink-3);margin-top:2px;}
+  .contrato-head-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-  /* ─── FILTER BAR ─── */
-  .filter-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 14px 18px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    box-shadow: var(--shadow-sm);
-  }
-  .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
-  .filter-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
-  .filter-input, .filter-select {
-    height: 36px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-sm);
-    padding: 0 10px;
-    font-family: var(--font);
-    font-size: .84rem;
-    color: var(--ink);
-    background: var(--surface-2);
-    outline: none;
-  }
-  .filter-input:focus, .filter-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .contrato-card-body{padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr) auto;gap:16px;align-items:center;}
+  @media(max-width:640px){.contrato-card-body{grid-template-columns:1fr 1fr;}}
+  .stat{display:flex;flex-direction:column;gap:3px;}
+  .stat-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);}
+  .stat-value{font-size:1.15rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+  .stat-value.blue{color:var(--blue);}
+  .stat-value.green{color:var(--green);}
+  .stat-value.amber{color:var(--amber);}
 
-  /* ─── TABLE ─── */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  .data-table { width: 100%; border-collapse: collapse; }
-  .data-table thead tr { background: var(--surface-2); border-bottom: 2px solid var(--border); }
-  .data-table th {
-    padding: 11px 14px;
-    font-size: .68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--ink-3);
-    text-align: left;
-    white-space: nowrap;
-  }
-  .data-table td {
-    padding: 12px 14px;
-    font-size: .86rem;
-    color: var(--ink-2);
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-  .data-table tbody tr:last-child td { border-bottom: none; }
-  .data-table tbody tr:hover td { background: var(--blue-soft); }
+  .progress-wrap{display:flex;align-items:center;gap:8px;margin-top:2px;}
+  .progress-bar-bg{flex:1;height:6px;background:var(--border);border-radius:999px;overflow:hidden;min-width:60px;}
+  .progress-bar-fill{height:100%;border-radius:999px;}
+  .fill-ok{background:var(--green);}
+  .fill-warn{background:var(--amber);}
+  .fill-low{background:var(--red);}
 
-  /* ─── PILLS / BADGES ─── */
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: .72rem;
-    font-weight: 700;
-    border: 1px solid;
-    white-space: nowrap;
-  }
-  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .contrato-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
 
-  .pill-ok      { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
-  .pill-ok .dot { background: var(--green); }
-  .pill-low     { background: var(--red-soft); color: var(--red); border-color: var(--red-mid); }
-  .pill-low .dot{ background: var(--red); }
-  .pill-warn    { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
-  .pill-warn .dot{ background: var(--amber); }
-  .pill-blue    { background: var(--blue-soft); color: var(--blue); border-color: var(--blue-mid); }
-  .pill-blue .dot{ background: var(--blue); }
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
 
-  .status-RASCUNHO    { background: var(--surface-2); color: var(--ink-3); border-color: var(--border); }
-  .status-ATENDIDA    { background: var(--green-soft); color: var(--green); border-color: var(--green-mid); }
-  .status-CANCELADA   { background: var(--red-soft); color: var(--red); border-color: var(--red-mid); }
-  .status-EM_ANÁLISE  { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+  /* Sidebar */
+  .side-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .side-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .side-title{font-size:.88rem;font-weight:700;color:var(--ink);}
+  .sol-item{display:block;padding:12px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .1s;}
+  .sol-item:last-child{border-bottom:none;}
+  .sol-item:hover{background:var(--blue-soft);}
+  .sol-codigo{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--ink);}
+  .sol-contrato{font-size:.78rem;color:var(--ink-2);margin-top:2px;}
+  .sol-meta{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+  .sol-data{font-size:.72rem;color:var(--ink-3);}
+  .status-pill{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-RASCUNHO{background:var(--surface-2);color:var(--ink-3);border-color:var(--border);}
+  .status-ATENDIDA{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-CANCELADA{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .status-EM_ANÁLISE,.status-EM\ ANÁLISE{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
 
-  .cota-PRINCIPAL { background: #eff4ff; color: #1d4ed8; border-color: #c7d7fd; }
-  .cota-RESERVADA { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+  .empty-state{padding:40px 20px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.2rem;margin-bottom:10px;opacity:.4;}
 
-  /* ─── PROGRESS BAR ─── */
-  .progress-wrap { display: flex; align-items: center; gap: 10px; }
-  .progress-bar-bg {
-    flex: 1; height: 8px;
-    background: var(--border);
-    border-radius: 999px;
-    overflow: hidden;
-    min-width: 80px;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width .3s ease;
-  }
-  .fill-ok   { background: var(--green); }
-  .fill-warn { background: var(--amber); }
-  .fill-low  { background: var(--red); }
-  .progress-pct { font-family: var(--mono); font-size: .78rem; font-weight: 700; color: var(--ink-3); white-space: nowrap; }
-
-  /* ─── BUTTONS ─── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 16px;
-    border-radius: var(--r-sm);
-    font-family: var(--font);
-    font-size: .85rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    border: 1px solid transparent;
-    transition: all .15s ease;
-    white-space: nowrap;
-  }
-  .btn-primary { background: var(--accent); color: #fff; border-color: #1d4ed8; box-shadow: 0 2px 8px rgba(37,99,235,.3); }
-  .btn-primary:hover { background: #1d4ed8; }
-  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
-  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
-  .btn-sm { padding: 6px 12px; font-size: .8rem; }
-
-  /* ─── EMPTY ─── */
-  .empty-state { padding: 40px; text-align: center; color: var(--ink-3); }
-  .empty-icon  { font-size: 2.5rem; margin-bottom: 10px; opacity: .4; }
-  .empty-text  { font-size: .9rem; font-weight: 500; }
-
-  /* ─── MONO CODE ─── */
-  .mono { font-family: var(--mono); font-size: .82rem; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 768px) {
-    .sapage { padding: 14px 12px; }
-    .topbar-title { font-size: 1.3rem; }
-    .flow-banner { flex-direction: column; }
-    .flow-arrow { transform: rotate(90deg); }
-  }
+  /* Botões */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-green{background:var(--green);color:#fff;border-color:#166534;box-shadow:0 2px 8px rgba(21,128,61,.2);}
+  .btn-green:hover{background:#166534;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-sm{padding:6px 12px;font-size:.8rem;}
 </style>
 
 <div class="sapage">
 
-  <!-- TOPBAR -->
   <div class="topbar">
     <div>
       <div class="topbar-title">Saldo Ativo</div>
-      <div class="topbar-sub">Visão geral dos bens disponíveis nos contratos ativos</div>
+      <div class="topbar-sub">Gestão de contratos e itens disponíveis</div>
     </div>
     <div class="topbar-actions">
+      <a href="{% url 'dimms:relatorio_recebimentos' %}" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Recebimentos
+      </a>
       <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
-        </svg>
-        Solicitações
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        Todas as Solicitações
       </a>
-      <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}" class="btn btn-primary">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Nova Solicitação
+      <a href="{% url 'dimms:fornecedor_lista' %}" class="btn btn-ghost">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Fornecedores
       </a>
-    </div>
-  </div>
-
-  <!-- FLUXO VISUAL -->
-  <div class="flow-banner">
-    <div class="flow-step">
-      <div class="flow-icon">📋</div>
-      <div>
-        <div class="flow-text-label">1 — Artefato</div>
-        <div class="flow-text-value">Aprovado e Homologado</div>
-      </div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">📑</div>
-      <div>
-        <div class="flow-text-label">2 — Contrato</div>
-        <div class="flow-text-value">Geração do Saldo</div>
-      </div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">🏦</div>
-      <div>
-        <div class="flow-text-label">3 — Saldo Ativo</div>
-        <div class="flow-text-value">Bens Disponíveis</div>
-      </div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">📬</div>
-      <div>
-        <div class="flow-text-label">4 — Solicitação</div>
-        <div class="flow-text-value">Pedido de Retirada</div>
-      </div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">📦</div>
-      <div>
-        <div class="flow-text-label">5 — Envio → Estoque</div>
-        <div class="flow-text-value">Entrada Registrada</div>
-      </div>
+      <a href="{% url 'dimms:contrato_criar_saldoativo' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Novo Contrato
+      </a>
     </div>
   </div>
 
   <!-- KPIs -->
-  <div class="kpi-grid">
+  <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">Itens no Saldo</div>
-      <div class="kpi-value blue">{{ total_itens }}</div>
-      <div class="kpi-sub">tipos de bem em saldo ativo</div>
+      <div class="kpi-label">Contratos</div>
+      <div class="kpi-value">{{ total_contratos }}</div>
+      <div class="kpi-desc">contratos cadastrados</div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Saldo Disponível</div>
-      <div class="kpi-value green">{{ saldo_total }}</div>
-      <div class="kpi-sub">unidades disponíveis no total</div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Saldo Total</div>
+      <div class="kpi-value">{{ total_saldo }}</div>
+      <div class="kpi-desc">unidades disponíveis</div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Contratos Ativos</div>
-      <div class="kpi-value blue">{{ contratos_ativos }}</div>
-      <div class="kpi-sub">contratos com itens em saldo</div>
-    </div>
-    <div class="kpi-card">
+    <div class="kpi-card amber">
       <div class="kpi-label">Solicitações Abertas</div>
-      <div class="kpi-value {% if solicitacoes_ativas > 0 %}amber{% else %}green{% endif %}">{{ solicitacoes_ativas }}</div>
-      <div class="kpi-sub">rascunho ou em análise</div>
+      <div class="kpi-value">{{ solicitacoes_ativas }}</div>
+      <div class="kpi-desc">em rascunho ou análise</div>
     </div>
   </div>
 
-  <!-- FILTROS -->
-  <form method="get" action="">
-    <div class="filter-bar">
-      <div class="filter-group" style="flex:2;">
-        <label class="filter-label">Busca</label>
-        <input type="text" name="q" class="filter-input" value="{{ query }}" placeholder="Efisco, descrição, marca...">
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Contrato</label>
-        <select name="contrato" class="filter-select">
-          <option value="">Todos</option>
-          {% for c in contratos_com_saldo %}
-            <option value="{{ c.pk }}" {% if contrato_f == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.contrato }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Cota</label>
-        <select name="cota" class="filter-select">
-          <option value="">Todas</option>
-          {% for value, label in cotas %}
-            <option value="{{ value }}" {% if cota_f == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="filter-group" style="flex:0; justify-content:flex-end;">
-        <label class="filter-label">&nbsp;</label>
-        <button type="submit" class="btn btn-ghost" style="height:36px; padding:0 16px;">Filtrar</button>
-      </div>
-      {% if query or contrato_f or cota_f %}
-      <div class="filter-group" style="flex:0; justify-content:flex-end;">
-        <label class="filter-label">&nbsp;</label>
-        <a href="{% url 'dimms:saldo_ativo_homepage' %}" class="btn btn-ghost" style="height:36px; padding:0 12px; font-size:.8rem; color:var(--red);">✕ Limpar</a>
-      </div>
-      {% endif %}
-    </div>
-  </form>
+  <div class="main-grid">
 
-  <!-- TABELA DE SALDO ATIVO -->
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">
-        <div class="section-icon si-blue">🏦</div>
-        Bens em Saldo Ativo
-        <span style="font-size:.75rem; font-weight:500; color:var(--ink-3); margin-left:4px;">{{ total_itens }} item(s)</span>
+    <!-- Contratos -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">Contratos</div>
       </div>
-    </div>
 
-    <div class="table-wrap">
-      {% if saldos %}
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Contrato</th>
-            <th>E-Fisco</th>
-            <th>Descrição</th>
-            <th>Marca</th>
-            <th>Cota</th>
-            <th>Qtd. Contrato</th>
-            <th>Saldo Disponível</th>
-            <th>Consumo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for saldo in saldos %}
-          {% with pct=saldo.saldo_disponivel|default:0 total=saldo.quantidade_contrato|default:1 %}
-          {% widthratio saldo.saldo_disponivel|default:0 saldo.quantidade_contrato|default:1 100 as pct_num %}
-          <tr>
-            <td>
-              <span class="mono" style="font-weight:700; color:var(--ink);">{{ saldo.contrato_saldo.contrato }}</span>
-            </td>
-            <td>
-              <span class="mono" style="color:var(--blue); font-weight:700;">{{ saldo.efisco.efisco }}</span>
-            </td>
-            <td style="max-width:220px;">
-              <div style="font-weight:600; color:var(--ink);">{{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco }}</div>
-              <div style="font-size:.75rem; color:var(--ink-3); margin-top:2px;">{{ saldo.efisco.get_medida_display }}</div>
-            </td>
-            <td style="color:var(--ink-2);">{{ saldo.marca|default:"—" }}</td>
-            <td>
-              {% if saldo.cota %}
-                <span class="pill cota-{{ saldo.cota }}">{{ saldo.get_cota_display }}</span>
-              {% else %}
-                <span style="color:var(--ink-3);">—</span>
-              {% endif %}
-            </td>
-            <td class="mono" style="font-weight:700;">{{ saldo.quantidade_contrato }}</td>
-            <td>
-              <div class="progress-wrap">
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill {% if pct_num >= 50 %}fill-ok{% elif pct_num >= 20 %}fill-warn{% else %}fill-low{% endif %}"
-                       style="width: {{ pct_num }}%"></div>
-                </div>
-                <span class="mono progress-pct
-                  {% if pct_num >= 50 %}
-                    " style="color:var(--green);"
-                  {% elif pct_num >= 20 %}
-                    " style="color:var(--amber);"
-                  {% else %}
-                    " style="color:var(--red);"
-                  {% endif %}
-                >{{ saldo.saldo_disponivel|default:0 }}</span>
+      {% if contratos %}
+        {% for contrato in contratos %}
+        <div class="contrato-card">
+          <div class="contrato-card-head">
+            <div>
+              <div class="contrato-id">{{ contrato.contrato }}</div>
+              <div class="contrato-supplier">
+                {{ contrato.supplier_contract|default:"Fornecedor não vinculado" }}
+                {% if contrato.status %} — {{ contrato.status }}{% endif %}
               </div>
-            </td>
-            <td>
-              {% if pct_num == 0 %}
-                <span class="pill pill-low"><span class="dot"></span>Esgotado</span>
-              {% elif pct_num < 20 %}
-                <span class="pill pill-warn"><span class="dot"></span>Crítico</span>
-              {% elif pct_num < 50 %}
-                <span class="pill pill-warn"><span class="dot"></span>Baixo</span>
-              {% else %}
-                <span class="pill pill-ok"><span class="dot"></span>Normal</span>
+            </div>
+            <div class="contrato-head-right">
+              {% if contrato.solicitacoes_abertas > 0 %}
+                <span class="pill pill-amber">{{ contrato.solicitacoes_abertas }} aberta(s)</span>
               {% endif %}
-            </td>
-          </tr>
-          {% endwith %}
-          {% endfor %}
-        </tbody>
-      </table>
+              {% if contrato.inicio_vigencia %}
+                <span style="font-size:.78rem;color:var(--ink-3);">
+                  {{ contrato.inicio_vigencia|date:"d/m/Y" }} – {{ contrato.final_vigencia|date:"d/m/Y"|default:"?" }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="contrato-card-body">
+            <div class="stat">
+              <div class="stat-label">Itens no Saldo</div>
+              <div class="stat-value">{{ contrato.total_itens|default:"0" }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Unidades Disponíveis</div>
+              <div class="stat-value blue">{{ contrato.saldo_total|default:"0" }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Solicitações Abertas</div>
+              <div class="stat-value {% if contrato.solicitacoes_abertas > 0 %}amber{% endif %}">
+                {{ contrato.solicitacoes_abertas }}
+              </div>
+            </div>
+            <div class="contrato-actions">
+              <!-- Solicitar: POST direto para criar solicitacao neste contrato -->
+              {% if contrato.total_itens > 0 %}
+              <form method="post" action="{% url 'dimms:saldo_ativo_solicitacao_create' %}">
+                {% csrf_token %}
+                <input type="hidden" name="contrato" value="{{ contrato.pk }}">
+                <button type="submit" class="btn btn-green btn-sm">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Solicitar
+                </button>
+              </form>
+              {% endif %}
+              <a href="{% url 'dimms:contrato_detail' contrato.pk %}" class="btn btn-ghost btn-sm">
+                Gerenciar
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
       {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">🏦</div>
-        <div class="empty-text">Nenhum item em saldo ativo encontrado.</div>
-        <div style="margin-top:8px; font-size:.82rem; color:var(--ink-3);">Itens aparecem aqui quando contratos são homologados.</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);">
+        <div class="empty-state">
+          <div class="empty-icon">📄</div>
+          <div style="font-size:.9rem;font-weight:600;margin-bottom:6px;">Nenhum contrato cadastrado</div>
+          <div style="font-size:.82rem;margin-bottom:16px;">Cadastre um contrato para começar a gerenciar o saldo ativo.</div>
+          <a href="{% url 'dimms:contrato_criar_saldoativo' %}" class="btn btn-primary">Criar primeiro contrato</a>
+        </div>
       </div>
       {% endif %}
     </div>
-  </div>
 
-  <!-- SOLICITAÇÕES RECENTES -->
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">
-        <div class="section-icon si-amber">📬</div>
-        Solicitações Recentes
+    <!-- Sidebar: solicitações recentes -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">Solicitações Recentes</div>
+        <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost btn-sm">Ver todas</a>
       </div>
-      <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost btn-sm">Ver todas</a>
-    </div>
 
-    <div class="table-wrap">
-      {% if solicitacoes_recentes %}
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Contrato</th>
-            <th>Responsável</th>
-            <th>Data</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in solicitacoes_recentes %}
-          <tr>
-            <td><span class="mono" style="font-weight:700; color:var(--ink);">{{ s.codigo }}</span></td>
-            <td><span class="mono" style="color:var(--blue);">{{ s.contrato.contrato }}</span></td>
-            <td style="color:var(--ink-2);">{{ s.usuario.get_full_name|default:s.usuario.username|default:"—" }}</td>
-            <td style="color:var(--ink-3); font-size:.82rem;">{{ s.data_hora|date:"d/m/Y H:i"|default:"—" }}</td>
-            <td>
-              <span class="pill status-{{ s.status }}">{{ s.get_status_display }}</span>
-            </td>
-            <td style="text-align:right;">
-              <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' s.pk %}" class="btn btn-ghost btn-sm">Ver</a>
-            </td>
-          </tr>
+      <div class="side-card">
+        {% if solicitacoes_recentes %}
+          {% for sol in solicitacoes_recentes %}
+          <a href="{% url 'dimms:saldo_ativo_solicitacao_detail' sol.pk %}" class="sol-item">
+            <div class="sol-codigo">{{ sol.codigo }}</div>
+            <div class="sol-contrato">{{ sol.contrato.contrato }}</div>
+            <div class="sol-meta">
+              <span class="sol-data">{{ sol.data_hora|date:"d/m/Y H:i"|default:"—" }}</span>
+              <span class="status-pill status-{{ sol.status }}">{{ sol.get_status_display }}</span>
+            </div>
+          </a>
           {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">📬</div>
-        <div class="empty-text">Nenhuma solicitação registrada ainda.</div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📬</div>
+          <div style="font-size:.82rem;font-weight:600;">Nenhuma solicitação ainda</div>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
     </div>
-  </div>
 
+  </div>
 </div>
 {% endblock %}

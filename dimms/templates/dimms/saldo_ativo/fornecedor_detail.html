@@ -1,0 +1,235 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ fornecedor.supplier }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 16px rgba(15,23,42,.1);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .fdpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  /* Card genérico */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);overflow:hidden;animation:fadeUp .3s ease both;}
+  .card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+  .card-icon{width:48px;height:48px;border-radius:12px;background:var(--blue-soft);border:1px solid var(--blue-mid);display:grid;place-items:center;font-size:22px;flex-shrink:0;}
+  .card-title{font-size:1.1rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+  .card-sub{font-size:.8rem;color:var(--ink-3);margin-top:3px;}
+
+  /* Form de edição */
+  .form-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-control{height:40px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.88rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;transition:border-color .15s;}
+  .form-control:focus{border-color:var(--accent);background:var(--surface);}
+  .errorlist{list-style:none;margin-top:3px;}
+  .errorlist li{font-size:.75rem;color:#b91c1c;}
+
+  .form-footer{padding:14px 24px;border-top:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:flex-end;gap:8px;}
+
+  /* Contratos */
+  .contrato-list{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+  .contrato-row{
+    border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;
+    transition:box-shadow .15s;
+  }
+  .contrato-row:hover{box-shadow:var(--shadow-md);}
+  .contrato-row-head{
+    padding:12px 16px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+  }
+  .contrato-num{font-family:var(--mono);font-size:.92rem;font-weight:800;color:var(--ink);}
+  .contrato-row-body{padding:12px 16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .stat{display:flex;flex-direction:column;gap:2px;}
+  .stat-label{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);}
+  .stat-val{font-size:.95rem;font-weight:800;color:var(--ink);}
+  .stat-val.green{color:var(--green);}
+  .stat-val.blue{color:var(--blue);}
+
+  .pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .pill-green{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .pill-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .pill-blue{background:var(--blue-soft);color:var(--blue);border-color:var(--blue-mid);}
+
+  .empty-state{padding:36px 20px;text-align:center;color:var(--ink-3);font-size:.88rem;}
+  .empty-icon{font-size:2rem;margin-bottom:8px;opacity:.35;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="fdpage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    <a href="{% url 'dimms:fornecedor_lista' %}">Fornecedores</a>
+    <span>›</span>
+    {{ fornecedor.supplier }}
+  </nav>
+
+  <div class="layout">
+
+    <!-- Coluna esquerda: edição -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🏢</div>
+        <div>
+          <div class="card-title">{{ fornecedor.supplier }}</div>
+          <div class="card-sub">Editar dados do fornecedor</div>
+        </div>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-body">
+
+          <div class="form-group">
+            <label class="form-label">Nome do Fornecedor</label>
+            {{ form.supplier }}
+            {% if form.supplier.errors %}<ul class="errorlist">{% for e in form.supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CNPJ</label>
+            {{ form.cnpj_supplier }}
+            {% if form.cnpj_supplier.errors %}<ul class="errorlist">{% for e in form.cnpj_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nome do Responsável</label>
+            {{ form.name_responsible }}
+            {% if form.name_responsible.errors %}<ul class="errorlist">{% for e in form.name_responsible.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CPF do Responsável</label>
+            {{ form.cpf_responsible }}
+            {% if form.cpf_responsible.errors %}<ul class="errorlist">{% for e in form.cpf_responsible.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Telefone</label>
+            {{ form.contact_supplier }}
+            {% if form.contact_supplier.errors %}<ul class="errorlist">{% for e in form.contact_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            {{ form.email_supplier }}
+            {% if form.email_supplier.errors %}<ul class="errorlist">{% for e in form.email_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+        </div>
+
+        {% if messages %}
+        <div style="padding:0 24px 12px;">
+          {% for msg in messages %}
+          <div style="padding:10px 14px;border-radius:var(--r-sm);background:var(--green-soft);border:1px solid var(--green-mid);color:var(--green);font-size:.84rem;font-weight:600;">✔ {{ msg }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-footer">
+          <a href="{% url 'dimms:fornecedor_lista' %}" class="btn btn-ghost btn-sm">Cancelar</a>
+          <button type="submit" class="btn btn-primary btn-sm">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Coluna direita: contratos -->
+    <div class="card" style="animation-delay:.06s;">
+      <div class="card-header" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="card-icon" style="background:var(--green-soft);border-color:var(--green-mid);font-size:20px;">📄</div>
+          <div>
+            <div class="card-title">Contratos</div>
+            <div class="card-sub">{{ contratos.count }} contrato{{ contratos.count|pluralize:",s" }} vinculado{{ contratos.count|pluralize:",s" }}</div>
+          </div>
+        </div>
+        <a href="{% url 'dimms:contrato_criar_saldoativo' %}" class="btn btn-ghost btn-sm">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Contrato
+        </a>
+      </div>
+
+      {% if contratos %}
+      <div class="contrato-list">
+        {% for c in contratos %}
+        <div class="contrato-row">
+          <div class="contrato-row-head">
+            <div>
+              <div class="contrato-num">{{ c.contrato }}</div>
+              {% if c.inicio_vigencia and c.final_vigencia %}
+              <div style="font-size:.72rem;color:var(--ink-3);margin-top:2px;">{{ c.inicio_vigencia|date:"d/m/Y" }} → {{ c.final_vigencia|date:"d/m/Y" }}</div>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              {% if c.status %}
+                <span class="pill pill-{% if c.status == 'ATIVO' %}green{% elif c.status == 'ENCERRADO' %}amber{% else %}blue{% endif %}">
+                  {{ c.status }}
+                </span>
+              {% endif %}
+              <a href="{% url 'dimms:contrato_detail' c.pk %}" class="btn btn-ghost btn-sm">Ver →</a>
+            </div>
+          </div>
+          <div class="contrato-row-body">
+            <div class="stat">
+              <div class="stat-label">Itens Saldo</div>
+              <div class="stat-val blue">{{ c.total_itens|default:0 }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Saldo Disponível</div>
+              <div class="stat-val green">{{ c.saldo_total|default:0 }} un.</div>
+            </div>
+            {% if c.cs %}
+            <div class="stat">
+              <div class="stat-label">N° CS</div>
+              <div class="stat-val" style="font-family:var(--mono);font-size:.85rem;">{{ c.cs }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📄</div>
+        Nenhum contrato vinculado a este fornecedor.
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

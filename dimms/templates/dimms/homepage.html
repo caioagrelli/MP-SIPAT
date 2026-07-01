@@ -1,4 +1,5 @@
 {% extends 'global/base.html' %}
+{% load access_tags %}
 
 {% block title %}SIPAT — Bens de Consumo{% endblock %}
 
@@ -680,6 +681,10 @@
         🌍 Todos os Bens de Consumo
         <span class="total-badge">{{ total_itens|default:0 }} itens</span>
       </div>
+      <a href="{% url 'dimms:exportar_planilha' %}" class="btn btn-ghost" style="font-size:.78rem; padding:7px 13px; gap:6px; flex-shrink:0;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Gerar Planilha
+      </a>
     </div>
 
     <!-- FILTER BAR -->
@@ -721,20 +726,28 @@
       <table class="main-table">
         <thead>
           <tr>
+            <th>Almoxarifado</th>
             <th>Grupo</th>
             <th>E-fisco</th>
             <th>Descrição</th>
-            <th>Marca</th>
             <th>Unidade</th>
             <th>Quantidade</th>
             <th>Consumo Mensal</th>
             <th>Duração</th>
             <th>Validade</th>
+            <th title="Saldo disponível nos contratos ativos">Saldo Ativo</th>
           </tr>
         </thead>
         <tbody>
           {% for item in itens %}
           <tr>
+            <td>
+              {% if item.item_shock.almoxarifado == 'RESERVADO' %}
+                <span class="grupo-badge" style="background:#6d28d9;">Reservado</span>
+              {% else %}
+                <span class="grupo-badge" style="background:#0f766e;">Geral</span>
+              {% endif %}
+            </td>
             <td>
               {% if item.item_shock.grupo_consumo %}
                 <span class="grupo-badge grupo-{{ item.item_shock.grupo_consumo }}">
@@ -750,12 +763,20 @@
             </td>
 
             <td style="font-weight:600; color:var(--ink);">{{ item.description_manual }}</td>
-            <td>{{ item.mark }}</td>
             <td>{{ item.item_shock.medida }}</td>
             <td class="mono-cell">{{ item.amount_shock }}</td>
             <td class="mono-cell">{{ item.monthly_consumption|default:"—" }}</td>
             <td class="mono-cell">{{ item.duration|default:"—" }}</td>
             <td class="mono-cell">{{ item.validity|date:"d/m/Y" }}</td>
+            <td class="mono-cell" style="text-align:center;">
+              {% with saldo=saldo_por_efisco|get_item:item.item_shock_id %}
+                {% if saldo %}
+                  <span style="color:var(--green);font-weight:700;">{{ saldo }}</span>
+                {% else %}
+                  <span style="color:var(--ink-3);">—</span>
+                {% endif %}
+              {% endwith %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

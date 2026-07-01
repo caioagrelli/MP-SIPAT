@@ -11,3 +11,4 @@ from .catalogo_consumo import (
     minhas_solicitacoes_consumo,
     painel_solicitacoes_consumo, analisar_solicitacao_consumo,
 )
+from .solicitacao_itens import *

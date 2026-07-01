@@ -14,126 +14,325 @@
     --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
     --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
     --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
-    --accent: #2563eb;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
-    --r-sm: 10px; --r-md: 16px;
+    --accent: #2563eb; --accent-dark: #1d4ed8;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
     --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .page { font-family: var(--font); background: var(--bg); padding: 28px 24px; color: var(--ink); min-height: 100vh; }
 
-  .sdpage { font-family: var(--font); background: var(--bg); padding: 28px 24px; color: var(--ink); }
-
+  /* ── NAV ── */
   .breadcrumb { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--ink-3); margin-bottom:20px; font-weight:500; }
   .breadcrumb a { color:var(--accent); text-decoration:none; }
   .breadcrumb a:hover { text-decoration:underline; }
 
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
-  .topbar-left { min-width:0; flex:1; }
-  .page-title { font-size:1.6rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; line-height:1.2; }
-  .page-sub { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
-
-  /* ─── STATUS CHIP ─── */
-  .status-chip {
-    padding: 10px 18px; border-radius: var(--r-sm); text-align:center;
-    min-width: 140px; flex-shrink: 0;
+  /* ── HERO ── */
+  .hero {
+    background: #1e2d42;
+    border-radius: var(--r-lg);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
   }
-  .status-chip-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; opacity:.7; }
-  .status-chip-value { font-size:1rem; font-weight:800; letter-spacing:-.01em; }
-  .sc-RASCUNHO { background:#1e2d42; color:#a0b3d4; }
+  .hero-left { display:flex; flex-direction:column; gap:6px; }
+  .hero-code { font-family:var(--mono); font-size:1rem; font-weight:700; color:rgba(160,185,230,.7); }
+  .hero-title { font-size:1.55rem; font-weight:800; color:#e8eeff; letter-spacing:-.02em; }
+  .hero-sub { font-size:.85rem; color:rgba(160,185,230,.65); font-weight:500; }
+
+  .status-chip { padding:10px 20px; border-radius: var(--r-sm); text-align:center; flex-shrink:0; }
+  .status-chip-label { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; opacity:.65; margin-bottom:3px; }
+  .status-chip-value { font-size:.95rem; font-weight:800; }
+  .sc-RASCUNHO { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); color:#a0b3d4; }
   .sc-RASCUNHO .status-chip-value { color:#e2eaff; }
-  .sc-ATENDIDA { background:#14532d; color:#86efac; }
+  .sc-ATENDIDA { background:#14532d; border:1px solid #166534; color:#86efac; }
   .sc-ATENDIDA .status-chip-value { color:#bbf7d0; }
-  .sc-CANCELADA { background:#7f1d1d; color:#fca5a5; }
+  .sc-CANCELADA { background:#7f1d1d; border:1px solid #991b1b; color:#fca5a5; }
   .sc-CANCELADA .status-chip-value { color:#fecaca; }
-  .sc-EM_ANÁLISE { background:#78350f; color:#fde68a; }
-  .sc-EM_ANÁLISE .status-chip-value { color:#fef3c7; }
+  .sc-EM_ANÁLISE, .sc-EM\ ANÁLISE { background:#78350f; border:1px solid #92400e; color:#fde68a; }
+  .sc-EM_ANÁLISE .status-chip-value, .sc-EM\ ANÁLISE .status-chip-value { color:#fef3c7; }
 
-  /* ─── LAYOUT ─── */
-  .layout { display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:start; margin-bottom:20px; }
+  /* ── META STRIP ── */
+  .meta-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .meta-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .meta-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); margin-bottom:5px; }
+  .meta-value { font-size:.92rem; font-weight:700; color:var(--ink); }
+  .meta-value.mono { font-family:var(--mono); color:var(--blue); }
+  .meta-value.small { font-size:.82rem; }
 
-  /* ─── CARD ─── */
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:16px; animation:fadeUp .3s ease both; }
-  .card:last-child { margin-bottom:0; }
-  .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .card-head-left { display:flex; align-items:center; gap:9px; }
-  .card-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:14px; flex-shrink:0; }
-  .ci-blue   { background:var(--blue-soft); }
-  .ci-green  { background:var(--green-soft); }
-  .ci-amber  { background:var(--amber-soft); }
-  .ci-red    { background:var(--red-soft); }
-  .card-title { font-size:.88rem; font-weight:700; color:var(--ink); }
-  .card-body { padding:18px; }
-
-  /* ─── KV TABLE ─── */
-  .kv-table { width:100%; border-collapse:collapse; }
-  .kv-table tr { border-bottom:1px solid var(--border); }
-  .kv-table tr:last-child { border-bottom:none; }
-  .kv-table tr:hover td { background:var(--blue-soft); }
-  .kv-table td { padding:10px 12px; font-size:.87rem; vertical-align:middle; }
-  .kv-table td:first-child { font-size:.73rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); width:40%; white-space:nowrap; }
-  .kv-table td:last-child { font-weight:600; color:var(--ink); word-break:break-word; }
-
-  /* ─── MAIN TABLE ─── */
-  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); overflow:hidden; }
-  .data-table { width:100%; border-collapse:collapse; }
-  .data-table thead tr { background:var(--surface-2); border-bottom:2px solid var(--border); }
-  .data-table th { padding:11px 14px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); text-align:left; white-space:nowrap; }
-  .data-table td { padding:12px 14px; font-size:.86rem; color:var(--ink-2); border-bottom:1px solid var(--border); vertical-align:middle; }
-  .data-table tbody tr:last-child td { border-bottom:none; }
-  .data-table tbody tr:hover td { background:var(--blue-soft); }
-
-  /* ─── PILLS ─── */
-  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:700; border:1px solid; white-space:nowrap; }
-  .pill .dot { width:6px; height:6px; border-radius:50%; }
-  .pill-ok      { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
-  .pill-ok .dot { background:var(--green); }
-  .pill-pending { background:var(--amber-soft); color:var(--amber); border-color:var(--amber-mid); }
-  .pill-pending .dot { background:var(--amber); }
-  .pill-sent    { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
-  .pill-sent .dot { background:var(--blue); }
-
-  /* ─── ADD ITEM FORM ─── */
-  .add-form { display:grid; grid-template-columns:1fr 120px auto; gap:12px; align-items:end; padding:16px 18px; background:var(--surface-2); border-top:1px solid var(--border); }
-  .form-group { display:flex; flex-direction:column; gap:5px; }
-  .form-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); }
+  /* ── ACTION ROW ── */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .action-head {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size:.82rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .action-head-icon { font-size:14px; }
+  .action-body { padding: 14px 18px; }
+  .action-form-row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .form-group { display:flex; flex-direction:column; gap:4px; flex:1; min-width:120px; }
+  .form-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); }
   .form-input, .form-select {
     height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
-    padding:0 12px; font-family:var(--font); font-size:.87rem; color:var(--ink);
-    background:var(--surface); outline:none;
+    padding:0 12px; font-family:var(--font); font-size:.85rem; color:var(--ink);
+    background:var(--surface); outline:none; width:100%;
   }
   .form-input:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
 
-  /* ─── BUTTONS ─── */
-  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; border:1px solid transparent; transition:all .15s ease; white-space:nowrap; }
-  .btn-primary  { background:var(--accent); color:#fff; border-color:#1d4ed8; box-shadow:0 2px 8px rgba(37,99,235,.3); }
-  .btn-primary:hover { background:#1d4ed8; }
-  .btn-green    { background:var(--green); color:#fff; border-color:#166534; box-shadow:0 2px 8px rgba(21,128,61,.2); }
+  /* ── BUTTONS ── */
+  .btn {
+    display:inline-flex; align-items:center; gap:7px; padding:8px 16px;
+    border-radius:var(--r-sm); font-family:var(--font); font-size:.82rem; font-weight:600;
+    cursor:pointer; text-decoration:none; border:1px solid transparent;
+    transition:all .15s ease; white-space:nowrap; height:38px;
+  }
+  .btn-primary { background:var(--accent); color:#fff; border-color:var(--accent-dark); box-shadow:0 2px 8px rgba(37,99,235,.25); }
+  .btn-primary:hover { background:var(--accent-dark); }
+  .btn-green { background:var(--green); color:#fff; border-color:#166534; }
   .btn-green:hover { background:#166534; }
-  .btn-ghost    { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
   .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
-  .btn-danger   { background:var(--red-soft); border-color:var(--red-mid); color:var(--red); }
+  .btn-danger { background:var(--red-soft); border-color:var(--red-mid); color:var(--red); }
   .btn-danger:hover { background:var(--red-mid); }
-  .btn-sm { padding:6px 12px; font-size:.8rem; }
-  .btn-bar { display:flex; gap:10px; flex-wrap:wrap; padding:14px 18px; border-top:1px solid var(--border); background:var(--surface-2); justify-content:flex-end; }
+  .btn-sm { padding:5px 10px; font-size:.76rem; height:30px; }
 
-  /* ─── STATUS CHANGE ─── */
-  .status-select { height:36px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 10px; font-family:var(--font); font-size:.84rem; color:var(--ink); background:var(--surface); }
+  /* ── ITEM CARDS ── */
+  .section-title {
+    font-size:.78rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--ink-3); margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-title span {
+    background:var(--border); border-radius:999px;
+    padding:2px 9px; font-size:.7rem; color:var(--ink-2);
+  }
 
-  /* ─── EMPTY ─── */
-  .empty-state { padding:32px; text-align:center; color:var(--ink-3); }
-  .empty-icon  { font-size:2rem; margin-bottom:8px; opacity:.4; }
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+    animation: fadeUp .25s ease both;
+  }
+  .item-card:last-child { margin-bottom: 0; }
 
-  /* ─── MONO ─── */
-  .mono { font-family:var(--mono); font-size:.82rem; }
+  /* Cabeçalho do item — agora horizontal com 3 blocos */
+  .item-head {
+    padding: 16px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 16px;
+    align-items: center;
+  }
+  .item-efisco { font-family:var(--mono); font-size:.88rem; font-weight:800; color:var(--blue); }
+  .item-desc { font-size:.82rem; color:var(--ink-2); margin-top:2px; max-width:500px; }
 
-  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  /* Progresso horizontal */
+  .item-progress {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, auto) 1fr;
+    gap: 0;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .prog-block {
+    padding: 0 24px;
+    border-right: 1px solid var(--border);
+  }
+  .prog-block:first-child { padding-left: 0; }
+  .prog-bar-block {
+    padding: 0 0 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .prog-label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); margin-bottom:4px; }
+  .prog-val { font-size:1.3rem; font-weight:800; color:var(--ink); line-height:1; }
+  .prog-val.blue { color:var(--blue); }
+  .prog-val.green { color:var(--green); }
 
-  @media (max-width:960px) { .layout { grid-template-columns:1fr; } }
-  @media (max-width:640px) { .sdpage { padding:14px 12px; } .add-form { grid-template-columns:1fr; } }
+  .bar-row { display:flex; align-items:center; gap:8px; }
+  .bar-track { flex:1; height:7px; background:var(--border); border-radius:999px; overflow:hidden; position:relative; }
+  .bar-fill-back { position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--blue); opacity:.25; }
+  .bar-fill-front { position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--green); }
+  .bar-pct { font-family:var(--mono); font-size:.72rem; font-weight:700; color:var(--green); white-space:nowrap; }
+
+  /* Remessas em tabela */
+  .remessa-table { width:100%; border-collapse:collapse; }
+  .remessa-table th {
+    padding:9px 20px; font-size:.67rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--ink-3); background:var(--surface-2);
+    border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;
+  }
+  .remessa-table td {
+    padding:10px 20px; font-size:.83rem; color:var(--ink-2);
+    border-bottom:1px solid var(--border); vertical-align:middle;
+  }
+  .remessa-table tbody tr:last-child td { border-bottom:none; }
+  .remessa-table tbody tr:hover td { background:var(--blue-soft); }
+  .remessa-table .mono-cell { font-family:var(--mono); font-size:.8rem; }
+
+  /* Item footer */
+  .item-footer {
+    padding: 10px 20px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .item-footer-note { font-size:.76rem; color:var(--ink-3); }
+
+  /* Pills */
+  .pill { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:.7rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-pending  { background:var(--amber-soft); color:var(--amber); border-color:var(--amber-mid); }
+  .pill-received { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
+  .pill-complete { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
+  .pill-waiting  { background:var(--surface-2); color:var(--ink-3); border-color:var(--border); }
+
+  /* Tabela de itens disponíveis */
+  .itens-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .itens-card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .itens-card-title {
+    font-size:.85rem; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; gap:8px;
+  }
+  .itens-search {
+    height:34px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
+    padding:0 12px 0 32px; font-family:var(--font); font-size:.83rem; color:var(--ink);
+    background:var(--surface); outline:none; width:220px;
+    transition:border-color .15s;
+  }
+  .itens-search:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+  .search-wrap { position:relative; }
+  .search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--ink-3); pointer-events:none; }
+
+  .itens-table { width:100%; border-collapse:collapse; }
+  .itens-table th {
+    padding:9px 16px; font-size:.67rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--ink-3); background:var(--surface-2);
+    border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;
+    position:sticky; top:0; z-index:1;
+  }
+  .itens-table td {
+    padding:10px 16px; font-size:.83rem; color:var(--ink-2);
+    border-bottom:1px solid var(--border); vertical-align:middle;
+  }
+  .itens-table tbody tr:last-child td { border-bottom:none; }
+  .itens-table tbody tr:hover td { background:#f5f8ff; }
+  .itens-table tbody tr.ja-adicionado td { background:#f0fdf4; }
+  .itens-table tbody tr.sem-saldo td { opacity:.45; }
+  .itens-table .mono { font-family:var(--mono); font-size:.8rem; }
+  .itens-table .code { font-family:var(--mono); font-size:.82rem; font-weight:700; color:var(--blue); }
+
+  .qtd-input {
+    width:80px; height:32px; border:1px solid var(--border-strong);
+    border-radius:var(--r-sm); padding:0 8px; font-family:var(--mono);
+    font-size:.85rem; color:var(--ink); text-align:center; outline:none;
+    background:var(--surface);
+  }
+  .qtd-input:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(37,99,235,.12); }
+  .qtd-input:disabled { background:var(--surface-2); color:var(--ink-3); cursor:not-allowed; }
+
+  .saldo-badge {
+    display:inline-flex; align-items:center; padding:2px 8px;
+    border-radius:999px; font-size:.7rem; font-weight:700;
+    font-family:var(--mono);
+  }
+  .saldo-ok  { background:var(--green-soft); color:var(--green); border:1px solid var(--green-mid); }
+  .saldo-zero { background:var(--red-soft); color:var(--red); border:1px solid var(--red-mid); }
+  .ja-badge { background:var(--blue-soft); color:var(--blue); border:1px solid var(--blue-mid);
+    display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px;
+    font-size:.7rem; font-weight:700; }
+
+  .itens-footer {
+    padding:12px 20px; border-top:1px solid var(--border);
+    background:var(--surface-2); display:flex;
+    justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .itens-footer-note { font-size:.76rem; color:var(--ink-3); }
+  #contador-selecionados { font-weight:700; color:var(--accent); }
+
+  /* Bottom bar */
+  .bottom-bar { display:flex; gap:10px; justify-content:flex-end; padding-top:16px; }
+
+  .empty-state { padding:40px; text-align:center; color:var(--ink-3); }
+  .empty-icon { font-size:2rem; opacity:.35; margin-bottom:10px; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width:900px) {
+    .meta-strip { grid-template-columns: repeat(2, 1fr); }
+    .action-row  { grid-template-columns: 1fr; }
+    .item-head   { grid-template-columns: 1fr; }
+    .item-progress { grid-template-columns: repeat(3, 1fr); }
+    .prog-bar-block { grid-column: 1 / -1; padding-left:0; border-top:1px solid var(--border); padding-top:12px; margin-top:4px; }
+  }
+  @media (max-width:600px) {
+    .meta-strip { grid-template-columns: 1fr; }
+    .hero { flex-direction:column; align-items:flex-start; }
+    .item-progress { grid-template-columns: 1fr 1fr; }
+    .prog-block:nth-child(3) { border-right:none; }
+  }
 </style>
 
-<div class="sdpage">
+<div class="page">
 
   <!-- BREADCRUMB -->
   <nav class="breadcrumb">
@@ -144,11 +343,16 @@
     {{ solicitacao.codigo }}
   </nav>
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="page-title">{{ solicitacao.codigo }}</div>
-      <div class="page-sub">Contrato {{ solicitacao.contrato.contrato }} — {{ solicitacao.data_hora|date:"d/m/Y H:i"|default:"—" }}</div>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-code">SOLICITAÇÃO</div>
+      <div class="hero-title">{{ solicitacao.codigo }}</div>
+      <div class="hero-sub">
+        Contrato {{ solicitacao.contrato.contrato }}
+        {% if solicitacao.contrato.categoria %} &mdash; {{ solicitacao.contrato.categoria }}{% endif %}
+        &mdash; {{ solicitacao.data_hora|date:"d/m/Y \à\s H:i"|default:"—" }}
+      </div>
     </div>
     <div class="status-chip sc-{{ solicitacao.status }}">
       <div class="status-chip-label">Status</div>
@@ -156,182 +360,362 @@
     </div>
   </div>
 
-  <div class="layout">
+  <!-- META STRIP -->
+  <div class="meta-strip">
+    <div class="meta-card">
+      <div class="meta-label">Fornecedor</div>
+      <div class="meta-value small">{{ solicitacao.contrato.supplier_contract|default:"—" }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Responsável</div>
+      <div class="meta-value small">{{ solicitacao.usuario.get_full_name|default:solicitacao.usuario.username|default:"—" }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Total de Itens</div>
+      <div class="meta-value mono">{{ itens_com_progresso|length }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Data de Abertura</div>
+      <div class="meta-value small">{{ solicitacao.data_hora|date:"d/m/Y"|default:"—" }}</div>
+    </div>
+  </div>
 
-    <!-- ESQUERDA: Detalhes da solicitação + alterar status -->
-    <div>
+  <!-- ACTION ROW: status + adicionar item -->
+  <div class="action-row">
 
-      <!-- INFO CARD -->
-      <div class="card">
-        <div class="card-head">
-          <div class="card-head-left">
-            <div class="card-icon ci-blue">📋</div>
-            <div class="card-title">Dados da Solicitação</div>
-          </div>
-        </div>
-        <div class="card-body" style="padding:0;">
-          <table class="kv-table">
-            <tr><td>Código</td><td><span class="mono" style="font-weight:700;">{{ solicitacao.codigo }}</span></td></tr>
-            <tr><td>Contrato</td><td><span class="mono" style="color:var(--blue); font-weight:700;">{{ solicitacao.contrato.contrato }}</span></td></tr>
-            <tr><td>Fornecedor</td><td>{{ solicitacao.contrato.supplier_contract|default:"—" }}</td></tr>
-            <tr><td>Responsável</td><td>{{ solicitacao.usuario.get_full_name|default:solicitacao.usuario.username|default:"—" }}</td></tr>
-            <tr><td>Data/Hora</td><td style="font-size:.82rem;">{{ solicitacao.data_hora|date:"d/m/Y \à\s H:i"|default:"—" }}</td></tr>
-            <tr><td>Status</td><td><span style="font-weight:700;">{{ solicitacao.get_status_display }}</span></td></tr>
-            <tr><td>Itens</td><td><span class="mono" style="font-weight:700;">{{ itens_solicitados.count }}</span></td></tr>
-          </table>
-        </div>
+    <!-- Alterar status -->
+    <div class="action-card">
+      <div class="action-head">
+        <span class="action-head-icon">🔄</span>
+        Alterar Status
       </div>
-
-      <!-- ALTERAR STATUS -->
-      <div class="card">
-        <div class="card-head">
-          <div class="card-head-left">
-            <div class="card-icon ci-amber">🔄</div>
-            <div class="card-title">Alterar Status</div>
-          </div>
-        </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="alterar_status" value="1">
-            <div class="form-group" style="margin-bottom:12px;">
+      <div class="action-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="alterar_status" value="1">
+          <div class="action-form-row">
+            <div class="form-group">
               <label class="form-label">Novo Status</label>
-              <select name="novo_status" class="status-select" style="width:100%;">
+              <select name="novo_status" class="form-select">
                 {% for value, label in status_choices %}
                   <option value="{{ value }}" {% if solicitacao.status == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
             </div>
-            <button type="submit" class="btn btn-ghost" style="width:100%; justify-content:center;">Atualizar Status</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- SALDO DO CONTRATO (para adicionar itens) -->
-      {% if pode_editar %}
-      <div class="card">
-        <div class="card-head">
-          <div class="card-head-left">
-            <div class="card-icon ci-green">➕</div>
-            <div class="card-title">Adicionar Item</div>
+            <button type="submit" class="btn btn-ghost" style="flex-shrink:0;">Salvar</button>
           </div>
-        </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="adicionar_item" value="1">
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Item do Saldo (Contrato)</label>
-              <select name="bem_id" class="form-select" style="width:100%; height:auto; min-height:38px; padding:8px 10px;">
-                <option value="">Selecione um item...</option>
-                {% for saldo in saldo_contrato %}
-                  <option value="{{ saldo.pk }}">
-                    {{ saldo.efisco.efisco }} — {{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco }}
-                    (Disp: {{ saldo.saldo_disponivel|default:0 }})
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Quantidade</label>
-              <input type="number" name="quantidade" min="1" class="form-input" style="width:100%;" placeholder="Ex: 10">
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar Item
-            </button>
-          </form>
-        </div>
+        </form>
       </div>
-      {% endif %}
-
     </div>
 
-    <!-- DIREITA: Itens solicitados -->
-    <div>
-      <div class="card">
-        <div class="card-head">
-          <div class="card-head-left">
-            <div class="card-icon ci-green">📦</div>
-            <div class="card-title">Itens Solicitados</div>
-          </div>
-          <span style="font-size:.78rem; color:var(--ink-3);">{{ itens_solicitados.count }} item(s)</span>
-        </div>
+    <div></div>
+    {% comment %}Adicionar itens — tabela abaixo{% endcomment %}
 
-        {% if itens_solicitados %}
-        <table class="data-table">
+  </div>
+
+  <!-- TABELA DE ITENS DISPONÍVEIS -->
+  {% if pode_editar and saldo_contrato %}
+  {% with ja_adicionados=itens_com_progresso|length %}
+  <form method="post" id="form-itens">
+    {% csrf_token %}
+    <input type="hidden" name="adicionar_itens" value="1">
+
+    <div class="itens-card">
+      <div class="itens-card-head">
+        <div class="itens-card-title">
+          📦 Itens disponíveis no contrato
+          <span class="pill pill-waiting">{{ saldo_contrato|length }} itens</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div class="search-wrap">
+            <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="filtro-itens" class="itens-search" placeholder="Filtrar por código ou descrição…" autocomplete="off">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-salvar-itens" disabled>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Adicionar selecionados (<span id="contador-selecionados">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <div style="max-height:360px;overflow-y:auto;scrollbar-width:thin;">
+        <table class="itens-table" id="tabela-itens">
           <thead>
             <tr>
               <th>E-Fisco</th>
               <th>Descrição</th>
-              <th>Marca</th>
-              <th>Qtd. Solicitada</th>
-              <th>Saldo Disponível</th>
-              <th>Envio</th>
-              <th></th>
+              <th style="text-align:center;">Disponível</th>
+              <th style="text-align:center;">Quantidade</th>
+              <th style="text-align:center;">Status</th>
             </tr>
           </thead>
           <tbody>
-            {% for item in itens_solicitados %}
-            <tr>
-              <td><span class="mono" style="color:var(--blue); font-weight:700;">{{ item.bem.efisco.efisco }}</span></td>
-              <td style="max-width:200px;">
-                <div style="font-weight:600; color:var(--ink);">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}</div>
+            {% for saldo in saldo_contrato %}
+            {% with ja=saldo.pk|stringformat:"s" %}
+            {% comment %}Verifica se já está adicionado{% endcomment %}
+            {% with ja_add=False %}
+            {# Checar se saldo.pk está nos itens já adicionados #}
+            {% for entry in itens_com_progresso %}
+              {% if entry.item.bem.pk == saldo.pk %}
+                {% with ja_add=True %}{% endwith %}
+              {% endif %}
+            {% endfor %}
+            <tr class="item-row {% if saldo.saldo_disponivel == 0 %}sem-saldo{% endif %}"
+                data-code="{{ saldo.efisco.efisco }}"
+                data-desc="{{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco|lower }}">
+              <td class="code">{{ saldo.efisco.efisco }}</td>
+              <td style="max-width:360px;">
+                <div style="font-weight:600;color:var(--ink);font-size:.83rem;">{{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco|truncatechars:80 }}</div>
+                {% if saldo.marca %}<div style="font-size:.72rem;color:var(--ink-3);margin-top:1px;">{{ saldo.marca }}</div>{% endif %}
               </td>
-              <td style="color:var(--ink-3);">{{ item.bem.marca|default:"—" }}</td>
-              <td class="mono" style="font-weight:700;">{{ item.quantidade }}</td>
-              <td>
-                <span class="mono {% if item.bem.saldo_disponivel == 0 %}style="color:var(--red);"{% endif %}">
-                  {{ item.bem.saldo_disponivel|default:0 }}
-                </span>
-              </td>
-              <td>
-                {% if item.itemenviado %}
-                  <span class="pill pill-sent"><span class="dot"></span>Enviado ({{ item.itemenviado.quantidade_enviada }})</span>
+              <td style="text-align:center;">
+                {% if saldo.saldo_disponivel %}
+                  <span class="saldo-badge saldo-ok">{{ saldo.saldo_disponivel }}</span>
                 {% else %}
-                  <span class="pill pill-pending"><span class="dot"></span>Pendente</span>
+                  <span class="saldo-badge saldo-zero">0</span>
                 {% endif %}
               </td>
-              <td style="text-align:right; white-space:nowrap;">
-                {% if not item.itemenviado %}
-                  <a href="{% url 'dimms:saldo_ativo_confirmar_envio' item.pk %}" class="btn btn-green btn-sm">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    Confirmar Envio
-                  </a>
-                  {% if pode_editar %}
-                  <form method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="remover_item" value="1">
-                    <input type="hidden" name="item_id" value="{{ item.pk }}">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover este item?')">✕</button>
-                  </form>
+              <td style="text-align:center;">
+                <input
+                  type="number"
+                  name="qtd_{{ saldo.pk }}"
+                  class="qtd-input item-qtd"
+                  min="1"
+                  max="{{ saldo.saldo_disponivel|default:0 }}"
+                  placeholder="—"
+                  {% if not saldo.saldo_disponivel %}disabled{% endif %}>
+              </td>
+              <td style="text-align:center;">
+                {% for entry in itens_com_progresso %}
+                  {% if entry.item.bem.pk == saldo.pk %}
+                    <span class="ja-badge">✓ Já adicionado ({{ entry.item.quantidade }})</span>
                   {% endif %}
-                {% else %}
-                  <span style="font-size:.75rem; color:var(--ink-3);">{{ item.itemenviado.data_envio|date:"d/m/Y" }}</span>
-                {% endif %}
+                {% endfor %}
               </td>
             </tr>
+            {% endwith %}
+            {% endwith %}
             {% endfor %}
           </tbody>
         </table>
-        {% else %}
-        <div class="empty-state">
-          <div class="empty-icon">📦</div>
-          <div style="font-size:.88rem; font-weight:600; margin-bottom:4px;">Nenhum item adicionado</div>
-          <div style="font-size:.8rem;">Use o painel ao lado para adicionar itens à solicitação.</div>
-        </div>
-        {% endif %}
+      </div>
 
-        <div class="btn-bar">
-          <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Voltar
-          </a>
-        </div>
-
+      <div class="itens-footer">
+        <div class="itens-footer-note">Preencha a quantidade nos itens desejados e clique em "Adicionar selecionados".</div>
       </div>
     </div>
+  </form>
+  {% endwith %}
+  {% endif %}
 
+  <!-- ITENS -->
+  <div class="section-title">
+    Itens da Solicitação <span>{{ itens_com_progresso|length }}</span>
   </div>
+
+  {% if itens_com_progresso %}
+    {% for entry in itens_com_progresso %}
+    {% with item=entry.item %}
+    <div class="item-card">
+
+      <!-- Cabeçalho do item -->
+      <div class="item-head">
+        <div>
+          <div class="item-efisco">{{ item.bem.efisco.efisco }}</div>
+          <div class="item-desc">{{ item.bem.descricao_manual|default:item.bem.efisco.descricao_efisco }}{% if item.bem.marca %} — <em>{{ item.bem.marca }}</em>{% endif %}</div>
+        </div>
+
+        <!-- Pill de status do item -->
+        {% if entry.total_recebido >= item.quantidade %}
+          <span class="pill pill-complete">✓ Recebido completo</span>
+        {% elif entry.total_recebido > 0 %}
+          <span class="pill pill-received">Parcialmente recebido</span>
+        {% elif entry.total_enviado > 0 %}
+          <span class="pill pill-pending">Em trânsito</span>
+        {% else %}
+          <span class="pill pill-waiting">Aguardando remessa</span>
+        {% endif %}
+
+        <!-- Ação rápida -->
+        <div style="display:flex;gap:6px;align-items:center;">
+          {% if entry.pode_nova_remessa %}
+            <a href="{% url 'dimms:saldo_ativo_confirmar_envio' item.pk %}" class="btn btn-primary btn-sm">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Registrar Remessa
+            </a>
+          {% endif %}
+          {% if pode_editar and not entry.remessas %}
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="remover_item" value="1">
+              <input type="hidden" name="item_id" value="{{ item.pk }}">
+              <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover este item?')">✕ Remover</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Progresso horizontal -->
+      <div class="item-progress">
+        <div class="prog-block">
+          <div class="prog-label">Solicitado</div>
+          <div class="prog-val">{{ item.quantidade }}</div>
+        </div>
+        <div class="prog-block">
+          <div class="prog-label">Em Remessa</div>
+          <div class="prog-val blue">{{ entry.total_enviado }}</div>
+        </div>
+        <div class="prog-block">
+          <div class="prog-label">No Estoque</div>
+          <div class="prog-val green">{{ entry.total_recebido }}</div>
+        </div>
+        {% if item.quantidade > 0 %}
+        <div class="prog-bar-block">
+          <div class="prog-label">Recebimento</div>
+          <div class="bar-row">
+            <div class="bar-track">
+              {% widthratio entry.total_enviado item.quantidade 100 as pct_e %}
+              {% widthratio entry.total_recebido item.quantidade 100 as pct_r %}
+              <div class="bar-fill-back" style="width:{{ pct_e }}%;"></div>
+              <div class="bar-fill-front" style="width:{{ pct_r }}%;"></div>
+            </div>
+            <span class="bar-pct">{{ pct_r }}%</span>
+          </div>
+          {% if entry.pode_nova_remessa %}
+          <div style="font-size:.7rem;color:var(--ink-3);">Faltam {{ entry.restante }} unidade(s)</div>
+          {% else %}
+          <div style="font-size:.7rem;color:var(--green);font-weight:600;">Tudo registrado em remessa</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Remessas em tabela -->
+      {% if entry.remessas %}
+      <table class="remessa-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Quantidade</th>
+            <th>Registrada em</th>
+            <th>Recebida em</th>
+            <th>Observação</th>
+            <th>Comprovante</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for remessa in entry.remessas %}
+          <tr>
+            <td style="width:36px;text-align:center;">{% if remessa.recebida %}✅{% else %}🚚{% endif %}</td>
+            <td><strong class="mono-cell">{{ remessa.quantidade_enviada }} un.</strong></td>
+            <td class="mono-cell">{{ remessa.data_envio|date:"d/m/Y H:i"|default:"—" }}</td>
+            <td class="mono-cell">
+              {% if remessa.recebida %}
+                {{ remessa.data_recebimento|date:"d/m/Y H:i"|default:"—" }}
+              {% else %}
+                <span style="color:var(--ink-3);">—</span>
+                <a href="{% url 'dimms:saldo_ativo_confirmar_recebimento' remessa.pk %}" class="pill pill-pending" style="margin-left:6px;">Confirmar</a>
+              {% endif %}
+            </td>
+            <td style="font-size:.78rem;color:var(--ink-3);font-style:{% if remessa.observacao %}normal{% else %}italic{% endif %};">
+              {{ remessa.observacao|default:"—" }}
+            </td>
+            <td>
+              {% if remessa.comprovante %}
+                <a href="{{ remessa.comprovante.url }}" target="_blank" class="btn btn-ghost btn-sm">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Ver
+                </a>
+              {% else %}
+                <span style="font-size:.75rem;color:var(--ink-3);">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="item-footer" style="justify-content:center;">
+        <span style="font-size:.8rem;color:var(--ink-3);font-style:italic;">Nenhuma remessa registrada ainda.</span>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endwith %}
+    {% endfor %}
+  {% else %}
+  <div class="item-card">
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <div style="font-size:.9rem;font-weight:600;margin-bottom:5px;">Nenhum item adicionado</div>
+      <div style="font-size:.82rem;">Use o formulário acima para adicionar itens à solicitação.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+  (function() {
+    const filtro   = document.getElementById('filtro-itens');
+    const tabela   = document.getElementById('tabela-itens');
+    const contador = document.getElementById('contador-selecionados');
+    const btnSalvar = document.getElementById('btn-salvar-itens');
+
+    if (!tabela) return;
+
+    function atualizarContador() {
+      const n = tabela.querySelectorAll('.item-qtd:not(:disabled)').length
+        ? [...tabela.querySelectorAll('.item-qtd:not(:disabled)')].filter(i => parseInt(i.value) > 0).length
+        : 0;
+      if (contador) contador.textContent = n;
+      if (btnSalvar) btnSalvar.disabled = n === 0;
+    }
+
+    // Filtro de busca
+    if (filtro) {
+      filtro.addEventListener('input', () => {
+        const q = filtro.value.trim().toLowerCase();
+        tabela.querySelectorAll('tbody .item-row').forEach(row => {
+          const match = !q
+            || row.dataset.code.toLowerCase().includes(q)
+            || row.dataset.desc.includes(q);
+          row.style.display = match ? '' : 'none';
+        });
+      });
+    }
+
+    // Atualiza contador quando muda qualquer quantidade
+    tabela.addEventListener('input', e => {
+      if (e.target.classList.contains('item-qtd')) {
+        const val = parseInt(e.target.value);
+        const max = parseInt(e.target.max);
+        if (val > max) e.target.value = max;
+        if (val < 0)  e.target.value = '';
+        atualizarContador();
+      }
+    });
+  })();
+  </script>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <form method="post" style="margin-right:auto;"
+          onsubmit="return confirm('Excluir a solicitação {{ solicitacao.codigo }}? Esta ação não pode ser desfeita.')">
+      {% csrf_token %}
+      <input type="hidden" name="excluir_solicitacao" value="1">
+      <button type="submit" class="btn btn-danger">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Excluir Solicitação
+      </button>
+    </form>
+    <a href="{% url 'dimms:saldo_ativo_solicitacoes' %}" class="btn btn-ghost">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar
+    </a>
+    <a href="{% url 'dimms:pdf_relatorio_solicitacao' solicitacao.pk %}" class="btn btn-primary" target="_blank">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Gerar PDF
+    </a>
+  </div>
+
 </div>
 {% endblock %}

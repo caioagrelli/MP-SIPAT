@@ -1,0 +1,151 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Fornecedores{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .flpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.55rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:4px;font-size:.87rem;color:var(--ink-3);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);overflow:hidden;animation:fadeUp .3s ease both;}
+
+  .card-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .card-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:.75rem;font-family:var(--mono);font-weight:700;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid);}
+  .badge-green{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);font-size:.7rem;padding:2px 8px;border-radius:999px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+
+  .filter-bar{padding:14px 22px;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .filter-input{height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;width:280px;transition:border-color .15s;}
+  .filter-input:focus{border-color:var(--accent);}
+
+  table{width:100%;border-collapse:collapse;font-size:.87rem;}
+  thead th{padding:11px 18px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody td{padding:13px 18px;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover td{background:#f5f8ff;}
+
+  .supplier-link{font-weight:700;color:var(--accent);text-decoration:none;}
+  .supplier-link:hover{text-decoration:underline;}
+  .mono{font-family:var(--mono);font-size:.8rem;}
+  .center{text-align:center;}
+
+  .empty-state{padding:48px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.4rem;margin-bottom:10px;opacity:.35;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="flpage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    Fornecedores
+  </nav>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Fornecedores</div>
+      <div class="topbar-sub">Todos os fornecedores cadastrados no sistema</div>
+    </div>
+    <a href="{% url 'dimms:fornecedor_criar_saldoativo' %}" class="btn btn-primary">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo Fornecedor
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        🏢 Fornecedores
+        <span class="badge">{{ total }}</span>
+      </div>
+    </div>
+
+    <form method="get">
+      <div class="filter-bar">
+        <input class="filter-input" type="text" name="q" value="{{ q }}" placeholder="Buscar por nome ou CNPJ…" autofocus>
+        <button type="submit" class="btn btn-ghost btn-sm">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          Buscar
+        </button>
+        {% if q %}<a href="{% url 'dimms:fornecedor_lista' %}" class="btn btn-ghost btn-sm">Limpar</a>{% endif %}
+      </div>
+    </form>
+
+    {% if fornecedores %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Fornecedor</th>
+            <th>CNPJ</th>
+            <th>Responsável</th>
+            <th>Contato</th>
+            <th class="center">Contratos</th>
+            <th class="center">Saldo Ativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in fornecedores %}
+          <tr>
+            <td>
+              <a href="{% url 'dimms:fornecedor_detail' f.pk %}" class="supplier-link">{{ f.supplier }}</a>
+            </td>
+            <td><span class="mono">{{ f.cnpj_supplier|default:"—" }}</span></td>
+            <td>{{ f.name_responsible|default:"—" }}</td>
+            <td><span class="mono">{{ f.contact_supplier|default:"—" }}</span></td>
+            <td class="center"><span class="mono">{{ f.total_contratos|default:0 }}</span></td>
+            <td class="center">
+              {% if f.total_saldo %}
+                <span class="badge-green">✔ {{ f.total_saldo }} un.</span>
+              {% else %}
+                <span style="color:var(--ink-3);font-size:.8rem;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🏢</div>
+      {% if q %}Nenhum fornecedor encontrado para "<strong>{{ q }}</strong>".
+      {% else %}Nenhum fornecedor cadastrado ainda.{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

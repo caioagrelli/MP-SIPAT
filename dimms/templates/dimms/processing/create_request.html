@@ -101,7 +101,7 @@
     border: 1px solid var(--border);
     border-radius: var(--r-md);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    overflow: visible;
     animation: fadeUp .32s ease both;
   }
   .card:nth-child(2) { animation-delay: .06s; }
@@ -112,6 +112,8 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--surface-2);
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    overflow: hidden;
   }
   .card-head-left { display: flex; align-items: center; gap: 9px; }
 

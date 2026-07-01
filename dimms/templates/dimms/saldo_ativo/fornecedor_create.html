@@ -1,0 +1,122 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Novo Fornecedor{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --accent:#2563eb; --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px; --r-md:16px;
+    --font:'Sora',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .fcpage{font-family:var(--font);background:var(--bg);padding:28px 24px;color:var(--ink);}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:20px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);max-width:620px;margin:0 auto;overflow:hidden;animation:fadeUp .3s ease both;}
+  .form-header{background:linear-gradient(135deg,#1e2d42 0%,#1d4ed8 100%);padding:24px 28px;color:#fff;}
+  .form-header-title{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;}
+  .form-header-sub{font-size:.82rem;color:rgba(160,195,255,.8);margin-top:5px;}
+
+  .form-body{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .form-control{height:42px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font);font-size:.88rem;color:var(--ink);background:var(--surface-2);outline:none;width:100%;transition:border-color .15s,box-shadow .15s;}
+  .form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--surface);}
+  .errorlist{list-style:none;margin-top:4px;}
+  .errorlist li{font-size:.78rem;color:#b91c1c;}
+
+  .form-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid var(--border);background:var(--surface-2);}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:560px){.form-body{grid-template-columns:1fr;} .form-group.full{grid-column:1;}}
+</style>
+
+<div class="fcpage">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+    <span>›</span>
+    <a href="{% url 'dimms:contrato_criar_saldoativo' %}">Novo Contrato</a>
+    <span>›</span>
+    Novo Fornecedor
+  </nav>
+
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-header-title">Novo Fornecedor</div>
+      <div class="form-header-sub">Cadastre o fornecedor para vincular ao contrato</div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <div class="form-body">
+
+        <div class="form-group full">
+          <label class="form-label">Nome do Fornecedor</label>
+          {{ form.supplier }}
+          {% if form.supplier.errors %}<ul class="errorlist">{% for e in form.supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CNPJ</label>
+          {{ form.cnpj_supplier }}
+          {% if form.cnpj_supplier.errors %}<ul class="errorlist">{% for e in form.cnpj_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          {{ form.email_supplier }}
+          {% if form.email_supplier.errors %}<ul class="errorlist">{% for e in form.email_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nome do Responsável</label>
+          {{ form.name_responsible }}
+          {% if form.name_responsible.errors %}<ul class="errorlist">{% for e in form.name_responsible.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CPF do Responsável</label>
+          {{ form.cpf_responsible }}
+          {% if form.cpf_responsible.errors %}<ul class="errorlist">{% for e in form.cpf_responsible.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Telefone de Contato</label>
+          {{ form.contact_supplier }}
+          {% if form.contact_supplier.errors %}<ul class="errorlist">{% for e in form.contact_supplier.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <a href="{{ next_url }}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Cadastrar Fornecedor
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

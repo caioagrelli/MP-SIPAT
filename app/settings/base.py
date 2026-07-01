@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "accounts",
     "demands",
     "mozilla_django_oidc",
+    "widget_tweaks",
 ]
 
 AUTHENTICATION_BACKENDS = [

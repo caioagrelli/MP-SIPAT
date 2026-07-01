@@ -8,7 +8,8 @@ from django.contrib import messages
 
 # Importação do código
 from ..models import Estoque, BensConsumo            # Models do Estoque 
-from ..forms import EstoqueForm, BensConsumoForm , stock_up  # Forms para adicionar bens no Estoque 
+from ..forms import EstoqueForm, BensConsumoForm , stock_up  # Forms para adicionar bens no Estoque
+from ..services import recalcular_consumo 
 
 # ========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR PARTES/AÇÕES DO ESTOQUE
@@ -16,57 +17,102 @@ from ..forms import EstoqueForm, BensConsumoForm , stock_up  # Forms para adicio
 
 
 ''' Estoque '''
-# Adicionar itens no estoque 
+# Adicionar itens no estoque
 @login_required
 def stock_add(request):
+    form = EstoqueForm()
+    mode = 'novo'
+    remessa_errors = {}
+    remessa_item_pk = ''
+    remessa_qty = ''
+
     if request.method == 'POST':
-        form = EstoqueForm(request.POST, request.FILES)
-        if form.is_valid():
-            with transaction.atomic():
-                dados = form.cleaned_data
+        mode = request.POST.get('mode', 'novo')
 
-                estoque_existente = Estoque.objects.filter(
-                    item_shock=dados['item_shock'],
-                    mark=dados['mark'],
-                    locate=dados['locate'],
-                    validity=dados['validity'],
-                ).first()
+        if mode == 'remessa':
+            item_pk  = request.POST.get('remessa_item', '').strip()
+            qty_str  = request.POST.get('remessa_qty', '').strip()
+            forma    = request.POST.get('remessa_form_input', '').strip()
+            metodo   = request.POST.get('remessa_method', '').strip()
 
-                if estoque_existente:
-                    estoque_existente.amount_shock += dados['amount_shock']
+            item_obj = None
+            qty = None
 
-                    estoque_existente.description_manual = dados['description_manual']
-                    estoque_existente.monthly_consumption = dados['monthly_consumption']
-                    estoque_existente.essential = dados['essential']
-                    estoque_existente.form_input = dados['form_input']
-                    estoque_existente.method = dados['method']
+            if not item_pk:
+                remessa_errors['item'] = 'Selecione um item.'
+            else:
+                item_obj = Estoque.objects.filter(pk=item_pk).first()
+                if not item_obj:
+                    remessa_errors['item'] = 'Item não encontrado.'
 
-                    if dados.get('photo'):
-                        estoque_existente.photo = dados['photo']
+            try:
+                qty = int(qty_str)
+                if qty < 1:
+                    raise ValueError
+            except (ValueError, TypeError):
+                remessa_errors['qty'] = 'Informe uma quantidade válida (mínimo 1).'
 
-                    estoque_existente.updated_by = request.user
-                    estoque_existente.save()
+            if not remessa_errors:
+                with transaction.atomic():
+                    item_obj.amount_shock += qty
+                    if forma:
+                        item_obj.form_input = forma
+                    if metodo:
+                        item_obj.method = metodo
+                    item_obj.updated_by = request.user
+                    item_obj.save()
 
-                    messages.success(
-                        request,
-                        'Item já existente no estoque. Quantidade atualizada com sucesso.'
-                    )
-                else:
-                    novo_item = form.save(commit=False)
-                    novo_item.updated_by = request.user
-                    novo_item.save()
-
-                    messages.success(
-                        request,
-                        'Novo item adicionado ao estoque com sucesso.'
-                    )
-
+                messages.success(
+                    request,
+                    f'Adicionadas {qty} unidades ao item "{item_obj}".'
+                )
                 return redirect('dimms:homepage')
-    else:
-        form = EstoqueForm()
+
+            remessa_item_pk = item_pk
+            remessa_qty = qty_str
+
+        else:
+            form = EstoqueForm(request.POST, request.FILES)
+            if form.is_valid():
+                with transaction.atomic():
+                    dados = form.cleaned_data
+
+                    estoque_existente = Estoque.objects.filter(
+                        item_shock=dados['item_shock'],
+                        mark=dados['mark'],
+                        locate=dados['locate'],
+                        validity=dados['validity'],
+                    ).first()
+
+                    if estoque_existente:
+                        estoque_existente.amount_shock += dados['amount_shock']
+                        estoque_existente.description_manual = dados['description_manual']
+                        estoque_existente.monthly_consumption = dados['monthly_consumption']
+                        estoque_existente.essential = dados['essential']
+                        estoque_existente.form_input = dados['form_input']
+                        estoque_existente.method = dados['method']
+                        if dados.get('photo'):
+                            estoque_existente.photo = dados['photo']
+                        estoque_existente.updated_by = request.user
+                        estoque_existente.save()
+                        messages.success(request, 'Item já existente no estoque. Quantidade atualizada com sucesso.')
+                    else:
+                        novo_item = form.save(commit=False)
+                        novo_item.updated_by = request.user
+                        novo_item.save()
+                        messages.success(request, 'Novo item adicionado ao estoque com sucesso.')
+
+                    return redirect('dimms:homepage')
+
+    estoque_items = Estoque.objects.select_related('item_shock').all().order_by('description_manual')
 
     return render(request, 'dimms/stock/stock_add.html', {
-        'form': form
+        'form': form,
+        'estoque_items': estoque_items,
+        'mode': mode,
+        'remessa_errors': remessa_errors,
+        'remessa_item_pk': remessa_item_pk,
+        'remessa_qty': remessa_qty,
     })
 
 @login_required
@@ -106,6 +152,13 @@ def stock_up(request):
     
     
 ''' Bem de Consumo '''
+
+@login_required
+def recalcular_consumo_view(request):
+    recalcular_consumo()
+    messages.success(request, 'Consumo mensal recalculado com sucesso.')
+    return redirect('dimms:bensconsumo')
+
 # Página para visualizar bens de consumo
 @login_required
 def bensconsumo(request):
