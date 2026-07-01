@@ -102,10 +102,26 @@ app/
 | Comando | App | O que faz |
 |---------|-----|-----------|
 | `init_superuser` | `accounts` | Cria superusuário inicial de forma idempotente a partir de env vars (`DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`). Seguro para rodar em todo deploy. |
-| `importar_bens_consumo_xlsx` | `dimms` | Importa bens de consumo de planilha `.xlsx`. Suporta `--sobrescrever` para atualizar registros existentes. Normaliza acentos, mapeia grupos e unidades de medida automaticamente. |
+| `importar_bens_consumo_xlsx` | `dimms` | Importa bens de consumo de planilha `.xlsx`. Suporta `--sobrescrever` para atualizar registros existentes. Normaliza acentos, mapeia grupos e unidades de medida automaticamente. Planilha de referência: `docs/Migração Bens de Consumo.xlsx`. |
+| `importar_saldo_ativo_xlsx` | `dimms` | Importa contratos, fornecedores e itens de saldo ativo a partir da planilha `docs/Saldo ativo de materiais 2026.xlsx`. Cria/atualiza `Supplier`, `Contrato` e `SaldoAtivo`. Suporta `--sobrescrever`. Planilha tem 70 abas: `RESUMO` (visão geral financeira) + abas por contrato (itens com E-Fisco, qtd, preço unitário, saldo). Ao rodar, itens cujo E-Fisco não existe no cadastro `BensConsumo` são ignorados com aviso. |
 | `recalcular_consumo` | `dimms` | Chama `dimms/services.py:recalcular_consumo()` — recalcula `monthly_consumption` de cada item do estoque com base nas saídas dos últimos 30 dias. |
 | `importar_bens_xlsx` | `dimrcbp` | Importa bens permanentes de planilha e-fisco `.xlsx`. Usa `_ImportCache` para evitar queries repetidas. Suporta `--sobrescrever`. Chama `sincronizar_atribuicao()` ao final de cada linha. |
 | `sincronizar_atribuicoes` | `dimrcbp` | Ressincroniza `AtribuicaoBem` para todos os bens com base no gestor atual de cada UA. Útil após migração de dados ou troca em massa de gestores. |
+
+---
+
+## Planilhas de referência (`docs/`)
+
+As planilhas abaixo são a fonte de dados oficial para importação. Sempre que o usuário pedir para atualizar dados a partir de planilha, verificar se há versão nova nesta pasta antes de rodar os commands.
+
+| Arquivo | Conteúdo | Command de importação |
+|---------|----------|-----------------------|
+| `docs/Migração Bens de Consumo.xlsx` | Catálogo de E-Fiscos (`BensConsumo`) com grupo, unidade, descrição | `importar_bens_consumo_xlsx` |
+| `docs/Saldo ativo de materiais 2026.xlsx` | 70 abas — aba `RESUMO` com visão financeira dos contratos (forma, fornecedor, N° MPPE, categoria, valor contratado, previsão anual) + abas individuais por contrato com itens (E-Fisco, descrição, marca, qtd licitada, preço unitário, saldo disponível). Posição dos dados: cabeçalho nas linhas 6–16, itens a partir da linha que contém `E-FISCO` na coluna B. | `importar_saldo_ativo_xlsx` |
+| `docs/Planilha de Migração Patrimonio Movel.xlsx` | Bens permanentes (`BensPermanentes`) para o app `dimrcbp` | `importar_bens_xlsx` |
+| `docs/CENTRO DE CUSTOS 10-06-26.xlsx` | Centros de custo / UAs — referência para o app `dempam` | — (importação manual ou futura) |
+
+**Ao analisar planilhas:** usar `openpyxl` com `data_only=True`. Células com acentos podem vir com encoding quebrado no terminal Windows — usar `repr()` para inspecionar ou redirecionar saída para arquivo.
 
 ---
 
