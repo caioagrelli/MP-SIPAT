@@ -17,9 +17,9 @@ from .bensconsumo import BensConsumo, Complementos
 
 """ Artefatos """
 # Fornecedores
-class Supplier(models.Model): 
+class Supplier(models.Model):
     supplier = models.CharField(
-        max_length=40,
+        max_length=100,
         verbose_name='Fornecedor'
     )
 

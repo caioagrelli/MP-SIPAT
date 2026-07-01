@@ -22,34 +22,99 @@ class Contrato(models.Model): #PRONTO
     )
  
     contrato = models.CharField(
-        max_length=30,
-        verbose_name='N° Contrato'
+        max_length=60,
+        verbose_name='N° Contrato (MPPE)'
     )
-    
+
+    numero_contrato_oficial = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='N° Contrato Oficial',
+    )
+
+    forma = models.CharField(
+        max_length=10,
+        blank=True,
+        choices=[('ATA', 'ATA'), ('PARC', 'PARC'), ('CD', 'CD')],
+        verbose_name='Forma',
+    )
+
+    numero_processo = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='N° Processo Eletrônico',
+    )
+
+    numero_arp = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='N° ARP PE Integrado',
+    )
+
+    categoria = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='Categoria',
+    )
+
+    aditivo_prazo = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Aditivo de Prazo',
+    )
+
+    aditivo_preco = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Aditivo de Preço',
+    )
+
+    valor_contratado = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Valor Contratado (R$)',
+    )
+
+    previsao_anual = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Previsão Anual (R$)',
+    )
+
     inicio_vigencia = models.DateField(
         blank=True,
         null=True,
         verbose_name='Início da Vigência',
     )
-    
+
     final_vigencia = models.DateField(
         blank=True,
         null=True,
         verbose_name='Final da Vigência',
     )
-     
+
     homologacao = models.DateField(
         blank=True,
         null=True,
         verbose_name='Homologação',
     )
-    
+
     cs = models.IntegerField(
         blank=True,
         null=True,
         verbose_name='N° CS',
     )
-    
+
+    numero_sc = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name='N° SC',
+    )
+
     cod_liquidacao = models.IntegerField(
         blank=True,
         null=True,

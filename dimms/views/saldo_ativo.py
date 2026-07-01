@@ -190,29 +190,44 @@ def saldo_ativo_solicitacao_detail(request, pk):
         contrato_saldo=solicitacao.contrato
     ).select_related('efisco')
 
-    # Adicionar item à solicitação
-    if request.method == 'POST' and 'adicionar_item' in request.POST:
-        bem_id    = request.POST.get('bem_id')
-        quantidade = request.POST.get('quantidade')
-
-        if not bem_id or not quantidade:
-            messages.error(request, 'Preencha todos os campos.')
-        else:
-            bem = get_object_or_404(SaldoAtivo, pk=bem_id)
+    # Adicionar múltiplos itens de uma vez
+    if request.method == 'POST' and 'adicionar_itens' in request.POST:
+        adicionados = 0
+        erros = []
+        for key, valor in request.POST.items():
+            if not key.startswith('qtd_'):
+                continue
             try:
-                quantidade = int(quantidade)
+                saldo_pk = int(key[4:])
+                quantidade = int(valor)
+            except (ValueError, TypeError):
+                continue
+            if quantidade <= 0:
+                continue
+            bem = get_object_or_404(SaldoAtivo, pk=saldo_pk)
+            try:
                 item = ItensSolicitados(
                     solicitacao=solicitacao,
                     bem=bem,
-                    quantidade=quantidade
+                    quantidade=quantidade,
                 )
                 item.full_clean()
                 item.save()
-                messages.success(request, 'Item adicionado à solicitação.')
+                adicionados += 1
             except Exception as e:
-                messages.error(request, str(e))
+                erros.append(f'{bem.efisco.efisco}: {e}')
 
+        if adicionados:
+            messages.success(request, f'{adicionados} item(ns) adicionado(s).')
+        for erro in erros:
+            messages.error(request, erro)
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
+
+    # Excluir solicitação
+    if request.method == 'POST' and 'excluir_solicitacao' in request.POST:
+        solicitacao.delete()
+        messages.success(request, 'Solicitação excluída.')
+        return redirect('dimms:saldo_ativo_solicitacoes')
 
     # Remover item da solicitação
     if request.method == 'POST' and 'remover_item' in request.POST:

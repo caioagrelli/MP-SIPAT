@@ -70,6 +70,20 @@ class SaldoAtivo(models.Model): #PRONTO
         null=True,
         verbose_name='Cota'
     )
+
+    numero_item = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='N° Item no Contrato',
+    )
+
+    preco_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        blank=True,
+        null=True,
+        verbose_name='Preço Unitário (R$)',
+    )
     
     def save(self, *args, **kwargs):
         if self.pk is None:
@@ -277,15 +291,44 @@ class BensEnviados(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+
+        # Detecta se recebida está sendo confirmada agora (False → True)
+        recebimento_confirmado = False
+        if not is_new:
+            anterior = BensEnviados.objects.filter(pk=self.pk).values('recebida').first()
+            if anterior and not anterior['recebida'] and self.recebida:
+                recebimento_confirmado = True
+
         self.full_clean()
         with transaction.atomic():
             super().save(*args, **kwargs)
+
             # Desconta do saldo do contrato ao registrar a remessa
             if is_new:
                 bem = self.item_enviado.bem
                 if bem:
                     bem.saldo_disponivel = (bem.saldo_disponivel or 0) - self.quantidade_enviada
                     bem.save(update_fields=['saldo_disponivel'])
+
+            # Aumenta o estoque físico quando o recebimento é confirmado
+            if recebimento_confirmado:
+                self._atualizar_estoque()
+
+    def _atualizar_estoque(self):
+        """Aumenta o estoque físico quando o recebimento da remessa é confirmado."""
+        from .bensconsumo import Estoque
+
+        bem = self.item_enviado.bem
+        if not bem or not self.quantidade_enviada:
+            return
+
+        estoques = Estoque.objects.filter(item_shock=bem.efisco)
+        if estoques.count() == 1:
+            estoque = estoques.first()
+            estoque.amount_shock += self.quantidade_enviada
+            estoque.save(update_fields=['amount_shock', 'updated_at'])
+        # Se houver mais de um local, não atualiza automaticamente —
+        # o gestor deve distribuir manualmente via estoque.
 
     @property
     def quantidade_recebida(self):
