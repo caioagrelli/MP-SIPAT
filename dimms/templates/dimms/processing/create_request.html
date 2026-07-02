@@ -337,6 +337,25 @@
     display: flex; align-items: flex-start; gap: 8px;
   }
 
+  /* ─── ADD BOTTOM BAR ─── */
+  .add-bottom {
+    margin-top: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  #add-qty {
+    width: 72px; text-align: center;
+    font-family: var(--mono); font-size: .88rem; font-weight: 700;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    background: var(--surface); color: var(--ink);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  #add-qty:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
   /* ─── ANIMATIONS ─── */
   @keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideIn { from { opacity:0; transform:translateY(6px);  } to { opacity:1; transform:translateY(0); } }
@@ -453,18 +472,35 @@
               <span class="card-title">Itens Solicitados</span>
               <span class="item-count-badge" id="item-count">0</span>
             </div>
-            <button type="button" class="btn btn-add" id="add-item">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar item
-            </button>
           </div>
           <div class="card-body">
             {{ formset.management_form }}
+            {% if formset.total_error_count %}
+            <div class="error-box" style="margin-bottom:14px;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div>
+                <strong>Corrija os erros nos itens:</strong>
+                {% for form_errors in formset.errors %}
+                  {% for field, errors in form_errors.items %}
+                    {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+                  {% endfor %}
+                {% endfor %}
+                {% for error in formset.non_form_errors %}<div>{{ error }}</div>{% endfor %}
+              </div>
+            </div>
+            {% endif %}
             <div id="formset-container"></div>
             <div class="items-empty" id="items-empty">
               <span class="items-empty-icon">📭</span>
               <div class="items-empty-title">Nenhum item adicionado</div>
               Clique em "Adicionar item" para começar.
+            </div>
+            <div class="add-bottom" id="add-bottom" style="display:none;">
+              <input type="number" id="add-qty" value="1" min="1" max="50" title="Quantidade de itens a adicionar">
+              <button type="button" class="btn btn-add" id="add-item-bottom">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Adicionar itens
+              </button>
             </div>
           </div>
         </div>
@@ -558,9 +594,8 @@
 
 <style>
   .efisco-dropdown {
-    position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
     background: var(--surface); border: 1.5px solid var(--border-strong);
-    border-top: none; border-radius: 0 0 var(--r-sm) var(--r-sm);
     box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
   }
   .efisco-option {
@@ -595,9 +630,10 @@
 
 <script>
 const ESTOQUE_SEARCH_URL = "{% url 'dimms:estoque_search' %}";
+const INITIAL_ITEMS = {{ initial_items|default:"null" }};
 
 document.addEventListener('DOMContentLoaded', function () {
-  const addBtn     = document.getElementById('add-item');
+  const addBtn     = null; // botão de topo removido
   const container  = document.getElementById('formset-container');
   const totalForms = document.getElementById('id_bens_solicitados-TOTAL_FORMS');
   const emptyTpl   = document.getElementById('empty-form').innerHTML;
@@ -610,17 +646,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const rows = () => Array.from(container.querySelectorAll('.item-row'));
 
+  const addBottom = document.getElementById('add-bottom');
+
   function syncBadge() {
     const n = rows().length;
     badge.textContent  = n;
     sCount.textContent = n;
-    emptyMsg.style.display = n === 0 ? 'block' : 'none';
+    emptyMsg.style.display  = n === 0 ? 'block' : 'none';
+    addBottom.style.display = n === 0 ? 'none'  : 'flex';
   }
 
   function syncQty() {
     let t = 0;
     container.querySelectorAll('input[type="number"]').forEach(i => { t += parseInt(i.value) || 0; });
     sQty.textContent = t;
+    validateQtys();
+  }
+
+  function validateQtys() {
+    let hasError = false;
+    rows().forEach(row => {
+      const qtyInput = row.querySelector('input[type="number"]');
+      const maxQty   = parseInt(row.dataset.maxQty);
+      const qty      = parseInt(qtyInput ? qtyInput.value : 0) || 0;
+      if (qtyInput) {
+        if (!isNaN(maxQty) && qty > maxQty) {
+          qtyInput.style.borderColor = 'var(--red)';
+          qtyInput.style.boxShadow   = '0 0 0 3px rgba(185,28,28,.15)';
+          hasError = true;
+        } else {
+          qtyInput.style.borderColor = '';
+          qtyInput.style.boxShadow   = '';
+        }
+      }
+    });
+    const submitBtn = document.querySelector('[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = hasError;
+      submitBtn.style.opacity = hasError ? '.5' : '';
+      submitBtn.style.cursor  = hasError ? 'not-allowed' : '';
+    }
   }
 
   const PILL_MAP = {
@@ -678,14 +743,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!textInput) return;
 
+    let lastResults = [];
+
     function closeDropdown() {
       dropdown.style.display = 'none';
       dropdown.innerHTML = '';
     }
 
+    function positionDropdown() {
+      const rect      = textInput.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const maxH       = Math.min(240, Math.max(spaceBelow, spaceAbove) - 8);
+
+      dropdown.style.maxHeight = maxH + 'px';
+
+      if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
+        // Abre para baixo
+        dropdown.style.top    = '100%';
+        dropdown.style.bottom = 'auto';
+        dropdown.style.borderTop    = 'none';
+        dropdown.style.borderBottom = '';
+        dropdown.style.borderRadius = '0 0 var(--r-sm) var(--r-sm)';
+      } else {
+        // Abre para cima
+        dropdown.style.top    = 'auto';
+        dropdown.style.bottom = '100%';
+        dropdown.style.borderTop    = '';
+        dropdown.style.borderBottom = 'none';
+        dropdown.style.borderRadius = 'var(--r-sm) var(--r-sm) 0 0';
+      }
+    }
+
     function selectItem(item) {
-      hiddenInput.value = item.id;
-      textInput.value   = item['item_shock__efisco'];
+      hiddenInput.value  = item.id;
+      textInput.value    = item['item_shock__efisco'];
+      row.dataset.maxQty = item.amount_shock;
       selected.innerHTML = `
         <span><strong>${item['item_shock__efisco']}</strong> — ${item['item_shock__descricao_efisco']} · Estoque: ${item.amount_shock}</span>
         <button type="button" class="efisco-clear" title="Limpar">✕</button>
@@ -700,6 +793,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (e.target.classList.contains('efisco-clear')) {
         hiddenInput.value = '';
         textInput.value   = '';
+        lastResults       = [];
         selected.innerHTML = '';
         selected.style.display = 'none';
         textInput.style.display = '';
@@ -710,15 +804,17 @@ document.addEventListener('DOMContentLoaded', function () {
     textInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
       const q = textInput.value.trim();
-      if (q.length < 2) { closeDropdown(); return; }
+      if (q.length < 2) { closeDropdown(); lastResults = []; return; }
       debounceTimer = setTimeout(() => {
         fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
           .then(r => r.json())
           .then(data => {
+            lastResults = data;
             closeDropdown();
             if (!data.length) {
               dropdown.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhum item encontrado</div>';
               dropdown.style.display = 'block';
+              positionDropdown();
               return;
             }
             data.forEach(item => {
@@ -733,13 +829,26 @@ document.addEventListener('DOMContentLoaded', function () {
               dropdown.appendChild(opt);
             });
             dropdown.style.display = 'block';
+            positionDropdown();
           });
       }, 250);
     });
 
     textInput.addEventListener('blur', () => setTimeout(closeDropdown, 200));
+
     textInput.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeDropdown();
+      if (e.key === 'Escape') { closeDropdown(); return; }
+
+      if (e.key === 'Enter') {
+        e.preventDefault(); // nunca submeter o form com Enter aqui
+        if (!lastResults.length) return;
+
+        const typed = textInput.value.trim().toLowerCase();
+        const exact = lastResults.find(
+          item => item['item_shock__efisco'].toLowerCase() === typed
+        );
+        selectItem(exact || lastResults[0]);
+      }
     });
   }
 
@@ -770,10 +879,44 @@ document.addEventListener('DOMContentLoaded', function () {
     syncStatus();
   }
 
-  addBtn.addEventListener('click', addItem);
+  const addQtyInput    = document.getElementById('add-qty');
+  const addItemBottom  = document.getElementById('add-item-bottom');
+  addItemBottom.addEventListener('click', () => {
+    const n = Math.max(1, Math.min(50, parseInt(addQtyInput.value) || 1));
+    for (let i = 0; i < n; i++) addItem();
+    addQtyInput.value = 1;
+  });
 
-  // Começa com 1 item
-  addItem();
+  // Repopula itens após erro de validação, ou começa com 1 item vazio
+  if (INITIAL_ITEMS && INITIAL_ITEMS.length > 0) {
+    INITIAL_ITEMS.forEach(item => {
+      addItem();
+      if (item) {
+        const row = rows()[rows().length - 1];
+        const textInput   = row.querySelector('.efisco-text');
+        const hiddenInput = row.querySelector('.efisco-hidden');
+        const selected    = row.querySelector('.efisco-selected');
+        const qtyInput    = row.querySelector('input[type="number"]');
+
+        hiddenInput.value = item.id;
+        row.dataset.maxQty = item.amount_shock;
+        if (textInput) textInput.value = item.efisco;
+        if (selected) {
+          selected.innerHTML = `
+            <span><strong>${item.efisco}</strong> — ${item.descricao} · Estoque: ${item.amount_shock}</span>
+            <button type="button" class="efisco-clear" title="Limpar">✕</button>
+          `;
+          selected.style.display = 'flex';
+          if (textInput) textInput.style.display = 'none';
+        }
+        if (qtyInput && item.amount_order) qtyInput.value = item.amount_order;
+      }
+    });
+    syncQty();
+  } else {
+    // Começa com 1 item vazio
+    addItem();
+  }
 
   /* ── Autocomplete da UA ── */
   const UA_SEARCH_URL = "{% url 'dempam:ua_search' %}";
