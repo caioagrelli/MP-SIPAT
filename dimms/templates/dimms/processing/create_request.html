@@ -841,13 +841,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (e.key === 'Enter') {
         e.preventDefault(); // nunca submeter o form com Enter aqui
-        if (!lastResults.length) return;
+        const q = textInput.value.trim();
+        if (q.length < 2) return;
 
-        const typed = textInput.value.trim().toLowerCase();
-        const exact = lastResults.find(
-          item => item['item_shock__efisco'].toLowerCase() === typed
-        );
-        selectItem(exact || lastResults[0]);
+        function pickFromResults(data) {
+          if (!data.length) return;
+          const typed = q.toLowerCase();
+          const exact = data.find(item => item['item_shock__efisco'].toLowerCase() === typed);
+          selectItem(exact || data[0]);
+        }
+
+        if (lastResults.length) {
+          // Resultados já carregados — seleciona direto
+          pickFromResults(lastResults);
+        } else {
+          // Debounce ainda não disparou — busca imediata
+          clearTimeout(debounceTimer);
+          fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => { lastResults = data; closeDropdown(); pickFromResults(data); });
+        }
       }
     });
   }
