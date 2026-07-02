@@ -161,9 +161,9 @@ def _process_row(row, sobrescrever: bool) -> dict:
     grupo     = _mapear_grupo(_cel(row, 3))
     unidade   = _mapear_unidade(_cel(row, 6))
     marca     = _cel(row, 8)[:40] or 'Não informada'
-    consumo   = _inteiro(row[10].value)
-    validade  = _date(row[13].value)
-    qtd       = _inteiro(row[14].value)
+    consumo   = _inteiro(_cel(row, 10))
+    validade  = _date(_cel(row, 13) or None)
+    qtd       = _inteiro(_cel(row, 14))
     essencial = str(_cel(row, 0)).strip().lower() in ('sim', 's', '1', 'true', 'x')
 
     try:

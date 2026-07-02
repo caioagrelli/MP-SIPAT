@@ -115,7 +115,7 @@ class Contrato(models.Model): #PRONTO
         verbose_name='N° SC',
     )
 
-    cod_liquidacao = models.IntegerField(
+    cod_liquidacao = models.BigIntegerField(
         blank=True,
         null=True,
         verbose_name='Código de Licitação',
