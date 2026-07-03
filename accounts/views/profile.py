@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from accounts.models import Profile
 
@@ -77,3 +78,34 @@ def _change_password(request):
     user.set_password(new_pass)
     user.save()
     messages.success(request, 'Senha alterada com sucesso. Faça login novamente.')
+
+
+@login_required
+def first_login_password_change(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    if not profile.must_change_password:
+        return redirect('/')
+
+    error = None
+    if request.method == 'POST':
+        new_pass = request.POST.get('new_password1', '')
+        confirm  = request.POST.get('new_password2', '')
+
+        if new_pass != confirm:
+            error = 'As senhas não coincidem.'
+        else:
+            try:
+                validate_password(new_pass, request.user)
+                request.user.set_password(new_pass)
+                request.user.save()
+                profile.must_change_password = False
+                profile.save(update_fields=['must_change_password'])
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Senha definida com sucesso. Bem-vindo ao SIPAT!')
+                return redirect(settings.LOGIN_REDIRECT_URL)
+            except ValidationError as e:
+                error = ' '.join(e.messages)
+
+    return render(request, 'access/first_login_password_change.html', {'error': error})

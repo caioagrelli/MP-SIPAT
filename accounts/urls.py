@@ -11,4 +11,5 @@ urlpatterns = [
     path('grupos/<int:pk>/deletar/', groups.group_delete, name='group_delete'),
     path('grupos/<int:pk>/permissoes/', groups.group_permissions, name='group_permissions'),
     path('perfil/', profile.profile_view, name='profile'),
+    path('trocar-senha/', profile.first_login_password_change, name='first_login_password_change'),
 ]
