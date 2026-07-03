@@ -30,6 +30,8 @@ class Profile(models.Model):
         verbose_name='UAs que gerencia',
     )
 
+    must_change_password = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'
