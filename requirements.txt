@@ -10,3 +10,4 @@ gunicorn==23.0.0                        # 16/03/2026
 whitenoise==6.9.0                       # 27/05/2026
 mozilla-django-oidc==5.0.2              # 06/04/2026
 openpyxl==3.1.5                         # 26/05/2026
+python-decouple==3.8                    # 03/07/2026
