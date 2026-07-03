@@ -1,4 +1,5 @@
 # bibliotecas padrões do Python
+import json
 import os
 from datetime import datetime
 
@@ -400,9 +401,32 @@ def create_request(request):
         form = SolicitacaoForm()
         formset = SolicitacaoItemFormSet()
 
+    # Constrói lista de itens para repopular o JS após erro de validação
+    initial_items = None
+    if request.method == 'POST':
+        items = []
+        for f in formset.forms:
+            item_pk = f['item_order'].value()
+            if item_pk:
+                try:
+                    estoque = Estoque.objects.select_related('item_shock').get(pk=item_pk)
+                    items.append({
+                        'id': estoque.pk,
+                        'efisco': estoque.item_shock.efisco,
+                        'descricao': estoque.item_shock.descricao_efisco,
+                        'amount_shock': estoque.amount_shock,
+                        'amount_order': f['amount_order'].value() or '',
+                    })
+                except Estoque.DoesNotExist:
+                    items.append(None)
+            else:
+                items.append(None)
+        initial_items = json.dumps(items)
+
     context = {
         'form': form,
         'formset': formset,
+        'initial_items': initial_items,
     }
     return render(request, 'dimms/processing/create_request.html', context)
 
