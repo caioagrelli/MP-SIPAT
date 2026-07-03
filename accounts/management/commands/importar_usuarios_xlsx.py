@@ -21,38 +21,16 @@ Uso:
 """
 
 import os
-import secrets
-import string
 
 import openpyxl
 
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 
 from accounts.models import Profile
-
-
-_SYMBOLS = '!@#$%'
-_PASSWORD_CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digits + _SYMBOLS
-_PASSWORD_LENGTH = 12
+from accounts.utils import generate_temp_password, send_welcome_email
 
 _DEFAULT_ARQUIVO = 'docs/Formulário de login SIPAT (respostas).xlsx'
-from django.conf import settings as django_settings
-_SIPAT_URL = getattr(django_settings, 'SIPAT_URL', 'http://sipat.mppe.mp.br')
-
-
-def _generate_password() -> str:
-    required = [
-        secrets.choice(string.ascii_uppercase),
-        secrets.choice(string.ascii_lowercase),
-        secrets.choice(string.digits),
-        secrets.choice(_SYMBOLS),
-    ]
-    rest = [secrets.choice(_PASSWORD_CHARS) for _ in range(_PASSWORD_LENGTH - len(required))]
-    pool = required + rest
-    secrets.SystemRandom().shuffle(pool)
-    return ''.join(pool)
 
 
 def _cell_str(cell) -> str:
@@ -66,27 +44,9 @@ def _parse_name(nome: str):
     return ' '.join(parts[:-1]), parts[-1]
 
 
-def _send_welcome_email(email: str, first_name: str, username: str, password: str, dry_run: bool) -> None:
-    subject = 'Seu acesso ao SIPAT'
-    body = (
-        f'Olá, {first_name}!\n\n'
-        f'Seu acesso ao SIPAT foi criado. Utilize as credenciais abaixo para entrar no sistema:\n\n'
-        f'  Login : {username}\n'
-        f'  Senha : {password}\n\n'
-        f'Acesse o sistema em: {_SIPAT_URL}\n\n'
-        f'Por segurança, você será solicitado(a) a definir uma nova senha no seu primeiro acesso.\n\n'
-        f'Em caso de dúvidas, entre em contato com a equipe de TI.\n\n'
-        f'Atenciosamente,\n'
-        f'Equipe SIPAT — MPPE\n'
-    )
+def _send_welcome_email_cmd(user, password: str, dry_run: bool) -> None:
     if not dry_run:
-        send_mail(
-            subject=subject,
-            message=body,
-            from_email=None,  # usa DEFAULT_FROM_EMAIL
-            recipient_list=[email],
-            fail_silently=False,
-        )
+        send_welcome_email(user, password)
 
 
 class Command(BaseCommand):
@@ -178,7 +138,7 @@ class Command(BaseCommand):
                     ignorados += 1
                     continue
 
-                password = _generate_password()
+                password = generate_temp_password()
 
                 if existing and sobrescrever:
                     # Atualiza dados do usuário
@@ -194,7 +154,7 @@ class Command(BaseCommand):
                         profile.must_change_password = True
                         profile.save(update_fields=['phone', 'must_change_password'])
 
-                        _send_welcome_email(email, first_name, username, password, dry_run)
+                        _send_welcome_email_cmd(existing, password, dry_run)
 
                     self.stdout.write(
                         self.style.SUCCESS(f'  Linha {i}: usuário "{username}" atualizado{"  [dry-run]" if dry_run else ""}.')
@@ -217,7 +177,7 @@ class Command(BaseCommand):
                         profile.must_change_password = True
                         profile.save(update_fields=['phone', 'must_change_password'])
 
-                        _send_welcome_email(email, first_name, username, password, dry_run)
+                        _send_welcome_email_cmd(user, password, dry_run)
 
                     self.stdout.write(
                         self.style.SUCCESS(f'  Linha {i}: usuário "{username}" criado{"  [dry-run]" if dry_run else ""}.')

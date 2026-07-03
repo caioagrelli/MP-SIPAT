@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.utils.html import format_html, mark_safe
 
 from accounts.models import Profile
+from accounts.utils import generate_temp_password, send_welcome_email
 
 
 # ─── Profile inline dentro do User ───────────────────────────────────────────
@@ -47,6 +48,20 @@ class UserAdmin(BaseUserAdmin):
             pass
         return '—'
     photo_thumb.short_description = 'Foto'
+
+    def save_model(self, request, obj, form, change):
+        is_new = not change
+        if is_new:
+            temp_password = generate_temp_password()
+            obj.set_password(temp_password)
+        super().save_model(request, obj, form, change)
+        if is_new:
+            try:
+                obj.profile.must_change_password = True
+                obj.profile.save(update_fields=['must_change_password'])
+            except Exception:
+                pass
+            send_welcome_email(obj, temp_password)
 
     def group_list(self, obj):
         groups = obj.groups.all()
