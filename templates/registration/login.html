@@ -95,6 +95,17 @@
     }
     .field input::placeholder { color: var(--ink-3); opacity: .6; }
 
+    /* ── VER SENHA ── */
+    .field-pass { position: relative; }
+    .field-pass input { padding-right: 44px; }
+    .toggle-pass {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--ink-3); line-height: 0;
+      transition: color .15s;
+    }
+    .toggle-pass:hover { color: var(--accent); }
+
     /* ── EXTRAS ── */
     .login-extras {
       display: flex; align-items: center; justify-content: space-between;
@@ -228,11 +239,16 @@
 
         <div class="field">
           <label class="field-label" for="id_password">Senha</label>
-          <input
-            type="password" name="password" id="id_password"
-            placeholder="Digite sua senha"
-            autocomplete="current-password" required
-          >
+          <div class="field-pass">
+            <input
+              type="password" name="password" id="id_password"
+              placeholder="Digite sua senha"
+              autocomplete="current-password" required
+            >
+            <button type="button" class="toggle-pass" onclick="togglePass('id_password', this)" tabindex="-1" aria-label="Mostrar senha">
+              <svg id="icon-eye" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="login-extras">
@@ -278,5 +294,16 @@
     </div>
   </div>
 
+  <script>
+    function togglePass(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.innerHTML = showing
+        ? '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+      btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+    }
+  </script>
 </body>
 </html>
