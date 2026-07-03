@@ -38,7 +38,8 @@ _PASSWORD_CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digit
 _PASSWORD_LENGTH = 12
 
 _DEFAULT_ARQUIVO = 'docs/Formulário de login SIPAT (respostas).xlsx'
-_SIPAT_URL = os.environ.get('SIPAT_URL', 'http://sipat.mppe.mp.br')
+from django.conf import settings as django_settings
+_SIPAT_URL = getattr(django_settings, 'SIPAT_URL', 'http://sipat.mppe.mp.br')
 
 
 def _generate_password() -> str:
@@ -143,9 +144,8 @@ class Command(BaseCommand):
 
             try:
                 # Leitura das colunas
-                email_form  = _cell_str(row[1] if len(row) > 1 else '')
                 nome        = _cell_str(row[2] if len(row) > 2 else '')
-                email_mppe  = _cell_str(row[3] if len(row) > 3 else '')
+                email       = _cell_str(row[3] if len(row) > 3 else '')
                 phone_raw   = row[4] if len(row) > 4 else None
                 username    = _cell_str(row[7] if len(row) > 7 else '')
 
@@ -154,7 +154,10 @@ class Command(BaseCommand):
                     ignorados += 1
                     continue
 
-                email = email_mppe or email_form
+                if not email:
+                    self.stdout.write(self.style.WARNING(f'  Linha {i}: email vazio — ignorada.'))
+                    ignorados += 1
+                    continue
 
                 # Trata o telefone: pode vir como float do Excel (ex.: 81999998888.0)
                 if phone_raw is not None and str(phone_raw).strip():
