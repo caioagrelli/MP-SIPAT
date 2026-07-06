@@ -373,6 +373,347 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
     return resp
 
 
+# PDF completo da solicitação
+@login_required
+def pdf_solicitacao(request, pk):
+    from reportlab.lib.utils import simpleSplit
+
+    solicitacao = get_object_or_404(
+        Solicitacao.objects.select_related('ua_order', 'user_responsible'),
+        pk=pk,
+    )
+    itens = (
+        solicitacao.bens_solicitados
+        .select_related('item_order__item_shock')
+        .all()
+    )
+    tramitacoes = (
+        solicitacao.tramitacao
+        .select_related('user_update')
+        .order_by('date_update', 'id')
+    )
+
+    logo_reader = None
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        logo_reader = ImageReader(logo_path)
+
+    resp = HttpResponse(content_type='application/pdf')
+    safe_code = "".join(c for c in str(solicitacao.request_code) if c.isalnum() or c in ('-', '_'))
+    resp['Content-Disposition'] = f'inline; filename="solicitacao_{safe_code}.pdf"'
+
+    w, h_page = A4
+    cv = canvas.Canvas(resp, pagesize=A4)
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def draw_footer(page_num):
+        cv.setFillColor(colors.HexColor('#e2e5ef'))
+        cv.rect(0, 0, w, 10 * mm, fill=1, stroke=0)
+        cv.setFillColor(colors.HexColor('#7380a0'))
+        cv.setFont('Helvetica', 7)
+        cv.drawCentredString(
+            w / 2, 3.8 * mm,
+            f'SIPAT — Gerado em {datetime.now().strftime("%d/%m/%Y às %H:%M")} | '
+            f'{solicitacao.request_code} | Pág. {page_num}'
+        )
+
+    def section(title, y):
+        cv.setFillColor(colors.HexColor('#1e2d42'))
+        cv.rect(14 * mm, y - 7 * mm, w - 28 * mm, 8 * mm, fill=1, stroke=0)
+        cv.setFillColor(colors.white)
+        cv.setFont('Helvetica-Bold', 8.5)
+        cv.drawString(17 * mm, y - 4.5 * mm, title.upper())
+        return y - 15 * mm
+
+    def row(label, value, y, shade=False):
+        rh = 7 * mm
+        if shade:
+            cv.setFillColor(colors.HexColor('#f7f8fc'))
+            cv.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        cv.setFillColor(colors.HexColor('#7380a0'))
+        cv.setFont('Helvetica-Bold', 7.5)
+        cv.drawString(17 * mm, y - 4.8 * mm, label.upper())
+        cv.setFillColor(colors.HexColor('#1a2035'))
+        cv.setFont('Helvetica', 8.5)
+        cv.drawString(75 * mm, y - 4.8 * mm, str(value) if value else '—')
+        cv.setStrokeColor(colors.HexColor('#e2e5ef'))
+        cv.setLineWidth(0.3)
+        cv.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        return y - rh
+
+    def check_page(y, page_num, needed=20):
+        if y < needed * mm:
+            draw_footer(page_num)
+            cv.showPage()
+            page_num += 1
+            _draw_header(page_num)
+            y = h_page - 32 * mm
+        return y, page_num
+
+    def _draw_header(page_num):
+        cv.setFillColor(colors.HexColor('#1e2d42'))
+        cv.rect(0, h_page - 22 * mm, w, 22 * mm, fill=1, stroke=0)
+        if logo_reader:
+            cv.drawImage(logo_reader, 14 * mm, h_page - 18 * mm, width=12 * mm, height=12 * mm, mask='auto')
+        cv.setFillColor(colors.white)
+        cv.setFont('Helvetica-Bold', 10)
+        cv.drawString(30 * mm, h_page - 11 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO — SIPAT')
+        cv.setFont('Helvetica', 8)
+        cv.drawString(30 * mm, h_page - 17 * mm, f'Solicitação: {solicitacao.request_code}')
+        cv.setFont('Helvetica', 7.5)
+        cv.drawRightString(w - 14 * mm, h_page - 11 * mm, f'Pág. {page_num}')
+        cv.drawRightString(w - 14 * mm, h_page - 17 * mm, datetime.now().strftime('%d/%m/%Y %H:%M'))
+
+    # ── Capa / Cabeçalho principal (pág. 1) ──────────────────────────────────
+    page_num = 1
+    cv.setFillColor(colors.HexColor('#1e2d42'))
+    cv.rect(0, h_page - 44 * mm, w, 44 * mm, fill=1, stroke=0)
+
+    if logo_reader:
+        cv.drawImage(logo_reader, 14 * mm, h_page - 37 * mm, width=22 * mm, height=22 * mm, mask='auto')
+
+    cv.setFillColor(colors.white)
+    cv.setFont('Helvetica-Bold', 13)
+    cv.drawString(42 * mm, h_page - 18 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    cv.setFont('Helvetica', 9)
+    cv.drawString(42 * mm, h_page - 25 * mm, 'SIPAT — Sistema Integrado Patrimonial')
+    cv.setFont('Helvetica-Bold', 10)
+    cv.drawString(42 * mm, h_page - 34 * mm, 'SOLICITAÇÃO DE MATERIAL DE CONSUMO')
+
+    cv.setFont('Helvetica', 8)
+    cv.drawRightString(w - 14 * mm, h_page - 18 * mm, f'Código: {solicitacao.request_code}')
+    cv.drawRightString(w - 14 * mm, h_page - 25 * mm, f'Data: {solicitacao.data_order.strftime("%d/%m/%Y") if solicitacao.data_order else "—"}')
+    cv.drawRightString(w - 14 * mm, h_page - 32 * mm, f'Situação: {solicitacao.get_situation_display()}')
+
+    y = h_page - 57 * mm
+
+    # ── Dados da Solicitação ──────────────────────────────────────────────────
+    y = section('Dados da Solicitação', y)
+    resp_nome = '—'
+    if solicitacao.user_responsible:
+        resp_nome = solicitacao.user_responsible.get_full_name() or solicitacao.user_responsible.username
+    for i, (lbl, val) in enumerate([
+        ('Código',           solicitacao.request_code),
+        ('UA Solicitante',   str(solicitacao.ua_order) if solicitacao.ua_order else '—'),
+        ('Usuário',          solicitacao.user_order or '—'),
+        ('Responsável',      resp_nome),
+        ('Data',             solicitacao.data_order.strftime('%d/%m/%Y %H:%M') if solicitacao.data_order else '—'),
+        ('Situação Atual',   solicitacao.get_situation_display()),
+        ('Observação',       solicitacao.observation_order or '—'),
+    ]):
+        y, page_num = check_page(y, page_num)
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Itens Solicitados ─────────────────────────────────────────────────────
+    y, page_num = check_page(y, page_num, needed=30)
+    y = section('Itens Solicitados', y)
+
+    # cabeçalho da tabela
+    col_efisco = 17 * mm
+    col_desc   = 42 * mm
+    col_qty    = w - 40 * mm
+    col_unit   = w - 25 * mm
+
+    cv.setFillColor(colors.HexColor('#f0f2f7'))
+    cv.rect(14 * mm, y - 7 * mm, w - 28 * mm, 7 * mm, fill=1, stroke=0)
+    cv.setFillColor(colors.HexColor('#3d4966'))
+    cv.setFont('Helvetica-Bold', 7.5)
+    cv.drawString(col_efisco, y - 4.5 * mm, 'E-FISCO')
+    cv.drawString(col_desc,   y - 4.5 * mm, 'DESCRIÇÃO')
+    cv.drawRightString(col_qty,  y - 4.5 * mm, 'QTD')
+    cv.drawRightString(col_unit, y - 4.5 * mm, 'UNID.')
+    cv.setStrokeColor(colors.HexColor('#e2e5ef'))
+    cv.setLineWidth(0.3)
+    cv.line(14 * mm, y - 7 * mm, w - 14 * mm, y - 7 * mm)
+    y -= 7 * mm
+
+    for i, item in enumerate(itens):
+        y, page_num = check_page(y, page_num)
+        rh = 7 * mm
+        if i % 2 == 1:
+            cv.setFillColor(colors.HexColor('#f7f8fc'))
+            cv.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        efisco = str(item.item_order.item_shock.efisco) if item.item_order and item.item_order.item_shock else '—'
+        desc   = str(item.item_order.item_shock.descricao_efisco) if item.item_order and item.item_order.item_shock else '—'
+        unid   = str(item.item_order.item_shock.medida) if item.item_order and item.item_order.item_shock else '—'
+        qty    = str(item.amount_order)
+
+        # trunca descrição se necessário
+        max_desc_w = col_qty - col_desc - 4 * mm
+        desc_lines = simpleSplit(desc, 'Helvetica', 8, max_desc_w)
+        desc_short = desc_lines[0] if desc_lines else desc
+
+        cv.setFillColor(colors.HexColor('#1a2035'))
+        cv.setFont('Helvetica', 8)
+        cv.drawString(col_efisco, y - 4.8 * mm, efisco)
+        cv.drawString(col_desc,   y - 4.8 * mm, desc_short)
+        cv.setFont('Helvetica-Bold', 8)
+        cv.drawRightString(col_qty,  y - 4.8 * mm, qty)
+        cv.setFont('Helvetica', 8)
+        cv.drawRightString(col_unit, y - 4.8 * mm, unid)
+
+        cv.setStrokeColor(colors.HexColor('#e2e5ef'))
+        cv.setLineWidth(0.3)
+        cv.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        y -= rh
+
+    y -= 6 * mm
+
+    # ── Histórico de Tramitação ───────────────────────────────────────────────
+    y, page_num = check_page(y, page_num, needed=30)
+    y = section('Histórico de Tramitação', y)
+
+    for t_idx, tram in enumerate(tramitacoes):
+        y, page_num = check_page(y, page_num, needed=28)
+
+        registrado = '—'
+        if tram.user_update:
+            registrado = tram.user_update.get_full_name() or tram.user_update.username
+        data_str = tram.date_update.strftime('%d/%m/%Y %H:%M') if tram.date_update else '—'
+        etapa    = tram.get_update_display() if hasattr(tram, 'get_update_display') else tram.update
+
+        for i, (lbl, val) in enumerate([
+            (f'Etapa #{tram.pk} — Status', etapa or '—'),
+            ('Data', data_str),
+            ('Registrado por', registrado),
+            ('Responsável operacional', tram.responsible_update or '—'),
+        ]):
+            y, page_num = check_page(y, page_num)
+            y = row(lbl, val, y, shade=(i % 2 == 1))
+
+        if tram.observation_update:
+            y, page_num = check_page(y, page_num)
+            obs_lines = simpleSplit(tram.observation_update.replace('\r\n', ' ').replace('\n', ' '),
+                                    'Helvetica', 8, w - 34 * mm)
+            for line in obs_lines[:5]:
+                y, page_num = check_page(y, page_num)
+                cv.setFillColor(colors.HexColor('#1a2035'))
+                cv.setFont('Helvetica-Oblique', 8)
+                cv.drawString(17 * mm, y - 4 * mm, line)
+                y -= 6 * mm
+
+        # separador entre etapas
+        if t_idx < tramitacoes.count() - 1:
+            cv.setStrokeColor(colors.HexColor('#c8cfe0'))
+            cv.setLineWidth(0.5)
+            cv.line(14 * mm, y - 2 * mm, w - 14 * mm, y - 2 * mm)
+            y -= 8 * mm
+
+    draw_footer(page_num)
+    cv.showPage()
+    cv.save()
+    return resp
+
+
+# Leitura de Guia de Remessa (PDF → JSON)
+@login_required
+def parse_guia_remessa(request):
+    import re
+    import pdfplumber
+
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Método inválido.'}, status=405)
+
+    pdf_file = request.FILES.get('pdf')
+    if not pdf_file:
+        return JsonResponse({'ok': False, 'error': 'Nenhum arquivo enviado.'}, status=400)
+
+    try:
+        ua_nome       = ''
+        requisitante  = ''
+        efiscos_qtds  = {}   # {efisco_str: quantidade_int}
+
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table in tables:
+                    for row in table:
+                        if not row or len(row) < 2:
+                            continue
+                        cell0 = str(row[0] or '').strip()
+                        cell1 = str(row[1] or '').strip()
+
+                        # Linha de detalhes: UA
+                        if 'unidade administrativa' in cell0.lower() or 'unidade adm' in cell0.lower():
+                            ua_nome = cell1
+
+                        # Linha de itens: extrai requisitante e E-Fisco/quantidade
+                        # Formato: "REQ.xxx / Requisitante: NOME"
+                        if 'requisitante:' in cell0.lower():
+                            match = re.search(r'[Rr]equisitante:\s*(.+)', cell0)
+                            if match:
+                                requisitante = match.group(1).strip().title()
+
+                        # Linhas de item: coluna 0 = código, coluna 1 = descrição, coluna 3 = quantidade
+                        if len(row) >= 4:
+                            desc = str(row[1] or '')
+                            qty_raw = str(row[3] or '').strip()
+                            efisco_match = re.search(r'\((\d{7})\)', desc)
+                            if efisco_match and qty_raw:
+                                efisco = efisco_match.group(1)
+                                try:
+                                    qty = int(float(qty_raw.replace(',', '.')))
+                                except (ValueError, TypeError):
+                                    qty = 0
+                                if qty > 0:
+                                    efiscos_qtds[efisco] = efiscos_qtds.get(efisco, 0) + qty
+
+        if not efiscos_qtds:
+            return JsonResponse({'ok': False, 'error': 'Nenhum item encontrado no PDF. Verifique se é uma Guia de Remessa válida.'})
+
+        # Busca os Estoques correspondentes aos E-Fiscos encontrados
+        estoques = (
+            Estoque.objects
+            .select_related('item_shock')
+            .filter(item_shock__efisco__in=list(efiscos_qtds.keys()))
+        )
+
+        itens_encontrados = []
+        nao_encontrados   = []
+
+        efisco_para_estoque = {e.item_shock.efisco: e for e in estoques}
+
+        for efisco, qty in efiscos_qtds.items():
+            estoque = efisco_para_estoque.get(efisco)
+            if estoque:
+                itens_encontrados.append({
+                    'id':           estoque.pk,
+                    'efisco':       estoque.item_shock.efisco,
+                    'descricao':    estoque.item_shock.descricao_efisco,
+                    'amount_shock': estoque.amount_shock,
+                    'amount_order': min(qty, estoque.amount_shock),
+                })
+            else:
+                nao_encontrados.append(efisco)
+
+        # Tenta encontrar a UA pelo nome
+        from dempam.models import InfoUA
+        ua_obj = None
+        if ua_nome:
+            # busca por correspondência parcial case-insensitive
+            ua_obj = InfoUA.objects.filter(ua__icontains=ua_nome).first()
+            if not ua_obj:
+                # tenta com as primeiras palavras
+                palavras = ua_nome.split()[:3]
+                for p in palavras:
+                    ua_obj = InfoUA.objects.filter(ua__icontains=p).first()
+                    if ua_obj:
+                        break
+
+        return JsonResponse({
+            'ok': True,
+            'ua': {'id': ua_obj.pk, 'nome': ua_obj.ua} if ua_obj else {'id': None, 'nome': ua_nome},
+            'requisitante': requisitante,
+            'itens': itens_encontrados,
+            'nao_encontrados': nao_encontrados,
+        })
+
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': f'Erro ao processar PDF: {exc}'}, status=500)
+
+
 # Criar uma nova solicitação
 @login_required
 def create_request(request):

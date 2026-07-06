@@ -1,0 +1,327 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Feedbacks{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --violet:#6d28d9; --violet-soft:#f5f3ff; --violet-mid:#ddd6fe;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+  .apage { font-family:var(--font); padding:28px 24px 60px; color:var(--ink); }
+
+  /* topbar */
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+  .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
+  .topbar-sub { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
+
+  /* summary cards */
+  .summary-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .sum-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--r-md); box-shadow:var(--shadow-sm);
+    padding:16px 20px; position:relative; overflow:hidden;
+  }
+  .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .sum-card:nth-child(1)::before { background:var(--ink-3); }
+  .sum-card:nth-child(2)::before { background:var(--red); }
+  .sum-card:nth-child(3)::before { background:var(--blue); }
+  .sum-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
+  .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
+  .sum-card:nth-child(2) .sum-value { color:var(--red); }
+  .sum-card:nth-child(3) .sum-value { color:var(--blue); }
+
+  /* main card */
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
+  .main-card-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .main-card-title { font-size:1.05rem; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .total-badge { background:var(--blue-soft); border:1px solid var(--blue-mid); color:var(--blue); border-radius:999px; padding:3px 10px; font-size:.78rem; font-family:var(--mono); font-weight:700; }
+
+  /* filter bar */
+  .filter-bar { padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .filter-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+  .filter-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); }
+  .filter-input, .filter-select {
+    height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
+    padding:0 12px; font-family:var(--font); font-size:.85rem; color:var(--ink);
+    background:var(--surface); outline:none; width:100%;
+    appearance:none; -webkit-appearance:none;
+  }
+  .filter-select {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; padding-right:30px;
+  }
+  .filter-input:focus, .filter-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .filter-actions { display:flex; gap:8px; align-self:flex-end; }
+  .btn-filter {
+    height:38px; padding:0 16px; border-radius:var(--r-sm);
+    font-family:var(--font); font-size:.84rem; font-weight:600;
+    cursor:pointer; border:1.5px solid transparent; white-space:nowrap;
+  }
+  .btn-filter-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; }
+  .btn-filter-primary:hover { background:var(--accent-dark); }
+  .btn-filter-ghost { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); }
+  .btn-filter-ghost:hover { background:var(--surface-2); }
+
+  /* table */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.87rem; min-width:680px; }
+  thead th { padding:11px 16px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); background:var(--surface-2); border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+  tbody td { padding:12px 16px; color:var(--ink-2); border-bottom:1px solid var(--border); vertical-align:top; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:#f5f8ff; cursor:pointer; }
+
+  /* badges */
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:.74rem; font-weight:700; white-space:nowrap; }
+  .badge-bug      { background:var(--red-soft);   border:1px solid var(--red-mid);   color:var(--red); }
+  .badge-sugestao { background:var(--blue-soft);  border:1px solid var(--blue-mid);  color:var(--blue); }
+
+  /* user cell */
+  .user-cell { display:flex; align-items:center; gap:8px; }
+  .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#6d28d9); display:grid; place-items:center; font-size:.72rem; font-weight:700; color:#fff; flex-shrink:0; }
+  .user-name { font-weight:600; color:var(--ink); font-size:.85rem; }
+
+  /* pagina */
+  .pagina-tag { font-family:var(--mono); font-size:.76rem; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:2px 8px; display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
+
+  /* descricao */
+  .descricao-cell {
+    max-width: 340px;
+    color: var(--ink-2);
+    font-size: .86rem;
+    line-height: 1.5;
+  }
+  .descricao-inner {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+  }
+
+  /* data */
+  .data-cell { font-family:var(--mono); font-size:.78rem; color:var(--ink-3); white-space:nowrap; }
+
+  /* empty */
+  .empty-state { padding:60px 24px; text-align:center; }
+  .empty-icon { font-size:2.6rem; margin-bottom:12px; }
+  .empty-title { font-size:1.05rem; font-weight:700; color:var(--ink); margin-bottom:6px; }
+  .empty-sub { font-size:.88rem; color:var(--ink-3); }
+
+  /* modal detalhe */
+  .modal-body-detail p { margin-bottom:10px; font-size:.88rem; }
+  .detail-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:4px; }
+  .detail-value { font-size:.92rem; color:var(--ink); line-height:1.6; }
+  .detail-block { margin-bottom:20px; }
+</style>
+
+<div class="apage">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">💬 Feedbacks</div>
+      <div class="topbar-sub">Bugs e sugestões reportados pelos usuários</div>
+    </div>
+  </div>
+
+  <!-- summary -->
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sum-label">Total</div>
+      <div class="sum-value">{{ total }}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">🐛 Bugs</div>
+      <div class="sum-value">{{ total_bug }}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">💡 Sugestões</div>
+      <div class="sum-value">{{ total_sug }}</div>
+    </div>
+  </div>
+
+  <!-- main card -->
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Reportes
+        <span class="total-badge">{{ feedbacks|length }}</span>
+      </div>
+    </div>
+
+    <!-- filtros -->
+    <form method="get" class="filter-bar">
+      <div class="filter-group">
+        <label class="filter-label">Buscar</label>
+        <input class="filter-input" name="q" value="{{ query }}" placeholder="Usuário, descrição ou página…">
+      </div>
+      <div class="filter-group" style="max-width:180px;">
+        <label class="filter-label">Tipo</label>
+        <select class="filter-select" name="tipo">
+          <option value="">Todos</option>
+          <option value="bug"      {% if tipo == 'bug' %}selected{% endif %}>🐛 Bug</option>
+          <option value="sugestao" {% if tipo == 'sugestao' %}selected{% endif %}>💡 Sugestão</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn-filter btn-filter-primary">Filtrar</button>
+        <a href="{% url 'accounts:lista_feedback' %}" class="btn-filter btn-filter-ghost">Limpar</a>
+      </div>
+    </form>
+
+    <!-- tabela -->
+    <div class="table-wrap">
+      {% if feedbacks %}
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Usuário</th>
+            <th>Página</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fb in feedbacks %}
+          <tr onclick="abrirDetalhe({{ fb.pk }})" title="Clique para ver detalhes">
+            <td class="data-cell">
+              {{ fb.criado_em|date:"d/m/Y" }}<br>
+              <span style="font-size:.72rem;color:#94a3b8;">{{ fb.criado_em|date:"H:i" }}</span>
+            </td>
+            <td>
+              {% if fb.tipo == 'bug' %}
+                <span class="badge badge-bug">🐛 Bug</span>
+              {% else %}
+                <span class="badge badge-sugestao">💡 Sugestão</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="user-cell">
+                <div class="avatar">{{ fb.user.get_full_name|default:fb.user.username|slice:":2"|upper }}</div>
+                <div class="user-name">{{ fb.user.get_full_name|default:fb.user.username }}</div>
+              </div>
+            </td>
+            <td>
+              {% if fb.pagina %}
+                <span class="pagina-tag" title="{{ fb.pagina }}">{{ fb.pagina }}</span>
+              {% else %}
+                <span style="color:#94a3b8;font-size:.8rem;">—</span>
+              {% endif %}
+            </td>
+            <td class="descricao-cell">
+            <div class="descricao-inner">{{ fb.descricao }}</div>
+            {% if fb.imagem %}<span style="font-size:.76rem;color:#1d4ed8;">🖼 print</span>{% endif %}
+          </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <div class="empty-title">Nenhum feedback encontrado</div>
+        <div class="empty-sub">Tente ajustar os filtros ou aguarde os primeiros reportes.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalhe -->
+<div class="modal fade" id="modalDetalhe" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;padding:20px 24px 16px;">
+        <h5 class="modal-title" style="font-size:1rem;font-weight:700;color:#0f172a;" id="detalheModalTitulo">Detalhe do Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-body-detail" style="padding:22px 24px;" id="detalheConteudo">
+        <div style="text-align:center;padding:30px 0;color:#94a3b8;">Carregando…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for fb in feedbacks %}
+<div id="fb-desc-{{ fb.pk }}" style="display:none">{{ fb.descricao }}</div>
+{% endfor %}
+
+<script>
+const FEEDBACKS = {
+  {% for fb in feedbacks %}
+  {{ fb.pk }}: {
+    tipoLabel: "{% if fb.tipo == 'bug' %}🐛 Bug{% else %}💡 Sugestão{% endif %}",
+    tipoBadge: "{% if fb.tipo == 'bug' %}badge-bug{% else %}badge-sugestao{% endif %}",
+    usuario: "{{ fb.user.get_full_name|default:fb.user.username|escapejs }}",
+    email: "{{ fb.user.email|escapejs }}",
+    pagina: "{{ fb.pagina|escapejs }}",
+    data: "{{ fb.criado_em|date:'d/m/Y H:i' }}",
+    imagem: "{% if fb.imagem %}{{ fb.imagem.url }}{% endif %}",
+  },
+  {% endfor %}
+};
+
+function abrirDetalhe(pk) {
+  const fb = FEEDBACKS[pk];
+  if (!fb) return;
+
+  const desc = document.getElementById('fb-desc-' + pk)?.textContent || '';
+
+  document.getElementById('detalheModalTitulo').textContent = fb.tipoLabel + ' — ' + fb.data;
+
+  const imgBlock = fb.imagem ? `
+    <div class="detail-block">
+      <div class="detail-label">Print</div>
+      <a href="${fb.imagem}" target="_blank">
+        <img src="${fb.imagem}" alt="print"
+          style="width:100%;border-radius:10px;border:1px solid #e2e5ef;cursor:zoom-in;max-height:300px;object-fit:contain;background:#f8fafc;">
+      </a>
+      <div style="margin-top:4px;font-size:.76rem;color:#94a3b8;">Clique para abrir em tamanho real</div>
+    </div>` : '';
+
+  document.getElementById('detalheConteudo').innerHTML = `
+    <div class="detail-block">
+      <div class="detail-label">Tipo</div>
+      <span class="badge ${fb.tipoBadge}">${fb.tipoLabel}</span>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">Usuário</div>
+      <div class="detail-value">${fb.usuario}${fb.email ? ' <span style="color:#94a3b8;font-size:.83rem;">(' + fb.email + ')</span>' : ''}</div>
+    </div>
+    ${fb.pagina ? `<div class="detail-block">
+      <div class="detail-label">Página</div>
+      <div class="detail-value" style="font-family:monospace;font-size:.88rem;background:#f7f8fc;border:1px solid #e2e5ef;border-radius:8px;padding:6px 12px;">${fb.pagina}</div>
+    </div>` : ''}
+    <div class="detail-block">
+      <div class="detail-label">Data</div>
+      <div class="detail-value">${fb.data}</div>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">Descrição</div>
+      <div class="detail-value" style="background:#f7f8fc;border:1px solid #e2e5ef;border-radius:10px;padding:14px 16px;white-space:pre-wrap;line-height:1.6;">${desc}</div>
+    </div>
+    ${imgBlock}
+  `;
+
+  new bootstrap.Modal(document.getElementById('modalDetalhe')).show();
+}
+</script>
+
+{% endblock %}

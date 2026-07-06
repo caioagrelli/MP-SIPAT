@@ -39,6 +39,8 @@ urlpatterns = [
     path('processing/<int:pk>/update_request/label/', label_update, name='label_update'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/comprovante/', comprovante_tramitacao, name='comprovante_tramitacao'),
+    path('processing/<int:pk>/pdf/', pdf_solicitacao, name='pdf_solicitacao'),
+    path('processing/parse-guia-remessa/', parse_guia_remessa, name='parse_guia_remessa'),
     path('processing/<int:pk>/edit-itens/', edit_solicitacao_itens, name='edit_solicitacao_itens'),
     
     
