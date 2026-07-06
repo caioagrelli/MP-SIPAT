@@ -255,11 +255,111 @@
     }
     .flash-close:hover { opacity: 1; }
 
+    /* ─── PRINT ─── */
+    @media print {
+      .sidebar,
+      .btn-feedback-float,
+      .flash-wrap,
+      .btn-logout,
+      nav,
+      form[action*="logout"] { display: none !important; }
+
+      .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+      }
+
+      body { background: #fff !important; }
+
+      a { color: inherit; text-decoration: none; }
+
+      * { box-shadow: none !important; }
+    }
+
     /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); transition: transform .2s ease; }
       .sidebar.open { transform: translateX(0); }
       .main-content { margin-left: 0; padding: 16px 14px; }
+    }
+
+    /* ─── BOTÃO FEEDBACK ─── */
+    .btn-feedback-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1050;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(29,78,216,.40);
+      display: grid;
+      place-items: center;
+      transition: background .15s, transform .15s, box-shadow .15s;
+    }
+    .btn-feedback-float:hover {
+      background: #1e40af;
+      transform: scale(1.08);
+      box-shadow: 0 6px 22px rgba(29,78,216,.5);
+    }
+    .btn-feedback-float title { display: none; }
+
+    /* ── modal feedback: reset total para não herdar CSS de página ── */
+    #modalFeedback label {
+      display: block;
+      margin: 0;
+      padding: 0;
+      font-weight: normal;
+      color: inherit;
+      cursor: default;
+    }
+    #modalFeedback textarea {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: 'Sora', 'Segoe UI', sans-serif;
+      font-size: .88rem;
+      line-height: 1.5;
+      color: #1a2035;
+      background: #fff;
+      resize: vertical;
+      outline: none;
+      transition: border-color .15s;
+      min-height: 90px;
+    }
+    #modalFeedback textarea:focus {
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+    }
+
+    /* tipo pills */
+    .feedback-tipo-group { display: flex; gap: 8px; }
+    .feedback-tipo-group input[type=radio] { display: none; }
+    .feedback-tipo-group label {
+      flex: 1;
+      text-align: center;
+      padding: 7px 0;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #64748b;
+      transition: all .15s;
+    }
+    .feedback-tipo-group input[type=radio]:checked + label {
+      border-color: #1d4ed8;
+      background: #eff4ff;
+      color: #1d4ed8;
     }
   </style>
 </head>
@@ -403,5 +503,181 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+{% if user.is_authenticated %}
+<!-- Botão flutuante de feedback -->
+<button class="btn-feedback-float" data-bs-toggle="modal" data-bs-target="#modalFeedback" title="Reportar bug ou sugestão">
+  💬
+</button>
+
+<!-- Modal de feedback -->
+<div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;padding:20px 24px 16px;">
+        <h5 class="modal-title" id="modalFeedbackLabel" style="font-size:1rem;font-weight:700;color:#0f172a;">
+          Reportar bug ou sugestão
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" style="padding:20px 24px;">
+        <div id="feedbackAlerta" class="d-none" style="padding:10px 14px;border-radius:10px;font-size:.86rem;font-weight:500;margin-bottom:14px;"></div>
+
+        <form id="formFeedback" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="pagina" id="feedbackPagina">
+
+          <div style="margin-bottom:16px;">
+            <label style="font-size:.8rem;font-weight:600;color:#64748b;display:block;margin-bottom:8px;">TIPO</label>
+            <div class="feedback-tipo-group">
+              <div>
+                <input type="radio" name="tipo" id="tipo_bug" value="bug">
+                <label for="tipo_bug">🐛 Bug</label>
+              </div>
+              <div>
+                <input type="radio" name="tipo" id="tipo_sugestao" value="sugestao" checked>
+                <label for="tipo_sugestao">💡 Sugestão</label>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label for="feedbackDescricao" style="font-size:.8rem;font-weight:600;color:#64748b;display:block;margin-bottom:6px;">DESCRIÇÃO</label>
+            <textarea id="feedbackDescricao" name="descricao" rows="3" required
+              placeholder="Descreva o problema ou sugestão..."></textarea>
+          </div>
+
+          <div>
+            <label style="font-size:.8rem;font-weight:600;color:#64748b;display:block;margin-bottom:6px;">PRINT (opcional)</label>
+            <label id="feedbackUploadLabel" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px dashed #cbd5e1;border-radius:10px;cursor:pointer;transition:border .15s;background:#f8fafc;">
+              <span style="font-size:1.2rem;">🖼</span>
+              <span id="feedbackUploadTxt" style="font-size:.84rem;color:#64748b;font-weight:500;">Clique para anexar imagem</span>
+              <input type="file" name="imagem" id="feedbackImagem" accept="image/*" style="display:none;">
+            </label>
+            <div id="feedbackPreview" style="display:none;margin-top:10px;position:relative;">
+              <img id="feedbackPreviewImg" src="" alt="preview"
+                style="width:100%;max-height:160px;object-fit:contain;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;">
+              <button type="button" id="feedbackRemoveImg"
+                style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:grid;place-items:center;">✕</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer" style="border-top:1px solid #f1f5f9;padding:14px 24px;">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" style="border-radius:8px;font-weight:600;">Cancelar</button>
+        <button type="button" id="btnEnviarFeedback" style="padding:7px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.87rem;cursor:pointer;">
+          Enviar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal        = document.getElementById('modalFeedback');
+  const form         = document.getElementById('formFeedback');
+  const btnEnviar    = document.getElementById('btnEnviarFeedback');
+  const alerta       = document.getElementById('feedbackAlerta');
+  const descricao    = document.getElementById('feedbackDescricao');
+  const paginaInput  = document.getElementById('feedbackPagina');
+  const imgInput     = document.getElementById('feedbackImagem');
+  const preview      = document.getElementById('feedbackPreview');
+  const previewImg   = document.getElementById('feedbackPreviewImg');
+  const removeBtn    = document.getElementById('feedbackRemoveImg');
+  const uploadTxt    = document.getElementById('feedbackUploadTxt');
+  const uploadLabel  = document.getElementById('feedbackUploadLabel');
+
+  // preview ao selecionar imagem
+  imgInput.addEventListener('change', () => {
+    const file = imgInput.files[0];
+    if (!file) return;
+    uploadTxt.textContent = file.name;
+    uploadLabel.style.borderColor = '#1d4ed8';
+    uploadLabel.style.background  = '#eff4ff';
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // remover imagem
+  removeBtn.addEventListener('click', () => {
+    imgInput.value = '';
+    preview.style.display = 'none';
+    previewImg.src = '';
+    uploadTxt.textContent = 'Clique para anexar imagem';
+    uploadLabel.style.borderColor = '';
+    uploadLabel.style.background  = '';
+  });
+
+  // preenche a URL atual ao abrir e limpa o form
+  modal.addEventListener('show.bs.modal', () => {
+    paginaInput.value = window.location.pathname;
+    alerta.className  = 'd-none';
+    form.reset();
+    document.getElementById('tipo_sugestao').checked = true;
+    preview.style.display = 'none';
+    previewImg.src = '';
+    uploadTxt.textContent = 'Clique para anexar imagem';
+    uploadLabel.style.borderColor = '';
+    uploadLabel.style.background  = '';
+  });
+
+  function mostrarAlerta(msg, ok) {
+    alerta.textContent = msg;
+    alerta.className   = '';
+    alerta.style.background = ok ? '#f0fdf4' : '#fef2f2';
+    alerta.style.border     = ok ? '1px solid #bbf7d0' : '1px solid #fecaca';
+    alerta.style.color      = ok ? '#15803d' : '#b91c1c';
+  }
+
+  btnEnviar.addEventListener('click', async () => {
+    if (!descricao.value.trim()) {
+      descricao.style.borderColor = '#ef4444';
+      descricao.focus();
+      return;
+    }
+    descricao.style.borderColor = '#e2e8f0';
+
+    btnEnviar.disabled    = true;
+    btnEnviar.textContent = 'Enviando…';
+
+    const data = new FormData(form);
+
+    try {
+      const resp = await fetch('{% url "accounts:reportar_feedback" %}', {
+        method: 'POST',
+        body:   data,
+        headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken') },
+      });
+      const json = await resp.json();
+
+      if (json.ok) {
+        mostrarAlerta('✓ Feedback enviado. Obrigado!', true);
+        form.reset();
+        document.getElementById('tipo_sugestao').checked = true;
+        preview.style.display = 'none';
+        setTimeout(() => bootstrap.Modal.getInstance(modal).hide(), 1400);
+      } else {
+        mostrarAlerta(json.error || 'Erro ao enviar.', false);
+      }
+    } catch {
+      mostrarAlerta('Erro de conexão. Tente novamente.', false);
+    } finally {
+      btnEnviar.disabled    = false;
+      btnEnviar.textContent = 'Enviar';
+    }
+  });
+})();
+</script>
+{% endif %}
+
 </body>
 </html>

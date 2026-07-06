@@ -1,5 +1,5 @@
 from django.urls import path
-from accounts.views import users, groups, profile
+from accounts.views import users, groups, profile, feedback
 
 urlpatterns = [
     path('usuarios/', users.users_list, name='users_list'),
@@ -12,4 +12,6 @@ urlpatterns = [
     path('grupos/<int:pk>/permissoes/', groups.group_permissions, name='group_permissions'),
     path('perfil/', profile.profile_view, name='profile'),
     path('trocar-senha/', profile.first_login_password_change, name='first_login_password_change'),
+    path('feedback/', feedback.reportar, name='reportar_feedback'),
+    path('feedback/lista/', feedback.lista_feedback, name='lista_feedback'),
 ]

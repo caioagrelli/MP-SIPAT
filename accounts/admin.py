@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html, mark_safe
 
-from accounts.models import Profile
+from accounts.models import Profile, Feedback
 
 
 # ─── Profile inline dentro do User ───────────────────────────────────────────
@@ -104,6 +104,24 @@ class ProfileAdmin(admin.ModelAdmin):
         return bool(obj.photo)
     has_photo.boolean = True
     has_photo.short_description = 'Tem foto'
+
+
+# ─── Feedback ─────────────────────────────────────────────────────────────────
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display  = ('criado_em', 'tipo', 'user', 'pagina', 'descricao_curta')
+    list_filter   = ('tipo',)
+    search_fields = ('descricao', 'pagina', 'user__username')
+    readonly_fields = ('user', 'tipo', 'descricao', 'pagina', 'criado_em')
+    ordering      = ('-criado_em',)
+
+    def descricao_curta(self, obj):
+        return obj.descricao[:80] + ('…' if len(obj.descricao) > 80 else '')
+    descricao_curta.short_description = 'Descrição'
+
+    def has_add_permission(self, request):
+        return False
 
 
 # ─── Re-registra o User com o admin customizado ──────────────────────────────

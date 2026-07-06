@@ -405,6 +405,25 @@
       <!-- ══════════════ COLUNA PRINCIPAL ══════════════ -->
       <div class="main-col">
 
+        <!-- IMPORTAR GUIA DE REMESSA -->
+        <div class="card" id="card-guia" style="border:1.5px dashed #c7d7fd;background:#f8faff;">
+          <div class="card-body" style="padding:18px 20px;">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <div style="font-size:1.6rem;flex-shrink:0;">📄</div>
+              <div style="flex:1;min-width:200px;">
+                <div style="font-size:.92rem;font-weight:700;color:#1a2035;margin-bottom:2px;">Importar Guia de Remessa</div>
+                <div style="font-size:.8rem;color:#7380a0;">Anexe o PDF da GRE e o formulário será preenchido automaticamente.</div>
+              </div>
+              <label id="guia-label" style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:#1d4ed8;color:#fff;border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:700;flex-shrink:0;transition:background .15s;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Carregar PDF
+                <input type="file" id="guia-input" accept=".pdf" style="display:none;">
+              </label>
+            </div>
+            <div id="guia-status" style="display:none;margin-top:12px;padding:10px 14px;border-radius:9px;font-size:.84rem;font-weight:500;"></div>
+          </div>
+        </div>
+
         <!-- DADOS DA SOLICITAÇÃO -->
         <div class="card">
           <div class="card-head">
@@ -994,6 +1013,108 @@ document.addEventListener('DOMContentLoaded', function () {
 
   uaText.addEventListener('blur', () => setTimeout(closeUaDrop, 200));
   uaText.addEventListener('keydown', e => { if (e.key === 'Escape') closeUaDrop(); });
+
+  /* ── Importar Guia de Remessa ── */
+  const PARSE_URL   = "{% url 'dimms:parse_guia_remessa' %}";
+  const CSRF_TOKEN  = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const guiaInput   = document.getElementById('guia-input');
+  const guiaLabel   = document.getElementById('guia-label');
+  const guiaStatus  = document.getElementById('guia-status');
+
+  function guiaSetStatus(msg, tipo) {
+    guiaStatus.style.display = 'block';
+    guiaStatus.textContent   = msg;
+    const styles = {
+      loading: 'background:#eff4ff;color:#1d4ed8;border:1px solid #c7d7fd;',
+      ok:      'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;',
+      warn:    'background:#fffbeb;color:#b45309;border:1px solid #fde68a;',
+      error:   'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;',
+    };
+    guiaStatus.style.cssText += styles[tipo] || styles.ok;
+  }
+
+  guiaInput.addEventListener('change', async () => {
+    const file = guiaInput.files[0];
+    if (!file) return;
+
+    guiaLabel.style.background = '#1e40af';
+    guiaLabel.querySelector('svg').style.opacity = '.5';
+    guiaSetStatus('Processando PDF…', 'loading');
+
+    const fd = new FormData();
+    fd.append('pdf', file);
+
+    try {
+      const resp = await fetch(PARSE_URL, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN },
+        body: fd,
+      });
+      const data = await resp.json();
+
+      if (!data.ok) {
+        guiaSetStatus('Erro: ' + data.error, 'error');
+        return;
+      }
+
+      // 1. Preenche UA
+      if (data.ua && data.ua.id) {
+        selectUa({ id: data.ua.id, ua: data.ua.nome, responsavel_ua: '' });
+      } else if (data.ua && data.ua.nome) {
+        uaText.value = data.ua.nome;
+        uaText.style.display = '';
+        uaSelected.style.display = 'none';
+      }
+
+      // 2. Preenche requisitante
+      if (data.requisitante) {
+        const userOrderInput = document.getElementById('{{ form.user_order.id_for_label }}');
+        if (userOrderInput) userOrderInput.value = data.requisitante;
+      }
+
+      // 3. Limpa itens existentes e adiciona os do PDF
+      Array.from(container.querySelectorAll('.item-row')).forEach(r => r.remove());
+      totalForms.value = 0;
+
+      data.itens.forEach(item => {
+        addItem();
+        const row        = rows()[rows().length - 1];
+        const textInput  = row.querySelector('.efisco-text');
+        const hiddenInput= row.querySelector('.efisco-hidden');
+        const selected   = row.querySelector('.efisco-selected');
+        const qtyInput   = row.querySelector('input[type="number"]');
+
+        hiddenInput.value     = item.id;
+        row.dataset.maxQty    = item.amount_shock;
+        if (textInput)  textInput.style.display = 'none';
+        if (selected) {
+          selected.innerHTML = `
+            <span><strong>${item.efisco}</strong> — ${item.descricao} · Estoque: ${item.amount_shock}</span>
+            <button type="button" class="efisco-clear" title="Limpar">✕</button>
+          `;
+          selected.style.display = 'flex';
+        }
+        if (qtyInput) qtyInput.value = item.amount_order;
+      });
+
+      syncQty(); syncBadge(); renumber(); lockRemove();
+
+      // 4. Mensagem de resultado
+      let msg = `✓ ${data.itens.length} item(ns) importado(s).`;
+      let tipo = 'ok';
+      if (data.nao_encontrados && data.nao_encontrados.length) {
+        msg += ` ${data.nao_encontrados.length} E-Fisco(s) não encontrado(s) no estoque: ${data.nao_encontrados.join(', ')}.`;
+        tipo = 'warn';
+      }
+      guiaSetStatus(msg, tipo);
+
+    } catch (e) {
+      guiaSetStatus('Erro de conexão ao processar o PDF.', 'error');
+    } finally {
+      guiaLabel.style.background = '#1d4ed8';
+      guiaInput.value = '';
+    }
+  });
 });
 </script>
 

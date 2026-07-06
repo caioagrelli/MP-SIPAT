@@ -51,3 +51,27 @@ def create_profile(sender, instance, created, **kwargs):
 def save_profile(sender, instance, **kwargs):
     if hasattr(instance, 'profile'):
         instance.profile.save()
+
+
+class Feedback(models.Model):
+    TIPO_BUG      = 'bug'
+    TIPO_SUGESTAO = 'sugestao'
+    TIPO_CHOICES  = [
+        (TIPO_BUG,      'Bug'),
+        (TIPO_SUGESTAO, 'Sugestão'),
+    ]
+
+    user      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuário')
+    tipo      = models.CharField(max_length=10, choices=TIPO_CHOICES, verbose_name='Tipo')
+    descricao = models.TextField(verbose_name='Descrição')
+    pagina    = models.CharField(max_length=500, blank=True, verbose_name='Página')
+    imagem    = models.ImageField(upload_to='feedback/', blank=True, null=True, verbose_name='Print')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Enviado em')
+
+    class Meta:
+        verbose_name        = 'Feedback'
+        verbose_name_plural = 'Feedbacks'
+        ordering            = ['-criado_em']
+
+    def __str__(self):
+        return f'[{self.get_tipo_display()}] {self.user} — {self.criado_em:%d/%m/%Y %H:%M}'
