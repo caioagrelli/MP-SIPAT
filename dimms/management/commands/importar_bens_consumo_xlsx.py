@@ -150,49 +150,57 @@ def _date(val) -> date | None:
 # Processamento de uma linha
 # ---------------------------------------------------------------------------
 def _process_row(row, sobrescrever: bool) -> dict:
-    efisco_raw = _cel(row, 4)
+    # Layout da planilha: ALMOXARIFADO | GRUPO | E-FISCO | DESCRIÇÃO | UNIDADE | MARCA | PREÇO | VALIDADE | QTD.ESTOQUE | ...
+    efisco_raw = _cel(row, 2)
     # Remove decimais que o Excel adiciona em números (ex: "4809661.0" → "4809661")
     efisco = re.sub(r'\.0$', '', efisco_raw)[:20]
 
     if not efisco or efisco.lower() in ('none', ''):
         return {'status': 'erro', 'efisco': '—', 'msg': 'Sem código E-fisco'}
 
-    descricao = _cel(row, 5) or efisco
-    grupo     = _mapear_grupo(_cel(row, 3))
-    unidade   = _mapear_unidade(_cel(row, 6))
-    marca     = _cel(row, 8)[:40] or 'Não informada'
-    consumo   = _inteiro(_cel(row, 10))
-    validade  = _date(_cel(row, 13) or None)
-    qtd       = _inteiro(_cel(row, 14))
-    essencial = str(_cel(row, 0)).strip().lower() in ('sim', 's', '1', 'true', 'x')
+    descricao = _cel(row, 3) or efisco
+    grupo     = _mapear_grupo(_cel(row, 1))
+    unidade   = _mapear_unidade(_cel(row, 4))
+    marca     = _cel(row, 5)[:40] or 'Não informada'
+    validade  = _date(_cel(row, 7) or None)
+    qtd       = _inteiro(_cel(row, 8))
+    essencial = str(_cel(row, 0)).strip().lower() == 'essencial'
 
     try:
         with transaction.atomic():
-            bem_existe = BensConsumo.objects.filter(efisco=efisco).exists()
-
-            if bem_existe and not sobrescrever:
-                return {'status': 'pulado', 'efisco': efisco, 'msg': 'Já existe, pulado'}
-
-            if bem_existe and sobrescrever:
-                BensConsumo.objects.filter(efisco=efisco).delete()
-
-            bem = BensConsumo.objects.create(
-                efisco=efisco,
-                descricao_efisco=descricao,
-                medida=unidade,
-                grupo_consumo=grupo,
-            )
-
-            Estoque.objects.create(
-                item_shock=bem,
-                description_manual=descricao[:90],
-                mark=marca,
-                amount_shock=qtd,
-                monthly_consumption=consumo if consumo > 0 else None,
-                essential=essencial,
-                validity=validade,
-                form_input='Importação',
-            )
+            try:
+                bem = BensConsumo.objects.get(efisco=efisco)
+                if not sobrescrever:
+                    return {'status': 'pulado', 'efisco': efisco, 'msg': 'Já existe, pulado'}
+                # Atualiza o BensConsumo sem deletar (mantém FKs protegidas)
+                bem.descricao_efisco = descricao
+                bem.medida = unidade
+                bem.grupo_consumo = grupo
+                bem.save(update_fields=['descricao_efisco', 'medida', 'grupo_consumo'])
+                # Atualiza o Estoque vinculado
+                for e in bem.bem_estoque.all():
+                    e.amount_shock = qtd
+                    e.mark = marca
+                    e.essential = essencial
+                    e.validity = validade
+                    e.description_manual = descricao[:90]
+                    e.save(update_fields=['amount_shock', 'mark', 'essential', 'validity', 'description_manual'])
+            except BensConsumo.DoesNotExist:
+                bem = BensConsumo.objects.create(
+                    efisco=efisco,
+                    descricao_efisco=descricao,
+                    medida=unidade,
+                    grupo_consumo=grupo,
+                )
+                Estoque.objects.create(
+                    item_shock=bem,
+                    description_manual=descricao[:90],
+                    mark=marca,
+                    amount_shock=qtd,
+                    essential=essencial,
+                    validity=validade,
+                    form_input='Importação',
+                )
 
     except Exception as exc:
         return {'status': 'erro', 'efisco': efisco, 'msg': str(exc)}
@@ -234,8 +242,8 @@ class Command(BaseCommand):
         ws = wb.active
         rows = list(ws.iter_rows())
 
-        # Linha 0 = cabeçalho, linha 1 = vazia, dados a partir da linha 2
-        dados = [r for r in rows[2:] if any(c.value is not None for c in r)]
+        # Linha 0 = cabeçalho, dados a partir da linha 1
+        dados = [r for r in rows[1:] if any(c.value is not None for c in r)]
         total = len(dados)
 
         if total == 0:
