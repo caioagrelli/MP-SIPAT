@@ -99,7 +99,7 @@
           <select name="contrato" class="form-select" required>
             <option value="">Selecione um contrato...</option>
             {% for c in contratos %}
-              <option value="{{ c.pk }}">
+              <option value="{{ c.pk }}" {% if contrato_pre == c.pk|stringformat:"s" %}selected{% endif %}>
                 {{ c.contrato }}{% if c.supplier_contract %} — {{ c.supplier_contract }}{% endif %}
               </option>
             {% endfor %}

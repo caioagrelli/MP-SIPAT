@@ -377,31 +377,55 @@ class ItensProposalForm(forms.ModelForm):
 
 
 ''' Contratos '''
-# Criar contrato
+# Criar/editar contrato
 class ContratoForm(forms.ModelForm):
     class Meta:
         model = Contrato
         fields = [
-            'supplier_contract', 'contrato', 'inicio_vigencia',
-            'final_vigencia', 'homologacao', 'cs', 'cod_liquidacao', 'status',
+            'supplier_contract', 'contrato', 'numero_contrato_oficial',
+            'forma', 'numero_processo', 'numero_arp', 'categoria',
+            'valor_contratado', 'previsao_anual',
+            'inicio_vigencia', 'final_vigencia', 'homologacao',
+            'aditivo_prazo', 'aditivo_preco',
+            'cs', 'numero_sc', 'cod_liquidacao', 'status',
         ]
         widgets = {
             'supplier_contract': forms.Select(attrs={'class': 'form-select'}),
-            'contrato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'N° do contrato'}),
+            'contrato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'N° do contrato MPPE'}),
+            'numero_contrato_oficial': forms.TextInput(attrs={'class': 'form-control'}),
+            'forma': forms.Select(attrs={'class': 'form-select'}),
+            'numero_processo': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_arp': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria': forms.TextInput(attrs={'class': 'form-control'}),
+            'valor_contratado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'previsao_anual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'inicio_vigencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'final_vigencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'homologacao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'aditivo_prazo': forms.TextInput(attrs={'class': 'form-control'}),
+            'aditivo_preco': forms.TextInput(attrs={'class': 'form-control'}),
             'cs': forms.NumberInput(attrs={'class': 'form-control'}),
+            'numero_sc': forms.TextInput(attrs={'class': 'form-control'}),
             'cod_liquidacao': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ativo'}),
         }
         labels = {
             'supplier_contract': 'Fornecedor',
-            'contrato': 'N° do Contrato',
+            'contrato': 'N° Contrato (MPPE)',
+            'numero_contrato_oficial': 'N° Contrato Oficial',
+            'forma': 'Forma',
+            'numero_processo': 'N° Processo Eletrônico',
+            'numero_arp': 'N° ARP PE Integrado',
+            'categoria': 'Categoria',
+            'valor_contratado': 'Valor Contratado (R$)',
+            'previsao_anual': 'Previsão Anual (R$)',
             'inicio_vigencia': 'Início da Vigência',
             'final_vigencia': 'Final da Vigência',
             'homologacao': 'Data de Homologação',
+            'aditivo_prazo': 'Aditivo de Prazo',
+            'aditivo_preco': 'Aditivo de Preço',
             'cs': 'N° CS',
+            'numero_sc': 'N° SC',
             'cod_liquidacao': 'Código de Licitação',
             'status': 'Status',
         }

@@ -35,6 +35,8 @@ from ..forms import SupplierForm
 ''' Homepage do Saldo Ativo '''
 @login_required
 def saldo_ativo_homepage(request):
+    q = request.GET.get('q', '').strip()
+
     contratos = Contrato.objects.select_related('supplier_contract').annotate(
         total_itens=Count('Contrato', distinct=True),
         saldo_total=Sum('Contrato__saldo_disponivel'),
@@ -45,8 +47,14 @@ def saldo_ativo_homepage(request):
         )
     ).order_by('contrato')
 
-    # KPIs
-    total_contratos     = contratos.count()
+    if q:
+        contratos = contratos.filter(
+            Q(contrato__icontains=q) |
+            Q(supplier_contract__supplier__icontains=q)
+        )
+
+    # KPIs (sobre todos os contratos, sem filtro de busca)
+    total_contratos     = Contrato.objects.count()
     total_saldo         = SaldoAtivo.objects.aggregate(t=Sum('saldo_disponivel'))['t'] or 0
     solicitacoes_ativas = SolicitacoesSaldoAtivo.objects.filter(
         status__in=[Status.rascunho, Status.analise]
@@ -62,6 +70,8 @@ def saldo_ativo_homepage(request):
         'total_saldo': total_saldo,
         'solicitacoes_ativas': solicitacoes_ativas,
         'solicitacoes_recentes': solicitacoes_recentes,
+        'q': q,
+        'contratos_encontrados': contratos.count(),
     }
     return render(request, 'dimms/saldo_ativo/homepage.html', context)
 
@@ -151,13 +161,14 @@ def fornecedor_criar_saldoativo(request):
 @login_required
 def saldo_ativo_solicitacao_create(request):
     contratos = Contrato.objects.filter(Contrato__isnull=False).distinct()
+    contrato_pre = request.GET.get('contrato', '')
 
     if request.method == 'POST':
         contrato_id = request.POST.get('contrato')
         if not contrato_id:
             messages.error(request, 'Selecione um contrato.')
             return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
-                'contratos': contratos
+                'contratos': contratos, 'contrato_pre': contrato_pre,
             })
 
         contrato = get_object_or_404(Contrato, pk=contrato_id)
@@ -169,7 +180,8 @@ def saldo_ativo_solicitacao_create(request):
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=solicitacao.pk)
 
     return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
-        'contratos': contratos
+        'contratos': contratos,
+        'contrato_pre': contrato_pre,
     })
 
 
@@ -192,6 +204,7 @@ def saldo_ativo_solicitacao_detail(request, pk):
 
     # Adicionar múltiplos itens de uma vez
     if request.method == 'POST' and 'adicionar_itens' in request.POST:
+        from django.core.exceptions import ValidationError as DjangoValidationError
         adicionados = 0
         erros = []
         for key, valor in request.POST.items():
@@ -205,20 +218,29 @@ def saldo_ativo_solicitacao_detail(request, pk):
             if quantidade <= 0:
                 continue
             bem = get_object_or_404(SaldoAtivo, pk=saldo_pk)
+
+            # Impede duplicata com mensagem legível
+            if ItensSolicitados.objects.filter(solicitacao=solicitacao, bem=bem).exists():
+                erros.append(f'{bem.efisco.efisco}: item já está na solicitação.')
+                continue
+
             try:
                 item = ItensSolicitados(
                     solicitacao=solicitacao,
                     bem=bem,
                     quantidade=quantidade,
                 )
-                item.full_clean()
+                # save() já chama full_clean() e desconta o saldo
                 item.save()
                 adicionados += 1
+            except DjangoValidationError as e:
+                msgs = '; '.join(m for m in e.messages)
+                erros.append(f'{bem.efisco.efisco}: {msgs}')
             except Exception as e:
                 erros.append(f'{bem.efisco.efisco}: {e}')
 
         if adicionados:
-            messages.success(request, f'{adicionados} item(ns) adicionado(s).')
+            messages.success(request, f'{adicionados} item(ns) adicionado(s) e saldo reservado.')
         for erro in erros:
             messages.error(request, erro)
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
@@ -235,6 +257,18 @@ def saldo_ativo_solicitacao_detail(request, pk):
         item = get_object_or_404(ItensSolicitados, pk=item_id, solicitacao=solicitacao)
         item.delete()
         messages.success(request, 'Item removido.')
+        return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
+
+    # Atualizar dados da solicitação (SEI, empenho, nota fiscal)
+    if request.method == 'POST' and 'atualizar_dados' in request.POST:
+        solicitacao.numero_sei = request.POST.get('numero_sei', '').strip()
+        solicitacao.numero_empenho = request.POST.get('numero_empenho', '').strip()
+        if 'nota_fiscal' in request.FILES:
+            solicitacao.nota_fiscal = request.FILES['nota_fiscal']
+        elif request.POST.get('remover_nota_fiscal'):
+            solicitacao.nota_fiscal = None
+        solicitacao.save(update_fields=['numero_sei', 'numero_empenho', 'nota_fiscal'])
+        messages.success(request, 'Dados da solicitação atualizados.')
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
 
     # Alterar status
@@ -313,9 +347,9 @@ def saldo_ativo_confirmar_envio(request, item_pk):
                     )
                     if comprovante:
                         remessa.comprovante = comprovante
-                    remessa.save()  # desconta saldo_disponivel do contrato
+                    remessa.save()
 
-                    # Adiciona ao estoque imediatamente
+                    # Adiciona ao estoque ao confirmar o recebimento
                     bem    = item_solicitado.bem
                     efisco = bem.efisco
                     existente = Estoque.objects.filter(
@@ -591,6 +625,11 @@ def pdf_relatorio_solicitacao(request, pk):
 
     # Bloco de dados da solicitação (2 colunas lado a lado)
     y = _pdf_section(c, w, 'Dados da Solicitação', y)
+    nota_fiscal_ref = '—'
+    if solicitacao.nota_fiscal:
+        import os as _os
+        nota_fiscal_ref = _os.path.basename(solicitacao.nota_fiscal.name)
+
     meta = [
         ('Código',        solicitacao.codigo),
         ('Status',        solicitacao.get_status_display()),
@@ -598,6 +637,9 @@ def pdf_relatorio_solicitacao(request, pk):
         ('Data Abertura', _fmt_dt(solicitacao.data_hora)),
         ('Fornecedor',    str(solicitacao.contrato.supplier_contract or '—')),
         ('Responsável',   responsavel or '—'),
+        ('N° SEI',        solicitacao.numero_sei or '—'),
+        ('N° Empenho',    solicitacao.numero_empenho or '—'),
+        ('Nota Fiscal',   nota_fiscal_ref),
     ]
     col_w = (w - 24*mm) / 2
     for i in range(0, len(meta), 2):
@@ -798,6 +840,285 @@ def pdf_relatorio_solicitacao(request, pk):
     c.setFillColor(colors.HexColor('#7380a0'))
     c.setFont('Helvetica', 7)
     c.drawCentredString(w / 2, 10*mm, f'SIPAT — {solicitacao.codigo} — Gerado em {gerado_em}')
+
+    c.save()
+    return resp
+
+
+# ────────────────────────────────────────────────────────────────
+# PDF: CARGA RECEBIDA (TERMO DE RECEBIMENTO)
+# ────────────────────────────────────────────────────────────────
+
+@login_required
+def pdf_carga_recebida(request, pk):
+    import os as _os
+    solicitacao = get_object_or_404(
+        SolicitacoesSaldoAtivo.objects.select_related('contrato__supplier_contract', 'usuario'),
+        pk=pk
+    )
+    itens = list(
+        ItensSolicitados.objects
+        .filter(solicitacao=solicitacao)
+        .select_related('bem__efisco', 'bem__contrato_saldo')
+        .prefetch_related('remessas')
+    )
+
+    # Apenas itens com pelo menos uma remessa recebida
+    dados = []
+    for item in itens:
+        remessas_recebidas = [r for r in item.remessas.all().order_by('data_recebimento') if r.recebida]
+        total_recebido = sum(r.quantidade_enviada or 0 for r in remessas_recebidas)
+        if total_recebido > 0:
+            dados.append({
+                'item': item,
+                'remessas': remessas_recebidas,
+                'total_recebido': total_recebido,
+            })
+
+    resp = HttpResponse(content_type='application/pdf')
+    safe_code = (solicitacao.codigo or 'carga').replace('/', '-')
+    resp['Content-Disposition'] = f'inline; filename="carga_recebida_{safe_code}.pdf"'
+
+    w, h_page = A4
+    c = rl_canvas.Canvas(resp, pagesize=A4)
+
+    gerado_em = _fmt_dt(timezone.now())
+    responsavel = ''
+    if solicitacao.usuario:
+        responsavel = solicitacao.usuario.get_full_name() or solicitacao.usuario.username
+
+    nota_fiscal_ref = '—'
+    if solicitacao.nota_fiscal:
+        nota_fiscal_ref = _os.path.basename(solicitacao.nota_fiscal.name)
+
+    # ── CABEÇALHO ───────────────────────────────────────────────
+    y = _pdf_header(
+        c, w, h_page,
+        titulo='Termo de Recebimento de Carga — Saldo Ativo',
+        subtitulo=(
+            f'Contrato: {solicitacao.contrato.contrato}  |  '
+            f'Fornecedor: {solicitacao.contrato.supplier_contract or "—"}'
+        ),
+        codigo=solicitacao.codigo,
+        data_str=f'Gerado em {gerado_em}',
+    )
+
+    # ── DADOS DA SOLICITAÇÃO ─────────────────────────────────────
+    y = _pdf_section(c, w, 'Dados da Solicitação', y)
+    meta = [
+        ('Código',        solicitacao.codigo),
+        ('Data Abertura', _fmt_dt(solicitacao.data_hora)),
+        ('Contrato',      solicitacao.contrato.contrato),
+        ('Fornecedor',    str(solicitacao.contrato.supplier_contract or '—')),
+        ('Responsável',   responsavel or '—'),
+        ('Status',        solicitacao.get_status_display()),
+        ('N° SEI',        solicitacao.numero_sei or '—'),
+        ('N° Empenho',    solicitacao.numero_empenho or '—'),
+        ('Nota Fiscal',   nota_fiscal_ref),
+    ]
+    col_w = (w - 24*mm) / 2
+    for i in range(0, len(meta), 2):
+        rh = 7*mm
+        shade = (i // 2) % 2 == 1
+        if shade:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(12*mm, y - rh, w - 24*mm, rh, fill=1, stroke=0)
+        for j, (lbl, val) in enumerate(meta[i:i+2]):
+            x = 12*mm + j * col_w
+            c.setFillColor(colors.HexColor('#7380a0'))
+            c.setFont('Helvetica-Bold', 7)
+            c.drawString(x + 3*mm, y - 4.8*mm, lbl.upper())
+            c.setFillColor(colors.HexColor('#1a2035'))
+            c.setFont('Helvetica', 8.5)
+            c.drawString(x + 38*mm, y - 4.8*mm, str(val)[:38])
+        c.setStrokeColor(colors.HexColor('#e2e5ef'))
+        c.setLineWidth(0.3)
+        c.line(12*mm, y - rh, w - 12*mm, y - rh)
+        y -= rh
+
+    y -= 8*mm
+
+    # ── TABELA DE ITENS RECEBIDOS ────────────────────────────────
+    y = _pdf_section(c, w, 'Itens Recebidos', y)
+
+    # Colunas: E-Fisco | Descrição | Marca | Unid. | Solicitado | Recebido
+    CX2 = [12, 32, 90, 138, 155, 168, 182]  # mm
+    HDR2 = ['E-FISCO', 'DESCRIÇÃO', 'MARCA', 'UNID.', 'SOLIC.', 'RECEBIDO']
+
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(12*mm, y - 7*mm, w - 24*mm, 7.5*mm, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 6.5)
+    for txt, x in zip(HDR2, CX2):
+        c.drawString(x*mm + 1.5*mm, y - 4.8*mm, txt)
+    y -= 8*mm
+
+    total_sol_geral = 0
+    total_rec_geral = 0
+
+    for idx, d in enumerate(dados):
+        y = _check_page(c, y, w, h_page)
+        item = d['item']
+        rh = 8*mm
+        shade = idx % 2 == 1
+        if shade:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(12*mm, y - rh, w - 24*mm, rh, fill=1, stroke=0)
+
+        desc  = (item.bem.descricao_manual or item.bem.efisco.descricao_efisco or '')[:50]
+        marca = (item.bem.marca or '—')[:18]
+        unid  = (item.bem.efisco.get_medida_display() if item.bem.efisco.medida else '—')[:10]
+        sol   = item.quantidade or 0
+        rec   = d['total_recebido']
+
+        total_sol_geral += sol
+        total_rec_geral += rec
+
+        completo = rec >= sol
+
+        c.setFillColor(colors.HexColor('#1d4ed8'))
+        c.setFont('Helvetica-Bold', 7.5)
+        c.drawString(CX2[0]*mm + 1.5*mm, y - 5*mm, str(item.bem.efisco.efisco))
+
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 7.5)
+        c.drawString(CX2[1]*mm + 1.5*mm, y - 5*mm, desc)
+
+        c.setFillColor(colors.HexColor('#3d4966'))
+        c.setFont('Helvetica', 7)
+        c.drawString(CX2[2]*mm + 1.5*mm, y - 5*mm, marca)
+        c.drawString(CX2[3]*mm + 1.5*mm, y - 5*mm, unid)
+
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica-Bold', 8)
+        c.drawCentredString(CX2[4]*mm + 7*mm, y - 5*mm, str(sol))
+
+        c.setFillColor(colors.HexColor('#15803d') if completo else colors.HexColor('#b45309'))
+        c.setFont('Helvetica-Bold', 8)
+        c.drawCentredString(CX2[5]*mm + 7*mm, y - 5*mm, str(rec))
+
+        c.setStrokeColor(colors.HexColor('#e2e5ef'))
+        c.setLineWidth(0.2)
+        c.line(12*mm, y - rh, w - 12*mm, y - rh)
+        y -= rh
+
+    # Linha de totais
+    y -= 2*mm
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(12*mm, y - 7*mm, w - 24*mm, 7.5*mm, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 8)
+    c.drawString(15*mm, y - 4.8*mm, f'TOTAL — {len(dados)} item(ns) recebido(s)')
+    c.drawCentredString(CX2[4]*mm + 7*mm, y - 4.8*mm, str(total_sol_geral))
+    c.setFillColor(colors.HexColor('#bbf7d0'))
+    c.drawCentredString(CX2[5]*mm + 7*mm, y - 4.8*mm, str(total_rec_geral))
+    y -= 12*mm
+
+    # ── DETALHAMENTO DAS REMESSAS RECEBIDAS ──────────────────────
+    if any(d['remessas'] for d in dados):
+        y = _check_page(c, y, w, h_page, margin=50)
+        y = _pdf_section(c, w, 'Detalhamento das Remessas Recebidas', y)
+
+        for d in dados:
+            if not d['remessas']:
+                continue
+            item = d['item']
+            y = _check_page(c, y, w, h_page, margin=40)
+
+            desc = (item.bem.descricao_manual or item.bem.efisco.descricao_efisco or '')[:65]
+            c.setFillColor(colors.HexColor('#eff4ff'))
+            c.rect(12*mm, y - 8*mm, w - 24*mm, 8.5*mm, fill=1, stroke=0)
+            c.setStrokeColor(colors.HexColor('#c7d7fd'))
+            c.setLineWidth(0.5)
+            c.rect(12*mm, y - 8*mm, w - 24*mm, 8.5*mm, fill=0, stroke=1)
+            c.setFillColor(colors.HexColor('#1d4ed8'))
+            c.setFont('Helvetica-Bold', 8.5)
+            c.drawString(15*mm, y - 5.2*mm, str(item.bem.efisco.efisco))
+            c.setFillColor(colors.HexColor('#3d4966'))
+            c.setFont('Helvetica', 8)
+            c.drawString(38*mm, y - 5.2*mm, desc)
+            y -= 10*mm
+
+            RC = [12, 22, 62, 120, 148, 165]  # mm
+            RH = ['Nº', 'DATA RECEBIMENTO', 'OBS.', 'QTDE RECEBIDA', 'COMPROVANTE']
+            c.setFillColor(colors.HexColor('#374151'))
+            c.rect(12*mm, y - 6*mm, w - 24*mm, 6.5*mm, fill=1, stroke=0)
+            c.setFillColor(colors.white)
+            c.setFont('Helvetica-Bold', 6.5)
+            for txt, x in zip(RH, RC):
+                c.drawString(x*mm + 1*mm, y - 4.2*mm, txt)
+            y -= 7*mm
+
+            for idx2, r in enumerate(d['remessas']):
+                y = _check_page(c, y, w, h_page)
+                rh = 7.5*mm
+                if idx2 % 2 == 0:
+                    c.setFillColor(colors.HexColor('#f7f8fc'))
+                    c.rect(12*mm, y - rh, w - 24*mm, rh, fill=1, stroke=0)
+
+                c.setFillColor(colors.HexColor('#7380a0'))
+                c.setFont('Helvetica', 7.5)
+                c.drawString(RC[0]*mm + 1*mm, y - 4.8*mm, str(idx2 + 1))
+
+                c.setFillColor(colors.HexColor('#15803d'))
+                c.setFont('Helvetica', 7.5)
+                c.drawString(RC[1]*mm + 1*mm, y - 4.8*mm, _fmt_dt(r.data_recebimento))
+
+                if r.observacao:
+                    c.setFillColor(colors.HexColor('#7380a0'))
+                    c.setFont('Helvetica-Oblique', 6.5)
+                    c.drawString(RC[2]*mm + 1*mm, y - 4.8*mm, r.observacao[:40])
+
+                c.setFillColor(colors.HexColor('#15803d'))
+                c.setFont('Helvetica-Bold', 9)
+                c.drawCentredString(RC[3]*mm + 12*mm, y - 4.8*mm, str(r.quantidade_enviada or 0))
+
+                if r.comprovante:
+                    comp_name = _os.path.basename(r.comprovante.name)[:30]
+                    c.setFillColor(colors.HexColor('#1d4ed8'))
+                    c.setFont('Helvetica', 6.5)
+                    c.drawString(RC[4]*mm + 1*mm, y - 4.8*mm, comp_name)
+                else:
+                    c.setFillColor(colors.HexColor('#7380a0'))
+                    c.setFont('Helvetica', 7)
+                    c.drawString(RC[4]*mm + 1*mm, y - 4.8*mm, '—')
+
+                c.setStrokeColor(colors.HexColor('#e2e5ef'))
+                c.setLineWidth(0.2)
+                c.line(12*mm, y - rh, w - 12*mm, y - rh)
+                y -= rh
+
+            y -= 6*mm
+
+    # ── BLOCO DE ASSINATURAS ─────────────────────────────────────
+    y = _check_page(c, y, w, h_page, margin=55)
+    y -= 14*mm
+    sig_w = (w - 40*mm) / 2
+    sig_y = y - 12*mm
+
+    c.setStrokeColor(colors.HexColor('#c8cfe0'))
+    c.setLineWidth(0.5)
+
+    # Assinatura esquerda — responsável
+    c.line(12*mm, sig_y, 12*mm + sig_w, sig_y)
+    c.setFillColor(colors.HexColor('#7380a0'))
+    c.setFont('Helvetica', 7)
+    c.drawCentredString(12*mm + sig_w / 2, sig_y - 4*mm, responsavel or 'Responsável pela Solicitação')
+    c.setFont('Helvetica-Bold', 6.5)
+    c.drawCentredString(12*mm + sig_w / 2, sig_y - 8*mm, 'SOLICITANTE')
+
+    # Assinatura direita — recebedor
+    c.line(w - 12*mm - sig_w, sig_y, w - 12*mm, sig_y)
+    c.setFont('Helvetica', 7)
+    c.drawCentredString(w - 12*mm - sig_w / 2, sig_y - 4*mm, '_________________________________')
+    c.setFont('Helvetica-Bold', 6.5)
+    c.drawCentredString(w - 12*mm - sig_w / 2, sig_y - 8*mm, 'RESPONSÁVEL PELO RECEBIMENTO')
+
+    # ── RODAPÉ ──────────────────────────────────────────────────
+    c.setFillColor(colors.HexColor('#7380a0'))
+    c.setFont('Helvetica', 7)
+    c.drawCentredString(w / 2, 10*mm,
+        f'SIPAT — Termo de Recebimento {solicitacao.codigo} — Gerado em {gerado_em}')
 
     c.save()
     return resp

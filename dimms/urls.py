@@ -81,6 +81,7 @@ urlpatterns = [
     path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
     path('saldo-ativo/remessa/<int:remessa_pk>/receber/', saldo_ativo_confirmar_recebimento, name='saldo_ativo_confirmar_recebimento'),
     path('saldo-ativo/solicitacao/<int:pk>/pdf/', pdf_relatorio_solicitacao, name='pdf_relatorio_solicitacao'),
+    path('saldo-ativo/solicitacao/<int:pk>/pdf-carga/', pdf_carga_recebida, name='pdf_carga_recebida'),
     path('saldo-ativo/relatorio/recebimentos/', relatorio_recebimentos, name='relatorio_recebimentos'),
 
 

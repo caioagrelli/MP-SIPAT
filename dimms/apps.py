@@ -9,3 +9,6 @@ from django.apps import AppConfig
 
 class DimmsConfig(AppConfig):
     name = 'dimms'
+
+    def ready(self):
+        import dimms.signals  # noqa: F401
