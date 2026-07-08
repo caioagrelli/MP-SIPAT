@@ -412,12 +412,20 @@ def contrato_detail(request, pk):
         contrato_saldo=contrato
     ).select_related('efisco')
 
-    form = SaldoAtivoItemForm()
+    from ..models import SolicitacoesSaldoAtivo
+    solicitacoes = SolicitacoesSaldoAtivo.objects.filter(
+        contrato=contrato
+    ).select_related('usuario').order_by('-data_hora')
+
+    form_saldo = SaldoAtivoItemForm()
+    form_contrato = ContratoForm(instance=contrato)
+
+    active_tab = request.GET.get('tab', 'info')
 
     if request.method == 'POST' and 'add_saldo' in request.POST:
-        form = SaldoAtivoItemForm(request.POST)
-        if form.is_valid():
-            saldo = form.save(commit=False)
+        form_saldo = SaldoAtivoItemForm(request.POST)
+        if form_saldo.is_valid():
+            saldo = form_saldo.save(commit=False)
             saldo.contrato_saldo = contrato
             try:
                 saldo.full_clean()
@@ -425,14 +433,22 @@ def contrato_detail(request, pk):
                 messages.success(request, 'Item adicionado ao saldo ativo.')
             except Exception as e:
                 messages.error(request, str(e))
-        return redirect('dimms:contrato_detail', pk=pk)
+        return redirect(f"{request.path}?tab=saldo")
 
     if request.method == 'POST' and 'delete_saldo' in request.POST:
         saldo_id = request.POST.get('saldo_id')
         saldo = get_object_or_404(SaldoAtivo, pk=saldo_id, contrato_saldo=contrato)
         saldo.delete()
         messages.success(request, 'Item removido do saldo ativo.')
-        return redirect('dimms:contrato_detail', pk=pk)
+        return redirect(f"{request.path}?tab=saldo")
+
+    if request.method == 'POST' and 'edit_contrato' in request.POST:
+        form_contrato = ContratoForm(request.POST, instance=contrato)
+        if form_contrato.is_valid():
+            form_contrato.save()
+            messages.success(request, 'Contrato atualizado com sucesso.')
+            return redirect(f"{request.path}?tab=editar")
+        active_tab = 'editar'
 
     from_proposal_pk = request.GET.get('from_proposal')
     from_proposal = None
@@ -442,8 +458,11 @@ def contrato_detail(request, pk):
     return render(request, 'dimms/artifacts/contrato_detail.html', {
         'contrato': contrato,
         'saldos': saldos,
-        'form': form,
+        'solicitacoes': solicitacoes,
+        'form': form_saldo,
+        'form_contrato': form_contrato,
         'from_proposal': from_proposal,
+        'active_tab': active_tab,
     })
 
 

@@ -315,6 +315,42 @@
   .empty-state { padding:40px; text-align:center; color:var(--ink-3); }
   .empty-icon { font-size:2rem; opacity:.35; margin-bottom:10px; }
 
+  /* Dados da solicitação */
+  .dados-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .dados-head {
+    padding: 13px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dados-head-title { font-size:.85rem; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .dados-body { padding: 18px 20px; }
+  .dados-info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:18px; }
+  @media(max-width:700px){ .dados-info-grid { grid-template-columns:1fr 1fr; } }
+  .dados-info-item { padding:10px 14px; border-bottom:1px solid var(--border); border-right:1px solid var(--border); }
+  .dados-info-item:nth-child(3n){ border-right:none; }
+  .dados-info-item:nth-last-child(-n+3){ border-bottom:none; }
+  .dados-info-label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); margin-bottom:4px; }
+  .dados-info-value { font-size:.88rem; font-weight:600; color:var(--ink); }
+  .dados-info-value.mono { font-family:var(--mono); color:var(--blue); }
+  .dados-info-value.empty { color:var(--ink-3); font-style:italic; font-weight:400; font-size:.82rem; }
+
+  .form-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:600px){ .form-edit-grid{ grid-template-columns:1fr; } }
+  .file-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .file-link { display:inline-flex; align-items:center; gap:5px; font-size:.82rem; color:var(--blue); text-decoration:none; font-weight:600; }
+  .file-link:hover { text-decoration:underline; }
+
   @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 
   @media (max-width:900px) {
@@ -377,6 +413,96 @@
     <div class="meta-card">
       <div class="meta-label">Data de Abertura</div>
       <div class="meta-value small">{{ solicitacao.data_hora|date:"d/m/Y"|default:"—" }}</div>
+    </div>
+  </div>
+
+  <!-- DADOS DA SOLICITAÇÃO -->
+  <div class="dados-card">
+    <div class="dados-head">
+      <div class="dados-head-title">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Dados da Solicitação
+      </div>
+    </div>
+    <div>
+      <!-- Info grid somente leitura -->
+      <div class="dados-info-grid">
+        <div class="dados-info-item">
+          <div class="dados-info-label">Solicitante</div>
+          <div class="dados-info-value">{{ solicitacao.usuario.get_full_name|default:solicitacao.usuario.username|default:"—" }}</div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">Data de Abertura</div>
+          <div class="dados-info-value">{{ solicitacao.data_hora|date:"d/m/Y \à\s H:i"|default:"—" }}</div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">Contrato</div>
+          <div class="dados-info-value mono">{{ solicitacao.contrato.contrato }}</div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">N° SEI</div>
+          <div class="dados-info-value mono {% if not solicitacao.numero_sei %}empty{% endif %}">
+            {{ solicitacao.numero_sei|default:"Não informado" }}
+          </div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">N° Empenho</div>
+          <div class="dados-info-value mono {% if not solicitacao.numero_empenho %}empty{% endif %}">
+            {{ solicitacao.numero_empenho|default:"Não informado" }}
+          </div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">Nota Fiscal</div>
+          <div class="dados-info-value">
+            {% if solicitacao.nota_fiscal %}
+              <a href="{{ solicitacao.nota_fiscal.url }}" target="_blank" class="file-link">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Visualizar PDF
+              </a>
+            {% else %}
+              <span class="dados-info-value empty">Não anexada</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário de edição dos campos adicionais -->
+      <form method="post" enctype="multipart/form-data" style="border-top:1px solid var(--border);padding:16px 20px;">
+        {% csrf_token %}
+        <input type="hidden" name="atualizar_dados" value="1">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:12px;">Atualizar Dados</div>
+        <div class="form-edit-grid">
+          <div class="form-group">
+            <label class="form-label">N° SEI</label>
+            <input type="text" name="numero_sei" class="form-input" value="{{ solicitacao.numero_sei }}" placeholder="Ex: 19.00.0000.0000000/0000-00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">N° Empenho</label>
+            <input type="text" name="numero_empenho" class="form-input" value="{{ solicitacao.numero_empenho }}" placeholder="Ex: 2026NE000123">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Nota Fiscal (PDF)</label>
+            <div class="file-row">
+              <input type="file" name="nota_fiscal" accept=".pdf,application/pdf" style="flex:1;font-size:.83rem;">
+              {% if solicitacao.nota_fiscal %}
+                <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--red);cursor:pointer;font-weight:600;">
+                  <input type="checkbox" name="remover_nota_fiscal" value="1" style="width:auto;">
+                  Remover arquivo atual
+                </label>
+              {% endif %}
+            </div>
+            {% if solicitacao.nota_fiscal %}
+              <div style="font-size:.75rem;color:var(--ink-3);margin-top:4px;">Arquivo atual: <a href="{{ solicitacao.nota_fiscal.url }}" target="_blank" style="color:var(--blue);">{{ solicitacao.nota_fiscal.name|slice:"30:" }}</a></div>
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salvar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -711,9 +837,13 @@
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
       Voltar
     </a>
-    <a href="{% url 'dimms:pdf_relatorio_solicitacao' solicitacao.pk %}" class="btn btn-primary" target="_blank">
+    <a href="{% url 'dimms:pdf_relatorio_solicitacao' solicitacao.pk %}" class="btn btn-ghost" target="_blank">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Gerar PDF
+      PDF Solicitação
+    </a>
+    <a href="{% url 'dimms:pdf_carga_recebida' solicitacao.pk %}" class="btn btn-primary" target="_blank">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="11" y2="16"/></svg>
+      Termo de Carga Recebida
     </a>
   </div>
 

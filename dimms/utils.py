@@ -83,6 +83,11 @@ def path_comprovante_remessa(instance, filename):
     ext = os.path.splitext(filename)[1]
     return f'saldo_ativo/remessas/comprovantes/{instance.pk or "novo"}{ext}'
 
+def path_nota_fiscal_solicitacao(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    codigo = (instance.codigo or 'novo').replace('/', '-')
+    return f'saldo_ativo/solicitacoes/nota_fiscal/{codigo}{ext}'
+
 
 ''' Choices'''
 # Grupos dos bens de consumo 

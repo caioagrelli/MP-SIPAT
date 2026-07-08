@@ -142,8 +142,25 @@ class SolicitacoesSaldoAtivo(models.Model):
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
     )
-    
-    
+
+    numero_sei = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='N° SEI',
+    )
+
+    numero_empenho = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='N° Empenho',
+    )
+
+    nota_fiscal = models.FileField(
+        upload_to=path_nota_fiscal_solicitacao,
+        blank=True,
+        null=True,
+        verbose_name='Nota Fiscal (PDF)',
+    )
 
     class Meta():
         verbose_name='Solicitação Saldo Ativo'
@@ -202,12 +219,23 @@ class ItensSolicitados(models.Model):
                     'Esse item não pertence ao contrato desta solicitação.'
                 )
 
-        # Verifica se tem saldo suficiente
-        if self.bem_id and self.quantidade:
+        # Verifica se tem saldo suficiente (só valida em criação)
+        if self.pk is None and self.bem_id and self.quantidade:
             if self.quantidade > (self.bem.saldo_disponivel or 0):
                 raise ValidationError(
-                    'Quantidade solicitada maior que o saldo disponível.'
+                    f'Quantidade solicitada ({self.quantidade}) maior que o saldo disponível ({self.bem.saldo_disponivel or 0}).'
                 )
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        self.full_clean()
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            # Desconta do saldo ativo no momento da solicitação
+            if is_new and self.bem_id and self.quantidade:
+                bem = self.bem
+                bem.saldo_disponivel = max(0, (bem.saldo_disponivel or 0) - self.quantidade)
+                bem.save(update_fields=['saldo_disponivel'])
 
     class Meta:
         verbose_name = 'Bens Solicitado'
@@ -285,9 +313,8 @@ class BensEnviados(models.Model):
                 f'excede a quantidade solicitada ({self.item_enviado.quantidade}).'
             )
 
-        bem = self.item_enviado.bem
-        if bem and self.quantidade_enviada > (bem.saldo_disponivel or 0):
-            raise ValidationError('Quantidade enviada maior que o saldo disponível no contrato.')
+        # Nenhuma validação de saldo aqui — o saldo é descontado ao solicitar o item,
+        # não ao registrar remessa.
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -302,13 +329,6 @@ class BensEnviados(models.Model):
         self.full_clean()
         with transaction.atomic():
             super().save(*args, **kwargs)
-
-            # Desconta do saldo do contrato ao registrar a remessa
-            if is_new:
-                bem = self.item_enviado.bem
-                if bem:
-                    bem.saldo_disponivel = (bem.saldo_disponivel or 0) - self.quantidade_enviada
-                    bem.save(update_fields=['saldo_disponivel'])
 
             # Aumenta o estoque físico quando o recebimento é confirmado
             if recebimento_confirmado:

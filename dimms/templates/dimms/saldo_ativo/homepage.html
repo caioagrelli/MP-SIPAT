@@ -113,6 +113,16 @@
   .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
   .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
   .btn-sm{padding:6px 12px;font-size:.8rem;}
+
+  /* Busca */
+  .search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 12px;box-shadow:var(--shadow-sm);transition:border-color .15s;}
+  .search-bar:focus-within{border-color:var(--accent);}
+  .search-bar svg{color:var(--ink-3);flex-shrink:0;}
+  .search-bar input{border:none;outline:none;background:transparent;font-family:var(--font);font-size:.85rem;color:var(--ink);padding:8px 4px;width:220px;}
+  .search-bar input::placeholder{color:var(--ink-3);}
+  .search-clear{background:none;border:none;cursor:pointer;color:var(--ink-3);display:flex;align-items:center;padding:2px;border-radius:4px;}
+  .search-clear:hover{color:var(--ink);}
+  .resultado-count{font-size:.8rem;color:var(--ink-3);font-weight:500;}
 </style>
 
 <div class="sapage">
@@ -123,6 +133,17 @@
       <div class="topbar-sub">Gestão de contratos e itens disponíveis</div>
     </div>
     <div class="topbar-actions">
+      <form method="get" action="" id="searchForm">
+        <div class="search-bar">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" name="q" id="searchInput" placeholder="Buscar por contrato ou fornecedor…" value="{{ q }}" autocomplete="off">
+          {% if q %}
+          <a href="{% url 'dimms:saldo_ativo_homepage' %}" class="search-clear" title="Limpar busca">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </a>
+          {% endif %}
+        </div>
+      </form>
       <a href="{% url 'dimms:relatorio_recebimentos' %}" class="btn btn-ghost">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Recebimentos
@@ -166,7 +187,12 @@
     <!-- Contratos -->
     <div>
       <div class="section-header">
-        <div class="section-title">Contratos</div>
+        <div class="section-title">
+          Contratos
+          {% if q %}
+            <span class="resultado-count" style="margin-left:8px;">— {{ contratos_encontrados }} resultado{{ contratos_encontrados|pluralize:"s" }} para "{{ q }}"</span>
+          {% endif %}
+        </div>
       </div>
 
       {% if contratos %}
@@ -220,7 +246,8 @@
               </form>
               {% endif %}
               <a href="{% url 'dimms:contrato_detail' contrato.pk %}" class="btn btn-ghost btn-sm">
-                Gerenciar
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Visualizar
               </a>
             </div>
           </div>
@@ -268,4 +295,16 @@
 
   </div>
 </div>
+
+<script>
+  // Submete a busca ao parar de digitar (400ms debounce)
+  const searchInput = document.getElementById('searchInput');
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      document.getElementById('searchForm').submit();
+    }, 400);
+  });
+</script>
 {% endblock %}
