@@ -4,23 +4,14 @@ import string
 from django.conf import settings
 from django.core.mail import send_mail
 
-_SYMBOLS = '!@#$%'
-_PASSWORD_CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digits + _SYMBOLS
-_PASSWORD_LENGTH = 12
 _SIPAT_URL = getattr(settings, 'SIPAT_URL', 'http://sipat.local')
 
 
 def generate_temp_password() -> str:
-    required = [
-        secrets.choice(string.ascii_uppercase),
-        secrets.choice(string.ascii_lowercase),
-        secrets.choice(string.digits),
-        secrets.choice(_SYMBOLS),
-    ]
-    rest = [secrets.choice(_PASSWORD_CHARS) for _ in range(_PASSWORD_LENGTH - len(required))]
-    pool = required + rest
-    secrets.SystemRandom().shuffle(pool)
-    return ''.join(pool)
+    """Gera senha no formato Sipat@NNNNX — fácil de digitar e comunicar manualmente."""
+    numero = ''.join(secrets.choice(string.digits) for _ in range(4))
+    sufixo = secrets.choice(string.ascii_uppercase)
+    return f'Sipat@{numero}{sufixo}'
 
 
 def send_welcome_email(user, password: str) -> None:

@@ -25,7 +25,7 @@ from reportlab.pdfgen import canvas
 
 # Importações do Código
 from ..models import Solicitacao, Tramitacao, Estoque
-from ..forms import SolicitacaoForm, SolicitacaoItemFormSet, TramitacaoCreateForm, SolicitacaoStatusUpdateForm
+from ..forms import SolicitacaoForm, SolicitacaoItemFormSet, TramitacaoCreateForm, SolicitacaoStatusUpdateForm, SolicitacaoEditForm
 
 # =========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR/VISUALIZAR SOLICITAÇÕES
@@ -993,3 +993,27 @@ def estoque_search(request):
         [:20]
     )
     return JsonResponse(list(resultados), safe=False)
+
+
+@login_required
+def edit_solicitacao(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    STATUS_EDITAVEIS = ["ATENDIMENTO", "AGUAR_SEPARACAO", "RASCUNHO"]
+    if solicitacao.situation not in STATUS_EDITAVEIS:
+        messages.error(request, 'Não é possível editar uma solicitação com status igual ou superior a "Separada".')
+        return redirect("dimms:details_processing", pk=pk)
+
+    if request.method == "POST":
+        form = SolicitacaoEditForm(request.POST, instance=solicitacao)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Dados da solicitação atualizados com sucesso.")
+            return redirect("dimms:details_processing", pk=pk)
+    else:
+        form = SolicitacaoEditForm(instance=solicitacao)
+
+    return render(request, "dimms/processing/edit_solicitacao.html", {
+        "form": form,
+        "solicitacao": solicitacao,
+    })

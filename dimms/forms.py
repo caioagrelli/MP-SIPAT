@@ -184,6 +184,15 @@ SolicitacaoItemFormSet = inlineformset_factory(
 
 
 
+class SolicitacaoEditForm(forms.ModelForm):
+    class Meta:
+        model = Solicitacao
+        fields = ['ua_order', 'user_order', 'observation_order']
+        widgets = {
+            'observation_order': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
 ''' Tramitações '''
 # Atualizar a tramitação da solicitação (pode escolher)
 class TramitacaoCreateForm(forms.ModelForm):

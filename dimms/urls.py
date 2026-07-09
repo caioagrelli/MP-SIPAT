@@ -42,6 +42,7 @@ urlpatterns = [
     path('processing/<int:pk>/pdf/', pdf_solicitacao, name='pdf_solicitacao'),
     path('processing/parse-guia-remessa/', parse_guia_remessa, name='parse_guia_remessa'),
     path('processing/<int:pk>/edit-itens/', edit_solicitacao_itens, name='edit_solicitacao_itens'),
+    path('processing/<int:pk>/edit/', edit_solicitacao, name='edit_solicitacao'),
     
     
     

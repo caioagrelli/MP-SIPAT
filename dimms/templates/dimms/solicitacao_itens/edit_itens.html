@@ -266,6 +266,12 @@
           Solicitação em <strong>{{ solicitacao.get_situation_display }}</strong>.
         </div>
 
+        {% if formset.non_form_errors %}
+        <div class="error-box" style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#b91c1c;font-weight:600;">
+          {% for error in formset.non_form_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+
         <div class="card">
           <div class="card-head">
             <div class="card-head-left">
@@ -286,7 +292,7 @@
               <div class="item-row" data-form-idx="{{ forloop.counter0 }}">
                 <div class="form-group" style="position:relative;">
                   <label class="form-label">Item do Estoque</label>
-                  <div style="display:none;">{{ form.item_order }}</div>
+                  <div style="display:none;">{{ form.id }}{{ form.item_order }}</div>
                   <input type="text"
                          class="efisco-text"
                          placeholder="Digite o código E-Fisco ou descrição…"
