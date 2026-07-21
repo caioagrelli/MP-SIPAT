@@ -30,7 +30,7 @@
   .topbar-sub { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
 
   /* summary cards */
-  .summary-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .summary-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
   .sum-card {
     background:var(--surface); border:1px solid var(--border);
     border-radius:var(--r-md); box-shadow:var(--shadow-sm);
@@ -38,12 +38,14 @@
   }
   .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
   .sum-card:nth-child(1)::before { background:var(--ink-3); }
-  .sum-card:nth-child(2)::before { background:var(--red); }
-  .sum-card:nth-child(3)::before { background:var(--blue); }
+  .sum-card:nth-child(2)::before { background:var(--amber); }
+  .sum-card:nth-child(3)::before { background:var(--red); }
+  .sum-card:nth-child(4)::before { background:var(--blue); }
   .sum-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
   .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
-  .sum-card:nth-child(2) .sum-value { color:var(--red); }
-  .sum-card:nth-child(3) .sum-value { color:var(--blue); }
+  .sum-card:nth-child(2) .sum-value { color:var(--amber); }
+  .sum-card:nth-child(3) .sum-value { color:var(--red); }
+  .sum-card:nth-child(4) .sum-value { color:var(--blue); }
 
   /* main card */
   .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
@@ -90,6 +92,20 @@
   .badge-bug      { background:var(--red-soft);   border:1px solid var(--red-mid);   color:var(--red); }
   .badge-sugestao { background:var(--blue-soft);  border:1px solid var(--blue-mid);  color:var(--blue); }
 
+  /* status select */
+  .status-select {
+    appearance:none; -webkit-appearance:none; cursor:pointer;
+    border-radius:999px; font-size:.74rem; font-weight:700; white-space:nowrap;
+    padding:4px 26px 4px 10px; border:1px solid transparent; font-family:var(--font);
+    background-repeat:no-repeat; background-position:right 8px center; background-size:10px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+  .status-select:disabled { opacity:.6; cursor:wait; }
+  .status-ABERTO       { background:var(--amber-soft); border-color:var(--amber-mid); color:var(--amber); }
+  .status-EM_ANDAMENTO { background:var(--blue-soft);  border-color:var(--blue-mid);  color:var(--blue); }
+  .status-FINALIZADO   { background:var(--green-soft); border-color:var(--green-mid); color:var(--green); }
+  .status-RECUSADO     { background:var(--surface-2);  border-color:var(--border-strong); color:var(--ink-3); }
+
   /* user cell */
   .user-cell { display:flex; align-items:center; gap:8px; }
   .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#6d28d9); display:grid; place-items:center; font-size:.72rem; font-weight:700; color:#fff; flex-shrink:0; }
@@ -124,10 +140,50 @@
   .empty-sub { font-size:.88rem; color:var(--ink-3); }
 
   /* modal detalhe */
-  .modal-body-detail p { margin-bottom:10px; font-size:.88rem; }
-  .detail-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:4px; }
-  .detail-value { font-size:.92rem; color:var(--ink); line-height:1.6; }
-  .detail-block { margin-bottom:20px; }
+  #modalDetalhe .modal-content { border-radius:var(--r-lg); border:none; box-shadow:0 24px 60px -12px rgba(15,23,42,.28); overflow:hidden; }
+  #modalDetalhe .modal-header { border-bottom:1px solid var(--border); padding:18px 22px; gap:12px; align-items:flex-start; }
+  #modalDetalhe .btn-close { opacity:.45; transition:opacity .15s; margin-top:2px; }
+  #modalDetalhe .btn-close:hover { opacity:.85; }
+  .modal-title-wrap { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .modal-codigo { font-family:var(--mono); font-size:.76rem; font-weight:700; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:2px 8px; }
+  .modal-body-detail { padding:20px 22px 22px; }
+
+  .detail-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:4px; }
+  .detail-value { font-size:.9rem; color:var(--ink); line-height:1.6; }
+  .detail-block { margin-bottom:16px; }
+  .detail-block:last-child { margin-bottom:0; }
+
+  .fb-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:14px 16px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); margin-bottom:18px; }
+
+  .fb-card { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:13px 15px; font-size:.87rem; line-height:1.6; color:var(--ink-2); white-space:pre-wrap; word-break:break-word; }
+  .fb-card-resolvido { background:var(--green-soft); border-color:var(--green-mid); color:#14532d; }
+  .fb-card-mono { font-family:var(--mono); font-size:.82rem; padding:9px 13px; }
+
+  .fb-print-link { display:block; border-radius:12px; border:1px solid var(--border); overflow:hidden; background:var(--surface-2); }
+  .fb-print-link img { display:block; width:100%; max-height:280px; object-fit:contain; background:var(--surface-2); cursor:zoom-in; }
+  .fb-print-hint { margin-top:6px; font-size:.74rem; color:var(--ink-3); }
+
+  .fb-actions { border-top:1px solid var(--border); margin-top:20px; padding-top:16px; }
+  .fb-actions-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .fb-action-btn {
+    display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px;
+    border-radius:999px; font-family:var(--font); font-size:.82rem; font-weight:600;
+    cursor:pointer; border:1.5px solid var(--border-strong); background:var(--surface);
+    color:var(--ink-2); transition:background .15s,border-color .15s,color .15s;
+  }
+  .fb-action-btn:hover { background:var(--surface-2); }
+  .fb-action-btn.primary { background:var(--green); border-color:#12703a; color:#fff; }
+  .fb-action-btn.primary:hover { background:#12703a; }
+  .fb-action-btn.danger { color:var(--red); border-color:var(--red-mid); }
+  .fb-action-btn.danger:hover { background:var(--red-soft); }
+
+  .fb-nota-wrap { margin-top:14px; padding:14px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); }
+  .fb-nota-textarea {
+    width:100%; min-height:74px; resize:vertical; border:1px solid var(--border-strong);
+    border-radius:8px; padding:10px 12px; font-family:var(--font); font-size:.85rem;
+    color:var(--ink); outline:none; background:var(--surface);
+  }
+  .fb-nota-textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
 </style>
 
 <div class="apage">
@@ -145,6 +201,10 @@
     <div class="sum-card">
       <div class="sum-label">Total</div>
       <div class="sum-value">{{ total }}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">⏳ Em Aberto</div>
+      <div class="sum-value">{{ total_aberto }}</div>
     </div>
     <div class="sum-card">
       <div class="sum-label">🐛 Bugs</div>
@@ -179,6 +239,15 @@
           <option value="sugestao" {% if tipo == 'sugestao' %}selected{% endif %}>💡 Sugestão</option>
         </select>
       </div>
+      <div class="filter-group" style="max-width:180px;">
+        <label class="filter-label">Status</label>
+        <select class="filter-select" name="status">
+          <option value="">Todos</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="filter-actions">
         <button type="submit" class="btn-filter btn-filter-primary">Filtrar</button>
         <a href="{% url 'accounts:lista_feedback' %}" class="btn-filter btn-filter-ghost">Limpar</a>
@@ -191,8 +260,10 @@
       <table>
         <thead>
           <tr>
+            <th>Código</th>
             <th>Data</th>
             <th>Tipo</th>
+            <th>Status</th>
             <th>Usuário</th>
             <th>Página</th>
             <th>Descrição</th>
@@ -200,32 +271,46 @@
         </thead>
         <tbody>
           {% for fb in feedbacks %}
-          <tr onclick="abrirDetalhe({{ fb.pk }})" title="Clique para ver detalhes">
-            <td class="data-cell">
+          <tr title="Clique para ver detalhes">
+            <td class="data-cell" onclick="abrirDetalhe({{ fb.pk }})" style="font-weight:700;color:var(--ink);">
+              {{ fb.codigo }}
+            </td>
+            <td class="data-cell" onclick="abrirDetalhe({{ fb.pk }})">
               {{ fb.criado_em|date:"d/m/Y" }}<br>
               <span style="font-size:.72rem;color:#94a3b8;">{{ fb.criado_em|date:"H:i" }}</span>
             </td>
-            <td>
+            <td onclick="abrirDetalhe({{ fb.pk }})">
               {% if fb.tipo == 'bug' %}
                 <span class="badge badge-bug">🐛 Bug</span>
               {% else %}
                 <span class="badge badge-sugestao">💡 Sugestão</span>
               {% endif %}
             </td>
-            <td>
+            <td onclick="event.stopPropagation();">
+              <select class="status-select status-{{ fb.status }}"
+                      data-atual="{{ fb.status }}"
+                      data-pk="{{ fb.pk }}"
+                      onclick="event.stopPropagation();"
+                      onchange="mudarStatus({{ fb.pk }}, this)">
+                {% for value, label in status_choices %}
+                  <option value="{{ value }}" {% if fb.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td onclick="abrirDetalhe({{ fb.pk }})">
               <div class="user-cell">
                 <div class="avatar">{{ fb.user.get_full_name|default:fb.user.username|slice:":2"|upper }}</div>
                 <div class="user-name">{{ fb.user.get_full_name|default:fb.user.username }}</div>
               </div>
             </td>
-            <td>
+            <td onclick="abrirDetalhe({{ fb.pk }})">
               {% if fb.pagina %}
                 <span class="pagina-tag" title="{{ fb.pagina }}">{{ fb.pagina }}</span>
               {% else %}
                 <span style="color:#94a3b8;font-size:.8rem;">—</span>
               {% endif %}
             </td>
-            <td class="descricao-cell">
+            <td class="descricao-cell" onclick="abrirDetalhe({{ fb.pk }})">
             <div class="descricao-inner">{{ fb.descricao }}</div>
             {% if fb.imagem %}<span style="font-size:.76rem;color:#1d4ed8;">🖼 print</span>{% endif %}
           </td>
@@ -246,14 +331,17 @@
 
 <!-- Modal detalhe -->
 <div class="modal fade" id="modalDetalhe" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
-    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,.18);">
-      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;padding:20px 24px 16px;">
-        <h5 class="modal-title" style="font-size:1rem;font-weight:700;color:#0f172a;" id="detalheModalTitulo">Detalhe do Feedback</h5>
+  <div class="modal-dialog modal-dialog-centered" style="max-width:540px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-codigo" id="detalheModalCodigo"></span>
+          <h5 class="modal-title" style="font-size:1rem;font-weight:800;color:var(--ink);margin:0;" id="detalheModalTitulo">Detalhe do Feedback</h5>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body modal-body-detail" style="padding:22px 24px;" id="detalheConteudo">
-        <div style="text-align:center;padding:30px 0;color:#94a3b8;">Carregando…</div>
+      <div class="modal-body modal-body-detail" id="detalheConteudo">
+        <div style="text-align:center;padding:30px 0;color:var(--ink-3);">Carregando…</div>
       </div>
     </div>
   </div>
@@ -269,6 +357,10 @@ const FEEDBACKS = {
   {{ fb.pk }}: {
     tipoLabel: "{% if fb.tipo == 'bug' %}🐛 Bug{% else %}💡 Sugestão{% endif %}",
     tipoBadge: "{% if fb.tipo == 'bug' %}badge-bug{% else %}badge-sugestao{% endif %}",
+    codigo: "{{ fb.codigo|escapejs }}",
+    statusLabel: "{{ fb.get_status_display|escapejs }}",
+    statusClass: "status-{{ fb.status }}",
+    resolucao: "{{ fb.resolucao|escapejs }}",
     usuario: "{{ fb.user.get_full_name|default:fb.user.username|escapejs }}",
     email: "{{ fb.user.email|escapejs }}",
     pagina: "{{ fb.pagina|escapejs }}",
@@ -278,49 +370,156 @@ const FEEDBACKS = {
   {% endfor %}
 };
 
+function getCookie(name) {
+  const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return match ? match.pop() : '';
+}
+
+function enviarNovoStatus(pk, status, resolucao) {
+  const url = "{% url 'accounts:atualizar_status_feedback' pk=0 %}".replace('0/status', pk + '/status');
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `status=${encodeURIComponent(status)}&resolucao=${encodeURIComponent(resolucao || '')}`,
+  }).then(r => r.json());
+}
+
+function atualizarLocal(pk, data) {
+  const fb = FEEDBACKS[pk];
+  if (fb) {
+    fb.statusLabel = data.label;
+    fb.statusClass = 'status-' + data.status;
+    fb.resolucao = data.resolucao || '';
+  }
+  const sel = document.querySelector(`select[data-pk="${pk}"]`);
+  if (sel) {
+    sel.value = data.status;
+    sel.className = 'status-select status-' + data.status;
+    sel.dataset.atual = data.status;
+  }
+}
+
+function mudarStatusRapido(pk, status) {
+  enviarNovoStatus(pk, status, '')
+    .then(data => {
+      if (!data.ok) throw new Error(data.error || 'Falha ao atualizar status.');
+      atualizarLocal(pk, data);
+      renderDetalhe(pk);
+    })
+    .catch(err => alert(err.message));
+}
+
+function mostrarNota(pk, status) {
+  const wrap = document.getElementById('notaWrap');
+  document.getElementById('notaTexto').value = '';
+  wrap.style.display = 'block';
+  document.getElementById('notaConfirmar').onclick = () => {
+    const nota = document.getElementById('notaTexto').value.trim();
+    enviarNovoStatus(pk, status, nota)
+      .then(data => {
+        if (!data.ok) throw new Error(data.error || 'Falha ao atualizar status.');
+        atualizarLocal(pk, data);
+        renderDetalhe(pk);
+      })
+      .catch(err => alert(err.message));
+  };
+}
+
+function mudarStatus(pk, select) {
+  const statusAnterior = select.dataset.atual || select.value;
+  select.disabled = true;
+
+  enviarNovoStatus(pk, select.value, '')
+    .then(data => {
+      if (!data.ok) throw new Error(data.error || 'Falha ao atualizar status.');
+      atualizarLocal(pk, data);
+    })
+    .catch(err => {
+      alert(err.message);
+      select.value = statusAnterior;
+    })
+    .finally(() => { select.disabled = false; });
+}
+
 function abrirDetalhe(pk) {
+  renderDetalhe(pk);
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDetalhe')).show();
+}
+
+function renderDetalhe(pk) {
   const fb = FEEDBACKS[pk];
   if (!fb) return;
 
   const desc = document.getElementById('fb-desc-' + pk)?.textContent || '';
 
-  document.getElementById('detalheModalTitulo').textContent = fb.tipoLabel + ' — ' + fb.data;
+  document.getElementById('detalheModalCodigo').textContent = fb.codigo;
+  document.getElementById('detalheModalTitulo').textContent = fb.tipoLabel;
 
   const imgBlock = fb.imagem ? `
     <div class="detail-block">
       <div class="detail-label">Print</div>
-      <a href="${fb.imagem}" target="_blank">
-        <img src="${fb.imagem}" alt="print"
-          style="width:100%;border-radius:10px;border:1px solid #e2e5ef;cursor:zoom-in;max-height:300px;object-fit:contain;background:#f8fafc;">
+      <a href="${fb.imagem}" target="_blank" class="fb-print-link">
+        <img src="${fb.imagem}" alt="print">
       </a>
-      <div style="margin-top:4px;font-size:.76rem;color:#94a3b8;">Clique para abrir em tamanho real</div>
+      <div class="fb-print-hint">Clique na imagem para abrir em tamanho real</div>
     </div>` : '';
 
   document.getElementById('detalheConteudo').innerHTML = `
-    <div class="detail-block">
-      <div class="detail-label">Tipo</div>
-      <span class="badge ${fb.tipoBadge}">${fb.tipoLabel}</span>
+    <div class="fb-meta-grid">
+      <div class="fb-meta-item">
+        <div class="detail-label">Tipo</div>
+        <span class="badge ${fb.tipoBadge}">${fb.tipoLabel}</span>
+      </div>
+      <div class="fb-meta-item">
+        <div class="detail-label">Status</div>
+        <span class="status-select ${fb.statusClass}" style="display:inline-block;pointer-events:none;">${fb.statusLabel}</span>
+      </div>
+      <div class="fb-meta-item">
+        <div class="detail-label">Usuário</div>
+        <div class="detail-value" style="font-size:.85rem;">${fb.usuario}</div>
+      </div>
+      <div class="fb-meta-item">
+        <div class="detail-label">Data</div>
+        <div class="detail-value" style="font-size:.85rem;">${fb.data}</div>
+      </div>
     </div>
-    <div class="detail-block">
-      <div class="detail-label">Usuário</div>
-      <div class="detail-value">${fb.usuario}${fb.email ? ' <span style="color:#94a3b8;font-size:.83rem;">(' + fb.email + ')</span>' : ''}</div>
-    </div>
+
     ${fb.pagina ? `<div class="detail-block">
       <div class="detail-label">Página</div>
-      <div class="detail-value" style="font-family:monospace;font-size:.88rem;background:#f7f8fc;border:1px solid #e2e5ef;border-radius:8px;padding:6px 12px;">${fb.pagina}</div>
+      <div class="fb-card fb-card-mono">${fb.pagina}</div>
     </div>` : ''}
-    <div class="detail-block">
-      <div class="detail-label">Data</div>
-      <div class="detail-value">${fb.data}</div>
-    </div>
+
     <div class="detail-block">
       <div class="detail-label">Descrição</div>
-      <div class="detail-value" style="background:#f7f8fc;border:1px solid #e2e5ef;border-radius:10px;padding:14px 16px;white-space:pre-wrap;line-height:1.6;">${desc}</div>
+      <div class="fb-card">${desc}</div>
     </div>
-    ${imgBlock}
-  `;
 
-  new bootstrap.Modal(document.getElementById('modalDetalhe')).show();
+    ${imgBlock}
+
+    ${fb.resolucao ? `<div class="detail-block">
+      <div class="detail-label">✓ O que foi feito</div>
+      <div class="fb-card fb-card-resolvido">${fb.resolucao}</div>
+    </div>` : ''}
+
+    <div class="fb-actions">
+      <div class="detail-label" style="margin-bottom:10px;">Ações</div>
+      <div class="fb-actions-row">
+        <button type="button" class="fb-action-btn" onclick="mudarStatusRapido(${pk}, 'EM_ANDAMENTO')">▶ Estou fazendo</button>
+        <button type="button" class="fb-action-btn primary" onclick="mostrarNota(${pk}, 'FINALIZADO')">✓ Dar como resolvida</button>
+        <button type="button" class="fb-action-btn danger" onclick="mostrarNota(${pk}, 'RECUSADO')">✕ Recusar</button>
+      </div>
+      <div id="notaWrap" class="fb-nota-wrap" style="display:none;">
+        <textarea id="notaTexto" class="fb-nota-textarea" placeholder="O que foi feito? (opcional)"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+          <button type="button" class="fb-action-btn" onclick="document.getElementById('notaWrap').style.display='none'">Cancelar</button>
+          <button type="button" class="fb-action-btn primary" id="notaConfirmar">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 </script>
 

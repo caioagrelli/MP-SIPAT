@@ -5,7 +5,7 @@ class ForcePasswordChangeMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    EXEMPT_PREFIXES = ('/access/trocar-senha/', '/login/', '/logout/', '/admin/', '/static/', '/media/', '/oidc/', '/password-reset/', '/reset/')
+    EXEMPT_PREFIXES = ('/access/trocar-senha/', '/login/', '/logout/', '/accounts/logout/', '/admin/', '/static/', '/media/', '/oidc/', '/password-reset/', '/reset/')
 
     def __call__(self, request):
         if request.user.is_authenticated:

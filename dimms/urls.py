@@ -43,6 +43,10 @@ urlpatterns = [
     path('processing/parse-guia-remessa/', parse_guia_remessa, name='parse_guia_remessa'),
     path('processing/<int:pk>/edit-itens/', edit_solicitacao_itens, name='edit_solicitacao_itens'),
     path('processing/<int:pk>/edit/', edit_solicitacao, name='edit_solicitacao'),
+    path('processing/<int:pk>/receber/', receber_solicitacao, name='receber_solicitacao'),
+    path('processing/<int:solicitacao_pk>/receber/<int:tramitacao_pk>/confirmacao/', receber_confirmacao, name='receber_confirmacao'),
+    path('processing/<int:solicitacao_pk>/receber/<int:tramitacao_pk>/pdf/', pdf_termo_recebimento, name='pdf_termo_recebimento'),
+    path('processing/<int:solicitacao_pk>/receber/<int:tramitacao_pk>/anexar/', anexar_termo_assinado, name='anexar_termo_assinado'),
     
     
     
@@ -78,6 +82,8 @@ urlpatterns = [
     path('saldo-ativo/fornecedor/criar/', fornecedor_criar_saldoativo, name='fornecedor_criar_saldoativo'),
     path('saldo-ativo/solicitacoes/', saldo_ativo_solicitacoes, name='saldo_ativo_solicitacoes'),
     path('saldo-ativo/solicitacao/criar/', saldo_ativo_solicitacao_create, name='saldo_ativo_solicitacao_create'),
+    path('saldo-ativo/itens-por-contrato/', saldo_ativo_itens_por_contrato, name='saldo_ativo_itens_por_contrato'),
+    path('saldo-ativo/contrato-search/', saldo_ativo_contrato_search, name='saldo_ativo_contrato_search'),
     path('saldo-ativo/solicitacao/<int:pk>/', saldo_ativo_solicitacao_detail, name='saldo_ativo_solicitacao_detail'),
     path('saldo-ativo/envio/<int:item_pk>/', saldo_ativo_confirmar_envio, name='saldo_ativo_confirmar_envio'),
     path('saldo-ativo/remessa/<int:remessa_pk>/receber/', saldo_ativo_confirmar_recebimento, name='saldo_ativo_confirmar_recebimento'),

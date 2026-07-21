@@ -40,6 +40,7 @@ urlpatterns = [
     path('dimrcbp/', include(('dimrcbp.urls', 'dimrcbp'), namespace='dimrcbp')),
     path('access/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('demands/', include(('demands.urls', 'demands'), namespace='demands')),
+    path('manutencao/', include(('manutencao.urls', 'manutencao'), namespace='manutencao')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

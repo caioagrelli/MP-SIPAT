@@ -25,7 +25,11 @@ from reportlab.pdfgen import canvas
 
 # Importações do Código
 from ..models import Solicitacao, Tramitacao, Estoque
-from ..forms import SolicitacaoForm, SolicitacaoItemFormSet, TramitacaoCreateForm, SolicitacaoStatusUpdateForm, SolicitacaoEditForm
+from ..forms import (
+    SolicitacaoForm, SolicitacaoItemFormSet, TramitacaoCreateForm, SolicitacaoStatusUpdateForm,
+    SolicitacaoEditForm, ReceberSolicitacaoForm, AnexarTermoAssinadoForm,
+)
+from ..utils import StatusTramitacao, parse_quantidade
 
 # =========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR/VISUALIZAR SOLICITAÇÕES
@@ -117,6 +121,10 @@ def details_processing(request, pk):
 
     ultima_tramitacao = historico_tramitacao.last()
 
+    tramitacao_recebimento = (
+        historico_tramitacao.filter(update=StatusTramitacao.recebida).last()
+    )
+
     etapas_fluxo = [
         {"codigo": "ATENDIMENTO", "label": "Em atendimento"},
         {"codigo": "AGUAR_SEPARACAO", "label": "Aguardando separação"},
@@ -147,6 +155,8 @@ def details_processing(request, pk):
         'historico_tramitacao': historico_tramitacao,
         'ultima_tramitacao': ultima_tramitacao,
         'etapas_fluxo': etapas_fluxo,
+        'tramitacao_recebimento': tramitacao_recebimento,
+        'anexar_termo_form': AnexarTermoAssinadoForm(),
     }
 
     return render(request, 'dimms/processing/details_processing.html', context)
@@ -654,7 +664,7 @@ def parse_guia_remessa(request):
                             if efisco_match and qty_raw:
                                 efisco = efisco_match.group(1)
                                 try:
-                                    qty = int(float(qty_raw.replace(',', '.')))
+                                    qty = parse_quantidade(qty_raw)
                                 except (ValueError, TypeError):
                                     qty = 0
                                 if qty > 0:
@@ -755,7 +765,7 @@ def create_request(request):
                         'id': estoque.pk,
                         'efisco': estoque.item_shock.efisco,
                         'descricao': estoque.item_shock.descricao_efisco,
-                        'amount_shock': estoque.amount_shock,
+                        'amount_shock': str(estoque.amount_shock),
                         'amount_order': f['amount_order'].value() or '',
                     })
                 except Estoque.DoesNotExist:
@@ -800,6 +810,232 @@ def create_update(request):
         'ultimas_solicitacoes': ultimas_solicitacoes,
     }
     return render(request, 'dimms/processing/create_update.html', context)
+
+# Registrar o recebimento de uma solicitação (quem recebeu + foto) e virar "Recebida"
+@login_required
+def receber_solicitacao(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    if request.method == 'POST':
+        form = ReceberSolicitacaoForm(request.POST, request.FILES)
+        if form.is_valid():
+            tramitacao = Tramitacao.objects.create(
+                request_update=solicitacao,
+                update=StatusTramitacao.recebida,
+                responsible_update=form.cleaned_data['nome_recebedor'],
+                photo_update=form.cleaned_data.get('foto_recebedor'),
+                user_update=request.user,
+            )
+            messages.success(request, 'Recebimento registrado com sucesso.')
+            return redirect('dimms:receber_confirmacao', solicitacao_pk=solicitacao.pk, tramitacao_pk=tramitacao.pk)
+    else:
+        form = ReceberSolicitacaoForm()
+
+    return render(request, 'dimms/processing/receber_solicitacao.html', {
+        'form': form,
+        'solicitacao': solicitacao,
+    })
+
+
+# Página de confirmação logo após registrar o recebimento — abre o termo em PDF
+# pra assinar e já deixa pronto pra anexar o termo assinado de volta
+@login_required
+def receber_confirmacao(request, solicitacao_pk, tramitacao_pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=solicitacao_pk)
+    tramitacao = get_object_or_404(
+        Tramitacao, pk=tramitacao_pk, request_update=solicitacao,
+    )
+
+    return render(request, 'dimms/processing/receber_confirmacao.html', {
+        'solicitacao': solicitacao,
+        'tramitacao': tramitacao,
+        'anexar_termo_form': AnexarTermoAssinadoForm(),
+    })
+
+
+# PDF do termo de recebimento de uma solicitação recebida
+@login_required
+def pdf_termo_recebimento(request, solicitacao_pk, tramitacao_pk):
+    solicitacao = get_object_or_404(
+        Solicitacao.objects.select_related('ua_order'),
+        pk=solicitacao_pk,
+    )
+    tramitacao = get_object_or_404(
+        Tramitacao.objects.select_related('request_update'),
+        pk=tramitacao_pk,
+        request_update=solicitacao,
+    )
+    itens = (
+        solicitacao.bens_solicitados
+        .select_related('item_order__item_shock')
+        .all()
+    )
+
+    logo_reader = None
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        logo_reader = ImageReader(logo_path)
+
+    resp = HttpResponse(content_type='application/pdf')
+    safe_code = "".join(ch for ch in str(solicitacao.request_code) if ch.isalnum() or ch in ('-', '_'))
+    resp['Content-Disposition'] = f'inline; filename="termo_recebimento_{safe_code}.pdf"'
+
+    w, h_page = A4
+    c = canvas.Canvas(resp, pagesize=A4)
+
+    def section(title, y):
+        c.setFillColor(colors.HexColor('#1e2d42'))
+        c.rect(14 * mm, y - 7 * mm, w - 28 * mm, 8 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 8.5)
+        c.drawString(17 * mm, y - 4.5 * mm, title.upper())
+        return y - 15 * mm
+
+    def row(label, value, y, shade=False):
+        rh = 7 * mm
+        if shade:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica-Bold', 7.5)
+        c.drawString(17 * mm, y - 4.8 * mm, label.upper())
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 8.5)
+        c.drawString(75 * mm, y - 4.8 * mm, str(value) if value else '—')
+        c.setStrokeColor(colors.HexColor('#e2e5ef'))
+        c.setLineWidth(0.3)
+        c.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        return y - rh
+
+    def footer():
+        c.setFillColor(colors.HexColor('#e2e5ef'))
+        c.rect(0, 0, w, 10 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#7380a0'))
+        c.setFont('Helvetica', 7)
+        c.drawCentredString(
+            w / 2, 3.8 * mm,
+            f'SIPAT — Gerado em {datetime.now().strftime("%d/%m/%Y às %H:%M")} | '
+            f'{solicitacao.request_code} | Termo de Recebimento'
+        )
+
+    # ── Cabeçalho ─────────────────────────────────────────────────────────
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(0, h_page - 44 * mm, w, 44 * mm, fill=1, stroke=0)
+
+    if logo_reader:
+        c.drawImage(logo_reader, 14 * mm, h_page - 37 * mm, width=22 * mm, height=22 * mm, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 13)
+    c.drawString(42 * mm, h_page - 18 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    c.setFont('Helvetica', 9)
+    c.drawString(42 * mm, h_page - 25 * mm, 'SIPAT — Sistema Integrado Patrimonial')
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(42 * mm, h_page - 34 * mm, 'TERMO DE RECEBIMENTO DE MATERIAL')
+
+    c.setFont('Helvetica', 8)
+    c.drawRightString(w - 14 * mm, h_page - 18 * mm, f'Solicitação: {solicitacao.request_code}')
+    if tramitacao.date_update:
+        c.drawRightString(w - 14 * mm, h_page - 25 * mm, tramitacao.date_update.strftime('%d/%m/%Y %H:%M'))
+
+    y = h_page - 57 * mm
+
+    # ── Dados da Solicitação ──────────────────────────────────────────────
+    y = section('Dados da Solicitação', y)
+    for i, (lbl, val) in enumerate([
+        ('Código',              solicitacao.request_code),
+        ('UA Solicitante',      str(solicitacao.ua_order) if solicitacao.ua_order else '—'),
+        ('Usuário Solicitante', solicitacao.user_order or '—'),
+        ('Recebido por',        tramitacao.responsible_update or '—'),
+        ('Data do Recebimento', tramitacao.date_update.strftime('%d/%m/%Y às %H:%M') if tramitacao.date_update else '—'),
+    ]):
+        y = row(lbl, val, y, shade=(i % 2 == 1))
+
+    y -= 6 * mm
+
+    # ── Itens Recebidos ─────────────────────────────────────────────────────
+    if y < 60 * mm:
+        footer()
+        c.showPage()
+        y = h_page - 30 * mm
+
+    y = section('Itens Recebidos', y)
+    c.setFillColor(colors.HexColor('#7380a0'))
+    c.setFont('Helvetica-Bold', 7)
+    c.drawString(17 * mm, y - 4.5 * mm, 'E-FISCO')
+    c.drawString(45 * mm, y - 4.5 * mm, 'DESCRIÇÃO')
+    c.drawRightString(w - 17 * mm, y - 4.5 * mm, 'QUANTIDADE')
+    y -= 8 * mm
+    c.setStrokeColor(colors.HexColor('#e2e5ef'))
+    c.setLineWidth(0.3)
+
+    for idx, item in enumerate(itens):
+        if y < 25 * mm:
+            footer()
+            c.showPage()
+            y = h_page - 30 * mm
+        rh = 7 * mm
+        if idx % 2 == 1:
+            c.setFillColor(colors.HexColor('#f7f8fc'))
+            c.rect(14 * mm, y - rh, w - 28 * mm, rh, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#1a2035'))
+        c.setFont('Helvetica', 8)
+        efisco = item.item_order.item_shock.efisco if item.item_order and item.item_order.item_shock else '—'
+        descricao = str(item.item_order) if item.item_order else '—'
+        c.drawString(17 * mm, y - 4.8 * mm, str(efisco))
+        c.drawString(45 * mm, y - 4.8 * mm, descricao[:55])
+        c.drawRightString(w - 17 * mm, y - 4.8 * mm, str(item.amount_order or '—'))
+        c.line(14 * mm, y - rh, w - 14 * mm, y - rh)
+        y -= rh
+
+    y -= 8 * mm
+
+    # ── Assinaturas ──────────────────────────────────────────────────────────
+    if y < 45 * mm:
+        footer()
+        c.showPage()
+        y = h_page - 30 * mm
+
+    y -= 10 * mm
+    sig_w = (w - 40 * mm) / 2
+    c.setStrokeColor(colors.HexColor('#c8cfe0'))
+    c.setLineWidth(0.6)
+
+    c.line(14 * mm, y, 14 * mm + sig_w, y)
+    c.setFillColor(colors.HexColor('#7380a0'))
+    c.setFont('Helvetica', 7.5)
+    c.drawCentredString(14 * mm + sig_w / 2, y - 5 * mm, solicitacao.user_order or str(solicitacao.ua_order or ''))
+    c.drawCentredString(14 * mm + sig_w / 2, y - 9.5 * mm, 'SOLICITANTE')
+
+    c.line(w - 14 * mm - sig_w, y, w - 14 * mm, y)
+    c.drawCentredString(w - 14 * mm - sig_w / 2, y - 5 * mm, tramitacao.responsible_update or '')
+    c.drawCentredString(w - 14 * mm - sig_w / 2, y - 9.5 * mm, 'RECEBEDOR')
+
+    footer()
+    c.showPage()
+    c.save()
+    return resp
+
+
+# Anexar o termo de recebimento já assinado (upload posterior)
+@login_required
+def anexar_termo_assinado(request, solicitacao_pk, tramitacao_pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=solicitacao_pk)
+    tramitacao = get_object_or_404(
+        Tramitacao, pk=tramitacao_pk, request_update=solicitacao,
+    )
+
+    if request.method == 'POST':
+        form = AnexarTermoAssinadoForm(request.POST, request.FILES)
+        if form.is_valid():
+            tramitacao.documents_update = form.cleaned_data['termo_assinado']
+            tramitacao.save(update_fields=['documents_update'])
+            messages.success(request, 'Termo de recebimento assinado anexado com sucesso.')
+        else:
+            messages.error(request, 'Selecione um arquivo válido para anexar.')
+
+    return redirect('dimms:details_processing', pk=solicitacao.pk)
+
 
 # Atualizar solicitações a partir delas (Não pode escolher / quando está na pagina individual)
 @login_required

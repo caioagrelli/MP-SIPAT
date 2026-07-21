@@ -5,6 +5,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# nginx termina o TLS e repassa pro gunicorn via HTTP simples, avisando
+# a requisição original era HTTPS por esse header.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

@@ -1,0 +1,29 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .mnt-page { font-family:'Sora',sans-serif; padding:28px 24px 60px; color:#1a2035; }
+  .breadcrumb { font-size:.78rem; color:#7380a0; margin-bottom:24px; }
+  .breadcrumb a { color:#2563eb; text-decoration:none; }
+  .mnt-empty {
+    max-width: 480px; margin: 60px auto; text-align: center;
+    background: #fff; border: 1px solid #e2e5ef; border-radius: 22px;
+    padding: 48px 32px; box-shadow: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+  }
+  .mnt-empty-icon { font-size: 2.8rem; margin-bottom: 14px; }
+  .mnt-empty-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+  .mnt-empty-sub { font-size: .9rem; color: #7380a0; line-height: 1.6; }
+  .btn-voltar { display:inline-flex; margin-top:18px; height:38px; padding:0 16px; border-radius:10px; background:#2563eb; color:#fff; text-decoration:none; font-weight:600; font-size:.85rem; align-items:center; }
+</style>
+
+<div class="mnt-page">
+  <div class="breadcrumb"><a href="{% url 'manutencao:homepage' %}">Manutenção</a> › {{ titulo }}</div>
+  <div class="mnt-empty">
+    <div class="mnt-empty-icon">{{ icone }}</div>
+    <div class="mnt-empty-title">{{ titulo }}</div>
+    <div class="mnt-empty-sub">Em construção — em breve por aqui.</div>
+    <a href="{% url 'manutencao:homepage' %}" class="btn-voltar">Voltar</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,4 +1,6 @@
 # Bibliotecas padrão do DJungle, You're in the jungle baby n-n-n-n-n-n-n-n knees, knees
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
@@ -7,9 +9,10 @@ from django.db.models.deletion import ProtectedError
 from django.contrib import messages
 
 # Importação do código
-from ..models import Estoque, BensConsumo            # Models do Estoque 
+from ..models import Estoque, BensConsumo            # Models do Estoque
 from ..forms import EstoqueForm, BensConsumoForm , stock_up  # Forms para adicionar bens no Estoque
-from ..services import recalcular_consumo 
+from ..services import recalcular_consumo
+from ..utils import parse_quantidade
 
 # ========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR PARTES/AÇÕES DO ESTOQUE
@@ -21,10 +24,11 @@ from ..services import recalcular_consumo
 @login_required
 def stock_add(request):
     form = EstoqueForm()
-    mode = 'novo'
+    mode = 'remessa'
     remessa_errors = {}
     remessa_item_pk = ''
     remessa_qty = ''
+    remessa_item_data = None
 
     if request.method == 'POST':
         mode = request.POST.get('mode', 'novo')
@@ -32,8 +36,7 @@ def stock_add(request):
         if mode == 'remessa':
             item_pk  = request.POST.get('remessa_item', '').strip()
             qty_str  = request.POST.get('remessa_qty', '').strip()
-            forma    = request.POST.get('remessa_form_input', '').strip()
-            metodo   = request.POST.get('remessa_method', '').strip()
+            motivo   = request.POST.get('remessa_motivo', '').strip()
 
             item_obj = None
             qty = None
@@ -41,30 +44,37 @@ def stock_add(request):
             if not item_pk:
                 remessa_errors['item'] = 'Selecione um item.'
             else:
-                item_obj = Estoque.objects.filter(pk=item_pk).first()
+                item_obj = Estoque.objects.select_related('item_shock').filter(pk=item_pk).first()
                 if not item_obj:
                     remessa_errors['item'] = 'Item não encontrado.'
+                else:
+                    remessa_item_data = {
+                        'id': item_obj.pk,
+                        'item_shock__efisco': item_obj.item_shock.efisco,
+                        'item_shock__descricao_efisco': item_obj.item_shock.descricao_efisco,
+                        'amount_shock': str(item_obj.amount_shock),
+                        'mark': item_obj.mark,
+                    }
 
             try:
-                qty = int(qty_str)
-                if qty < 1:
+                qty = parse_quantidade(qty_str)
+                if qty < 0:
                     raise ValueError
             except (ValueError, TypeError):
-                remessa_errors['qty'] = 'Informe uma quantidade válida (mínimo 1).'
+                remessa_errors['qty'] = 'Informe uma quantidade válida (0 ou mais).'
 
             if not remessa_errors:
+                anterior = item_obj.amount_shock
                 with transaction.atomic():
-                    item_obj.amount_shock += qty
-                    if forma:
-                        item_obj.form_input = forma
-                    if metodo:
-                        item_obj.method = metodo
+                    item_obj.amount_shock = qty
+                    if motivo:
+                        item_obj.method = motivo
                     item_obj.updated_by = request.user
                     item_obj.save()
 
                 messages.success(
                     request,
-                    f'Adicionadas {qty} unidades ao item "{item_obj}".'
+                    f'Quantidade do item "{item_obj}" alterada de {anterior} para {qty}.'
                 )
                 return redirect('dimms:homepage')
 
@@ -104,15 +114,13 @@ def stock_add(request):
 
                     return redirect('dimms:homepage')
 
-    estoque_items = Estoque.objects.select_related('item_shock').all().order_by('description_manual')
-
     return render(request, 'dimms/stock/stock_add.html', {
         'form': form,
-        'estoque_items': estoque_items,
         'mode': mode,
         'remessa_errors': remessa_errors,
         'remessa_item_pk': remessa_item_pk,
         'remessa_qty': remessa_qty,
+        'remessa_item_json': json.dumps(remessa_item_data),
     })
 
 @login_required

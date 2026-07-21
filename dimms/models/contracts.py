@@ -123,8 +123,8 @@ class Contrato(models.Model): #PRONTO
 
     status = models.CharField(
         max_length=20,
-        blank=True,
-        null=True,
+        choices=StatusContrato.choices,
+        default=StatusContrato.vigente,
         verbose_name='Status do Contrato',
     )
     class Meta():

@@ -1,0 +1,297 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Entrada de Estoque (Manutenção){% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --surface:#fff; --surface-2:#f7f8fc; --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-lg:22px; --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  .mnt-page { font-family:var(--font); padding:28px 24px 60px; color:var(--ink); max-width:640px; }
+  .breadcrumb { font-size:.78rem; color:var(--ink-3); margin-bottom:8px; }
+  .breadcrumb a { color:var(--accent); text-decoration:none; }
+  .topbar-title { font-size:1.4rem; font-weight:800; margin-bottom:22px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); padding:26px; position:relative; }
+
+  .form-group { margin-bottom:16px; position:relative; }
+  .form-label { display:block; font-size:.78rem; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+  .form-control, .form-select {
+    width:100%; height:40px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
+    padding:0 12px; font-family:var(--font); font-size:.88rem; color:var(--ink); background:var(--surface);
+    outline:none; appearance:none;
+  }
+  .form-control:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .form-control:read-only { background:var(--surface-2); }
+  .form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+  .btn { height:40px; padding:0 18px; border-radius:var(--r-sm); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; border:1.5px solid transparent; text-decoration:none; display:inline-flex; align-items:center; }
+  .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; }
+  .btn-ghost { background:var(--surface); border-color:var(--border-strong); color:var(--ink); }
+
+  .form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  /* busca / autocomplete */
+  .efisco-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+  }
+  .efisco-option { padding: 9px 13px; cursor: pointer; font-size: .85rem; border-bottom: 1px solid var(--border); }
+  .efisco-option:last-child { border-bottom: none; }
+  .efisco-option:hover { background: var(--blue-soft); }
+  .efisco-option .efisco-code { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: .8rem; }
+  .efisco-option .efisco-desc { color: var(--ink-2); font-size: .8rem; margin-top: 1px; }
+  .efisco-option .efisco-qty { color: var(--ink-3); font-size: .75rem; margin-top: 2px; }
+
+  .existente-banner {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: var(--green-soft); border: 1px solid var(--green-mid); color: var(--green);
+    border-radius: var(--r-sm); padding: 9px 13px; font-size: .82rem; margin-bottom: 16px;
+  }
+  .existente-banner button { background:none; border:none; color:var(--green); font-weight:700; cursor:pointer; font-size:.78rem; }
+
+  .novo-item-aviso {
+    display:none; align-items:center; gap:8px;
+    background: var(--amber-soft); border: 1px solid var(--amber-mid); color: var(--amber);
+    border-radius: var(--r-sm); padding: 8px 12px; font-size: .8rem; margin-top: 6px;
+  }
+</style>
+
+<div class="mnt-page">
+  <div class="breadcrumb"><a href="{% url 'manutencao:homepage' %}">Manutenção</a> › Entrada de Estoque</div>
+  <div class="topbar-title">📥 Entrada de Estoque</div>
+
+  <div class="card">
+
+    <div id="existenteBanner" class="existente-banner" style="display:none;">
+      <span id="existenteTexto"></span>
+      <button type="button" id="btnTrocarItem">Buscar outro</button>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div style="color:#b91c1c;font-size:.82rem;margin-bottom:12px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">E-Fisco</label>
+        <input type="text" name="efisco" id="id_efisco" class="form-control"
+               placeholder="Digite o código E-Fisco ou busque por descrição…" autocomplete="off">
+        <div class="efisco-dropdown" id="efiscoDropdown" style="display:none;"></div>
+        <div class="novo-item-aviso" id="novoItemAviso">
+          ⚠️ <span>Nenhum item encontrado — ao salvar, será cadastrado um <strong>novo item</strong> com E-Fisco "<span id="novoItemEfisco"></span>".</span>
+        </div>
+        {% if form.efisco.errors %}<div style="color:#b91c1c;font-size:.78rem;margin-top:4px;">{{ form.efisco.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" name="descricao" id="id_descricao" class="form-control">
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Unidade de Medida</label>
+          <select name="medida" id="id_medida" class="form-select">
+            {% for value, label in form.fields.medida.choices %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grupo</label>
+          <select name="grupo" id="id_grupo" class="form-select">
+            {% for value, label in form.fields.grupo.choices %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Marca</label>
+          <input type="text" name="mark" id="id_mark" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="qtyLabel">Quantidade Inicial</label>
+          <input type="number" name="amount_shock" id="id_amount_shock" class="form-control" min="1" value="1">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">{{ form.locate.label }}</label>
+          {{ form.locate }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.validity.label }}</label>
+          {{ form.validity }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.form_input.label }}</label>
+        <input type="text" name="form_input" id="id_form_input" class="form-control" placeholder="Ex: Compra, Doação…">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.photo.label }}</label>
+        {{ form.photo }}
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'manutencao:homepage' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const ESTOQUE_SEARCH_URL = "{% url 'manutencao:estoque_search' %}";
+
+  const efiscoInput   = document.getElementById('id_efisco');
+  const dropdown      = document.getElementById('efiscoDropdown');
+  const banner        = document.getElementById('existenteBanner');
+  const bannerTexto    = document.getElementById('existenteTexto');
+  const btnTrocar      = document.getElementById('btnTrocarItem');
+  const qtyLabel       = document.getElementById('qtyLabel');
+  const novoAviso      = document.getElementById('novoItemAviso');
+  const novoAvisoEfisco = document.getElementById('novoItemEfisco');
+  const submitBtn      = document.querySelector('.form-actions button[type="submit"]');
+
+  const descInput   = document.getElementById('id_descricao');
+  const medidaSel   = document.getElementById('id_medida');
+  const grupoSel    = document.getElementById('id_grupo');
+  const markInput   = document.getElementById('id_mark');
+
+  let debounceTimer = null;
+  let fetchEmAndamento = null; // Promise da busca em andamento, ou null se não há
+  let itemSelecionado = false;
+
+  function closeDropdown() {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+
+  function esconderAvisoNovoItem() {
+    novoAviso.style.display = 'none';
+  }
+
+  function mostrarAvisoNovoItem(efisco) {
+    novoAvisoEfisco.textContent = efisco;
+    novoAviso.style.display = 'flex';
+  }
+
+  function marcarComoExistente(item) {
+    itemSelecionado = true;
+    efiscoInput.value = item.efisco;
+    efiscoInput.readOnly = true;
+    descInput.value = item.descricao;
+    medidaSel.value = item.medida;
+    grupoSel.value = item.grupo;
+    markInput.value = item.mark || '';
+    qtyLabel.textContent = 'Quantidade a Adicionar';
+    bannerTexto.textContent = `Item já cadastrado — estoque atual: ${item.amount_shock}. A quantidade informada será somada.`;
+    banner.style.display = 'flex';
+    esconderAvisoNovoItem();
+    closeDropdown();
+  }
+
+  function limparSelecao() {
+    itemSelecionado = false;
+    efiscoInput.readOnly = false;
+    efiscoInput.value = '';
+    descInput.value = '';
+    markInput.value = '';
+    medidaSel.selectedIndex = 0;
+    grupoSel.selectedIndex = 0;
+    qtyLabel.textContent = 'Quantidade Inicial';
+    banner.style.display = 'none';
+    esconderAvisoNovoItem();
+    efiscoInput.focus();
+  }
+
+  btnTrocar.addEventListener('click', limparSelecao);
+
+  function buscar(q) {
+    return fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`).then(r => r.json());
+  }
+
+  efiscoInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    itemSelecionado = false;
+    esconderAvisoNovoItem();
+    const q = efiscoInput.value.trim();
+    if (q.length < 2) { closeDropdown(); fetchEmAndamento = null; return; }
+
+    fetchEmAndamento = new Promise(resolve => {
+      debounceTimer = setTimeout(() => {
+        buscar(q).then(data => {
+          closeDropdown();
+          if (!data.length) {
+            mostrarAvisoNovoItem(q);
+            resolve();
+            return;
+          }
+          data.forEach(item => {
+            const opt = document.createElement('div');
+            opt.className = 'efisco-option';
+            opt.innerHTML = `
+              <div class="efisco-code">${item.efisco}</div>
+              <div class="efisco-desc">${item.descricao}</div>
+              <div class="efisco-qty">Estoque atual: ${item.amount_shock}${item.mark ? ' · ' + item.mark : ''}</div>
+            `;
+            opt.addEventListener('mousedown', e => { e.preventDefault(); marcarComoExistente(item); });
+            dropdown.appendChild(opt);
+          });
+          dropdown.style.display = 'block';
+          resolve();
+        });
+      }, 250);
+    }).then(() => { fetchEmAndamento = null; });
+  });
+
+  efiscoInput.addEventListener('blur', () => setTimeout(closeDropdown, 200));
+
+  // Trava de segurança: se o usuário tentar salvar antes da busca terminar,
+  // ou sem confirmar que quer mesmo criar um item novo, para e avisa —
+  // é exatamente o cenário que causava duplicidade (texto de busca virando
+  // um "novo item" sem querer).
+  document.querySelector('form').addEventListener('submit', function (e) {
+    if (fetchEmAndamento) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      const aguardando = fetchEmAndamento;
+      aguardando.then(() => {
+        submitBtn.disabled = false;
+        this.requestSubmit();
+      });
+      return;
+    }
+
+    if (!itemSelecionado && novoAviso.style.display === 'flex') {
+      const efisco = efiscoInput.value.trim();
+      const ok = confirm(
+        `Nenhum item com E-Fisco "${efisco}" foi encontrado.\n\n` +
+        `Isso vai CRIAR UM NOVO item, não somar a um existente. Confirma?`
+      );
+      if (!ok) {
+        e.preventDefault();
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -963,6 +963,10 @@
           </div>
         </div>
         <div class="card-body" style="display:flex; flex-direction:column; gap:8px;">
+          <a href="{% url 'dimms:receber_solicitacao' solicitacao.pk %}" class="btn btn-accent" style="justify-content:center;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22"/><path d="M17.5 15H9"/></svg>
+            {% if tramitacao_recebimento %}Registrar Novo Recebimento{% else %}Receber{% endif %}
+          </a>
           <a href="{% url 'dimms:update_request' solicitacao.pk %}" class="btn btn-accent" style="justify-content:center;">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
             Atualizar Status
@@ -973,6 +977,51 @@
           </a>
         </div>
       </div>
+
+      {% if tramitacao_recebimento %}
+      <!-- RECEBIMENTO -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">📦</div>
+            <div class="card-title">Recebimento</div>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
+
+          <div>
+            <div class="summary-key">Recebido por</div>
+            <div class="summary-val">{{ tramitacao_recebimento.responsible_update|default:"—" }}</div>
+          </div>
+
+          <a href="{% url 'dimms:pdf_termo_recebimento' solicitacao.pk tramitacao_recebimento.pk %}" target="_blank"
+             class="btn btn-ghost" style="justify-content:center;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Gerar Termo (PDF)
+          </a>
+
+          {% if tramitacao_recebimento.documents_update %}
+            <a href="{{ tramitacao_recebimento.documents_update.url }}" target="_blank"
+               class="btn btn-ghost" style="justify-content:center; color:var(--accent);">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Ver Termo Assinado
+            </a>
+          {% else %}
+            <form method="post" enctype="multipart/form-data"
+                  action="{% url 'dimms:anexar_termo_assinado' solicitacao.pk tramitacao_recebimento.pk %}"
+                  style="display:flex; flex-direction:column; gap:8px;">
+              {% csrf_token %}
+              {{ anexar_termo_form.termo_assinado }}
+              <button type="submit" class="btn btn-accent" style="justify-content:center;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Anexar Termo Assinado
+              </button>
+            </form>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endif %}
 
       <!-- QR CODE -->
 <div class="card">

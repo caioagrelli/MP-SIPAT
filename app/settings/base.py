@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "dempam",
     "accounts",
     "demands",
+    "manutencao",
     "mozilla_django_oidc",
     "widget_tweaks",
 ]

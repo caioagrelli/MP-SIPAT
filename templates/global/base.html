@@ -396,12 +396,7 @@
         <span class="nav-item-icon">📋</span> Meus Bens
       </a>
 
-      <a class="nav-item-link {% if request.resolver_match.url_name in 'minhas_solicitacoes,minhas_solicitacoes_consumo' %}active{% endif %}"
-         href="{% url 'dimrcbp:minhas_solicitacoes' %}">
-        <span class="nav-item-icon">📋</span> Minhas Solicitações
-      </a>
-
-      {% if perms.dimrcbp or perms.dimms %}
+{% if perms.dimrcbp or perms.dimms %}
       <div class="nav-section-label">Patrimônio Interno</div>
       {% endif %}
 
@@ -436,6 +431,15 @@
       </a>
       {% endif %}
 
+      {% endif %}
+
+      {% if perms.manutencao %}
+      <div class="nav-section-label">Manutenção</div>
+
+      <a class="nav-item-link {% if request.resolver_match.namespace == 'manutencao' %}active{% endif %}"
+         href="{% url 'manutencao:homepage' %}">
+        <span class="nav-item-icon">🛠️</span> Manutenção
+      </a>
       {% endif %}
 
       <!-- Admin: discreto, no fundo -->

@@ -1,5 +1,6 @@
 # Importações do Python
-import os 
+import os
+from decimal import Decimal, InvalidOperation
 
 # Importações do Django
 from django.db import models
@@ -88,6 +89,16 @@ def path_nota_fiscal_solicitacao(instance, filename):
     codigo = (instance.codigo or 'novo').replace('/', '-')
     return f'saldo_ativo/solicitacoes/nota_fiscal/{codigo}{ext}'
 
+def path_empenho_solicitacao(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    codigo = (instance.codigo or 'novo').replace('/', '-')
+    return f'saldo_ativo/solicitacoes/empenho/{codigo}{ext}'
+
+def path_termo_recebimento_solicitacao(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    codigo = (instance.codigo or 'novo').replace('/', '-')
+    return f'saldo_ativo/solicitacoes/termo_recebimento/{codigo}{ext}'
+
 
 ''' Choices'''
 # Grupos dos bens de consumo 
@@ -158,6 +169,11 @@ class StatusSolicitacaoCatalogoConsumo(models.TextChoices):
     rejeitada = 'REJEITADA', 'Rejeitada'
     cancelada = 'CANCELADA', 'Cancelada'
 
+# Status do contrato (saldo ativo)
+class StatusContrato(models.TextChoices):
+    vigente   = 'VIGENTE',   'Vigente'
+    cancelado = 'CANCELADO', 'Cancelado'
+
 # Status do artefato
 class StatusArtifacts(models.TextChoices):
     elaboracao = 'ELABORACAO', 'Em Elaboração'
@@ -182,3 +198,43 @@ def calcular_duracao(amount_shock, monthly_consumption):
         return f"{dias} dias"
 
     return f"{round(meses, 1)} meses"
+
+
+# Converte texto de quantidade (aceita vírgula ou ponto decimal, ex: "2,3" ou "2.3")
+# pra Decimal. Levanta ValueError se vazio/inválido — quem chama decide a mensagem.
+def parse_quantidade(valor):
+    if valor is None:
+        raise ValueError('Quantidade vazia.')
+    texto = str(valor).strip().replace(',', '.')
+    if not texto:
+        raise ValueError('Quantidade vazia.')
+    try:
+        return Decimal(texto)
+    except InvalidOperation:
+        raise ValueError(f'Quantidade inválida: "{valor}".')
+
+
+# Só permite quantidade fracionada (com casas decimais) quando a unidade de medida é METRO.
+# Levanta ValueError se a quantidade tiver parte decimal e a unidade não for METRO.
+def validar_quantidade_por_unidade(quantidade, medida):
+    if quantidade is None:
+        return
+    if medida == UnidadesMedida.metro:
+        return
+    if Decimal(quantidade) % 1 != 0:
+        raise ValueError(
+            'Quantidade fracionada só é permitida para itens com unidade de medida em metro.'
+        )
+
+
+# Formata Decimal pra exibição sem zeros à direita desnecessários (2.30 -> 2,3 | 5.00 -> 5)
+def formatar_quantidade(valor):
+    if valor is None:
+        return '—'
+    if not isinstance(valor, Decimal):
+        try:
+            valor = Decimal(str(valor))
+        except InvalidOperation:
+            return str(valor)
+    texto = format(valor.normalize(), 'f')
+    return texto.replace('.', ',')

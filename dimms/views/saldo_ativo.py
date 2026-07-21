@@ -24,7 +24,7 @@ from ..models import (
     SaldoAtivo, SolicitacoesSaldoAtivo, ItensSolicitados,
     BensEnviados, Contrato, Estoque, Supplier
 )
-from ..utils import Status
+from ..utils import Status, StatusContrato, parse_quantidade
 from ..forms import SupplierForm
 
 # ================================================
@@ -159,12 +159,84 @@ def fornecedor_criar_saldoativo(request):
 
 ''' Criar Nova Solicitação de Saldo Ativo '''
 @login_required
+def saldo_ativo_contrato_search(request):
+    """Busca contratos por número ou fornecedor para autocomplete."""
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse({'results': []})
+    from ..models import Contrato
+    qs = (
+        Contrato.objects
+        .filter(Contrato__isnull=False)
+        .exclude(status=StatusContrato.cancelado)
+        .filter(
+            Q(contrato__icontains=q) |
+            Q(numero_contrato_oficial__icontains=q) |
+            Q(supplier_contract__supplier__icontains=q)
+        )
+        .select_related('supplier_contract')
+        .distinct()[:20]
+    )
+    results = [
+        {
+            'id': c.pk,
+            'numero': c.contrato,
+            'fornecedor': str(c.supplier_contract) if c.supplier_contract else '',
+            'numero_oficial': c.numero_contrato_oficial or '',
+        }
+        for c in qs
+    ]
+    return JsonResponse({'results': results})
+
+
+@login_required
+def saldo_ativo_itens_por_contrato(request):
+    """Retorna itens disponíveis de um contrato como JSON (para o formulário dinâmico)."""
+    contrato_id = request.GET.get('contrato_id')
+    if not contrato_id:
+        return JsonResponse({'itens': []})
+    itens = (
+        SaldoAtivo.objects
+        .filter(contrato_saldo_id=contrato_id, saldo_disponivel__gt=0)
+        .exclude(contrato_saldo__status=StatusContrato.cancelado)
+        .select_related('efisco')
+        .order_by('efisco__descricao_efisco')
+    )
+    data = [
+        {
+            'id': i.pk,
+            'efisco': i.efisco.efisco,
+            'descricao': i.descricao_manual or i.efisco.descricao_efisco or '',
+            'marca': i.marca or '',
+            'saldo': i.saldo_disponivel or 0,
+            'preco': float(i.preco_unitario) if i.preco_unitario else None,
+            'unidade': i.efisco.get_medida_display() if hasattr(i.efisco, 'get_medida_display') else '',
+        }
+        for i in itens
+    ]
+    return JsonResponse({'itens': data})
+
+
+@login_required
 def saldo_ativo_solicitacao_create(request):
-    contratos = Contrato.objects.filter(Contrato__isnull=False).distinct()
+    contratos = (
+        Contrato.objects
+        .filter(Contrato__isnull=False)
+        .exclude(status=StatusContrato.cancelado)
+        .distinct()
+        .select_related('supplier_contract')
+    )
     contrato_pre = request.GET.get('contrato', '')
 
     if request.method == 'POST':
         contrato_id = request.POST.get('contrato')
+        numero_nota_fiscal = request.POST.get('numero_nota_fiscal', '').strip()
+        numero_sei = request.POST.get('numero_sei', '').strip()
+        numero_empenho = request.POST.get('numero_empenho', '').strip()
+        nota_fiscal_file = request.FILES.get('nota_fiscal')
+        empenho_file = request.FILES.get('empenho')
+        termo_recebimento_file = request.FILES.get('termo_recebimento_definitivo')
+
         if not contrato_id:
             messages.error(request, 'Selecione um contrato.')
             return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
@@ -172,16 +244,77 @@ def saldo_ativo_solicitacao_create(request):
             })
 
         contrato = get_object_or_404(Contrato, pk=contrato_id)
-        solicitacao = SolicitacoesSaldoAtivo.objects.create(
-            contrato=contrato,
-            usuario=request.user,
-        )
-        messages.success(request, f'Solicitação {solicitacao.codigo} criada com sucesso.')
+
+        # Coleta itens selecionados
+        itens_selecionados = []
+        for key, valor in request.POST.items():
+            if not key.startswith('qtd_'):
+                continue
+            try:
+                saldo_pk = int(key[4:])
+                quantidade = parse_quantidade(valor)
+            except (ValueError, TypeError):
+                continue
+            if quantidade > 0:
+                itens_selecionados.append((saldo_pk, quantidade))
+
+        if not itens_selecionados:
+            messages.error(request, 'Adicione pelo menos um item à solicitação.')
+            return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
+                'contratos': contratos, 'contrato_pre': contrato_pre,
+            })
+
+        try:
+            with transaction.atomic():
+                solicitacao = SolicitacoesSaldoAtivo(
+                    contrato=contrato,
+                    usuario=request.user,
+                    numero_nota_fiscal=numero_nota_fiscal,
+                    numero_sei=numero_sei,
+                    numero_empenho=numero_empenho,
+                )
+                if nota_fiscal_file:
+                    solicitacao.nota_fiscal = nota_fiscal_file
+                if empenho_file:
+                    solicitacao.empenho = empenho_file
+                if termo_recebimento_file:
+                    solicitacao.termo_recebimento_definitivo = termo_recebimento_file
+                solicitacao.save()
+
+                erros = []
+                adicionados = 0
+                for saldo_pk, quantidade in itens_selecionados:
+                    bem = get_object_or_404(SaldoAtivo, pk=saldo_pk)
+                    try:
+                        item = ItensSolicitados(solicitacao=solicitacao, bem=bem, quantidade=quantidade)
+                        item.full_clean()
+                        item.save()
+                        adicionados += 1
+                    except Exception as e:
+                        erros.append(f'{bem.efisco.efisco}: {e}')
+
+                if erros:
+                    for erro in erros:
+                        messages.warning(request, erro)
+        except Exception as e:
+            messages.error(request, f'Erro ao criar solicitação: {e}')
+            return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
+                'contratos': contratos, 'contrato_pre': contrato_pre,
+            })
+
+        messages.success(request, f'Solicitação {solicitacao.codigo} criada com {adicionados} item(ns).')
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=solicitacao.pk)
 
+    contrato_pre_obj = None
+    if contrato_pre:
+        try:
+            contrato_pre_obj = Contrato.objects.select_related('supplier_contract').get(pk=contrato_pre)
+        except (Contrato.DoesNotExist, ValueError):
+            pass
+
     return render(request, 'dimms/saldo_ativo/solicitacao_create.html', {
-        'contratos': contratos,
         'contrato_pre': contrato_pre,
+        'contrato_pre_obj': contrato_pre_obj,
     })
 
 
@@ -198,9 +331,13 @@ def saldo_ativo_solicitacao_detail(request, pk):
     ).select_related('bem__efisco', 'bem__contrato_saldo').prefetch_related('remessas')
 
     # Saldo disponível do contrato (para adicionar mais itens)
-    saldo_contrato = SaldoAtivo.objects.filter(
-        contrato_saldo=solicitacao.contrato
-    ).select_related('efisco')
+    # Contrato cancelado não permite adicionar novos itens.
+    if solicitacao.contrato.status == StatusContrato.cancelado:
+        saldo_contrato = SaldoAtivo.objects.none()
+    else:
+        saldo_contrato = SaldoAtivo.objects.filter(
+            contrato_saldo=solicitacao.contrato
+        ).select_related('efisco')
 
     # Adicionar múltiplos itens de uma vez
     if request.method == 'POST' and 'adicionar_itens' in request.POST:
@@ -212,7 +349,7 @@ def saldo_ativo_solicitacao_detail(request, pk):
                 continue
             try:
                 saldo_pk = int(key[4:])
-                quantidade = int(valor)
+                quantidade = parse_quantidade(valor)
             except (ValueError, TypeError):
                 continue
             if quantidade <= 0:
@@ -259,15 +396,31 @@ def saldo_ativo_solicitacao_detail(request, pk):
         messages.success(request, 'Item removido.')
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
 
-    # Atualizar dados da solicitação (SEI, empenho, nota fiscal)
+    # Atualizar dados da solicitação (SEI, empenho, nota fiscal, termo de recebimento)
     if request.method == 'POST' and 'atualizar_dados' in request.POST:
         solicitacao.numero_sei = request.POST.get('numero_sei', '').strip()
         solicitacao.numero_empenho = request.POST.get('numero_empenho', '').strip()
+        solicitacao.numero_nota_fiscal = request.POST.get('numero_nota_fiscal', '').strip()
+
         if 'nota_fiscal' in request.FILES:
             solicitacao.nota_fiscal = request.FILES['nota_fiscal']
         elif request.POST.get('remover_nota_fiscal'):
             solicitacao.nota_fiscal = None
-        solicitacao.save(update_fields=['numero_sei', 'numero_empenho', 'nota_fiscal'])
+
+        if 'empenho' in request.FILES:
+            solicitacao.empenho = request.FILES['empenho']
+        elif request.POST.get('remover_empenho'):
+            solicitacao.empenho = None
+
+        if 'termo_recebimento_definitivo' in request.FILES:
+            solicitacao.termo_recebimento_definitivo = request.FILES['termo_recebimento_definitivo']
+        elif request.POST.get('remover_termo_recebimento_definitivo'):
+            solicitacao.termo_recebimento_definitivo = None
+
+        solicitacao.save(update_fields=[
+            'numero_sei', 'numero_empenho', 'numero_nota_fiscal',
+            'nota_fiscal', 'empenho', 'termo_recebimento_definitivo',
+        ])
         messages.success(request, 'Dados da solicitação atualizados.')
         return redirect('dimms:saldo_ativo_solicitacao_detail', pk=pk)
 
@@ -336,7 +489,7 @@ def saldo_ativo_confirmar_envio(request, item_pk):
             messages.error(request, 'Informe a quantidade registrada.')
         else:
             try:
-                qtd = int(quantidade_enviada)
+                qtd = parse_quantidade(quantidade_enviada)
                 with transaction.atomic():
                     remessa = BensEnviados(
                         item_enviado=item_solicitado,
@@ -352,11 +505,7 @@ def saldo_ativo_confirmar_envio(request, item_pk):
                     # Adiciona ao estoque ao confirmar o recebimento
                     bem    = item_solicitado.bem
                     efisco = bem.efisco
-                    existente = Estoque.objects.filter(
-                        item_shock=efisco,
-                        mark=bem.marca or '',
-                        form_input='Saldo Ativo',
-                    ).first()
+                    existente = Estoque.objects.filter(item_shock=efisco).first()
                     if existente:
                         existente.amount_shock += qtd
                         existente.save(update_fields=['amount_shock'])
@@ -414,11 +563,7 @@ def saldo_ativo_confirmar_recebimento(request, remessa_pk):
                 efisco = bem.efisco
                 qtd    = remessa.quantidade_enviada or 0
 
-                estoque_existente = Estoque.objects.filter(
-                    item_shock=efisco,
-                    mark=bem.marca or '',
-                    form_input='Saldo Ativo',
-                ).first()
+                estoque_existente = Estoque.objects.filter(item_shock=efisco).first()
 
                 if estoque_existente:
                     estoque_existente.amount_shock += qtd

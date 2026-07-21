@@ -4,7 +4,7 @@ from django.conf import settings
 from datetime import date
 
 # Importações de validação
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 
 # Importações do código
 from ..utils import *
@@ -78,7 +78,12 @@ class Estoque(models.Model):
     
     mark = models.CharField(max_length=40,verbose_name='Marca',)
         
-    amount_shock = models.PositiveIntegerField(verbose_name='Quantidade',)
+    amount_shock = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name='Quantidade',
+    )
     
     locate = models.ForeignKey(
         LocalizacaoDEMPAM,

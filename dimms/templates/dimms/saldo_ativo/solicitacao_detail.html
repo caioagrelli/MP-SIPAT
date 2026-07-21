@@ -347,6 +347,8 @@
 
   .form-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   @media(max-width:600px){ .form-edit-grid{ grid-template-columns:1fr; } }
+  .form-edit-files-row { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media(max-width:900px){ .form-edit-files-row{ grid-template-columns:1fr; } }
   .file-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .file-link { display:inline-flex; align-items:center; gap:5px; font-size:.82rem; color:var(--blue); text-decoration:none; font-weight:600; }
   .file-link:hover { text-decoration:underline; }
@@ -452,6 +454,12 @@
           </div>
         </div>
         <div class="dados-info-item">
+          <div class="dados-info-label">N° Nota Fiscal</div>
+          <div class="dados-info-value mono {% if not solicitacao.numero_nota_fiscal %}empty{% endif %}">
+            {{ solicitacao.numero_nota_fiscal|default:"Não informado" }}
+          </div>
+        </div>
+        <div class="dados-info-item">
           <div class="dados-info-label">Nota Fiscal</div>
           <div class="dados-info-value">
             {% if solicitacao.nota_fiscal %}
@@ -461,6 +469,32 @@
               </a>
             {% else %}
               <span class="dados-info-value empty">Não anexada</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">Empenho</div>
+          <div class="dados-info-value">
+            {% if solicitacao.empenho %}
+              <a href="{{ solicitacao.empenho.url }}" target="_blank" class="file-link">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Visualizar PDF
+              </a>
+            {% else %}
+              <span class="dados-info-value empty">Não anexado</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="dados-info-item">
+          <div class="dados-info-label">Termo de Recebimento Definitivo</div>
+          <div class="dados-info-value">
+            {% if solicitacao.termo_recebimento_definitivo %}
+              <a href="{{ solicitacao.termo_recebimento_definitivo.url }}" target="_blank" class="file-link">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Visualizar PDF
+              </a>
+            {% else %}
+              <span class="dados-info-value empty">Não anexado</span>
             {% endif %}
           </div>
         </div>
@@ -480,20 +514,56 @@
             <label class="form-label">N° Empenho</label>
             <input type="text" name="numero_empenho" class="form-input" value="{{ solicitacao.numero_empenho }}" placeholder="Ex: 2026NE000123">
           </div>
-          <div class="form-group" style="grid-column:1/-1;">
-            <label class="form-label">Nota Fiscal (PDF)</label>
-            <div class="file-row">
-              <input type="file" name="nota_fiscal" accept=".pdf,application/pdf" style="flex:1;font-size:.83rem;">
+          <div class="form-group">
+            <label class="form-label">N° Nota Fiscal</label>
+            <input type="text" name="numero_nota_fiscal" class="form-input" value="{{ solicitacao.numero_nota_fiscal }}" placeholder="Ex: 000123">
+          </div>
+          <div class="form-edit-files-row">
+            <div>
+              <label class="form-label">Nota Fiscal (PDF)</label>
+              <div class="file-row">
+                <input type="file" name="nota_fiscal" accept=".pdf,application/pdf" style="flex:1;font-size:.83rem;">
+                {% if solicitacao.nota_fiscal %}
+                  <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--red);cursor:pointer;font-weight:600;">
+                    <input type="checkbox" name="remover_nota_fiscal" value="1" style="width:auto;">
+                    Remover
+                  </label>
+                {% endif %}
+              </div>
               {% if solicitacao.nota_fiscal %}
-                <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--red);cursor:pointer;font-weight:600;">
-                  <input type="checkbox" name="remover_nota_fiscal" value="1" style="width:auto;">
-                  Remover arquivo atual
-                </label>
+                <div style="font-size:.75rem;color:var(--ink-3);margin-top:4px;">Atual: <a href="{{ solicitacao.nota_fiscal.url }}" target="_blank" style="color:var(--blue);">{{ solicitacao.nota_fiscal.name|slice:"30:" }}</a></div>
               {% endif %}
             </div>
-            {% if solicitacao.nota_fiscal %}
-              <div style="font-size:.75rem;color:var(--ink-3);margin-top:4px;">Arquivo atual: <a href="{{ solicitacao.nota_fiscal.url }}" target="_blank" style="color:var(--blue);">{{ solicitacao.nota_fiscal.name|slice:"30:" }}</a></div>
-            {% endif %}
+            <div>
+              <label class="form-label">Empenho (PDF)</label>
+              <div class="file-row">
+                <input type="file" name="empenho" accept=".pdf,application/pdf" style="flex:1;font-size:.83rem;">
+                {% if solicitacao.empenho %}
+                  <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--red);cursor:pointer;font-weight:600;">
+                    <input type="checkbox" name="remover_empenho" value="1" style="width:auto;">
+                    Remover
+                  </label>
+                {% endif %}
+              </div>
+              {% if solicitacao.empenho %}
+                <div style="font-size:.75rem;color:var(--ink-3);margin-top:4px;">Atual: <a href="{{ solicitacao.empenho.url }}" target="_blank" style="color:var(--blue);">{{ solicitacao.empenho.name|slice:"30:" }}</a></div>
+              {% endif %}
+            </div>
+            <div>
+              <label class="form-label">Termo de Receb. Definitivo (PDF)</label>
+              <div class="file-row">
+                <input type="file" name="termo_recebimento_definitivo" accept=".pdf,application/pdf" style="flex:1;font-size:.83rem;">
+                {% if solicitacao.termo_recebimento_definitivo %}
+                  <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--red);cursor:pointer;font-weight:600;">
+                    <input type="checkbox" name="remover_termo_recebimento_definitivo" value="1" style="width:auto;">
+                    Remover
+                  </label>
+                {% endif %}
+              </div>
+              {% if solicitacao.termo_recebimento_definitivo %}
+                <div style="font-size:.75rem;color:var(--ink-3);margin-top:4px;">Atual: <a href="{{ solicitacao.termo_recebimento_definitivo.url }}" target="_blank" style="color:var(--blue);">{{ solicitacao.termo_recebimento_definitivo.name|slice:"30:" }}</a></div>
+              {% endif %}
+            </div>
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:14px;">
@@ -606,7 +676,8 @@
                   type="number"
                   name="qtd_{{ saldo.pk }}"
                   class="qtd-input item-qtd"
-                  min="1"
+                  min="0.01"
+                  step="0.01"
                   max="{{ saldo.saldo_disponivel|default:0 }}"
                   placeholder="—"
                   {% if not saldo.saldo_disponivel %}disabled{% endif %}>
@@ -790,7 +861,7 @@
 
     function atualizarContador() {
       const n = tabela.querySelectorAll('.item-qtd:not(:disabled)').length
-        ? [...tabela.querySelectorAll('.item-qtd:not(:disabled)')].filter(i => parseInt(i.value) > 0).length
+        ? [...tabela.querySelectorAll('.item-qtd:not(:disabled)')].filter(i => parseFloat(i.value) > 0).length
         : 0;
       if (contador) contador.textContent = n;
       if (btnSalvar) btnSalvar.disabled = n === 0;
@@ -812,8 +883,8 @@
     // Atualiza contador quando muda qualquer quantidade
     tabela.addEventListener('input', e => {
       if (e.target.classList.contains('item-qtd')) {
-        const val = parseInt(e.target.value);
-        const max = parseInt(e.target.max);
+        const val = parseFloat(e.target.value);
+        const max = parseFloat(e.target.max);
         if (val > max) e.target.value = max;
         if (val < 0)  e.target.value = '';
         atualizarContador();

@@ -125,10 +125,10 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display  = ('criado_em', 'tipo', 'user', 'pagina', 'descricao_curta')
-    list_filter   = ('tipo',)
-    search_fields = ('descricao', 'pagina', 'user__username')
-    readonly_fields = ('user', 'tipo', 'descricao', 'pagina', 'criado_em')
+    list_display  = ('codigo', 'criado_em', 'tipo', 'status', 'user', 'pagina', 'descricao_curta')
+    list_filter   = ('tipo', 'status')
+    search_fields = ('codigo', 'descricao', 'pagina', 'user__username')
+    readonly_fields = ('codigo', 'user', 'tipo', 'descricao', 'pagina', 'criado_em')
     ordering      = ('-criado_em',)
 
     def descricao_curta(self, obj):

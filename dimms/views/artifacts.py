@@ -1,6 +1,7 @@
 # Importações do Django     - D(Artocarpus heterophyllus)o
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -8,11 +9,13 @@ from django.http import JsonResponse
 
 # Importações do Projeto
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from ..models import Artifacts, Proposal, ItensArtifacts, ItensProposal, Supplier, Contrato, SaldoAtivo, BensConsumo
 from ..forms import (
     ItensArtifactsForm, ArtifactDocumentsForm, ArtifactsCreateForm,
     ProposalForm, ItensProposalForm, ContratoForm, SaldoAtivoItemForm, SupplierForm,
 )
+from ..utils import StatusContrato
 
 # ==============================================================
 # CAMPOS DESTINADOS PARA GERENCIAR OS ARTEFATOS E AS PROPOSTAS
@@ -423,6 +426,9 @@ def contrato_detail(request, pk):
     active_tab = request.GET.get('tab', 'info')
 
     if request.method == 'POST' and 'add_saldo' in request.POST:
+        if contrato.status == StatusContrato.cancelado:
+            messages.error(request, 'Contrato cancelado — não é possível adicionar itens.')
+            return redirect(f"{request.path}?tab=saldo")
         form_saldo = SaldoAtivoItemForm(request.POST)
         if form_saldo.is_valid():
             saldo = form_saldo.save(commit=False)
@@ -449,6 +455,31 @@ def contrato_detail(request, pk):
             messages.success(request, 'Contrato atualizado com sucesso.')
             return redirect(f"{request.path}?tab=editar")
         active_tab = 'editar'
+
+    if request.method == 'POST' and 'delete_contrato' in request.POST:
+        if not request.user.has_perm('dimms.delete_contrato'):
+            raise PermissionDenied('Você não tem permissão para excluir contratos.')
+        if solicitacoes.exists():
+            messages.error(
+                request,
+                'Não é possível excluir: este contrato tem solicitações de saldo ativo vinculadas. '
+                'Marque o contrato como "Cancelado" em vez de excluir.'
+            )
+            return redirect(f"{request.path}?tab=editar")
+        try:
+            with transaction.atomic():
+                saldos.all().delete()
+                nome_contrato = contrato.contrato
+                contrato.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                'Não é possível excluir: existem itens do saldo ativo deste contrato que já foram '
+                'usados em solicitações. Marque o contrato como "Cancelado" em vez de excluir.'
+            )
+            return redirect(f"{request.path}?tab=editar")
+        messages.success(request, f'Contrato "{nome_contrato}" excluído com sucesso.')
+        return redirect('dimms:saldo_ativo_homepage')
 
     from_proposal_pk = request.GET.get('from_proposal')
     from_proposal = None

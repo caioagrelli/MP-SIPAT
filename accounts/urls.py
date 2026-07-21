@@ -14,4 +14,5 @@ urlpatterns = [
     path('trocar-senha/', profile.first_login_password_change, name='first_login_password_change'),
     path('feedback/', feedback.reportar, name='reportar_feedback'),
     path('feedback/lista/', feedback.lista_feedback, name='lista_feedback'),
+    path('feedback/<int:pk>/status/', feedback.atualizar_status, name='atualizar_status_feedback'),
 ]

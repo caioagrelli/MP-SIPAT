@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT — Entrada de Estoque{% endblock %}
+{% block title %}SIPAT — Ajustes no Estoque{% endblock %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -308,6 +308,42 @@
     .hero { padding: 18px; }
     .mode-grid { grid-template-columns: 1fr; }
   }
+
+  /* ─── BUSCA DE ITEM (autocomplete) ─── */
+  .efisco-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+  }
+  .efisco-option {
+    padding: 9px 13px; cursor: pointer; font-size: .85rem;
+    border-bottom: 1px solid var(--border); transition: background .1s;
+  }
+  .efisco-option:last-child { border-bottom: none; }
+  .efisco-option:hover, .efisco-option.active { background: var(--blue-soft); }
+  .efisco-option .efisco-code {
+    font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: .8rem;
+  }
+  .efisco-option .efisco-desc {
+    color: var(--ink-2); font-size: .8rem; margin-top: 1px;
+    white-space: normal; word-break: break-word;
+  }
+  .efisco-option .efisco-qty {
+    color: var(--ink-3); font-size: .75rem; margin-top: 2px;
+  }
+  .efisco-selected {
+    margin-top: 6px; padding: 7px 11px;
+    background: var(--green-soft); border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm); font-size: .8rem; color: var(--green);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .efisco-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--green); font-size: .75rem; font-weight: 700;
+    padding: 0; opacity: .7;
+  }
+  .efisco-clear:hover { opacity: 1; }
 </style>
 
 <div class="ppage">
@@ -316,14 +352,14 @@
   <nav class="breadcrumb">
     <a href="{% url 'dimms:homepage' %}">Estoque</a>
     <span class="breadcrumb-sep">›</span>
-    Entrada de Estoque
+    Ajustes no Estoque
   </nav>
 
   <!-- TOPBAR -->
   <div class="topbar">
     <div>
-      <div class="topbar-title">Entrada de Estoque</div>
-      <div class="topbar-sub">Registre um novo item ou adicione quantidade a uma remessa existente.</div>
+      <div class="topbar-title">Ajustes no Estoque</div>
+      <div class="topbar-sub">Registre um novo item ou ajuste a quantidade (pra mais ou pra menos) de um item já existente.</div>
     </div>
     <a href="{% url 'dimms:homepage' %}" class="btn btn-ghost">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -333,18 +369,18 @@
 
   <!-- SELETOR DE MODO -->
   <div class="mode-grid">
+    <div class="mode-card {% if mode == 'remessa' %}active{% endif %}" id="mc-remessa" onclick="setMode('remessa')">
+      <div class="mode-icon">⚖️</div>
+      <div>
+        <div class="mode-label">Ajustar Quantidade</div>
+        <div class="mode-desc">Defina a quantidade atual de um item já existente</div>
+      </div>
+    </div>
     <div class="mode-card {% if mode == 'novo' %}active{% endif %}" id="mc-novo" onclick="setMode('novo')">
       <div class="mode-icon">📦</div>
       <div>
         <div class="mode-label">Novo Item</div>
         <div class="mode-desc">Cadastre um item ou lote inédito no estoque</div>
-      </div>
-    </div>
-    <div class="mode-card {% if mode == 'remessa' %}active{% endif %}" id="mc-remessa" onclick="setMode('remessa')">
-      <div class="mode-icon">➕</div>
-      <div>
-        <div class="mode-label">Aumentar Remessa</div>
-        <div class="mode-desc">Adicione quantidade a um item já existente</div>
       </div>
     </div>
   </div>
@@ -381,9 +417,13 @@
 
           <div class="form-grid">
 
-            <div class="field span-2">
+            <div class="field span-2" style="position:relative;">
               <label class="field-label">{{ form.item_shock.label }}</label>
-              {{ form.item_shock }}
+              <input type="text" id="item_shock_search" class="efisco-text"
+                     placeholder="Digite o código E-Fisco ou descrição…" autocomplete="off">
+              <div class="efisco-dropdown" id="item_shock_dropdown" style="display:none;"></div>
+              <div class="efisco-selected" id="item_shock_selected" style="display:none;"></div>
+              <div id="item_shock_select_wrap">{{ form.item_shock }}</div>
               {% if form.item_shock.errors %}<div class="field-errors">⚠ {{ form.item_shock.errors|join:", " }}</div>{% endif %}
             </div>
 
@@ -495,11 +535,11 @@
        SEÇÃO: AUMENTAR REMESSA
   ══════════════════════════════════════════════════════════════════ -->
   <div id="section-remessa" {% if mode != 'remessa' %}style="display:none"{% endif %}>
-    <div class="hero" style="margin-bottom:24px; background: linear-gradient(135deg, #0f4c41 0%, #0f766e 100%);">
-      <div class="hero-icon">➕</div>
+    <div class="hero" style="margin-bottom:24px;">
+      <div class="hero-icon">⚖️</div>
       <div>
-        <div class="hero-title">Aumentar Remessa Existente</div>
-        <div class="hero-sub">Selecione o item e informe a quantidade a adicionar ao estoque atual.</div>
+        <div class="hero-title">Ajustar Quantidade em Estoque</div>
+        <div class="hero-sub">Selecione o item e informe a nova quantidade — ela substitui a quantidade atual.</div>
       </div>
     </div>
 
@@ -525,22 +565,20 @@
 
           <div class="form-grid">
 
-            <div class="field span-2">
+            <div class="field span-2" style="position:relative;">
               <label class="field-label">Item em Estoque</label>
-              <select name="remessa_item" id="id_remessa_item">
-                <option value="">— Selecione um item —</option>
-                {% for item in estoque_items %}
-                  <option value="{{ item.pk }}" {% if remessa_item_pk == item.pk|stringformat:"s" %}selected{% endif %}>
-                    {{ item.description_manual|default:item.item_shock }} — {{ item.mark|default:"sem marca" }} ({{ item.amount_shock }} em estoque)
-                  </option>
-                {% endfor %}
-              </select>
+              <input type="text" id="remessa_item_search" class="efisco-text"
+                     placeholder="Digite o código E-Fisco, descrição ou marca…" autocomplete="off">
+              <input type="hidden" name="remessa_item" id="id_remessa_item" value="{{ remessa_item_pk }}">
+              <div class="efisco-dropdown" id="remessa_item_dropdown" style="display:none;"></div>
+              <div class="efisco-selected" id="remessa_item_selected" style="display:none;"></div>
               {% if remessa_errors.item %}<div class="field-errors">⚠ {{ remessa_errors.item }}</div>{% endif %}
             </div>
 
             <div class="field">
-              <label class="field-label">Quantidade a Adicionar</label>
-              <input type="number" name="remessa_qty" id="id_remessa_qty" min="1" value="{{ remessa_qty }}" placeholder="Ex: 50">
+              <label class="field-label">Nova Quantidade</label>
+              <input type="number" name="remessa_qty" id="id_remessa_qty" min="0" value="{{ remessa_qty }}" placeholder="Ex: 10">
+              <div class="file-hint" style="margin-top:4px;">Esse valor <strong>substitui</strong> a quantidade atual do item (não soma nem subtrai).</div>
               {% if remessa_errors.qty %}<div class="field-errors">⚠ {{ remessa_errors.qty }}</div>{% endif %}
             </div>
 
@@ -550,20 +588,15 @@
 
       <div class="card" style="margin-top:14px; animation-delay:.07s;">
         <div class="card-head">
-          <div class="card-icon ci-amber">⚙️</div>
-          <span class="card-title">Forma de Entrada (Opcional)</span>
+          <div class="card-icon ci-amber">📝</div>
+          <span class="card-title">Motivo do Ajuste (Opcional)</span>
         </div>
         <div class="card-body">
           <div class="form-grid">
 
-            <div class="field">
-              <label class="field-label">Forma de Entrada</label>
-              <input type="text" name="remessa_form_input" placeholder="Ex: Compra direta, Doação…">
-            </div>
-
-            <div class="field">
-              <label class="field-label">Método</label>
-              <input type="text" name="remessa_method" placeholder="Ex: Pregão, Dispensa…">
+            <div class="field span-2">
+              <label class="field-label">Motivo do Ajuste</label>
+              <input type="text" name="remessa_motivo" placeholder="Ex: Contagem de inventário, Item danificado, Correção de cadastro…">
             </div>
 
           </div>
@@ -572,9 +605,9 @@
 
       <div class="card" style="margin-top:14px; animation-delay:.13s;">
         <div class="form-actions">
-          <button type="submit" class="btn btn-teal">
+          <button type="submit" class="btn btn-primary">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Adicionar ao estoque
+            Aplicar ajuste
           </button>
         </div>
       </div>
@@ -603,5 +636,230 @@
       mcNovo.classList.add('active');
     }
   }
+
+  /* ─── Busca de item (autocomplete) ─── */
+  const EFISCO_SEARCH_URL  = "{% url 'dimms:efisco_search' %}";
+  const ESTOQUE_SEARCH_URL = "{% url 'dimms:estoque_search' %}";
+  const REMESSA_ITEM_DATA  = {{ remessa_item_json|safe }};
+
+  function closeDropdown(dropdown) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+
+  /* Busca no catálogo (BensConsumo) — usada no modo "Novo Item" */
+  function bindEfiscoCatalogoSearch() {
+    const textInput = document.getElementById('item_shock_search');
+    const dropdown  = document.getElementById('item_shock_dropdown');
+    const selected  = document.getElementById('item_shock_selected');
+    const selectEl  = document.getElementById('id_item_shock');
+    const selectWrap = document.getElementById('item_shock_select_wrap');
+    if (!textInput || !selectEl) return;
+
+    let lastResults = [];
+    let debounceTimer = null;
+
+    function showChip(label) {
+      selected.innerHTML = `
+        <span>${label}</span>
+        <button type="button" class="efisco-clear" title="Limpar">✕</button>
+      `;
+      selected.style.display = 'flex';
+      textInput.style.display = 'none';
+    }
+
+    function selectItem(item) {
+      selectEl.value = item.id;
+      showChip(`<strong>${item.efisco}</strong> — ${item.descricao_efisco}`);
+      closeDropdown(dropdown);
+    }
+
+    // Progressive enhancement: esconde o <select> nativo e usa a busca no lugar dele.
+    selectWrap.style.display = 'none';
+
+    // Se o form já veio com um item selecionado (ex.: erro de validação), mostra o chip.
+    if (selectEl.value) {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      if (opt && opt.value) showChip(opt.textContent);
+    }
+
+    selected.addEventListener('click', e => {
+      if (e.target.classList.contains('efisco-clear')) {
+        selectEl.value = '';
+        textInput.value = '';
+        lastResults = [];
+        selected.innerHTML = '';
+        selected.style.display = 'none';
+        textInput.style.display = '';
+        textInput.focus();
+      }
+    });
+
+    textInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = textInput.value.trim();
+      if (q.length < 2) { closeDropdown(dropdown); lastResults = []; return; }
+      debounceTimer = setTimeout(() => {
+        fetch(`${EFISCO_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            lastResults = data;
+            closeDropdown(dropdown);
+            if (!data.length) {
+              dropdown.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhum item encontrado</div>';
+              dropdown.style.display = 'block';
+              return;
+            }
+            data.forEach(item => {
+              const opt = document.createElement('div');
+              opt.className = 'efisco-option';
+              opt.innerHTML = `
+                <div class="efisco-code">${item.efisco}</div>
+                <div class="efisco-desc">${item.descricao_efisco}</div>
+              `;
+              opt.addEventListener('mousedown', e => { e.preventDefault(); selectItem(item); });
+              dropdown.appendChild(opt);
+            });
+            dropdown.style.display = 'block';
+          });
+      }, 250);
+    });
+
+    textInput.addEventListener('blur', () => setTimeout(() => closeDropdown(dropdown), 200));
+
+    textInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeDropdown(dropdown); return; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const q = textInput.value.trim();
+        if (q.length < 2) return;
+
+        function pickFromResults(data) {
+          if (!data.length) return;
+          const typed = q.toLowerCase();
+          const exact = data.find(item => item.efisco.toLowerCase() === typed);
+          selectItem(exact || data[0]);
+        }
+
+        if (lastResults.length) {
+          pickFromResults(lastResults);
+        } else {
+          clearTimeout(debounceTimer);
+          fetch(`${EFISCO_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => { lastResults = data; closeDropdown(dropdown); pickFromResults(data); });
+        }
+      }
+    });
+  }
+
+  /* Busca no estoque já existente — usada no modo "Nova Remessa" */
+  function bindEstoqueSearch() {
+    const textInput   = document.getElementById('remessa_item_search');
+    const hiddenInput = document.getElementById('id_remessa_item');
+    const dropdown    = document.getElementById('remessa_item_dropdown');
+    const selected    = document.getElementById('remessa_item_selected');
+    if (!textInput || !hiddenInput) return;
+
+    let lastResults = [];
+    let debounceTimer = null;
+
+    function showChip(item) {
+      selected.innerHTML = `
+        <span><strong>${item['item_shock__efisco']}</strong> — ${item['item_shock__descricao_efisco']} · Estoque: ${item.amount_shock}${item.mark ? ' · ' + item.mark : ''}</span>
+        <button type="button" class="efisco-clear" title="Limpar">✕</button>
+      `;
+      selected.style.display = 'flex';
+      textInput.style.display = 'none';
+    }
+
+    function selectItem(item) {
+      hiddenInput.value = item.id;
+      showChip(item);
+      closeDropdown(dropdown);
+      const qtyInput = document.getElementById('id_remessa_qty');
+      if (qtyInput) qtyInput.value = item.amount_shock;
+    }
+
+    // Pré-preenche se já havia um item selecionado (ex.: erro de validação).
+    if (REMESSA_ITEM_DATA) {
+      showChip(REMESSA_ITEM_DATA);
+    }
+
+    selected.addEventListener('click', e => {
+      if (e.target.classList.contains('efisco-clear')) {
+        hiddenInput.value = '';
+        textInput.value = '';
+        lastResults = [];
+        selected.innerHTML = '';
+        selected.style.display = 'none';
+        textInput.style.display = '';
+        textInput.focus();
+      }
+    });
+
+    textInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = textInput.value.trim();
+      if (q.length < 2) { closeDropdown(dropdown); lastResults = []; return; }
+      debounceTimer = setTimeout(() => {
+        fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            lastResults = data;
+            closeDropdown(dropdown);
+            if (!data.length) {
+              dropdown.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhum item encontrado</div>';
+              dropdown.style.display = 'block';
+              return;
+            }
+            data.forEach(item => {
+              const opt = document.createElement('div');
+              opt.className = 'efisco-option';
+              opt.innerHTML = `
+                <div class="efisco-code">${item['item_shock__efisco']}</div>
+                <div class="efisco-desc">${item['item_shock__descricao_efisco']}</div>
+                <div class="efisco-qty">Estoque atual: ${item.amount_shock} · Marca: ${item.mark || '—'}</div>
+              `;
+              opt.addEventListener('mousedown', e => { e.preventDefault(); selectItem(item); });
+              dropdown.appendChild(opt);
+            });
+            dropdown.style.display = 'block';
+          });
+      }, 250);
+    });
+
+    textInput.addEventListener('blur', () => setTimeout(() => closeDropdown(dropdown), 200));
+
+    textInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeDropdown(dropdown); return; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const q = textInput.value.trim();
+        if (q.length < 2) return;
+
+        function pickFromResults(data) {
+          if (!data.length) return;
+          const typed = q.toLowerCase();
+          const exact = data.find(item => item['item_shock__efisco'].toLowerCase() === typed);
+          selectItem(exact || data[0]);
+        }
+
+        if (lastResults.length) {
+          pickFromResults(lastResults);
+        } else {
+          clearTimeout(debounceTimer);
+          fetch(`${ESTOQUE_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => { lastResults = data; closeDropdown(dropdown); pickFromResults(data); });
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bindEfiscoCatalogoSearch();
+    bindEstoqueSearch();
+  });
 </script>
 {% endblock %}

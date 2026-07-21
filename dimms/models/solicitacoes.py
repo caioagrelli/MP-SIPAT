@@ -2,6 +2,7 @@
 from django.db import models
 from django.db.models import F
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -117,7 +118,10 @@ class SolicitacaoItens(models.Model):
         verbose_name='Item Solicitado',
     )
     
-    amount_order = models.PositiveIntegerField(
+    amount_order = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         blank=True,
         null=True,
         verbose_name='Quantidade',
@@ -141,6 +145,11 @@ class SolicitacaoItens(models.Model):
                     f'estoque atual ({self.item_order.amount_shock}).'
                 )
             })
+
+        try:
+            validar_quantidade_por_unidade(self.amount_order, self.item_order.item_shock.medida)
+        except ValueError as e:
+            raise ValidationError({'amount_order': str(e)})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -223,6 +232,13 @@ class Tramitacao(models.Model):
         with transaction.atomic():
             novo_registro = self.pk is None
 
+            status_anterior = None
+            if novo_registro and self.request_update_id:
+                anterior = Solicitacao.objects.filter(
+                    pk=self.request_update_id
+                ).only("situation").first()
+                status_anterior = anterior.situation if anterior else None
+
             super().save(*args, **kwargs)
 
             if self.request_update_id and self.update:
@@ -234,9 +250,12 @@ class Tramitacao(models.Model):
                     solicitacao.situation = self.update
                     solicitacao.save(update_fields=["situation"])
 
-                # baixa automática do estoque apenas uma vez
+                # baixa automática do estoque apenas quando o status muda de fato
+                # (evita retentativa de baixa ao apenas re-salvar/anexar documento no mesmo status)
+                mudou_status = novo_registro and status_anterior != self.update
+
                 if (
-                    novo_registro
+                    mudou_status
                     and self.update in (
                         StatusTramitacao.aguar_separada,
                         StatusTramitacao.separada,

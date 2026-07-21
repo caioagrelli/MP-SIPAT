@@ -444,7 +444,13 @@ class SolicitacaoAdmin(admin.ModelAdmin):
         'user_order',
         'situation',
     )
-    
+
+    # 'situation' só pode mudar via Tramitação (dimms/models/solicitacoes.py) —
+    # editar direto aqui pula a baixa automática de estoque.
+    readonly_fields=(
+        'situation',
+    )
+
     fieldsets=(
         ('Informações da Requisição', {
             'fields': (

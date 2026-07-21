@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function syncQty() {
     let t = 0;
-    container.querySelectorAll('input[type="number"]').forEach(i => { t += parseInt(i.value) || 0; });
+    container.querySelectorAll('input[type="number"]').forEach(i => { t += parseFloat(i.value) || 0; });
     sQty.textContent = t;
     validateQtys();
   }
@@ -686,8 +686,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let hasError = false;
     rows().forEach(row => {
       const qtyInput = row.querySelector('input[type="number"]');
-      const maxQty   = parseInt(row.dataset.maxQty);
-      const qty      = parseInt(qtyInput ? qtyInput.value : 0) || 0;
+      const maxQty   = parseFloat(row.dataset.maxQty);
+      const qty      = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
       if (qtyInput) {
         if (!isNaN(maxQty) && qty > maxQty) {
           qtyInput.style.borderColor = 'var(--red)';

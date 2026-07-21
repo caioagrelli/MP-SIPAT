@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let t = 0;
     getVisibleRows().forEach(row => {
       const i = row.querySelector('input[type="number"]');
-      if (i) t += parseInt(i.value) || 0;
+      if (i) t += parseFloat(i.value) || 0;
     });
     sQty.textContent = t;
   }

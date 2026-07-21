@@ -1,0 +1,244 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Registrar Recebimento{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.13);
+    --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 16px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .upage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; }
+  .wrap { max-width: 620px; margin: 0 auto; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--ink-3); margin-bottom: 18px; font-weight: 500; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { opacity: .4; }
+
+  .hero {
+    background: linear-gradient(135deg, #1e2d42 0%, #243451 100%);
+    border-radius: var(--r-lg); padding: 22px 28px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px; box-shadow: var(--shadow-md);
+  }
+  .hero-icon { width: 48px; height: 48px; border-radius: 13px; background: rgba(255,255,255,.12); display: grid; place-items: center; font-size: 22px; flex-shrink: 0; }
+  .hero-title { font-size: 1.25rem; font-weight: 800; color: #fff; }
+  .hero-sub { margin-top: 4px; font-size: .82rem; color: rgba(255,255,255,.78); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .card-body { padding: 24px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .form-label { font-size: .71rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .label-opt { font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-3); opacity: .7; margin-left: 4px; }
+
+  .upage input[type="text"], .upage input[type="file"] {
+    width: 100%; font-family: var(--font); font-size: .875rem; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    border-radius: var(--r-sm); padding: 10px 13px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .upage input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .upage input[type="file"] { padding: 8px 12px; color: var(--ink-3); cursor: pointer; font-size: .82rem; }
+
+  .field-error { font-size: .78rem; color: #b91c1c; font-weight: 600; margin-top: 4px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px;
+    border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem;
+    font-weight: 600; cursor: pointer; text-decoration: none;
+    border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap;
+  }
+  .btn-accent { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 10px var(--accent-glow); }
+  .btn-accent:hover { background: var(--accent-dark); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .form-actions { display: flex; gap: 10px; margin-top: 6px; }
+
+  .hint-box {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: var(--blue-soft); border: 1px solid var(--blue-mid); color: var(--accent-dark);
+    border-radius: var(--r-sm); padding: 12px 14px; font-size: .8rem; line-height: 1.5; margin-bottom: 18px;
+  }
+</style>
+
+<div class="upage">
+  <div class="wrap">
+
+    <nav class="breadcrumb">
+      <a href="{% url 'dimms:processing' %}">Tramitações</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'dimms:details_processing' solicitacao.pk %}">{{ solicitacao.request_code }}</a>
+      <span class="breadcrumb-sep">›</span>
+      Receber
+    </nav>
+
+    <div class="hero">
+      <div class="hero-icon">📦</div>
+      <div>
+        <div class="hero-title">Registrar Recebimento</div>
+        <div class="hero-sub">{{ solicitacao.request_code }} — {{ solicitacao.ua_order|default:"—" }}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+
+        <div class="hint-box">
+          ℹ️ Depois de salvar, você poderá gerar o PDF do termo de recebimento, colher a assinatura
+          física de quem recebeu e anexar o termo já assinado de volta ao sistema.
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">{{ form.nome_recebedor.label }}</label>
+            {{ form.nome_recebedor }}
+            {% if form.nome_recebedor.errors %}<div class="field-error">{{ form.nome_recebedor.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ form.foto_recebedor.label }} <span class="label-opt">(opcional)</span></label>
+
+            <video id="cameraVideo" autoplay playsinline style="display:none; width:100%; border-radius:var(--r-sm); background:#000; max-height:320px; object-fit:cover;"></video>
+            <canvas id="cameraCanvas" style="display:none;"></canvas>
+            <img id="cameraPreview" alt="Foto capturada" style="display:none; width:100%; border-radius:var(--r-sm); border:1px solid var(--border-strong); max-height:320px; object-fit:cover;">
+
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-ghost" id="btnAbrirCamera">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Abrir Câmera
+              </button>
+              <button type="button" class="btn btn-accent" id="btnCapturar" style="display:none;">Tirar Foto</button>
+              <button type="button" class="btn btn-ghost" id="btnRefazer" style="display:none;">Tirar Novamente</button>
+            </div>
+
+            <div style="margin-top:8px;">
+              <span id="btnUsarArquivo" style="cursor:pointer; color:var(--accent); font-size:.8rem; text-decoration:underline;">ou envie um arquivo do computador</span>
+              {{ form.foto_recebedor }}
+            </div>
+
+            {% if form.foto_recebedor.errors %}<div class="field-error">{{ form.foto_recebedor.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-accent">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Registrar Recebimento
+            </button>
+            <a href="{% url 'dimms:details_processing' solicitacao.pk %}" class="btn btn-ghost">Cancelar</a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const video    = document.getElementById('cameraVideo');
+  const canvas   = document.getElementById('cameraCanvas');
+  const preview  = document.getElementById('cameraPreview');
+  const fileInput = document.getElementById('id_foto_recebedor');
+  const btnAbrir   = document.getElementById('btnAbrirCamera');
+  const btnCapturar = document.getElementById('btnCapturar');
+  const btnRefazer  = document.getElementById('btnRefazer');
+  const btnUsarArquivo = document.getElementById('btnUsarArquivo');
+
+  let stream = null;
+  fileInput.style.display = 'none';
+
+  function pararCamera() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  btnUsarArquivo.addEventListener('click', () => {
+    pararCamera();
+    fileInput.style.display = 'block';
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files && fileInput.files[0]) {
+      preview.src = URL.createObjectURL(fileInput.files[0]);
+      preview.style.display = 'block';
+      video.style.display = 'none';
+      btnCapturar.style.display = 'none';
+      btnAbrir.style.display = 'none';
+      btnRefazer.style.display = 'inline-flex';
+    }
+  });
+
+  btnAbrir.addEventListener('click', async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Este navegador não suporta acesso à câmera. Envie um arquivo em vez disso.');
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      preview.style.display = 'none';
+      fileInput.style.display = 'none';
+      btnAbrir.style.display = 'none';
+      btnCapturar.style.display = 'inline-flex';
+      btnRefazer.style.display = 'none';
+    } catch (err) {
+      alert(
+        'Não foi possível abrir a câmera: ' + err.message + '\n\n' +
+        'A câmera só funciona em conexões seguras (https) ou em "localhost". ' +
+        'Se o sistema estiver em http:// numa rede local, use "enviar um arquivo" em vez disso.'
+      );
+    }
+  });
+
+  btnCapturar.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const file = new File([blob], 'foto_recebedor.jpg', { type: 'image/jpeg' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+
+      preview.src = URL.createObjectURL(blob);
+      preview.style.display = 'block';
+      video.style.display = 'none';
+      btnCapturar.style.display = 'none';
+      btnRefazer.style.display = 'inline-flex';
+      pararCamera();
+    }, 'image/jpeg', 0.9);
+  });
+
+  btnRefazer.addEventListener('click', () => {
+    preview.style.display = 'none';
+    fileInput.value = '';
+    btnRefazer.style.display = 'none';
+    btnAbrir.style.display = 'inline-flex';
+  });
+
+  window.addEventListener('beforeunload', pararCamera);
+});
+</script>
+{% endblock %}

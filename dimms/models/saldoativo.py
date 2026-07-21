@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Sum
+from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -51,12 +52,18 @@ class SaldoAtivo(models.Model): #PRONTO
     )
     
     
-    quantidade_contrato = models.PositiveIntegerField(
+    quantidade_contrato = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         verbose_name='Quantidade Contrato',
     )
-    
-    
-    saldo_disponivel = models.PositiveIntegerField(
+
+
+    saldo_disponivel = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         blank=True,
         null=True,
         verbose_name='Saldo Disponível',
@@ -155,11 +162,31 @@ class SolicitacoesSaldoAtivo(models.Model):
         verbose_name='N° Empenho',
     )
 
+    numero_nota_fiscal = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='N° Nota Fiscal',
+    )
+
     nota_fiscal = models.FileField(
         upload_to=path_nota_fiscal_solicitacao,
         blank=True,
         null=True,
         verbose_name='Nota Fiscal (PDF)',
+    )
+
+    empenho = models.FileField(
+        upload_to=path_empenho_solicitacao,
+        blank=True,
+        null=True,
+        verbose_name='Empenho (PDF)',
+    )
+
+    termo_recebimento_definitivo = models.FileField(
+        upload_to=path_termo_recebimento_solicitacao,
+        blank=True,
+        null=True,
+        verbose_name='Termo de Recebimento Definitivo (PDF)',
     )
 
     class Meta():
@@ -169,13 +196,20 @@ class SolicitacoesSaldoAtivo(models.Model):
         
     def save(self, *args, **kwargs):
         if not self.codigo:
+            from django.db.models import Max
+            import re
             ano = timezone.now().year
-            ultimo = SolicitacoesSaldoAtivo.objects.filter(
-                codigo__startswith=f'SSA-{ano}'
-            ).count() + 1
-
-            self.codigo = f'SSA-{ano}-{ultimo:04d}'
-
+            prefixo = f'SSA-{ano}-'
+            existentes = SolicitacoesSaldoAtivo.objects.filter(
+                codigo__startswith=prefixo
+            ).values_list('codigo', flat=True)
+            numeros = []
+            for cod in existentes:
+                m = re.search(r'(\d+)$', cod)
+                if m:
+                    numeros.append(int(m.group(1)))
+            proximo = (max(numeros) + 1) if numeros else 1
+            self.codigo = f'{prefixo}{proximo:04d}'
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -203,7 +237,10 @@ class ItensSolicitados(models.Model):
     )
     
     
-    quantidade = models.PositiveIntegerField(
+    quantidade = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         blank=True,
         null=True,
         verbose_name='Quantidade Solicitada',
@@ -225,6 +262,13 @@ class ItensSolicitados(models.Model):
                 raise ValidationError(
                     f'Quantidade solicitada ({self.quantidade}) maior que o saldo disponível ({self.bem.saldo_disponivel or 0}).'
                 )
+
+        # Quantidade fracionada só é permitida para itens medidos em metro
+        if self.bem_id and self.quantidade is not None:
+            try:
+                validar_quantidade_por_unidade(self.quantidade, self.bem.efisco.medida)
+            except ValueError as e:
+                raise ValidationError({'quantidade': str(e)})
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -258,7 +302,10 @@ class BensEnviados(models.Model):
         verbose_name='Item Solicitado',
     )
 
-    quantidade_enviada = models.PositiveIntegerField(
+    quantidade_enviada = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         verbose_name='Quantidade Enviada pelo Fornecedor',
         blank=True,
         null=True,

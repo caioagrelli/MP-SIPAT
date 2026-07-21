@@ -1,7 +1,10 @@
+import re
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 
 def profile_photo_path(instance, filename):
@@ -53,6 +56,13 @@ def save_profile(sender, instance, **kwargs):
         instance.profile.save()
 
 
+class StatusFeedback(models.TextChoices):
+    aberto       = 'ABERTO',       'Aberto'
+    em_andamento = 'EM_ANDAMENTO', 'Em Andamento'
+    finalizado   = 'FINALIZADO',   'Finalizada'
+    recusado     = 'RECUSADO',     'Recusada'
+
+
 class Feedback(models.Model):
     TIPO_BUG      = 'bug'
     TIPO_SUGESTAO = 'sugestao'
@@ -61,11 +71,21 @@ class Feedback(models.Model):
         (TIPO_SUGESTAO, 'Sugestão'),
     ]
 
+    codigo    = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        unique=True,
+        editable=False,
+        verbose_name='Código',
+    )
     user      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuário')
     tipo      = models.CharField(max_length=10, choices=TIPO_CHOICES, verbose_name='Tipo')
+    status    = models.CharField(max_length=15, choices=StatusFeedback.choices, default=StatusFeedback.aberto, verbose_name='Status')
     descricao = models.TextField(verbose_name='Descrição')
     pagina    = models.CharField(max_length=500, blank=True, verbose_name='Página')
     imagem    = models.ImageField(upload_to='feedback/', blank=True, null=True, verbose_name='Print')
+    resolucao = models.TextField(blank=True, verbose_name='O que foi feito')
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Enviado em')
 
     class Meta:
@@ -73,5 +93,21 @@ class Feedback(models.Model):
         verbose_name_plural = 'Feedbacks'
         ordering            = ['-criado_em']
 
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ano = timezone.now().year
+            prefixo = f'RBS-{ano}-'
+            existentes = Feedback.objects.filter(
+                codigo__startswith=prefixo
+            ).values_list('codigo', flat=True)
+            numeros = []
+            for cod in existentes:
+                m = re.search(r'(\d+)$', cod)
+                if m:
+                    numeros.append(int(m.group(1)))
+            proximo = (max(numeros) + 1) if numeros else 1
+            self.codigo = f'{prefixo}{proximo:04d}'
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f'[{self.get_tipo_display()}] {self.user} — {self.criado_em:%d/%m/%Y %H:%M}'
+        return f'{self.codigo} [{self.get_tipo_display()}] {self.user} — {self.criado_em:%d/%m/%Y %H:%M}'

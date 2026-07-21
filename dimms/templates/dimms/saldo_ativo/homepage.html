@@ -203,10 +203,12 @@
               <div class="contrato-id">{{ contrato.contrato }}</div>
               <div class="contrato-supplier">
                 {{ contrato.supplier_contract|default:"Fornecedor não vinculado" }}
-                {% if contrato.status %} — {{ contrato.status }}{% endif %}
               </div>
             </div>
             <div class="contrato-head-right">
+              {% if contrato.status == 'CANCELADO' %}
+                <span class="status-pill status-CANCELADA">🚫 {{ contrato.get_status_display }}</span>
+              {% endif %}
               {% if contrato.solicitacoes_abertas > 0 %}
                 <span class="pill pill-amber">{{ contrato.solicitacoes_abertas }} aberta(s)</span>
               {% endif %}
@@ -236,14 +238,10 @@
             <div class="contrato-actions">
               <!-- Solicitar: POST direto para criar solicitacao neste contrato -->
               {% if contrato.total_itens > 0 %}
-              <form method="post" action="{% url 'dimms:saldo_ativo_solicitacao_create' %}">
-                {% csrf_token %}
-                <input type="hidden" name="contrato" value="{{ contrato.pk }}">
-                <button type="submit" class="btn btn-green btn-sm">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Solicitar
-                </button>
-              </form>
+              <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}?contrato={{ contrato.pk }}" class="btn btn-green btn-sm">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Solicitar
+              </a>
               {% endif %}
               <a href="{% url 'dimms:contrato_detail' contrato.pk %}" class="btn btn-ghost btn-sm">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>

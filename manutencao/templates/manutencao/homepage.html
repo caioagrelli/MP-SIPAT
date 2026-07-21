@@ -1,0 +1,258 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Manutenção{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+  .mnt-page { font-family:var(--font); padding:28px 24px 60px; color:var(--ink); }
+
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+  .topbar-title { font-size:1.65rem; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
+  .topbar-sub { margin-top:5px; font-size:.88rem; color:var(--ink-3); font-weight:500; }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm);
+    font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none;
+    border:1px solid transparent; height:40px; white-space:nowrap;
+  }
+  .btn-primary { background:var(--accent); border-color:var(--accent-dark); color:#fff; box-shadow:0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background:var(--accent-dark); }
+  .btn-ghost { background:var(--surface); border-color:var(--border-strong); color:var(--ink-2); box-shadow:var(--shadow-sm); }
+  .btn-ghost:hover { background:var(--surface-2); color:var(--ink); }
+
+  /* ─── QUICK ACTIONS (igual ao DIMMS) ─── */
+  .qa-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
+  .qa-tile {
+    background:#1e2d42; border:1px solid rgba(255,255,255,.07); border-radius:var(--r-md);
+    padding:16px 16px; text-decoration:none; display:flex; align-items:center; gap:13px;
+    min-height:76px; transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+    box-shadow:0 4px 14px rgba(15,23,42,.18);
+  }
+  .qa-tile:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(37,99,235,.22); background:#263650; }
+  .qa-icon { width:44px; height:44px; border-radius:11px; background:rgba(255,255,255,.09); display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+  .qa-title { font-size:.95rem; font-weight:700; color:#f0f4ff; line-height:1.2; }
+  .qa-sub { font-size:.78rem; color:rgba(160,175,210,.75); margin-top:2px; }
+
+  .summary-strip { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:20px; }
+  .sum-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-sm); padding:16px 20px; position:relative; overflow:hidden; }
+  .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue); }
+  .sum-card:nth-child(2)::before { background:var(--amber); }
+  .sum-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
+  .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
+  .sum-card:nth-child(2) .sum-value { color:var(--amber); }
+
+  /* MAIN TABLE CARD */
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
+  .main-card-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .main-card-title { font-size:1.05rem; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .total-badge { background:var(--blue-soft); border:1px solid var(--blue-mid); color:var(--blue); border-radius:999px; padding:3px 10px; font-size:.78rem; font-family:var(--mono); font-weight:700; }
+
+  .filter-bar { padding:18px 24px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+  .filter-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:180px; }
+  .filter-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); }
+  .filter-input, .filter-select {
+    height:40px; border:1px solid var(--border-strong); border-radius:var(--r-sm);
+    padding:0 13px; font-family:var(--font); font-size:.87rem; color:var(--ink);
+    background:var(--surface); outline:none; width:100%; appearance:none;
+  }
+  .filter-select {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; padding-right:30px;
+  }
+  .filter-input:focus, .filter-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .filter-actions { display:flex; gap:8px; align-self:flex-end; }
+
+  .main-table-wrap { overflow-x:auto; }
+  .main-table { width:100%; border-collapse:collapse; font-size:.83rem; min-width:760px; }
+  .main-table thead th {
+    padding:10px 12px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ink-3); background:var(--surface-2); border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  .main-table tbody td { padding:9px 12px; color:var(--ink-2); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .main-table tbody tr:last-child td { border-bottom:none; }
+  .main-table tbody tr:hover td { background:#f5f8ff; }
+  .main-table a { color:var(--accent); text-decoration:none; font-weight:700; font-family:var(--mono); font-size:.8rem; }
+  .main-table a:hover { text-decoration:underline; }
+  .mono-cell { font-family:var(--mono); font-size:.82rem; color:var(--ink); }
+  .qty-zero { color:var(--red) !important; font-weight:700; }
+
+  .grupo-badge {
+    display:inline-flex; align-items:center; padding:3px 8px; border-radius:999px;
+    font-size:.68rem; font-weight:700; letter-spacing:.02em; color:#fff; white-space:nowrap;
+  }
+  .grupo-ELETRICA     { background:#d97706; color:#1a1a1a; }
+  .grupo-HIDRAULICA   { background:#2563eb; }
+  .grupo-MARCENARIA   { background:#92400e; }
+  .grupo-PINTURA      { background:#c2410c; }
+  .grupo-REFRIGERACAO { background:#38bdf8; color:#0c4a6e; }
+  .grupo-SERRALHERIA  { background:#334155; }
+  .grupo-ALVENARIA    { background:#78716c; }
+  .grupo-FERRAMENTAS  { background:#0f766e; }
+  .grupo-EPI          { background:#dc2626; }
+  .grupo-OUTROS       { background:#64748b; }
+
+  .table-empty { padding:40px; text-align:center; color:var(--ink-3); font-size:.9rem; }
+  .table-empty-icon { font-size:2.2rem; margin-bottom:8px; }
+
+  @media (max-width: 960px) {
+    .qa-grid { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width: 600px) {
+    .qa-grid { grid-template-columns:1fr; }
+    .summary-strip { grid-template-columns:1fr; }
+    .filter-bar { flex-direction:column; }
+    .topbar { flex-direction:column; align-items:flex-start; }
+  }
+</style>
+
+<div class="mnt-page">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🛠️ Manutenção</div>
+      <div class="topbar-sub">Bens e estoque de materiais de manutenção</div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS (igual ao DIMMS) -->
+  <div class="qa-grid">
+    <a href="{% url 'manutencao:estoque_entrada' %}" class="qa-tile">
+      <div class="qa-icon">🛒</div>
+      <div>
+        <div class="qa-title">Entradas no Estoque</div>
+      </div>
+    </a>
+
+    <a href="{% url 'manutencao:estoque_saida' %}" class="qa-tile">
+      <div class="qa-icon">📤</div>
+      <div>
+        <div class="qa-title">Registrar Saída</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="{% url 'manutencao:relatorios' %}" class="qa-tile">
+      <div class="qa-icon">📊</div>
+      <div>
+        <div class="qa-title">Relatórios</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+
+    <a href="{% url 'manutencao:estoque_planilha' %}" class="qa-tile">
+      <div class="qa-icon">➕</div>
+      <div>
+        <div class="qa-title">E-Fiscos</div>
+      </div>
+    </a>
+
+    <a href="{% url 'manutencao:localizacoes' %}" class="qa-tile">
+      <div class="qa-icon">📍</div>
+      <div>
+        <div class="qa-title">Localizações</div>
+        <div class="qa-sub">Provisório</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sum-label">Itens em Estoque</div>
+      <div class="sum-value">{{ total_itens }}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Sem Quantidade Disponível</div>
+      <div class="sum-value">{{ sem_estoque }}</div>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🌍 Todos os Bens de Manutenção
+        <span class="total-badge">{{ itens|length }} itens</span>
+      </div>
+    </div>
+
+    <form method="get">
+      <div class="filter-bar">
+        <div class="filter-group" style="flex:2; min-width:220px;">
+          <label class="filter-label">Pesquisar</label>
+          <input class="filter-input" type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="E-Fisco, descrição ou marca…">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Filtrar por grupo</label>
+          <select name="grupo" class="filter-select">
+            <option value="">Todos os grupos</option>
+            {% for value, label in grupos %}
+              <option value="{{ value }}" {% if grupo_selected == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Pesquisar
+          </button>
+          <a href="{% url 'manutencao:homepage' %}" class="btn btn-primary">Limpar</a>
+        </div>
+      </div>
+    </form>
+
+    {% if itens %}
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Grupo</th>
+            <th>E-fisco</th>
+            <th>Descrição</th>
+            <th>Unidade</th>
+            <th>Marca</th>
+            <th>Quantidade</th>
+            <th>Localização</th>
+            <th>Validade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in itens %}
+          <tr>
+            <td><span class="grupo-badge grupo-{{ item.grupo }}">{{ item.get_grupo_display }}</span></td>
+            <td><a href="{% url 'manutencao:estoque_planilha' %}?q={{ item.efisco }}">{{ item.efisco }}</a></td>
+            <td style="font-weight:600; color:var(--ink); white-space:normal; max-width:260px;">{{ item.descricao }}</td>
+            <td>{{ item.get_medida_display }}</td>
+            <td>{{ item.mark|default:"—" }}</td>
+            <td class="mono-cell {% if item.amount_shock == 0 %}qty-zero{% endif %}">{{ item.amount_shock }}</td>
+            <td>{{ item.locate|default:"—" }}</td>
+            <td class="mono-cell">{{ item.validity|date:"d/m/Y"|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="table-empty">
+      <div class="table-empty-icon">📦</div>
+      Nenhum item encontrado no estoque.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

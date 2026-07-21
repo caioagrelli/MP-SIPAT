@@ -33,7 +33,7 @@ class EstoqueForm(forms.ModelForm):
             'item_shock': forms.Select(attrs={'class': 'form-control'}),
             'description_manual': forms.TextInput(attrs={'class': 'form-control'}),
             'mark': forms.TextInput(attrs={'class': 'form-control'}),
-            'amount_shock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'amount_shock': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'locate': forms.Select(attrs={'class': 'form-control'}),
             'monthly_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
             'essential': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -54,6 +54,15 @@ class EstoqueForm(forms.ModelForm):
             'form_input': 'Forma de Entrada',
         }
 
+    amount_shock = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=0,
+        localize=True,
+        label='Quantidade',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+    )
+
 # Adicionar um item ao estoque já existente no estoque
 class stock_up(forms.Form):
     item_estoque = forms.ModelChoiceField(
@@ -62,10 +71,13 @@ class stock_up(forms.Form):
         widget=forms.Select(attrs={"class": "form-control"})
     )
 
-    quantidade_entrada = forms.IntegerField(
+    quantidade_entrada = forms.DecimalField(
         label="Quantidade a adicionar",
-        min_value=1,
-        widget=forms.NumberInput(attrs={"class": "form-control", "min": 1})
+        min_value=0.01,
+        max_digits=12,
+        decimal_places=2,
+        localize=True,
+        widget=forms.NumberInput(attrs={"class": "form-control", "min": 0.01, "step": "0.01"})
     )
 
     form_input = forms.CharField(
@@ -109,8 +121,17 @@ class SolicitacaoItemForm(forms.ModelForm):
         model = SolicitacaoItens
         fields = ['item_order', 'amount_order']
         widgets = {
-            'amount_order': forms.NumberInput(attrs={'min': 1}),
+            'amount_order': forms.NumberInput(attrs={'min': 0.01, 'step': '0.01'}),
         }
+
+    amount_order = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=0.01,
+        localize=True,
+        required=False,
+        widget=forms.NumberInput(attrs={'min': 0.01, 'step': '0.01'}),
+    )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -274,6 +295,34 @@ class SolicitacaoStatusUpdateForm(forms.ModelForm):
         }
 
 
+# Registrar o recebimento de uma solicitação (gera o termo de recebimento)
+class ReceberSolicitacaoForm(forms.Form):
+    nome_recebedor = forms.CharField(
+        max_length=40,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nome de quem recebeu',
+        }),
+        label='Nome de Quem Recebeu',
+    )
+
+    foto_recebedor = forms.ImageField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        label='Foto da Pessoa',
+    )
+
+
+# Anexar o termo de recebimento já assinado a uma tramitação de recebimento
+class AnexarTermoAssinadoForm(forms.Form):
+    termo_assinado = forms.FileField(
+        required=True,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        label='Termo Assinado (PDF)',
+    )
+
+
 
 ''' Artefatos '''
 # Adicionat itens aos artefatos
@@ -416,7 +465,7 @@ class ContratoForm(forms.ModelForm):
             'cs': forms.NumberInput(attrs={'class': 'form-control'}),
             'numero_sc': forms.TextInput(attrs={'class': 'form-control'}),
             'cod_liquidacao': forms.NumberInput(attrs={'class': 'form-control'}),
-            'status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ativo'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
             'supplier_contract': 'Fornecedor',
@@ -450,7 +499,7 @@ class SaldoAtivoItemForm(forms.ModelForm):
             'efisco': forms.Select(attrs={'class': 'form-select'}),
             'marca': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Marca X'}),
             'descricao_manual': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição complementar'}),
-            'quantidade_contrato': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'quantidade_contrato': forms.NumberInput(attrs={'class': 'form-control', 'min': 0.01, 'step': '0.01'}),
             'cota': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
@@ -460,6 +509,15 @@ class SaldoAtivoItemForm(forms.ModelForm):
             'quantidade_contrato': 'Quantidade do Contrato',
             'cota': 'Tipo de Cota',
         }
+
+    quantidade_contrato = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=0,
+        localize=True,
+        label='Quantidade do Contrato',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0.01, 'step': '0.01'}),
+    )
 
 
 ''' Bens de Consumo '''

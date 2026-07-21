@@ -160,7 +160,7 @@
         {% csrf_token %}
         <div class="form-group">
           <label class="form-label">Quantidade desta Remessa</label>
-          <input type="number" name="quantidade_enviada" class="form-input" min="1" max="{{ restante }}" value="{{ restante }}" required>
+          <input type="number" name="quantidade_enviada" class="form-input" min="0.01" step="0.01" max="{{ restante }}" value="{{ restante }}" required>
           <div class="form-hint">Restante a enviar: {{ restante }} unidade(s)</div>
         </div>
         <div class="form-group">

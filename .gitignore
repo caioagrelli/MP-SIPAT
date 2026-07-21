@@ -29,3 +29,8 @@ Thumbs.db
 
 # Planilhas temporárias do Office
 ~$*.xlsx
+
+# Certificado TLS autoassinado (local) — regenerável, não deve ser versionado
+certs/*.key
+certs/*.crt
+certs/san.cnf
