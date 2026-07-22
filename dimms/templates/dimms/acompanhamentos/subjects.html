@@ -1,0 +1,125 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Temas de Acompanhamento{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .tpage { font-family: var(--font); background: var(--bg); padding: 28px 24px 60px; color: var(--ink); min-height: 100vh; }
+  .breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .topbar-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+  .topbar-sub { font-size: .88rem; color: var(--ink-3); margin-bottom: 24px; }
+
+  .layout { display:grid; grid-template-columns: 1fr 320px; gap: 20px; align-items:flex-start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
+  .main-card-head { padding:16px 22px; border-bottom:1px solid var(--border); font-weight:800; }
+  .main-card-body { padding: 18px 22px; }
+
+  .tema-list { list-style:none; }
+  .tema-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .tema-item:last-child { border-bottom:none; }
+  .tema-info { display:flex; align-items:center; gap:10px; }
+  .tema-swatch { width:20px; height:20px; border-radius:6px; flex-shrink:0; border:1px solid var(--border-strong); }
+  .tema-name { font-weight:700; }
+  .tema-count { font-size:.76rem; color:var(--ink-3); font-family:var(--mono); }
+  .tema-actions { display:flex; gap:6px; }
+  .btn-sm { display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:8px; font-size:.76rem; font-weight:600; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2); text-decoration:none; cursor:pointer; }
+  .btn-sm:hover { background:var(--surface-2); }
+  .btn-sm-danger { background:var(--red-soft); border-color:var(--red-mid); color:var(--red); }
+  .btn-sm-danger:hover { background:#fde2e2; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { display:block; font-size:.78rem; font-weight:700; color:var(--ink-2); margin-bottom:6px; }
+  .form-control { width:100%; height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 12px; font-family:var(--font); font-size:.85rem; color:var(--ink); background:var(--surface); outline:none; }
+  input[type="color"].form-control { padding: 3px 6px; cursor:pointer; }
+  .form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-sm); font-size:.85rem; font-weight:600; cursor:pointer; border:1.5px solid var(--accent-dark); background:var(--accent); color:#fff; width:100%; justify-content:center; }
+  .btn:hover { background:var(--accent-dark); }
+
+  .empty { padding: 30px; text-align:center; color:var(--ink-3); font-size:.87rem; }
+</style>
+
+<div class="tpage">
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">DIMMS</a> ›
+    <a href="{% url 'dimms:acompanhamentos_mapa' %}">Acompanhamentos SEI</a> ›
+    Temas
+  </div>
+
+  <div class="topbar-title">Temas</div>
+  <div class="topbar-sub">Categorias coloridas usadas pra agrupar os acompanhamentos de SEI.</div>
+
+  <div class="layout">
+    <div class="main-card">
+      <div class="main-card-head">Temas cadastrados</div>
+      <div class="main-card-body">
+        {% if subjects %}
+        <ul class="tema-list">
+          {% for tema in subjects %}
+          <li class="tema-item">
+            <div class="tema-info">
+              <span class="tema-swatch" style="background:{{ tema.color }};"></span>
+              <span class="tema-name">{{ tema.name }}</span>
+              <span class="tema-count">{{ tema.total_seis }} processo{{ tema.total_seis|pluralize }}</span>
+            </div>
+            <div class="tema-actions">
+              {% if pode_editar %}
+              <a href="{% url 'dimms:tema_edit' tema.pk %}" class="btn-sm">Editar</a>
+              {% endif %}
+              {% if pode_excluir %}
+              <form method="post" action="{% url 'dimms:tema_delete' tema.pk %}" onsubmit="return confirm('Excluir o tema {{ tema.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-sm btn-sm-danger">Excluir</button>
+              </form>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty">Nenhum tema cadastrado ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if form %}
+    <div class="main-card">
+      <div class="main-card-head">Novo tema</div>
+      <div class="main-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            {{ form.name.errors }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.color.label }}</label>
+            {{ form.color }}
+            {{ form.color.errors }}
+          </div>
+          <button type="submit" class="btn">Adicionar tema</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

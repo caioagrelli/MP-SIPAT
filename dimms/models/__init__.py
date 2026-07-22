@@ -5,3 +5,4 @@ from .proposal import *
 from .saldoativo import *
 from .solicitacoes import *
 from .catalogo import *
+from .acompanhamentos import *

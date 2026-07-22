@@ -1,0 +1,240 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ action }} Acompanhamento{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .fpage { font-family: var(--font); background: var(--bg); padding: 28px 24px 60px; color: var(--ink); min-height: 100vh; }
+  .breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .form-card { max-width: 560px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: 28px 30px; }
+  .form-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 22px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display:block; font-size:.78rem; font-weight:700; color:var(--ink-2); margin-bottom:6px; }
+  .form-control, .form-select { width:100%; height:40px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 12px; font-family:var(--font); font-size:.87rem; color:var(--ink); background:var(--surface); outline:none; }
+  .form-control:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .errorlist { list-style:none; color:#b91c1c; font-size:.78rem; margin-top:4px; }
+  .form-actions { display:flex; gap:10px; margin-top:24px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: var(--r-sm); font-family: var(--font); font-size: .87rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); }
+
+  .tema-search-wrap { position: relative; }
+  .tema-hint { font-size: .74rem; color: var(--ink-3); margin-top: 5px; }
+  .tema-hint a { color: var(--accent); text-decoration: none; }
+  .tema-hint a:hover { text-decoration: underline; }
+
+  .tema-dropdown {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+  }
+  .tema-dropdown.open { display: block; }
+  .tema-opt { display: flex; align-items: center; gap: 9px; padding: 9px 12px; font-size: .85rem; cursor: pointer; }
+  .tema-opt:hover, .tema-opt.focused { background: var(--surface-2); }
+  .tema-opt-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border-strong); }
+  .tema-dropdown-empty, .tema-dropdown-loading { padding: 12px; font-size: .82rem; color: var(--ink-3); text-align: center; }
+
+  .tema-selected {
+    display: none; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 10px;
+    border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border-strong);
+    font-size: .8rem; font-weight: 700; width: fit-content;
+  }
+  .tema-selected.show { display: inline-flex; }
+  .tema-selected-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+
+<div class="fpage">
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">DIMMS</a> ›
+    <a href="{% url 'dimms:acompanhamentos_mapa' %}">Acompanhamentos SEI</a> ›
+    {{ action }}
+  </div>
+
+  <div class="form-card">
+    <div class="form-title">{{ action }} acompanhamento</div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">{{ form.subject.label }}</label>
+        <div class="tema-search-wrap">
+          <input
+            type="text"
+            id="temaSearch"
+            class="form-control"
+            placeholder="Digite pra buscar um tema já cadastrado…"
+            autocomplete="off"
+            value="{% if sei %}{{ sei.subject.name }}{% endif %}"
+          >
+          <div class="tema-dropdown" id="temaDropdown"></div>
+        </div>
+        {{ form.subject }}
+        <div class="tema-selected" id="temaSelected">
+          <span class="tema-selected-dot" id="temaSelectedDot"></span>
+          <span id="temaSelectedName"></span>
+        </div>
+        {{ form.subject.errors }}
+        <div class="tema-hint">Só é possível escolher um tema já existente. Pra criar um novo, use <a href="{% url 'dimms:temas_lista' %}" target="_blank">Temas</a>.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.sei_number.label }}</label>
+        {{ form.sei_number }}
+        {{ form.sei_number.errors }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.description.label }}</label>
+        {{ form.description }}
+        {{ form.description.errors }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.status.label }}</label>
+        {{ form.status }}
+        {{ form.status.errors }}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% if sei %}{% url 'dimms:acompanhamento_detail' sei.pk %}{% else %}{% url 'dimms:acompanhamentos_mapa' %}{% endif %}" class="btn btn-ghost">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const TEMAS_SEARCH_URL = "{% url 'dimms:temas_search' %}";
+const temaSearch   = document.getElementById('temaSearch');
+const temaDropdown = document.getElementById('temaDropdown');
+const temaHidden   = document.getElementById('id_subject');
+const temaSelected = document.getElementById('temaSelected');
+const temaSelectedDot  = document.getElementById('temaSelectedDot');
+const temaSelectedName = document.getElementById('temaSelectedName');
+
+let temaDebounce = null;
+let temaResults  = [];
+let temaFocused  = -1;
+
+{% if sei and sei.subject %}
+showSelected('{{ sei.subject.name|escapejs }}', '{{ sei.subject.color|escapejs }}');
+{% endif %}
+
+function showSelected(name, color) {
+  temaSelectedName.textContent = name;
+  temaSelectedDot.style.background = color;
+  temaSelected.classList.add('show');
+}
+
+function clearSelection() {
+  temaHidden.value = '';
+  temaSelected.classList.remove('show');
+}
+
+temaSearch.addEventListener('input', () => {
+  clearTimeout(temaDebounce);
+  temaFocused = -1;
+  clearSelection();
+  const q = temaSearch.value.trim();
+  if (q.length < 1) { closeDropdown(); return; }
+  temaDropdown.innerHTML = '<div class="tema-dropdown-loading">Buscando…</div>';
+  temaDropdown.classList.add('open');
+  temaDebounce = setTimeout(() => fetchTemas(q), 220);
+});
+
+async function fetchTemas(q) {
+  try {
+    const resp = await fetch(`${TEMAS_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+    temaResults = await resp.json();
+    renderDropdown(temaResults);
+  } catch {
+    temaDropdown.innerHTML = '<div class="tema-dropdown-empty">Erro ao buscar. Tente novamente.</div>';
+  }
+}
+
+function renderDropdown(results) {
+  if (!results.length) {
+    temaDropdown.innerHTML = '<div class="tema-dropdown-empty">Nenhum tema encontrado.</div>';
+    temaDropdown.classList.add('open');
+    return;
+  }
+  temaDropdown.innerHTML = results.map((t, i) => `
+    <div class="tema-opt" data-index="${i}">
+      <span class="tema-opt-dot" style="background:${t.color};"></span>
+      <span>${t.name}</span>
+    </div>
+  `).join('');
+  temaDropdown.classList.add('open');
+
+  temaDropdown.querySelectorAll('.tema-opt').forEach(el => {
+    el.addEventListener('click', () => selectTema(results[parseInt(el.dataset.index)]));
+  });
+}
+
+function selectTema(t) {
+  temaHidden.value = t.id;
+  temaSearch.value = t.name;
+  showSelected(t.name, t.color);
+  closeDropdown();
+}
+
+function closeDropdown() {
+  temaDropdown.classList.remove('open');
+  temaDropdown.innerHTML = '';
+  temaFocused = -1;
+}
+
+temaSearch.addEventListener('keydown', (e) => {
+  const opts = temaDropdown.querySelectorAll('.tema-opt');
+  if (!opts.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    temaFocused = Math.min(temaFocused + 1, opts.length - 1);
+    opts.forEach(o => o.classList.remove('focused'));
+    opts[temaFocused].classList.add('focused');
+    opts[temaFocused].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    temaFocused = Math.max(temaFocused - 1, 0);
+    opts.forEach(o => o.classList.remove('focused'));
+    opts[temaFocused].classList.add('focused');
+    opts[temaFocused].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (temaFocused >= 0 && temaResults[temaFocused]) selectTema(temaResults[temaFocused]);
+  } else if (e.key === 'Escape') {
+    closeDropdown();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.tema-search-wrap')) closeDropdown();
+});
+
+document.querySelector('form').addEventListener('submit', (e) => {
+  if (!temaHidden.value) {
+    e.preventDefault();
+    alert('Selecione um tema existente na lista de sugestões antes de salvar.');
+    temaSearch.focus();
+  }
+});
+</script>
+{% endblock %}

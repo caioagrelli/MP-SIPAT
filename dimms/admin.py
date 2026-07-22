@@ -584,3 +584,35 @@ class ItemSolicitacaoCatalogoConsumoAdmin(admin.ModelAdmin):
     list_display  = ('solicitacao', 'catalogo', 'quantidade')
     search_fields = ('solicitacao__codigo', 'catalogo__description')
 
+
+''' Acompanhamentos SEI '''
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin):
+    list_display  = ('name', 'color', 'created_by', 'created_at')
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+class SeiUpdateInline(admin.TabularInline):
+    model = SeiUpdate
+    extra = 1
+    fields = ('text', 'date', 'user')
+
+
+@admin.register(Sei)
+class SeiAdmin(admin.ModelAdmin):
+    list_display  = ('sei_number', 'subject', 'description', 'status', 'user', 'created_at', 'updated_at')
+    list_filter   = ('status', 'subject')
+    search_fields = ('sei_number', 'description', 'subject__name')
+    autocomplete_fields = ('subject',)
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [SeiUpdateInline]
+
+
+@admin.register(SeiUpdate)
+class SeiUpdateAdmin(admin.ModelAdmin):
+    list_display  = ('sei', 'date', 'user', 'created_at')
+    list_filter   = ('date',)
+    search_fields = ('sei__sei_number', 'text')
+    autocomplete_fields = ('sei',)
+

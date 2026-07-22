@@ -184,6 +184,12 @@ class StatusArtifacts(models.TextChoices):
     vencedora = 'VENCEDORA', 'Encaminhado Vencedora'
     homologado = 'HOMOLOGADO', 'Homologado'
 
+# Status do acompanhamento de SEI
+class StatusAcompanhamentoSei(models.TextChoices):
+    em_andamento = 'EM_ANDAMENTO', 'Em Andamento'
+    concluido = 'CONCLUIDO', 'Concluído'
+    arquivado = 'ARQUIVADO', 'Arquivado'
+
 
 ''' Funções Úteis (não que o resto não seja né)'''
 # Calcular duração do estoque (quantidade / consumo mensal)

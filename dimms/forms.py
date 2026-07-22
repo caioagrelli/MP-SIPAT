@@ -4,7 +4,7 @@ from django.forms import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 
 # Importações do código
-from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo, Proposal, ItensProposal, Supplier, Contrato, SaldoAtivo
+from .models import Estoque, SolicitacaoItens, Solicitacao, Tramitacao, Artifacts, ItensArtifacts, BensConsumo, Proposal, ItensProposal, Supplier, Contrato, SaldoAtivo, Subject, Sei, SeiUpdate
 
 # =================================
 # FORMS DA DIMMS (BENS DE CONSUMO)
@@ -552,4 +552,76 @@ class BensConsumoForm(forms.ModelForm):
             'medida': 'Unidade de Medida',
             'grupo_consumo': 'Grupo',
             'almoxarifado': 'Almoxarifado',
+        }
+
+
+''' Acompanhamentos SEI '''
+# Tema (agrupamento colorido dos acompanhamentos)
+class SubjectForm(forms.ModelForm):
+    class Meta:
+        model = Subject
+        fields = ['name', 'color']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nome do tema',
+            }),
+            'color': forms.TextInput(attrs={
+                'class': 'form-control',
+                'type': 'color',
+            }),
+        }
+        labels = {
+            'name': 'Nome do Tema',
+            'color': 'Cor',
+        }
+
+
+# Acompanhamento de um processo SEI
+# O tema é escolhido por uma busca com autocomplete (JS, via dimms:temas_search) que só
+# aceita temas já existentes — o campo real é um <input type="hidden"> preenchido pelo JS
+# quando o usuário clica numa sugestão. Criar tema novo só é possível na tela "Temas".
+class SeiForm(forms.ModelForm):
+    class Meta:
+        model = Sei
+        fields = ['subject', 'sei_number', 'description', 'status']
+        widgets = {
+            'subject': forms.HiddenInput(),
+            'sei_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '19.16.0001234567/2026-00',
+            }),
+            'description': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Assunto do processo',
+            }),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'subject': 'Tema',
+            'sei_number': 'Número do SEI',
+            'description': 'Assunto/Descrição',
+            'status': 'Status',
+        }
+        error_messages = {
+            'subject': {'required': 'Selecione um tema existente na busca acima.'},
+        }
+
+
+# Nova atualização (update) de um SEI acompanhado
+# Sem campo de data manual — a data registrada é sempre a data em que a atualização foi
+# inserida (usa o default do model, timezone.localdate, no momento do save).
+class SeiUpdateForm(forms.ModelForm):
+    class Meta:
+        model = SeiUpdate
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva a atualização deste processo...',
+                'rows': 3,
+            }),
+        }
+        labels = {
+            'text': 'Atualização',
         }

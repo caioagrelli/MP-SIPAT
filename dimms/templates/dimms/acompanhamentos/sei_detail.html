@@ -1,0 +1,185 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — {{ sei.sei_number }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+    --slate: #475569; --slate-soft: #f8fafc; --slate-mid: #cbd5e1;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .apage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; overflow-wrap: break-word; word-break: break-word; }
+
+  .breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 18px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .topbar > div:first-child { min-width: 0; flex: 1; }
+  .topbar-title { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; font-family: var(--mono); overflow-wrap: break-word; word-break: break-word; }
+  .topbar-sub { margin-top: 6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap; }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-danger { background: var(--red-soft); border-color: var(--red-mid); color: var(--red); }
+  .btn-danger:hover { background: #fde2e2; }
+
+  .tema-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:.78rem; font-weight:700; background:var(--surface-2); border:1px solid var(--border-strong); }
+  .tema-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.73rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .p-andamento { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
+  .p-andamento .pill-dot { background:var(--blue); }
+  .p-concluido { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
+  .p-concluido .pill-dot { background:var(--green); }
+  .p-arquivado { background:var(--slate-soft); color:var(--slate); border-color:var(--slate-mid); }
+  .p-arquivado .pill-dot { background:var(--slate); }
+
+  .layout { display:grid; grid-template-columns: 1fr 340px; gap: 20px; align-items:flex-start; }
+  .layout > .main-card { min-width: 0; }
+
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
+  .main-card-head { padding:18px 24px; border-bottom:1px solid var(--border); font-size:1.05rem; font-weight:800; color:var(--ink); }
+  .main-card-body { padding:20px 24px; }
+
+  .info-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:.87rem; }
+  .info-row:last-child { border-bottom:none; }
+  .info-label { color:var(--ink-3); font-weight:600; flex-shrink:0; }
+  .info-value { color:var(--ink); font-weight:600; text-align:right; overflow-wrap:break-word; word-break:break-word; min-width:0; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { display:block; font-size:.78rem; font-weight:700; color:var(--ink-2); margin-bottom:6px; }
+  .form-control, .form-select { width:100%; height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 12px; font-family:var(--font); font-size:.85rem; color:var(--ink); background:var(--surface); outline:none; }
+  textarea.form-control { height:auto; padding:10px 12px; resize:vertical; }
+  .form-control:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+
+  .timeline { position:relative; padding-left: 22px; }
+  .timeline::before { content:''; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:var(--border-strong); }
+  .tl-item { position:relative; padding-bottom:22px; }
+  .tl-item:last-child { padding-bottom:0; }
+  .tl-dot { position:absolute; left:-22px; top:3px; width:13px; height:13px; border-radius:50%; background:var(--accent); border:2px solid var(--surface); box-shadow:0 0 0 2px var(--blue-mid); }
+  .tl-date { font-family:var(--mono); font-size:.74rem; color:var(--ink-3); font-weight:700; margin-bottom:4px; }
+  .tl-text { font-size:.88rem; color:var(--ink-2); line-height:1.5; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:10px 14px; overflow-wrap:break-word; word-break:break-word; }
+  .tl-user { font-size:.74rem; color:var(--ink-3); margin-top:5px; }
+  .tl-del { margin-top:6px; }
+
+  .empty { padding:24px; text-align:center; color:var(--ink-3); font-size:.87rem; }
+
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+</style>
+
+<div class="apage">
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">DIMMS</a> ›
+    <a href="{% url 'dimms:acompanhamentos_mapa' %}">Acompanhamentos SEI</a> ›
+    {{ sei.sei_number }}
+  </div>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{{ sei.sei_number }}</div>
+      <div class="topbar-sub">
+        <span class="tema-pill">
+          <span class="tema-dot" style="background:{{ sei.subject.color }};"></span>
+          {{ sei.subject.name }}
+        </span>
+        {% if sei.status == "EM_ANDAMENTO" %}
+          <span class="pill p-andamento"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+        {% elif sei.status == "CONCLUIDO" %}
+          <span class="pill p-concluido"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+        {% else %}
+          <span class="pill p-arquivado"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      {% if pode_editar %}
+      <a href="{% url 'dimms:acompanhamento_edit' sei.pk %}" class="btn btn-ghost">✏️ Editar</a>
+      {% endif %}
+      {% if pode_excluir %}
+      <form method="post" action="{% url 'dimms:acompanhamento_delete' sei.pk %}" onsubmit="return confirm('Excluir este acompanhamento e todas as atualizações registradas?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">🗑️ Excluir</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="main-card">
+      <div class="main-card-head">🕒 Linha do tempo</div>
+      <div class="main-card-body">
+
+        {% if form %}
+        <form method="post" style="margin-bottom:22px;">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">{{ form.text.label }}</label>
+            {{ form.text }}
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Registrar atualização
+          </button>
+        </form>
+        {% endif %}
+
+        {% if updates %}
+        <div class="timeline">
+          {% for update in updates %}
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">{{ update.date|date:"d/m/Y" }}</div>
+            <div class="tl-text">{{ update.text|linebreaksbr }}</div>
+            <div class="tl-user">
+              {% if update.user %}registrado por {{ update.user.get_full_name|default:update.user.username }}{% endif %}
+            </div>
+            {% if pode_excluir_update %}
+            <form method="post" action="{% url 'dimms:acompanhamento_update_delete' update.pk %}" class="tl-del" onsubmit="return confirm('Remover esta atualização?');">
+              {% csrf_token %}
+              <button type="submit" class="btn-ghost" style="border:1px solid var(--border-strong); border-radius:8px; padding:3px 9px; font-size:.72rem; cursor:pointer;">Remover</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">Nenhuma atualização registrada ainda.</div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="main-card">
+      <div class="main-card-head">ℹ️ Informações</div>
+      <div class="main-card-body">
+        <div class="info-row"><span class="info-label">Assunto</span><span class="info-value">{{ sei.description|default:"—" }}</span></div>
+        <div class="info-row"><span class="info-label">Tema</span><span class="info-value">{{ sei.subject.name }}</span></div>
+        <div class="info-row"><span class="info-label">Responsável</span><span class="info-value">{{ sei.user.get_full_name|default:sei.user.username|default:"—" }}</span></div>
+        <div class="info-row"><span class="info-label">Criado em</span><span class="info-value">{{ sei.created_at|date:"d/m/Y H:i" }}</span></div>
+        <div class="info-row"><span class="info-label">Última modificação</span><span class="info-value">{{ sei.updated_at|date:"d/m/Y H:i" }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

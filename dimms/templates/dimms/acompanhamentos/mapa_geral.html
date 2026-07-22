@@ -1,0 +1,284 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Acompanhamentos SEI{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+    --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+    --slate: #475569; --slate-soft: #f8fafc; --slate-mid: #cbd5e1;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .apage { font-family: var(--font); background: var(--bg); padding: 28px 24px 40px; color: var(--ink); min-height: 100vh; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar-title { font-size: 1.65rem; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+  .topbar-sub { margin-top: 5px; font-size: .88rem; color: var(--ink-3); font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--r-sm); font-family: var(--font); font-size: .85rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; transition: all .15s ease; white-space: nowrap; }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; transform: translateY(-1px); }
+  .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .btn-sm { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 8px; font-family: var(--font); font-size: .76rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all .13s; white-space: nowrap; text-decoration: none; }
+  .btn-sm-blue { background: var(--blue-soft); border-color: var(--blue-mid); color: var(--blue); }
+  .btn-sm-blue:hover { background: #dbeafe; }
+
+  .btn-eye { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--blue-soft); border: 1px solid var(--blue-mid); text-decoration: none; font-size: .9rem; line-height: 1; transition: all .13s; }
+  .btn-eye:hover { background: #dbeafe; transform: scale(1.06); }
+
+  .summary-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-sm); padding: 16px 18px; position: relative; overflow: hidden; }
+  .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .sum-card:nth-child(1)::before { background: var(--ink-3); }
+  .sum-card:nth-child(2)::before { background: var(--blue); }
+  .sum-card:nth-child(3)::before { background: var(--green); }
+  .sum-card:nth-child(4)::before { background: var(--slate); }
+  .sum-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
+  .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
+  .sum-sub { font-size:.76rem; color:var(--ink-3); margin-top:5px; }
+  .sum-card:nth-child(2) .sum-value { color:var(--blue); }
+  .sum-card:nth-child(3) .sum-value { color:var(--green); }
+
+  .main-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden; }
+  .main-card-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .main-card-title { font-size:1.05rem; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .total-badge { background:var(--blue-soft); border:1px solid var(--blue-mid); color:var(--blue); border-radius:999px; padding:3px 10px; font-size:.78rem; font-family:var(--mono); font-weight:700; }
+
+  .filter-bar { padding:16px 24px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+  .filter-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:160px; }
+  .filter-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); }
+  .filter-input, .filter-select { height:38px; border:1px solid var(--border-strong); border-radius:var(--r-sm); padding:0 12px; font-family:var(--font); font-size:.85rem; color:var(--ink); background:var(--surface); outline:none; width:100%; appearance:none; -webkit-appearance:none; }
+  .filter-select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237380a0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
+  .filter-input:focus, .filter-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .filter-actions { display:flex; gap:8px; align-self:flex-end; }
+
+  .main-table-wrap { overflow-x:auto; }
+  .main-table { width:100%; border-collapse:collapse; font-size:.87rem; min-width:900px; }
+  .main-table thead th { padding:11px 16px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); background:var(--surface-2); border-bottom:1px solid var(--border); white-space:nowrap; text-align:left; }
+  .main-table tbody td { padding:13px 16px; color:var(--ink-2); border-bottom:1px solid var(--border); vertical-align:middle; }
+  .main-table tbody tr:last-child td { border-bottom:none; }
+  .main-table tbody tr:hover td { background:#f5f8ff; }
+
+  .sei-code { color:var(--accent); font-weight:700; font-family:var(--mono); font-size:.82rem; text-decoration:none; }
+  .sei-code:hover { text-decoration:underline; }
+  .sei-desc { font-weight:600; color:var(--ink); max-width:260px; line-height:1.35; }
+  .mono-cell { font-family:var(--mono); font-size:.78rem; color:var(--ink-3); white-space:nowrap; }
+
+  .tema-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:.78rem; font-weight:700; background:var(--surface-2); border:1px solid var(--border-strong); }
+  .tema-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:.73rem; font-weight:700; border:1px solid; white-space:nowrap; }
+  .pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .p-andamento { background:var(--blue-soft); color:var(--blue); border-color:var(--blue-mid); }
+  .p-andamento .pill-dot { background:var(--blue); }
+  .p-concluido { background:var(--green-soft); color:var(--green); border-color:var(--green-mid); }
+  .p-concluido .pill-dot { background:var(--green); }
+  .p-arquivado { background:var(--slate-soft); color:var(--slate); border-color:var(--slate-mid); }
+  .p-arquivado .pill-dot { background:var(--slate); }
+
+  .user-chip { display:flex; align-items:center; gap:7px; }
+  .avatar { width:27px; height:27px; border-radius:50%; font-size:.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:var(--blue-soft); color:var(--blue); }
+
+  .table-empty { padding:40px; text-align:center; color:var(--ink-3); font-size:.9rem; }
+  .table-empty-icon { font-size:2.2rem; display:block; margin-bottom:8px; opacity:.35; }
+  .table-empty-title { font-weight:700; color:var(--ink-2); font-size:.95rem; margin-bottom:4px; }
+
+  @media (max-width:960px) { .summary-strip { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px) { .apage { padding:14px 12px 32px; } .summary-strip { grid-template-columns:repeat(2,1fr); } }
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Acompanhamentos SEI</div>
+      <div class="topbar-sub">Mapa geral dos processos acompanhados, por tema.</div>
+    </div>
+
+    <div class="topbar-actions">
+      {% if pode_gerenciar_temas %}
+      <a href="{% url 'dimms:temas_lista' %}" class="btn btn-ghost">
+        🎨 Temas
+      </a>
+      {% endif %}
+      {% if pode_criar_sei %}
+      <a href="{% url 'dimms:acompanhamento_create' %}" class="btn btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Novo Acompanhamento
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sum-label">Total</div>
+      <div class="sum-value">{{ total_seis }}</div>
+      <div class="sum-sub">processos acompanhados</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Em andamento</div>
+      <div class="sum-value">{{ total_em_andamento }}</div>
+      <div class="sum-sub">ativos no momento</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Temas</div>
+      <div class="sum-value">{{ subjects|length }}</div>
+      <div class="sum-sub">categorias cadastradas</div>
+    </div>
+
+    <div class="sum-card">
+      <div class="sum-label">Resultados</div>
+      <div class="sum-value">{{ seis|length }}</div>
+      <div class="sum-sub">com os filtros atuais</div>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        📊 Processos acompanhados
+        <span class="total-badge">{{ seis|length }} itens</span>
+      </div>
+    </div>
+
+    <form method="get">
+      <div class="filter-bar">
+        <div class="filter-group" style="flex:2; min-width:220px;">
+          <label class="filter-label">Pesquisar</label>
+          <input class="filter-input" type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Número do SEI, assunto ou tema…">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Tema</label>
+          <select name="tema" class="filter-select">
+            <option value="">Todos os temas</option>
+            {% for subject in subjects %}
+              <option value="{{ subject.id }}" {% if subject_selected == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <select name="status" class="filter-select">
+            <option value="">Todos os status</option>
+            {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if status_selected == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary" style="height:38px; padding:0 14px; font-size:.82rem;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            Filtrar
+          </button>
+          <a href="{% url 'dimms:acompanhamentos_mapa' %}" class="btn btn-ghost" style="height:38px; padding:0 14px; font-size:.82rem;">Limpar</a>
+        </div>
+      </div>
+    </form>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Tema</th>
+            <th>SEI</th>
+            <th>Assunto</th>
+            <th>Status</th>
+            <th>Responsável</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for sei in seis %}
+          <tr>
+            <td>
+              <span class="tema-pill">
+                <span class="tema-dot" style="background:{{ sei.subject.color }};"></span>
+                {{ sei.subject.name }}
+              </span>
+            </td>
+
+            <td>
+              <a href="{% url 'dimms:acompanhamento_detail' sei.pk %}" class="sei-code">{{ sei.sei_number }}</a>
+            </td>
+
+            <td>
+              <div class="sei-desc">{{ sei.description|default:"—" }}</div>
+            </td>
+
+            <td>
+              {% if sei.status == "EM_ANDAMENTO" %}
+                <span class="pill p-andamento"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+              {% elif sei.status == "CONCLUIDO" %}
+                <span class="pill p-concluido"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+              {% else %}
+                <span class="pill p-arquivado"><span class="pill-dot"></span>{{ sei.get_status_display }}</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if sei.user %}
+                <div class="user-chip">
+                  <div class="avatar">{{ sei.user.get_full_name|default:sei.user.username|slice:":2"|upper }}</div>
+                  <span style="font-size:.83rem; font-weight:500;">{{ sei.user.get_full_name|default:sei.user.username }}</span>
+                </div>
+              {% else %}
+                <span style="color:var(--ink-3); font-size:.82rem;">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <a href="{% url 'dimms:acompanhamento_detail' sei.pk %}" class="btn-eye" title="Ver detalhes">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="table-empty">
+                <span class="table-empty-icon">📊</span>
+                <div class="table-empty-title">Nenhum acompanhamento encontrado</div>
+                <div>Tente ajustar os filtros{% if pode_criar_sei %} ou crie um novo acompanhamento{% endif %}.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
