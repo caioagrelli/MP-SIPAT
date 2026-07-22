@@ -57,6 +57,7 @@ urlpatterns = [
     path('estoque/search/', estoque_search, name='estoque_search'),
 
     # Url's dos Artefatos e das Propostas
+    path('artifacts/em-breve/', artifacts_em_breve, name='artifacts_em_breve'),
     path('artifacts/', artifacts, name='artifacts'),
     path('artifacts/<int:pk>/', artifacts_details, name='artifacts_details'),
     path('artifacts/<int:pk>/edit', artifacts_edit, name='artifacts_edit'),
@@ -91,6 +92,18 @@ urlpatterns = [
     path('saldo-ativo/solicitacao/<int:pk>/pdf-carga/', pdf_carga_recebida, name='pdf_carga_recebida'),
     path('saldo-ativo/relatorio/recebimentos/', relatorio_recebimentos, name='relatorio_recebimentos'),
 
+
+    # Url's dos Acompanhamentos SEI
+    path('acompanhamentos/', acompanhamentos_mapa, name='acompanhamentos_mapa'),
+    path('acompanhamentos/novo/', acompanhamento_create, name='acompanhamento_create'),
+    path('acompanhamentos/<int:pk>/', acompanhamento_detail, name='acompanhamento_detail'),
+    path('acompanhamentos/<int:pk>/editar/', acompanhamento_edit, name='acompanhamento_edit'),
+    path('acompanhamentos/<int:pk>/excluir/', acompanhamento_delete, name='acompanhamento_delete'),
+    path('acompanhamentos/update/<int:pk>/excluir/', acompanhamento_update_delete, name='acompanhamento_update_delete'),
+    path('acompanhamentos/temas/buscar/', temas_search, name='temas_search'),
+    path('acompanhamentos/temas/', temas_lista, name='temas_lista'),
+    path('acompanhamentos/temas/<int:pk>/editar/', tema_edit, name='tema_edit'),
+    path('acompanhamentos/temas/<int:pk>/excluir/', tema_delete, name='tema_delete'),
 
     # Catálogo de Bens de Consumo — listagem pública
     path('catalogo/', catalogo_consumo_lista, name='catalogo_consumo'),

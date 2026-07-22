@@ -23,6 +23,11 @@ from ..utils import StatusContrato
 
 
 ''' Artefatos '''
+# Página provisória — módulo em reconstrução (novo fluxo a ser feito do zero)
+@login_required
+def artifacts_em_breve(request):
+    return render(request, 'dimms/artifacts/em_breve.html')
+
 # Página principal dos artefatos
 @login_required
 def artifacts(request):

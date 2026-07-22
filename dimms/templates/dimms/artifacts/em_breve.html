@@ -1,0 +1,71 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Artefatos{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff;
+    --border: #e2e5ef;
+    --ink: #1a2035; --ink-3: #7380a0;
+    --accent: #2563eb;
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --font: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .eb-page {
+    font-family: var(--font);
+    background: var(--bg);
+    padding: 28px 24px 60px;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .eb-breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 24px; }
+  .eb-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .eb-breadcrumb a:hover { text-decoration: underline; }
+
+  .eb-card {
+    max-width: 480px;
+    margin: 60px auto;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 48px 32px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .eb-icon { font-size: 2.8rem; margin-bottom: 14px; }
+  .eb-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+  .eb-sub { font-size: .9rem; color: var(--ink-3); line-height: 1.6; }
+
+  .eb-back {
+    display: inline-flex;
+    margin-top: 18px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .85rem;
+    align-items: center;
+  }
+</style>
+
+<div class="eb-page">
+  <div class="eb-breadcrumb"><a href="{% url 'dimms:homepage' %}">DIMMS</a> › Artefatos</div>
+  <div class="eb-card">
+    <div class="eb-icon">🚧</div>
+    <div class="eb-title">Artefatos</div>
+    <div class="eb-sub">Estamos refazendo esse módulo do zero — em breve por aqui.</div>
+    <a href="{% url 'dimms:homepage' %}" class="eb-back">Voltar</a>
+  </div>
+</div>
+{% endblock %}
