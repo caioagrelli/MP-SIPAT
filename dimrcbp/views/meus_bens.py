@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import Http404
 from django.contrib import messages
 
-from dimrcbp.models import AtribuicaoBem, PeriodoInventario, Inventario
+from accounts.models import Profile
+from dimrcbp.models import AtribuicaoBem, BensPermanentes, PeriodoInventario, Inventario
 from dimrcbp.forms import InventarioForm
 
 
@@ -27,41 +29,70 @@ def meus_bens(request):
             .values_list('bem__tombo', flat=True)
         )
 
+    # Bens das UAs que o usuário é membro ("Membro de", Painel Gerencial),
+    # à parte dos bens atribuídos individualmente
+    bens_atribuidos_ids = {at.bem_id for at in atribuicoes}
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    uas_membro = profile.uas.all().order_by('ua')
+
+    bens_por_ua = []
+    for ua in uas_membro:
+        bens_ua = (
+            BensPermanentes.objects
+            .filter(history_tombo__current_ua=ua)
+            .exclude(pk__in=bens_atribuidos_ids)
+            .select_related('description__type', 'history_tombo__current_ua')
+            .order_by('tombo')
+        )
+        if bens_ua:
+            bens_por_ua.append({'ua': ua, 'bens': bens_ua, 'total': bens_ua.count()})
+
     return render(request, 'dimrcbp/meus_bens.html', {
         'atribuicoes':       atribuicoes,
         'total':             atribuicoes.count(),
         'inventario_ativo':  bool(periodo),
         'periodo':           periodo,
         'tombos_registrados': tombos_registrados,
+        'bens_por_ua':       bens_por_ua,
+        'total_bens_uas':    sum(grupo['total'] for grupo in bens_por_ua),
     })
 
 
 @login_required
 def detalhe_bem(request, tombo):
-    atribuicao = get_object_or_404(
-        AtribuicaoBem.objects.select_related(
-            'bem__description__type__gruop',
-            'bem__history_tombo__current_ua',
-            'bem__supllier',
+    bem = get_object_or_404(
+        BensPermanentes.objects.select_related(
+            'description__type__gruop',
+            'history_tombo__current_ua',
+            'supllier',
         ),
-        bem__tombo=tombo,
-        user=request.user,
-        ativo=True,
+        tombo=tombo,
     )
+
+    atribuicao = AtribuicaoBem.objects.filter(bem=bem, user=request.user, ativo=True).first()
+
+    if not atribuicao:
+        # sem atribuição individual: só pode ver se for membro da UA atual do bem
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        ua_atual_id = bem.history_tombo.current_ua_id if hasattr(bem, 'history_tombo') and bem.history_tombo else None
+        e_membro_da_ua = bool(ua_atual_id) and profile.uas.filter(pk=ua_atual_id).exists()
+        if not e_membro_da_ua:
+            raise Http404()
+
     periodo = PeriodoInventario.get_periodo_ativo()
     registro_inventario = None
-    if periodo:
+    if periodo and atribuicao:
         registro_inventario = Inventario.objects.filter(
-            n_inventario=periodo, bem=atribuicao.bem
+            n_inventario=periodo, bem=bem
         ).first()
 
     return render(request, 'dimrcbp/meus_bens_detalhe.html', {
-        'atribuicao':         atribuicao,
-        'bem':                atribuicao.bem,
-        'inventario_ativo':   bool(periodo),
-        'periodo':            periodo,
+        'atribuicao':          atribuicao,
+        'bem':                 bem,
+        'inventario_ativo':    bool(periodo) and bool(atribuicao),
+        'periodo':             periodo,
         'registro_inventario': registro_inventario,
-        'form_inventario':    InventarioForm(instance=registro_inventario) if periodo else None,
+        'form_inventario':     InventarioForm(instance=registro_inventario) if periodo and atribuicao else None,
     })
 
 

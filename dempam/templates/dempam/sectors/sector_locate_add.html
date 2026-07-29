@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %}SIPAT — Adicionar Pallet/Prateleira{% endblock %}
+{% block title %}SIPAT — {% if editando %}Editar{% else %}Adicionar{% endif %} Pallet/Prateleira{% endblock %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -44,16 +44,26 @@
   .btn-primary:hover{background:var(--accent-dark);}
   .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
   .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-danger{background:var(--red-soft);border-color:var(--red-mid);color:var(--red);}
+  .btn-danger:hover{background:var(--red-mid);}
+
+  .prateleira-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .code-preview{margin-top:6px;display:flex;align-items:center;gap:10px;background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:var(--r-sm);padding:10px 14px;}
+  .code-preview .label{font-size:.76rem;font-weight:700;color:var(--ink-3);}
+  .code-preview .code{font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--blue);letter-spacing:.03em;}
+  .field-hint{font-size:.76rem;color:var(--ink-3);margin-top:5px;}
 </style>
 
 <div class="apage">
   <div class="page-header">
-    <a href="{% url 'dempam:sector_homepage' %}" class="page-back">
+    <a href="{% if editando %}{% url 'dempam:locate_detail' localizacao.pk %}{% else %}{% url 'dempam:sector_homepage' %}{% endif %}" class="page-back">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      Voltar para Setores
+      {% if editando %}Voltar para {{ localizacao.prateleira_pallet }}{% else %}Voltar para Setores{% endif %}
     </a>
-    <div class="page-title">Adicionar Pallet / Prateleira</div>
-    <div class="page-sub">Preencha as informações para cadastrar uma nova localização.</div>
+    <div class="page-title">{% if editando %}Editar Pallet / Prateleira{% else %}Adicionar Pallet / Prateleira{% endif %}</div>
+    <div class="page-sub">
+      {% if editando %}Atualize as informações desta localização.{% else %}Preencha as informações para cadastrar uma nova localização.{% endif %}
+    </div>
   </div>
 
   <div class="form-card">
@@ -63,23 +73,102 @@
       {% endfor %}
     {% endif %}
 
-    <form method="post">
+    {% if form.non_field_errors %}
+      <div class="alert-error">{{ form.non_field_errors|striptags }}</div>
+    {% endif %}
+
+    <form method="post" id="form-localizacao">
       {% csrf_token %}
-      {% for field in form %}
-        <div class="field">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}
+
+      <div class="field">
+        <label for="{{ form.setor_sala.id_for_label }}">{{ form.setor_sala.label }}</label>
+        {{ form.setor_sala }}
+        {% if form.setor_sala.errors %}<div class="field-error">{{ form.setor_sala.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.tipo_localizacao.id_for_label }}">{{ form.tipo_localizacao.label }}</label>
+        {{ form.tipo_localizacao }}
+        {% if form.tipo_localizacao.errors %}<div class="field-error">{{ form.tipo_localizacao.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="field" id="campo-pallet">
+        <label for="{{ form.prateleira_pallet.id_for_label }}">{{ form.prateleira_pallet.label }}</label>
+        {{ form.prateleira_pallet }}
+        {% if form.prateleira_pallet.errors %}<div class="field-error">{{ form.prateleira_pallet.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="field" id="campo-prateleira">
+        <label>Corredor / Estante / Prateleira</label>
+        <div class="prateleira-fields">
+          <div>
+            {{ form.corredor }}
+            {% if form.corredor.errors %}<div class="field-error">{{ form.corredor.errors|striptags }}</div>{% endif %}
+          </div>
+          <div>
+            {{ form.estante }}
+            {% if form.estante.errors %}<div class="field-error">{{ form.estante.errors|striptags }}</div>{% endif %}
+          </div>
+          <div>
+            {{ form.prateleira }}
+            {% if form.prateleira.errors %}<div class="field-error">{{ form.prateleira.errors|striptags }}</div>{% endif %}
+          </div>
         </div>
-      {% endfor %}
+        <div class="field-hint">Corredor A, estante 3 e prateleira 6 geram o código A36.</div>
+        <div class="code-preview">
+          <span class="label">Código gerado</span>
+          <span class="code" id="preview-codigo">—</span>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-          Salvar Localização
+          {% if editando %}Salvar Alterações{% else %}Salvar Localização{% endif %}
         </button>
-        <a href="{% url 'dempam:sector_homepage' %}" class="btn btn-ghost">Cancelar</a>
+        <a href="{% if editando %}{% url 'dempam:locate_detail' localizacao.pk %}{% else %}{% url 'dempam:sector_homepage' %}{% endif %}" class="btn btn-ghost">Cancelar</a>
       </div>
     </form>
+
+    {% if editando %}
+      <form method="post" action="{% url 'dempam:locate_delete' localizacao.pk %}" style="margin-top:14px;" onsubmit="return confirm('Excluir a localização \'{{ localizacao.prateleira_pallet|escapejs }}\'? Essa ação não pode ser desfeita.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Excluir Localização</button>
+      </form>
+    {% endif %}
   </div>
 </div>
+
+<script>
+  (function () {
+    var tipoSelect = document.getElementById('{{ form.tipo_localizacao.id_for_label }}');
+    var campoPallet = document.getElementById('campo-pallet');
+    var campoPrateleira = document.getElementById('campo-prateleira');
+    var corredor = document.getElementById('{{ form.corredor.id_for_label }}');
+    var estante = document.getElementById('{{ form.estante.id_for_label }}');
+    var prateleira = document.getElementById('{{ form.prateleira.id_for_label }}');
+    var preview = document.getElementById('preview-codigo');
+
+    function alternarCampos() {
+      var ehPrateleira = tipoSelect.value === 'PRATELEIRA';
+      campoPallet.style.display = ehPrateleira ? 'none' : '';
+      campoPrateleira.style.display = ehPrateleira ? '' : 'none';
+      atualizarPreview();
+    }
+
+    function atualizarPreview() {
+      var c = (corredor.value || '').trim().toUpperCase();
+      var e = (estante.value || '').trim();
+      var p = (prateleira.value || '').trim();
+      preview.textContent = (c && e && p) ? (c + e + p) : '—';
+    }
+
+    tipoSelect.addEventListener('change', alternarCampos);
+    [corredor, estante, prateleira].forEach(function (el) {
+      el.addEventListener('input', atualizarPreview);
+    });
+
+    alternarCampos();
+  })();
+</script>
 {% endblock %}

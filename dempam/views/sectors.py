@@ -1,7 +1,24 @@
 # Importações do Django
+import os
+from io import BytesIO
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q, ProtectedError, Case, When, Value, IntegerField
+from django.views.decorators.http import require_POST
+from django.http import HttpResponse, Http404
+from django.contrib.staticfiles import finders
+from django.urls import reverse
+
+import qrcode
+from qrcode.constants import ERROR_CORRECT_M
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas as rl_canvas
 
 # Importações do código
 from ..models import SetorDEMPAM, LocalizacaoDEMPAM
@@ -13,14 +30,41 @@ from dimms.models import Estoque
 # =========================================
 
 
+def _ordenar_por_corredor(qs):
+    # localizações com corredor definido vêm primeiro, agrupadas e ordenadas por
+    # corredor/estante/prateleira; o restante (pallets sem corredor) vem depois
+    return qs.annotate(
+        sem_corredor=Case(
+            When(corredor__isnull=True, then=Value(1)),
+            When(corredor='', then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ).order_by('sem_corredor', 'corredor', 'estante', 'prateleira', 'prateleira_pallet')
+
+
 
 ''' Funções para setores e salas '''
 @login_required
 def sector_homepage(request):
     setores = SetorDEMPAM.objects.all()
-    localizacoes = LocalizacaoDEMPAM.objects.all()
+    localizacoes = LocalizacaoDEMPAM.objects.select_related('setor_sala').all()
     total_prateleira = localizacoes.filter(tipo_localizacao='PRATELEIRA').count()
     total_pallet = localizacoes.filter(tipo_localizacao='PALLET').count()
+
+    query = request.GET.get('q', '').strip()
+    tipo_f = request.GET.get('tipo', '').strip()
+
+    if query:
+        localizacoes = localizacoes.filter(
+            Q(prateleira_pallet__icontains=query) |
+            Q(setor_sala__setor__icontains=query) |
+            Q(corredor__icontains=query)
+        )
+    if tipo_f:
+        localizacoes = localizacoes.filter(tipo_localizacao=tipo_f)
+
+    localizacoes = _ordenar_por_corredor(localizacoes)
 
     if request.method == 'POST':
         if 'setor_submit' in request.POST:
@@ -51,10 +95,13 @@ def sector_homepage(request):
     return render(request, 'dempam/sectors/sector_homepage.html', {
         'setores': setores,
         'localizacoes': localizacoes,
+        'total_localizacoes': LocalizacaoDEMPAM.objects.count(),
         'total_prateleira': total_prateleira,
         'total_pallet': total_pallet,
         'form_setor': form_setor,
-        'form_localizacao': form_localizacao
+        'form_localizacao': form_localizacao,
+        'query': query,
+        'tipo_f': tipo_f,
     })
 
 @login_required
@@ -75,16 +122,98 @@ def sector_add(request):
 
 
 @login_required
+def sector_edit(request, pk):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    if request.method == 'POST':
+        form = SetorDEMPAMForm(request.POST, instance=setor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Setor atualizado com sucesso.')
+            return redirect('dempam:sector_detail', pk=setor.pk)
+    else:
+        form = SetorDEMPAMForm(instance=setor)
+    return render(request, 'dempam/sectors/sector_add.html', {'form': form, 'setor': setor, 'editando': True})
+
+
+@login_required
+@require_POST
+def sector_delete(request, pk):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    try:
+        setor.delete()
+        messages.success(request, 'Setor excluído com sucesso.')
+        return redirect('dempam:sector_homepage')
+    except ProtectedError:
+        messages.error(
+            request,
+            'Não é possível excluir: existem pallets/prateleiras cadastrados neste setor.',
+        )
+        return redirect('dempam:sector_detail', pk=setor.pk)
+
+
+def _montar_navegacao_corredores(setor):
+    por_corredor = {}
+    qs = (
+        setor.localizacao_interna
+        .exclude(corredor__isnull=True).exclude(corredor='')
+        .order_by('corredor', 'estante', 'prateleira')
+    )
+    for loc in qs:
+        por_corredor.setdefault(loc.corredor, {}).setdefault(loc.estante or '—', []).append(loc)
+
+    corredores_ordenados = sorted(por_corredor.keys(), key=lambda c: (len(c), c))
+    navegacao = []
+    for corredor in corredores_ordenados:
+        estantes_dict = por_corredor[corredor]
+        estantes_ordenadas = sorted(estantes_dict.keys(), key=lambda e: (len(e), e))
+        estantes = [
+            {'estante': estante, 'prateleiras': estantes_dict[estante]}
+            for estante in estantes_ordenadas
+        ]
+        navegacao.append({
+            'corredor': corredor,
+            'estantes': estantes,
+            'total': sum(len(e['prateleiras']) for e in estantes),
+        })
+    return navegacao
+
+
+@login_required
 def sector_detail(request, pk):
     setor = get_object_or_404(SetorDEMPAM, pk=pk)
     localizacoes = setor.localizacao_interna.all()
     total_prateleira = localizacoes.filter(tipo_localizacao='PRATELEIRA').count()
     total_pallet = localizacoes.filter(tipo_localizacao='PALLET').count()
+
+    navegacao_corredores = _montar_navegacao_corredores(setor)
+    corredores = [grupo['corredor'] for grupo in navegacao_corredores]
+
+    query = request.GET.get('q', '').strip()
+    tipo_f = request.GET.get('tipo', '').strip()
+    corredor_f = request.GET.get('corredor', '').strip()
+
+    if query:
+        localizacoes = localizacoes.filter(
+            Q(prateleira_pallet__icontains=query) | Q(corredor__icontains=query)
+        )
+    if tipo_f:
+        localizacoes = localizacoes.filter(tipo_localizacao=tipo_f)
+    if corredor_f:
+        localizacoes = localizacoes.filter(corredor=corredor_f)
+
+    localizacoes = _ordenar_por_corredor(localizacoes)
+
     return render(request, 'dempam/sectors/sector_detail.html', {
         'setor': setor,
         'localizacoes': localizacoes,
+        'total_localizacoes': setor.localizacao_interna.count(),
         'total_prateleira': total_prateleira,
         'total_pallet': total_pallet,
+        'corredores': corredores,
+        'navegacao_corredores': navegacao_corredores,
+        'query': query,
+        'tipo_f': tipo_f,
+        'corredor_f': corredor_f,
     })
 
 
@@ -111,4 +240,172 @@ def sector_locate_add(request):
     else:
         form = LocalizacaoDEMPAMForm()
     return render(request, 'dempam/sectors/sector_locate_add.html', {'form': form})
+
+
+@login_required
+def locate_edit(request, pk):
+    localizacao = get_object_or_404(LocalizacaoDEMPAM, pk=pk)
+    if request.method == 'POST':
+        form = LocalizacaoDEMPAMForm(request.POST, instance=localizacao)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Localização atualizada com sucesso.')
+            return redirect('dempam:locate_detail', pk=localizacao.pk)
+    else:
+        form = LocalizacaoDEMPAMForm(instance=localizacao)
+    return render(request, 'dempam/sectors/sector_locate_add.html', {
+        'form': form, 'localizacao': localizacao, 'editando': True,
+    })
+
+
+def _tamanho_max_fonte(c, texto, largura_max, fonte='Helvetica-Bold', tamanho_max=420, tamanho_min=120):
+    tamanho = tamanho_max
+    while tamanho > tamanho_min and c.stringWidth(texto, fonte, tamanho) > largura_max:
+        tamanho -= 4
+    return tamanho
+
+
+def _gerar_qrcode_reader(url):
+    qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=10, border=1)
+    qr.add_data(url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color='#1e2d42', back_color='white')
+    buf = BytesIO()
+    qr_img.save(buf, format='PNG')
+    buf.seek(0)
+    return ImageReader(buf)
+
+
+def _desenhar_cartaz_corredor(c, w, h, setor, corredor, qr_reader):
+    altura_cabecalho = 55 * mm
+
+    # ── faixa superior com identidade do SIPAT (bem maior) ──
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(0, h - altura_cabecalho, w, altura_cabecalho, fill=1, stroke=0)
+
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        c.drawImage(ImageReader(logo_path), 15 * mm, h - 44 * mm, width=26 * mm, height=26 * mm, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 18)
+    c.drawString(48 * mm, h - 21 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    c.setFont('Helvetica', 12)
+    c.drawString(48 * mm, h - 30 * mm, 'SIPAT — Sistema Integrado Patrimonial de Apoio Técnico')
+    c.setFont('Helvetica-Bold', 12)
+    c.drawString(48 * mm, h - 39 * mm, setor.setor.upper())
+
+    # ── rótulo "CORREDOR" ──
+    c.setFillColor(colors.HexColor('#2563eb'))
+    c.setFont('Helvetica-Bold', 28)
+    rotulo = 'CORREDOR'
+    lw = c.stringWidth(rotulo, 'Helvetica-Bold', 28)
+    c.drawString((w - lw) / 2, h - altura_cabecalho - 24 * mm, rotulo)
+
+    # ── código do corredor bem grande, centralizado ──
+    largura_disponivel = w - 30 * mm
+    tamanho = _tamanho_max_fonte(c, corredor, largura_disponivel)
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.setFont('Helvetica-Bold', tamanho)
+    lw2 = c.stringWidth(corredor, 'Helvetica-Bold', tamanho)
+    baseline_y = h / 2 - tamanho * 0.32
+    c.drawString((w - lw2) / 2, baseline_y, corredor)
+
+    # ── qrcode maior, no canto inferior direito, com borda própria ──
+    qr_size = 34 * mm
+    qr_margin = 14 * mm
+    qr_pad = 3 * mm
+    qr_x = w - qr_margin - qr_size
+    qr_y = qr_margin
+
+    c.setStrokeColor(colors.HexColor('#2563eb'))
+    c.setLineWidth(1.6)
+    c.rect(qr_x - qr_pad, qr_y - qr_pad, qr_size + 2 * qr_pad, qr_size + 2 * qr_pad, fill=0, stroke=1)
+    c.drawImage(qr_reader, qr_x, qr_y, width=qr_size, height=qr_size, mask='auto')
+
+
+''' Imprimir um cartaz grande por corredor, para afixar fisicamente no setor '''
+@login_required
+def imprimir_corredores(request, pk):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    base = setor.localizacao_interna.exclude(corredor__isnull=True).exclude(corredor='')
+
+    corredores = sorted(set(base.values_list('corredor', flat=True)), key=lambda c: (len(c), c))
+
+    selecionados = [c for c in request.GET.getlist('corredor') if c]
+    if selecionados:
+        corredores = [c for c in corredores if c in selecionados]
+
+    if not corredores:
+        messages.error(request, 'Não há corredores cadastrados neste setor para imprimir.')
+        return redirect('dempam:sector_detail', pk=setor.pk)
+
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="corredores_{setor.pk}.pdf"'
+
+    w, h = A4
+    c = rl_canvas.Canvas(resp, pagesize=A4)
+
+    for corredor in corredores:
+        url = request.build_absolute_uri(
+            reverse('dempam:corredor_detail', args=[setor.pk, corredor])
+        )
+        qr_reader = _gerar_qrcode_reader(url)
+        _desenhar_cartaz_corredor(c, w, h, setor, corredor, qr_reader)
+        c.showPage()
+
+    c.save()
+    return resp
+
+
+''' Página (acessada pelo QR code do cartaz) com o conteúdo de todas as prateleiras de um corredor '''
+@login_required
+def corredor_detail(request, pk, corredor):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    localizacoes = (
+        setor.localizacao_interna
+        .filter(corredor=corredor)
+        .order_by('estante', 'prateleira')
+    )
+    if not localizacoes.exists():
+        raise Http404('Corredor não encontrado.')
+
+    grupos = []
+    prateleiras_vazias = []
+    total_itens = 0
+    for loc in localizacoes:
+        itens = list(loc.localizacao_consumo.select_related('item_shock').all())
+        total_itens += len(itens)
+        if itens:
+            grupos.append({'localizacao': loc, 'itens': itens})
+        else:
+            prateleiras_vazias.append(loc)
+
+    return render(request, 'dempam/sectors/corredor_detail.html', {
+        'setor': setor,
+        'corredor': corredor,
+        'grupos': grupos,
+        'prateleiras_vazias': prateleiras_vazias,
+        'total_itens': total_itens,
+        'total_prateleiras': localizacoes.count(),
+    })
+
+
+@login_required
+@require_POST
+def locate_delete(request, pk):
+    localizacao = get_object_or_404(LocalizacaoDEMPAM, pk=pk)
+    setor_pk = localizacao.setor_sala_id
+    try:
+        localizacao.delete()
+        messages.success(request, 'Localização excluída com sucesso.')
+    except ProtectedError:
+        messages.error(
+            request,
+            'Não é possível excluir: existem itens de estoque vinculados a esta localização.',
+        )
+        return redirect('dempam:locate_detail', pk=pk)
+    if setor_pk:
+        return redirect('dempam:sector_detail', pk=setor_pk)
+    return redirect('dempam:sector_homepage')
 

@@ -1,0 +1,183 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Ajuste de Inventário{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .fpage { font-family: var(--font); background: var(--bg); padding: 28px 24px 60px; color: var(--ink); }
+  .breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .rwrap { max-width: 980px; margin: 0 auto; }
+
+  .rhead {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .rhead h1 { font-size: 1.35rem; font-weight: 800; margin-bottom: 4px; }
+  .rhead p { font-size: .85rem; color: var(--ink-3); max-width: 560px; line-height: 1.5; }
+  .rhead-stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: 12px 20px; text-align: center; flex-shrink: 0;
+  }
+  .rhead-stat .n { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--accent); line-height: 1; }
+  .rhead-stat .l { font-size: .72rem; color: var(--ink-3); margin-top: 4px; }
+
+  .info-strip {
+    display: flex; gap: 18px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 24px; font-size: .78rem; color: var(--ink-2);
+  }
+  .info-strip span { display: flex; align-items: center; gap: 6px; }
+  .info-strip b { color: var(--ink); }
+
+  .all-groups-card {
+    display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    border-radius: var(--r-lg); padding: 20px 24px; color: #fff; text-decoration: none;
+    margin-bottom: 22px; box-shadow: var(--shadow-md); transition: transform .15s, box-shadow .15s;
+  }
+  .all-groups-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(29,78,216,.28); }
+  .all-groups-icon { font-size: 2rem; }
+  .all-groups-title { font-size: 1.02rem; font-weight: 800; }
+  .all-groups-sub { font-size: .78rem; opacity: .88; margin-top: 2px; }
+  .all-groups-arrow { margin-left: auto; font-size: 1.3rem; opacity: .85; }
+
+  .section-label { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin: 4px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .section-label .toggle-all { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--accent); cursor: pointer; background: none; border: none; font-family: var(--font); font-size: .78rem; padding: 0; }
+  .section-label .toggle-all:hover { text-decoration: underline; }
+
+  .grupo-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;
+    max-height: 340px; overflow-y: auto;
+  }
+  .grupo-item {
+    display: flex; align-items: center; gap: 10px; border: 1px solid transparent; border-radius: var(--r-sm);
+    padding: 9px 10px; cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .grupo-item:hover { background: var(--surface-2); }
+  .grupo-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+  .grupo-item:has(input:checked) { background: var(--blue-soft, #eff4ff); border-color: var(--accent-glow); }
+  .grupo-item.vazio { opacity: .5; }
+  .grupo-icon {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--surface-2); display: flex;
+    align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;
+  }
+  .grupo-info { min-width: 0; }
+  .grupo-nome { font-size: .83rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grupo-qtd { font-size: .72rem; color: var(--ink-3); margin-top: 1px; }
+
+  .select-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .select-count { font-size: .8rem; color: var(--ink-3); }
+  .select-count b { color: var(--ink); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: var(--r-sm); font-size: .87rem; font-weight: 600; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; font-family: var(--font); }
+  .btn-primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-primary:disabled { background: var(--border-strong); border-color: var(--border-strong); color: var(--ink-3); cursor: not-allowed; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 26px; font-size: .82rem; color: var(--accent); text-decoration: none; }
+  .back-link:hover { text-decoration: underline; }
+</style>
+
+<div class="fpage">
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">DIMMS</a> ›
+    <a href="{% url 'dimms:relatorios' %}">Relatórios</a> ›
+    Ajuste de Inventário
+  </div>
+
+  <div class="rwrap">
+    <div class="rhead">
+      <div>
+        <h1>📋 Ajuste de Inventário</h1>
+        <p>Escolha um grupo para gerar o PDF de conferência de estoque, com uma coluna em branco para anotar o ajuste durante a contagem física.</p>
+      </div>
+      <div class="rhead-stat">
+        <div class="n">{{ total_itens }}</div>
+        <div class="l">itens no estoque</div>
+      </div>
+    </div>
+
+    <div class="info-strip">
+      <span>🧾 <b>E-Fisco</b>, descrição e quantidade em estoque</span>
+      <span>✍️ Coluna em branco para o ajuste</span>
+      <span>📄 PDF pronto para impressão</span>
+    </div>
+
+    <a href="{% url 'dimms:ajuste_inventario_pdf' %}" class="all-groups-card" target="_blank">
+      <div class="all-groups-icon">🗂️</div>
+      <div>
+        <div class="all-groups-title">Todos os grupos</div>
+        <div class="all-groups-sub">Gera o relatório completo, com {{ total_itens }} item(ns)</div>
+      </div>
+      <div class="all-groups-arrow">→</div>
+    </a>
+
+    <form method="get" action="{% url 'dimms:ajuste_inventario_pdf' %}" target="_blank" id="form-grupos">
+      <div class="section-label">
+        <span>Ou marque um ou mais grupos</span>
+        <button type="button" class="toggle-all" id="btn-toggle-all">Selecionar todos</button>
+      </div>
+
+      <div class="grupo-box">
+        {% for grupo in grupos %}
+          <label class="grupo-item{% if not grupo.total %} vazio{% endif %}">
+            <input type="checkbox" name="grupo" value="{{ grupo.value }}" class="chk-grupo">
+            <div class="grupo-icon">{{ grupo.icone }}</div>
+            <div class="grupo-info">
+              <div class="grupo-nome">{{ grupo.label }}</div>
+              <div class="grupo-qtd">{{ grupo.total }} item{{ grupo.total|pluralize }}</div>
+            </div>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="select-actions">
+        <div class="select-count"><b id="qtd-selecionados">0</b> grupo(s) selecionado(s)</div>
+        <button type="submit" class="btn btn-primary" id="btn-gerar-selecionados" disabled>📄 Gerar PDF dos selecionados</button>
+      </div>
+    </form>
+
+    <a href="{% url 'dimms:relatorios' %}" class="back-link">← Voltar para Relatórios</a>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var checkboxes = Array.from(document.querySelectorAll('.chk-grupo'));
+    var contador = document.getElementById('qtd-selecionados');
+    var btnGerar = document.getElementById('btn-gerar-selecionados');
+    var btnToggle = document.getElementById('btn-toggle-all');
+
+    function atualizar() {
+      var marcados = checkboxes.filter(function (c) { return c.checked; }).length;
+      contador.textContent = marcados;
+      btnGerar.disabled = marcados === 0;
+      btnToggle.textContent = marcados === checkboxes.length ? 'Limpar seleção' : 'Selecionar todos';
+    }
+
+    checkboxes.forEach(function (c) { c.addEventListener('change', atualizar); });
+
+    btnToggle.addEventListener('click', function () {
+      var marcarTodos = !checkboxes.every(function (c) { return c.checked; });
+      checkboxes.forEach(function (c) { c.checked = marcarTodos; });
+      atualizar();
+    });
+
+    atualizar();
+  })();
+</script>
+{% endblock %}

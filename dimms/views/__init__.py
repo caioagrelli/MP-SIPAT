@@ -13,3 +13,4 @@ from .catalogo_consumo import (
 )
 from .solicitacao_itens import *
 from .acompanhamentos import *
+from .relatorios import *

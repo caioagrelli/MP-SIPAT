@@ -1,0 +1,57 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Relatórios{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface-2: #f7f8fc;
+    --border: #e2e5ef; --border-strong: #c8cfe0;
+    --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+    --accent: #2563eb; --accent-dark: #1d4ed8;
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    --font: 'Sora', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .rpage { font-family: var(--font); background: var(--bg); padding: 28px 24px 60px; color: var(--ink); min-height: 100vh; }
+  .breadcrumb { font-size: .78rem; color: var(--ink-3); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .rpage-header { margin-bottom: 24px; }
+  .rpage-header h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+  .rpage-header p { font-size: .87rem; color: var(--ink-3); }
+
+  .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; max-width: 960px; }
+  .report-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: 20px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px;
+    transition: box-shadow .15s, transform .15s, border-color .15s;
+  }
+  .report-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+  .report-icon { font-size: 1.8rem; }
+  .report-title { font-size: .98rem; font-weight: 700; color: var(--ink); }
+  .report-sub { font-size: .8rem; color: var(--ink-3); line-height: 1.4; }
+</style>
+
+<div class="rpage">
+  <div class="breadcrumb">
+    <a href="{% url 'dimms:homepage' %}">DIMMS</a> › Relatórios
+  </div>
+
+  <div class="rpage-header">
+    <h1>📊 Relatórios</h1>
+    <p>Relatórios e conferências dos bens de consumo.</p>
+  </div>
+
+  <div class="report-grid">
+    <a href="{% url 'dimms:ajuste_inventario' %}" class="report-card">
+      <div class="report-icon">📋</div>
+      <div class="report-title">Ajuste de Inventário</div>
+      <div class="report-sub">PDF por grupo com E-Fisco, descrição e quantidade, com coluna em branco para a contagem física.</div>
+    </a>
+  </div>
+</div>
+{% endblock %}

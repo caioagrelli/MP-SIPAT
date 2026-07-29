@@ -95,6 +95,25 @@ class SetorDEMPAMAdmin(admin.ModelAdmin):
         }),
     )
     
+@admin.register(Aviso)
+class AvisoAdmin(admin.ModelAdmin):
+    list_display = (
+        'titulo',
+        'autor',
+        'data_publicacao',
+        'ativo',
+    )
+
+    list_filter = (
+        'ativo',
+    )
+
+    search_fields = (
+        'titulo',
+        'mensagem',
+    )
+
+
 @admin.register(LocalizacaoDEMPAM)
 class LocalizacaoDEMPAMAdmin(admin.ModelAdmin):
     

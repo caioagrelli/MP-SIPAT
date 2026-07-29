@@ -6,139 +6,313 @@
 {% block content %}
 
 <style>
-    :root {
-        --azul-principal: #1a4ed5;
-        --azul-escuro: #0f1728;
-        --azul-hover: #143fb0;
-        --azul-claro: #eef4ff;
-        --azul-borda: rgba(26, 78, 213, 0.22);
-        --texto: #1f2937;
-        --texto-suave: #5b6b84;
-        --branco: #ffffff;
-    }
+    .dashboard-page {
+        --blue: #1d4ed8; --blue-soft: #eff4ff; --blue-mid: #c7d7fd;
+        --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
+        --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
+        --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
+        --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
+        --border: #e2e5ef;
+        --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+        --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
 
-    .pagina-dev {
-        padding: 40px 0;
-    }
-
-    .card-dev {
-        background: var(--branco);
-        border: none;
-        border-radius: 22px;
-        overflow: hidden;
-        box-shadow: 0 14px 35px rgba(15, 23, 40, 0.10);
-    }
-
-    .topo-dev {
-        background: linear-gradient(135deg, var(--azul-escuro), var(--azul-principal));
-        color: white;
-        padding: 42px 30px;
-        text-align: center;
-    }
-
-    .topo-dev h1 {
-        font-weight: 800;
-        margin-bottom: 10px;
-        font-size: 2.2rem;
-    }
-
-    .topo-dev p {
-        margin: 0;
-        font-size: 1.08rem;
-        opacity: 0.95;
-    }
-
-    .conteudo-dev {
-        padding: 35px 30px;
-        text-align: center;
-        background: linear-gradient(180deg, #f8fbff 0%, var(--azul-claro) 100%);
-    }
-
-    .mensagem-dev {
-        font-size: 1.08rem;
-        color: var(--texto);
-        margin-bottom: 30px;
-    }
-
-    .foto-equipe {
-        width: 100%;
-        min-height: 630px;
-        border: 3px dashed var(--azul-borda);
-        border-radius: 20px;
-        background:
-            linear-gradient(to top, rgba(15, 23, 40, 0.45), rgba(15, 23, 40, 0.10)),
-            url("{% static 'img/equipe.jpeg' %}") center/cover no-repeat,
-            linear-gradient(135deg, #dbe7ff, #c7d8ff);
-        display: flex;
-        align-items: end;
-        justify-content: center;
-        padding: 22px;
         position: relative;
-        overflow: hidden;
+        font-family: var(--font);
+        padding: 8px 0 32px;
     }
 
-    .foto-legenda {
+    .dashboard-page::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: url("{% static 'img/verticalizacao.png' %}") center/cover no-repeat;
+        opacity: .3;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .dashboard-page > * {
         position: relative;
         z-index: 1;
-        color: white;
-        font-size: 1.05rem;
+    }
+
+    .db-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .db-greeting h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin: 0 0 4px;
+    }
+
+    .db-greeting p {
+        margin: 0;
+        color: var(--ink-3);
+        font-size: .88rem;
+    }
+
+    .db-badge {
+        background: var(--blue-soft);
+        border: 1px solid var(--blue-mid);
+        color: var(--blue);
+        font-size: .78rem;
         font-weight: 700;
-        text-align: center;
-        background: rgba(26, 78, 213, 0.35);
-        padding: 10px 18px;
-        border-radius: 12px;
-        backdrop-filter: blur(3px);
+        padding: 6px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
     }
 
-    .observacao {
-        margin-top: 18px;
-        color: var(--texto-suave);
-        font-size: 0.96rem;
+    .db-section-title {
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--ink-3);
+        margin: 28px 0 12px;
     }
 
-    .observacao strong {
-        color: var(--azul-principal);
+    .db-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+    }
+
+    .stat-tile {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 18px 20px;
+        text-decoration: none;
+        display: block;
+        transition: box-shadow .15s, transform .15s;
+    }
+
+    a.stat-tile:hover {
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+        transform: translateY(-2px);
+    }
+
+    .stat-tile .stat-value {
+        font-family: var(--mono);
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+
+    .stat-tile .stat-label {
+        margin-top: 8px;
+        font-size: .85rem;
+        font-weight: 600;
+        color: var(--ink-2);
+    }
+
+    .stat-tile .stat-sub {
+        margin-top: 2px;
+        font-size: .76rem;
+        color: var(--ink-3);
+    }
+
+    .stat-tile.tone-green .stat-value { color: var(--green); }
+    .stat-tile.tone-amber .stat-value { color: var(--amber); }
+    .stat-tile.tone-red .stat-value { color: var(--red); }
+    .stat-tile.tone-neutral .stat-value { color: var(--ink-3); font-size: 1rem; font-family: var(--font); }
+
+    .stub-tile {
+        background: repeating-linear-gradient(135deg, #fafbfe, #fafbfe 10px, #f4f6fb 10px, #f4f6fb 20px);
+        border: 1.5px dashed var(--border);
+        border-radius: var(--r-md);
+        padding: 16px 18px;
+        color: var(--ink-3);
+    }
+
+    .stub-tile .stub-title {
+        font-size: .85rem;
+        font-weight: 700;
+        color: var(--ink-2);
+        margin-bottom: 4px;
+    }
+
+    .stub-tile .stub-tag {
+        display: inline-block;
+        margin-top: 8px;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--ink-3);
+        background: #eef0f6;
+        border-radius: 999px;
+        padding: 3px 10px;
+    }
+
+    .db-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 18px 20px;
+    }
+
+    .db-card h2 {
+        font-size: .95rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 12px;
+    }
+
+    .mov-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .mov-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: .85rem;
+        color: var(--ink-2);
+    }
+
+    .mov-list li:last-child {
+        border-bottom: none;
+    }
+
+    .mov-list .mov-data {
+        font-family: var(--mono);
+        font-size: .76rem;
+        color: var(--ink-3);
+        white-space: nowrap;
+    }
+
+    .mov-empty {
+        color: var(--ink-3);
+        font-size: .85rem;
     }
 
     @media (max-width: 768px) {
-        .foto-equipe {
-            min-height: 300px;
-        }
-
-        .topo-dev {
-            padding: 30px 20px;
-        }
-
-        .topo-dev h1 {
-            font-size: 1.7rem;
-        }
-
-        .conteudo-dev {
-            padding: 25px 20px;
-        }
+        .db-header { flex-direction: column; align-items: flex-start; }
     }
 </style>
 
-<div class="container pagina-dev">
-    <div class="card-dev">
-        <div class="topo-dev">
-            <h1>🚧 SIPAT em Desenvolvimento</h1>
-            <p>DEMPAM</p>
+<div class="container dashboard-page">
+
+    <div class="db-header">
+        <div class="db-greeting">
+            <h1>Olá, {{ nome }}</h1>
+            <p>Painel principal do SIPAT</p>
+        </div>
+        <span class="db-badge">{{ perfil_label }}</span>
+    </div>
+
+    <div class="db-section-title">Resumo</div>
+    <div class="db-grid">
+
+        <div class="stat-tile">
+            <div class="stat-value">{{ acessos_mes }}</div>
+            <div class="stat-label">Acessos no mês</div>
         </div>
 
-        <div class="conteudo-dev">
-            <p class="mensagem-dev">
-                Estamos trabalhando para disponibilizar um sistema mais organizado,
-                moderno e fácil de usar. Em breve teremos novidades por aqui.
-            </p>
+        <a href="{% url 'dimrcbp:meus_bens' %}" class="stat-tile">
+            <div class="stat-value">{{ total_bens_responsabilidade }}</div>
+            <div class="stat-label">Bens patrimoniais sob responsabilidade</div>
+        </a>
 
-            <div class="foto-equipe">
-                <div class="foto-legenda"></div>
+        <div class="stat-tile">
+            <div class="stat-value">{{ consumo_ua_ano.pedidos }}</div>
+            <div class="stat-label">Pedidos de consumo recebidos no ano</div>
+            <div class="stat-sub">
+                {% if consumo_ua_ano.valor %}R$ {{ consumo_ua_ano.valor }}{% else %}Valor em R$ não disponível{% endif %}
             </div>
+        </div>
 
+        <div class="stat-tile {% if requisicoes_patrimonio_abertas.total %}tone-amber{% endif %}">
+            <div class="stat-value">{{ requisicoes_patrimonio_abertas.total }}</div>
+            <div class="stat-label">Requisições de patrimônio em aberto</div>
+            <div class="stat-sub">{{ requisicoes_patrimonio_abertas.transferencia }} transferência(s) · {{ requisicoes_patrimonio_abertas.catalogo }} catálogo</div>
+        </div>
 
+        <div class="stat-tile {% if requisicoes_consumo_abertas %}tone-amber{% endif %}">
+            <div class="stat-value">{{ requisicoes_consumo_abertas }}</div>
+            <div class="stat-label">Requisições de consumo em aberto</div>
+        </div>
+
+        {% if alerta_inventario %}
+            <div class="stat-tile {% if alerta_inventario.pendentes %}tone-red{% else %}tone-green{% endif %}">
+                <div class="stat-value">{{ alerta_inventario.pendentes }}</div>
+                <div class="stat-label">Bens pendentes de inventário</div>
+                <div class="stat-sub">{{ alerta_inventario.periodo.descricao }} · {{ alerta_inventario.total_bens }} bem(ns) sob sua responsabilidade</div>
+            </div>
+        {% else %}
+            <div class="stat-tile tone-neutral">
+                <div class="stat-value">Sem inventário em andamento</div>
+                <div class="stat-label">Alerta de inventário</div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <div class="db-section-title">Em breve</div>
+    <div class="db-grid">
+        <div class="stub-tile">
+            <div class="stub-title">Bens sob cautela</div>
+            <span class="stub-tag">Provisório</span>
+        </div>
+        <div class="stub-tile">
+            <div class="stub-title">Termos de responsabilidade pendentes de aceite</div>
+            <span class="stub-tag">Provisório</span>
+        </div>
+        <div class="stub-tile">
+            <div class="stub-title">Alertas de manutenção / vencimento de garantias</div>
+            <span class="stub-tag">Provisório</span>
         </div>
     </div>
+
+    <div class="db-section-title">Mural</div>
+    <div class="db-card">
+        <h2>📌 Mural de Avisos — DEMPAM</h2>
+        <ul class="mov-list">
+            {% for aviso in avisos %}
+                <li style="flex-direction:column; align-items:flex-start; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; width:100%; gap:12px;">
+                        <strong>{{ aviso.titulo }}</strong>
+                        <span class="mov-data">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div style="color:var(--ink-3); font-size:.82rem;">{{ aviso.mensagem }}</div>
+                    {% if aviso.autor %}
+                        <div style="color:var(--ink-3); font-size:.74rem;">— {{ aviso.autor.get_full_name|default:aviso.autor.username }}</div>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li class="mov-empty">Nenhum aviso publicado no momento.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="db-section-title">Atividade recente</div>
+    <div class="db-card">
+        <h2>Últimas movimentações</h2>
+        <ul class="mov-list">
+            {% for evento in ultimas_movimentacoes %}
+                <li>
+                    <span>{{ evento.descricao }}</span>
+                    <span class="mov-data">{{ evento.data|date:"d/m/Y H:i" }}</span>
+                </li>
+            {% empty %}
+                <li class="mov-empty">Nenhuma movimentação recente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
 </div>
 
 {% endblock %}

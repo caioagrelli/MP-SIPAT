@@ -151,6 +151,9 @@
       <a href="{% url 'accounts:lista_feedback' %}" class="btn btn-ghost">
         💬 Feedbacks
       </a>
+      <a href="{% url 'dempam:aviso_criar' %}" class="btn btn-ghost">
+        📌 Novo Aviso
+      </a>
       <a href="#" class="btn btn-primary">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Admin
@@ -174,7 +177,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Bens Permanentes</div>
-          <div class="kpi-value">248</div>
+          <div class="kpi-value">{{ total_bens_permanentes }}</div>
           <div class="kpi-sub">Inventário patrimonial</div>
         </div>
         <div class="kpi-icon ki-green">💻</div>
@@ -234,62 +237,11 @@
       <div class="qa-title">Cadastros</div>
       <div class="qa-sub">Base administrativa</div>
     </a>
-  </div>
-
-  <!-- RESUMO OPERACIONAL -->
-  <div class="main-card">
-    <div class="main-card-head">
-      <div class="main-card-title">
-        📋 Resumo Operacional
-        <span style="font-size:.72rem; font-weight:500; color:var(--ink-3); font-family:var(--mono);">dados provisórios</span>
-      </div>
-      <a href="#" class="btn-sm-ghost">Ver mais</a>
-    </div>
-
-    <div class="main-table-wrap">
-      <table class="main-table">
-        <thead>
-          <tr>
-            <th>Categoria</th>
-            <th>Descrição</th>
-            <th>Status</th>
-            <th>Atualização</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="cat-chip cc-blue">Setor</span></td>
-            <td style="font-weight:600; color:var(--ink);">Almoxarifado Central</td>
-            <td><span class="pill p-ok"><span class="pill-dot"></span>OK</span></td>
-            <td class="mono-cell">Hoje</td>
-          </tr>
-          <tr>
-            <td><span class="cat-chip cc-green">Permanente</span></td>
-            <td style="font-weight:600; color:var(--ink);">Notebook Dell</td>
-            <td><span class="pill p-pending"><span class="pill-dot"></span>Pendente</span></td>
-            <td class="mono-cell">Ontem</td>
-          </tr>
-          <tr>
-            <td><span class="cat-chip cc-slate">Consumo</span></td>
-            <td style="font-weight:600; color:var(--ink);">Caixa de papel A4</td>
-            <td><span class="pill p-low"><span class="pill-dot"></span>Estoque baixo</span></td>
-            <td class="mono-cell">2 dias atrás</td>
-          </tr>
-          <tr>
-            <td><span class="cat-chip cc-red">Permissão</span></td>
-            <td style="font-weight:600; color:var(--ink);">Solicitação de acesso pendente</td>
-            <td><span class="pill p-analysis"><span class="pill-dot"></span>Em análise</span></td>
-            <td class="mono-cell">Hoje</td>
-          </tr>
-          <tr>
-            <td><span class="cat-chip cc-teal">Atividade</span></td>
-            <td style="font-weight:600; color:var(--ink);">Conferência de inventário — TI</td>
-            <td><span class="pill p-done"><span class="pill-dot"></span>Concluído</span></td>
-            <td class="mono-cell">3 horas atrás</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <a href="#" class="qa-tile">
+      <div class="qa-icon">📺</div>
+      <div class="qa-title">Televisão</div>
+      <div class="qa-sub">Provisório</div>
+    </a>
   </div>
 
 </div>

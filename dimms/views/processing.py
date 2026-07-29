@@ -1046,15 +1046,18 @@ def update_request(request, pk):
         form = SolicitacaoStatusUpdateForm(request.POST, request.FILES, instance=solicitacao)
 
         if form.is_valid():
-            solicitacao_atualizada = form.save()
+            novo_status = form.cleaned_data['situation']
 
             observacao = form.cleaned_data.get('observacao_tramitacao')
             documento = form.cleaned_data.get('documents_update')
             foto = form.cleaned_data.get('photo_update')
 
+            # não salvar o form diretamente no Solicitacao: quem atualiza o
+            # `situation` precisa ser o Tramitacao.save(), pois é lá que a
+            # baixa automática de estoque compara o status antes/depois
             Tramitacao.objects.create(
-                request_update=solicitacao_atualizada,
-                update=solicitacao_atualizada.situation,
+                request_update=solicitacao,
+                update=novo_status,
                 responsible_update=request.user.get_full_name() or request.user.username,
                 observation_update=observacao,
                 documents_update=documento,

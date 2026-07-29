@@ -636,9 +636,20 @@
       </div>
     </div>
 
-    <div class="efisco-chip">
-      <div class="efisco-chip-label">E-Fisco</div>
-      <div class="efisco-chip-value">{{ item.item_shock.efisco|default:"—" }}</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <form method="post" action="{% url 'dimms:toggle_essential' item.pk %}">
+        {% csrf_token %}
+        {% if request.GET.page %}<input type="hidden" name="page" value="{{ request.GET.page }}">{% endif %}
+        <button type="submit" class="stock-status-pill {% if item.essential %}pill-ok{% else %}pill-low{% endif %}" style="border:1px solid; cursor:pointer; font-family:inherit;">
+          <span class="dot"></span>
+          {% if item.essential %}⭐ Essencial{% else %}☆ Marcar como essencial{% endif %}
+        </button>
+      </form>
+
+      <div class="efisco-chip">
+        <div class="efisco-chip-label">E-Fisco</div>
+        <div class="efisco-chip-value">{{ item.item_shock.efisco|default:"—" }}</div>
+      </div>
     </div>
   </div>
 

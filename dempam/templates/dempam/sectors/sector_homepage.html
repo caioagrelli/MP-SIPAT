@@ -128,6 +128,18 @@
   .section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin:32px 0 14px;display:flex;align-items:center;gap:10px;}
   .section-label::after{content:'';flex:1;height:1px;background:var(--border-strong);}
 
+  /* ── Filter bar ── */
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+  .filter-group{display:flex;flex-direction:column;gap:5px;}
+  .filter-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+  .filter-input,.filter-select{height:36px;padding:0 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:.83rem;color:var(--ink);background:var(--surface);outline:none;}
+  .filter-input:focus,.filter-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-actions{display:flex;align-items:flex-end;gap:8px;}
+
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-3);text-decoration:none;transition:background .12s,color .12s;}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+
   @media(max-width:960px){.kpi-strip{grid-template-columns:repeat(2,1fr);}}
   @media(max-width:600px){.apage{padding:14px 12px 32px;}.kpi-strip{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -169,7 +181,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Localizações</div>
-          <div class="kpi-value">{{ localizacoes|length }}</div>
+          <div class="kpi-value">{{ total_localizacoes }}</div>
           <div class="kpi-sub">Pallets/Prateleiras cadastrados</div>
         </div>
         <div class="kpi-icon ki-blue">📦</div>
@@ -197,73 +209,6 @@
     </div>
   </div>
 
-  <!-- ── Seção: Pallets e Prateleiras ── -->
-  <div class="section-label">📦 Pallets e Prateleiras</div>
-
-  <div class="main-card">
-    <div class="main-card-head">
-      <div class="main-card-title">
-        Todos os Pallets e Prateleiras
-        <span class="total-badge">{{ localizacoes|length }}</span>
-      </div>
-      <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary" style="padding:7px 14px;font-size:.82rem;">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        Adicionar Pallet/Prateleira
-      </a>
-    </div>
-    <div class="main-table-wrap">
-      <table class="main-table">
-        <thead>
-          <tr>
-            <th>Número</th>
-            <th>Setor/Sala</th>
-            <th>Identificação</th>
-            <th>Tipo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for loc in localizacoes %}
-          <tr>
-            <td class="mono-cell">{{ forloop.counter }}</td>
-            <td>
-              {% cycle 'st-0' 'st-1' 'st-2' 'st-3' 'st-4' 'st-5' as cor silent %}
-              <span class="setor-tag {{ cor }}">
-                <span class="setor-tag-dot"></span>{{ loc.setor_sala.setor }}
-              </span>
-            </td>
-            <td>
-              <a href="{% url 'dempam:locate_detail' loc.pk %}" style="font-weight:600;color:var(--accent);font-family:var(--mono);font-size:.82rem;text-decoration:none;">
-                {{ loc.prateleira_pallet }}
-              </a>
-            </td>
-            <td>
-              {% with t=loc.tipo_localizacao %}
-                {% if "PALLET" in t|upper %}
-                  <span class="pill p-pallet"><span class="pill-dot"></span>{{ t }}</span>
-                {% elif "PRATELEIRA" in t|upper %}
-                  <span class="pill p-prateleira"><span class="pill-dot"></span>{{ t }}</span>
-                {% else %}
-                  <span class="pill p-default"><span class="pill-dot"></span>{{ t }}</span>
-                {% endif %}
-              {% endwith %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="4">
-              <div class="table-empty">
-                <span class="table-empty-icon">📦</span>
-                <div class="table-empty-title">Nenhum pallet ou prateleira cadastrado</div>
-                <div>Clique em "Adicionar" para criar uma localização.</div>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- ── Seção: Setores / Salas ── -->
   <div class="section-label">🏢 Setores / Salas</div>
 
@@ -281,6 +226,114 @@
       <div>Clique em "Adicionar Setor" para começar.</div>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- ── Seção: Pallets e Prateleiras ── -->
+  <div class="section-label">📦 Pallets e Prateleiras</div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        Todos os Pallets e Prateleiras
+        <span class="total-badge">{{ localizacoes|length }}</span>
+      </div>
+      <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary" style="padding:7px 14px;font-size:.82rem;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar Pallet/Prateleira
+      </a>
+    </div>
+
+    <form method="get" class="filter-bar">
+      <div class="filter-group" style="flex:2;min-width:200px;">
+        <label class="filter-label">Pesquisar</label>
+        <input type="text" name="q" class="filter-input" placeholder="Identificação, corredor ou setor…" value="{{ query }}">
+      </div>
+      <div class="filter-group" style="min-width:160px;">
+        <label class="filter-label">Tipo</label>
+        <select name="tipo" class="filter-select">
+          <option value="">Todos</option>
+          <option value="PALLET" {% if tipo_f == "PALLET" %}selected{% endif %}>Pallet</option>
+          <option value="PRATELEIRA" {% if tipo_f == "PRATELEIRA" %}selected{% endif %}>Prateleira</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary" style="padding:8px 16px;font-size:.82rem;">Filtrar</button>
+        {% if query or tipo_f %}
+          <a href="{% url 'dempam:sector_homepage' %}" class="btn btn-ghost" style="padding:8px 16px;font-size:.82rem;">Limpar</a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="main-table-wrap">
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Setor/Sala</th>
+            <th>Identificação</th>
+            <th>Corredor/Estante/Prateleira</th>
+            <th>Tipo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loc in localizacoes %}
+          <tr>
+            <td class="mono-cell">{{ forloop.counter }}</td>
+            <td>
+              {% cycle 'st-0' 'st-1' 'st-2' 'st-3' 'st-4' 'st-5' as cor silent %}
+              <span class="setor-tag {{ cor }}">
+                <span class="setor-tag-dot"></span>{{ loc.setor_sala.setor }}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'dempam:locate_detail' loc.pk %}" style="font-weight:600;color:var(--accent);font-family:var(--mono);font-size:.82rem;text-decoration:none;">
+                {{ loc.prateleira_pallet }}
+              </a>
+            </td>
+            <td class="mono-cell">
+              {% if loc.corredor %}
+                <a href="{% url 'dempam:corredor_detail' loc.setor_sala_id loc.corredor %}" style="color:var(--ink-3);text-decoration:none;border-bottom:1px dashed var(--border-strong);" title="Ver corredor {{ loc.corredor }}">{{ loc.corredor }}</a>
+                / {{ loc.estante }} / {{ loc.prateleira }}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% with t=loc.tipo_localizacao %}
+                {% if "PALLET" in t|upper %}
+                  <span class="pill p-pallet"><span class="pill-dot"></span>{{ t }}</span>
+                {% elif "PRATELEIRA" in t|upper %}
+                  <span class="pill p-prateleira"><span class="pill-dot"></span>{{ t }}</span>
+                {% else %}
+                  <span class="pill p-default"><span class="pill-dot"></span>{{ t }}</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              <div class="row-actions">
+                <a href="{% url 'dempam:locate_edit' loc.pk %}" class="icon-btn" title="Editar">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="table-empty">
+                <span class="table-empty-icon">📦</span>
+                <div class="table-empty-title">
+                  {% if query or tipo_f %}Nenhum resultado para esse filtro{% else %}Nenhum pallet ou prateleira cadastrado{% endif %}
+                </div>
+                <div>
+                  {% if query or tipo_f %}Tente ajustar a busca ou o filtro.{% else %}Clique em "Adicionar" para criar uma localização.{% endif %}
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </div>

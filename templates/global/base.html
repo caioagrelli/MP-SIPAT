@@ -371,7 +371,7 @@
   <!-- BRAND -->
   <div class="sidebar-brand">
     <a href="{% url 'home' %}">
-      <div class="brand-icon">⚖️</div>
+      <div class="brand-icon"><img src="{% static 'img/brasao-mppe.png' %}" alt="Brasão MPPE" style="width:100%; height:100%; object-fit:contain; border-radius:8px;"></div>
       <div>
         <div class="brand-text-main">SIPAT</div>
         <div class="brand-text-sub">Sistema Integrado Patrimonial</div>
@@ -387,13 +387,13 @@
       <div class="nav-section-label">Principal</div>
 
       <a class="nav-item-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-         href="{% url 'dimrcbp:catalogo_lista' %}">
+         href="{% url 'home' %}">
         <span class="nav-item-icon">🏠</span> Painel Principal
       </a>
 
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name in 'meus_bens,detalhe_bem,atualizar_foto' %}active{% endif %}"
          href="{% url 'dimrcbp:meus_bens' %}">
-        <span class="nav-item-icon">📋</span> Meus Bens
+        <span class="nav-item-icon">📋</span> Bens da Unidade
       </a>
 
 {% if perms.dimrcbp or perms.dimms %}

@@ -167,23 +167,90 @@ class LocalizacaoDEMPAM(models.Model):
 
     prateleira_pallet = models.CharField(
         max_length=30,
-        blank=True, 
+        blank=True,
         null=True,
         verbose_name='Prateleira/Pallet'
     )
-    
-    
+
+
     tipo_localizacao = models.CharField(
         max_length=30,
         choices=TipoLocalizacao.choices,
         blank=True,
         null=True,
     )
-    
+
+    corredor = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        verbose_name='Corredor',
+    )
+
+    estante = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        verbose_name='Estante',
+    )
+
+    prateleira = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        verbose_name='Prateleira',
+    )
+
     class Meta():
         verbose_name='Localização DEMPAM'
         verbose_name_plural='04 - Localizações DEMPAM'
-        
+
+    def save(self, *args, **kwargs):
+        # quando é prateleira (não pallet), o código é composto de corredor + estante + prateleira
+        # (ex.: corredor A, estante 3, prateleira 6 -> "A36") em vez de digitado à mão
+        if self.tipo_localizacao == TipoLocalizacao.prateleira and self.corredor and self.estante and self.prateleira:
+            self.prateleira_pallet = f'{self.corredor.strip().upper()}{self.estante.strip()}{self.prateleira.strip()}'
+        super().save(*args, **kwargs)
+
     def __str__(self):
-       return str(self.prateleira_pallet) 
+       return str(self.prateleira_pallet)
+
+
+# --- Mural de Avisos do DEMPAM ---
+class Aviso(models.Model):
+    titulo = models.CharField(
+        max_length=120,
+        verbose_name='Título',
+    )
+
+    mensagem = models.TextField(
+        verbose_name='Mensagem',
+    )
+
+    autor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='avisos_publicados',
+        verbose_name='Autor',
+    )
+
+    data_publicacao = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Publicado em',
+    )
+
+    ativo = models.BooleanField(
+        default=True,
+        verbose_name='Ativo',
+    )
+
+    class Meta:
+        verbose_name = 'Aviso'
+        verbose_name_plural = '05 - Avisos'
+        ordering = ['-data_publicacao']
+
+    def __str__(self):
+        return self.titulo 
 

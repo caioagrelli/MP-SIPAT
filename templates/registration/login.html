@@ -190,10 +190,22 @@
       display: flex; align-items: center; gap: 5px; transition: color .13s;
     }
     .footer-links a:hover { color: #fff; }
+
+    /* ── MARCA D'ÁGUA ── */
+    .login-bg-watermark {
+      position: fixed;
+      inset: 0;
+      background: url("{% static 'img/verticalizacao.png' %}") center/cover no-repeat;
+      opacity: .3;
+      z-index: -1;
+      pointer-events: none;
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="login-bg-watermark"></div>
 
   <!-- BRAND -->
   <div class="brand">

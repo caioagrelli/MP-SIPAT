@@ -2,6 +2,7 @@ import re
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -54,6 +55,25 @@ def create_profile(sender, instance, created, **kwargs):
 def save_profile(sender, instance, **kwargs):
     if hasattr(instance, 'profile'):
         instance.profile.save()
+
+
+# Registro de acesso: um registro por login, usado para contar acessos no mês
+class RegistroAcesso(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='registros_acesso')
+    data = models.DateTimeField(auto_now_add=True, verbose_name='Data e Hora do Acesso')
+
+    class Meta:
+        verbose_name = 'Registro de Acesso'
+        verbose_name_plural = 'Registros de Acesso'
+        ordering = ['-data']
+
+    def __str__(self):
+        return f'{self.user.username} em {self.data:%d/%m/%Y %H:%M}'
+
+
+@receiver(user_logged_in)
+def registrar_acesso(sender, user, request, **kwargs):
+    RegistroAcesso.objects.create(user=user)
 
 
 class StatusFeedback(models.TextChoices):

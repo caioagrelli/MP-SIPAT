@@ -21,6 +21,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 # Importações do Código
+from django.contrib import messages
 from .. models import Estoque, Tramitacao
 from .. forms import EstoqueForm
 
@@ -68,6 +69,24 @@ def qrcode_view(request, pk):
     buf = BytesIO()
     img.save(buf, format="PNG")
     return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+''' Marcar/desmarcar o bem como essencial '''
+@login_required
+def toggle_essential(request, pk):
+    item = get_object_or_404(Estoque, pk=pk)
+    if request.method == 'POST':
+        item.essential = not item.essential
+        item.save(update_fields=['essential'])
+        messages.success(
+            request,
+            'Item marcado como essencial.' if item.essential else 'Item desmarcado como essencial.'
+        )
+    page = request.GET.get('page') or request.POST.get('page')
+    url = reverse('dimms:overview', args=[pk])
+    if page:
+        url = f'{url}?page={page}'
+    return redirect(url)
 
 
 ''' Editar dados do bem '''

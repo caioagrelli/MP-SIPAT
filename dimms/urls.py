@@ -16,6 +16,9 @@ urlpatterns = [
     # Url's da Homepage e Páginas de Aviso
     path('', homepage, name='homepage'),
     path('exportar-planilha/', exportar_planilha, name='exportar_planilha'),
+    path('relatorios/', relatorios, name='relatorios'),
+    path('relatorios/ajuste-inventario/', ajuste_inventario, name='ajuste_inventario'),
+    path('relatorios/ajuste-inventario/pdf/', ajuste_inventario_pdf, name='ajuste_inventario_pdf'),
     path('essential/', essential, name='essential'),
     path('low_stock/', low_stock, name='low_stock'),
     path('expiration_alert/', expiration_alert, name='expiration_alert'),
@@ -27,6 +30,7 @@ urlpatterns = [
     path('overview/<int:pk>/label/', label, name='label'),
     path('overview/<int:pk>/ficha-tecnica/', ficha_tecnica, name='ficha_tecnica'),
     path('overview/<int:pk>/edit/', overview_edit, name='overview_edit'),
+    path('overview/<int:pk>/essencial/', toggle_essential, name='toggle_essential'),
     
 
     # Url's de Solicitações

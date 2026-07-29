@@ -67,6 +67,27 @@
 
   .bens-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 24px; }
 
+  .ua-search-wrap { padding: 16px 24px 0; }
+  .ua-search-input {
+    flex: 1; width: 100%; padding: 9px 14px;
+    border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; color: var(--ink);
+    background: var(--surface); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .ua-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .ua-search-empty { display: none; padding: 32px 24px; text-align: center; color: var(--ink-3); font-size: .88rem; }
+
+  .ua-search-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--accent-dark);
+    background: var(--accent); color: #fff; white-space: nowrap;
+    transition: background .15s;
+  }
+  .ua-search-btn:hover { background: var(--accent-dark); }
+
   .bem-card {
     border: 1px solid var(--border); border-radius: var(--r-md);
     overflow: hidden; background: var(--surface-2);
@@ -108,7 +129,7 @@
 
   <div class="topbar">
     <div>
-      <div class="topbar-title">📦 Meus Bens</div>
+      <div class="topbar-title">🏢 Bens da Unidade</div>
       <div class="topbar-sub">Bens permanentes sob sua responsabilidade.</div>
     </div>
     <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Bens Permanentes</a>
@@ -131,6 +152,7 @@
     {% endfor %}
   {% endif %}
 
+  {% if atribuicoes %}
   <div class="summary-strip">
     <div class="sum-card">
       <div class="sum-label">Total de bens</div>
@@ -150,7 +172,6 @@
       </div>
     </div>
 
-    {% if atribuicoes %}
     <div class="bens-grid">
       {% for at in atribuicoes %}
       {% with bem=at.bem %}
@@ -190,14 +211,100 @@
       {% endwith %}
       {% endfor %}
     </div>
-    {% else %}
+  </div>
+  {% endif %}
+
+  {% for grupo in bens_por_ua %}
+  <div class="main-card" style="margin-top:24px;">
+    <div class="main-card-head">
+      <div class="main-card-title">
+        🏢 Bens da UA: {{ grupo.ua.ua }}
+        <span class="total-badge">{{ grupo.total }} itens</span>
+      </div>
+    </div>
+
+    <div class="ua-search-wrap" style="display:flex; gap:10px;">
+      <input
+        type="text"
+        class="ua-search-input"
+        data-grid="ua-grid-{{ forloop.counter }}"
+        placeholder="Pesquisar por tombo ou nome…"
+      >
+      <button type="button" class="ua-search-btn" data-grid="ua-grid-{{ forloop.counter }}">🔍 Pesquisar</button>
+    </div>
+
+    <div class="bens-grid" id="ua-grid-{{ forloop.counter }}">
+      {% for bem in grupo.bens %}
+      <a href="{% url 'dimrcbp:detalhe_bem' bem.tombo %}" class="bem-card" data-search="{{ bem.tombo }} {{ bem.description }}">
+
+        <div class="bem-foto">
+          {% if bem.photo %}
+            <img src="{{ bem.photo.url }}" alt="Foto do bem">
+          {% else %}
+            <span class="bem-foto-placeholder">📦</span>
+          {% endif %}
+        </div>
+
+        <div class="bem-info">
+          <div class="bem-tombo">Tombo {{ bem.tombo }}</div>
+          <div class="bem-nome">{{ bem.description }}</div>
+          <div class="bem-detalhe">{{ bem.mark }} — {{ bem.model }}</div>
+          {% if bem.history_tombo.current_ua %}
+            <div class="bem-detalhe">📍 {{ bem.history_tombo.current_ua.ua }}</div>
+          {% endif %}
+          {% if bem.situacion %}
+            <span class="situacao-pill situ-{{ bem.situacion|lower }}">
+              {{ bem.get_situacion_display }}
+            </span>
+          {% endif %}
+        </div>
+
+      </a>
+      {% endfor %}
+    </div>
+    <div class="ua-search-empty" id="ua-empty-{{ forloop.counter }}">Nenhum bem encontrado para esta busca.</div>
+  </div>
+  {% endfor %}
+
+  {% if not atribuicoes and not bens_por_ua %}
+  <div class="main-card">
     <div class="table-empty">
       <span class="table-empty-icon">📦</span>
-      <div class="table-empty-title">Nenhum bem atribuído</div>
-      <div>Você não possui bens permanentes vinculados ao seu usuário.</div>
+      <div class="table-empty-title">Nenhum bem encontrado</div>
+      <div>Você não possui bens permanentes vinculados ao seu usuário nem à sua UA.</div>
     </div>
-    {% endif %}
   </div>
+  {% endif %}
 
 </div>
+
+<script>
+  document.querySelectorAll('.ua-search-input').forEach(function (input) {
+    var grid = document.getElementById(input.dataset.grid);
+    if (!grid) return;
+    var empty = document.getElementById(input.dataset.grid.replace('grid', 'empty'));
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.bem-card'));
+    var btn = document.querySelector('.ua-search-btn[data-grid="' + input.dataset.grid + '"]');
+
+    function filtrar() {
+      var termo = input.value.trim().toLowerCase();
+      var visiveis = 0;
+      cards.forEach(function (card) {
+        var alvo = card.dataset.search.toLowerCase();
+        var bate = alvo.indexOf(termo) !== -1;
+        card.style.display = bate ? '' : 'none';
+        if (bate) visiveis++;
+      });
+      grid.style.display = visiveis ? '' : 'none';
+      if (empty) empty.style.display = visiveis ? 'none' : 'block';
+    }
+
+    input.addEventListener('input', filtrar);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); filtrar(); }
+    });
+    if (btn) btn.addEventListener('click', filtrar);
+  });
+</script>
+
 {% endblock %}

@@ -83,6 +83,43 @@
   .table-empty-icon{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.3;}
   .table-empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
 
+  /* ── Filter bar ── */
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+  .filter-group{display:flex;flex-direction:column;gap:5px;}
+  .filter-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+  .filter-input,.filter-select{height:36px;padding:0 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:.83rem;color:var(--ink);background:var(--surface);outline:none;}
+  .filter-input:focus,.filter-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .filter-actions{display:flex;align-items:flex-end;gap:8px;}
+
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-3);text-decoration:none;transition:background .12s,color .12s;}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  /* ── Navegação por corredor ── */
+  .nav-corredores{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:28px;align-items:start;}
+  .corredor-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .corredor-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;background:#1e2d42;color:#fff;border:none;cursor:pointer;font-family:var(--font);font-size:.88rem;font-weight:700;text-align:left;}
+  .corredor-btn:hover{background:#263650;}
+  .corredor-btn .chevron{transition:transform .18s;opacity:.7;flex-shrink:0;}
+  .corredor-block.open .corredor-btn .chevron{transform:rotate(90deg);}
+  .corredor-panel{display:none;padding:10px;}
+  .corredor-block.open .corredor-panel{display:block;}
+  .corredor-link{color:rgba(255,255,255,.7);text-decoration:none;font-size:.72rem;font-weight:600;}
+  .corredor-link:hover{color:#fff;text-decoration:underline;}
+
+  .estante-block + .estante-block{margin-top:6px;}
+  .estante-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:.8rem;font-weight:700;color:var(--ink-2);text-align:left;}
+  .estante-btn:hover{background:var(--blue-soft);border-color:var(--blue-mid);color:var(--blue);}
+  .estante-btn .chevron{transition:transform .18s;opacity:.6;flex-shrink:0;}
+  .estante-block.open .estante-btn .chevron{transform:rotate(90deg);}
+  .estante-dropdown{display:none;padding:8px 4px 2px;}
+  .estante-block.open .estante-dropdown{display:flex;flex-wrap:wrap;gap:6px;}
+  .prateleira-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border-strong);color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:.76rem;font-weight:700;transition:background .12s,border-color .12s;}
+  .prateleira-chip:hover{background:var(--blue-soft);border-color:var(--blue-mid);}
+
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
   @media(max-width:640px){.kpi-strip{grid-template-columns:1fr 1fr;}.apage{padding:14px 12px 32px;}}
 </style>
@@ -99,10 +136,20 @@
       <div class="page-title">🏢 {{ setor.setor }}</div>
       <div class="page-sub">Visão geral das localizações internas deste setor.</div>
     </div>
-    <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      Adicionar Localização
-    </a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{% url 'dempam:sector_edit' setor.pk %}" class="btn btn-ghost">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Editar Setor
+      </a>
+      <a href="{% url 'dempam:imprimir_corredores' setor.pk %}" class="btn btn-ghost" target="_blank">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
+        Imprimir Corredores
+      </a>
+      <a href="{% url 'dempam:sector_locate_add' %}" class="btn btn-primary">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar Localização
+      </a>
+    </div>
   </div>
 
   <!-- ── KPI strip ── -->
@@ -111,7 +158,7 @@
       <div class="kpi-inner">
         <div>
           <div class="kpi-label">Total de Localizações</div>
-          <div class="kpi-value">{{ localizacoes|length }}</div>
+          <div class="kpi-value">{{ total_localizacoes }}</div>
           <div class="kpi-sub">Pallets e Prateleiras</div>
         </div>
         <div class="kpi-icon ki-gray">📍</div>
@@ -139,6 +186,39 @@
     </div>
   </div>
 
+  <!-- ── Navegação por corredor ── -->
+  {% if navegacao_corredores %}
+    <div class="section-label">🧭 Navegar por Corredor</div>
+    <div class="nav-corredores">
+      {% for grupo in navegacao_corredores %}
+        <div class="corredor-block" id="corredor-block-{{ forloop.counter }}">
+          <button type="button" class="corredor-btn" onclick="toggleBlock('corredor-block-{{ forloop.counter }}')">
+            <span>🚏 Corredor {{ grupo.corredor }} <span style="opacity:.7;font-weight:600;">({{ grupo.total }})</span></span>
+            <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="corredor-panel">
+            <div style="text-align:right;margin-bottom:8px;">
+              <a href="{% url 'dempam:corredor_detail' setor.pk grupo.corredor %}" class="btn btn-ghost" style="padding:5px 10px;font-size:.72rem;">Ver conteúdo do corredor →</a>
+            </div>
+            {% for est in grupo.estantes %}
+              <div class="estante-block" id="estante-block-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                <button type="button" class="estante-btn" onclick="toggleBlock('estante-block-{{ forloop.parentloop.counter }}-{{ forloop.counter }}')">
+                  <span>📚 Estante {{ est.estante }} <span style="opacity:.65;">({{ est.prateleiras|length }})</span></span>
+                  <svg class="chevron" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <div class="estante-dropdown">
+                  {% for loc in est.prateleiras %}
+                    <a href="{% url 'dempam:locate_detail' loc.pk %}" class="prateleira-chip">🗄️ {{ loc.prateleira_pallet }}</a>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <!-- ── Listagem ── -->
   <div class="main-card">
     <div class="main-card-head">
@@ -147,13 +227,53 @@
         <span class="total-badge">{{ localizacoes|length }}</span>
       </div>
     </div>
+
+    <form method="get" class="filter-bar">
+      <div class="filter-group" style="flex:2;min-width:200px;">
+        <label class="filter-label">Pesquisar</label>
+        <input type="text" name="q" class="filter-input" placeholder="Identificação ou corredor…" value="{{ query }}">
+      </div>
+      <div class="filter-group" style="min-width:160px;">
+        <label class="filter-label">Tipo</label>
+        <select name="tipo" class="filter-select">
+          <option value="">Todos</option>
+          <option value="PALLET" {% if tipo_f == "PALLET" %}selected{% endif %}>Pallet</option>
+          <option value="PRATELEIRA" {% if tipo_f == "PRATELEIRA" %}selected{% endif %}>Prateleira</option>
+        </select>
+      </div>
+      {% if corredores %}
+        <div class="filter-group" style="min-width:140px;">
+          <label class="filter-label">Corredor</label>
+          <select name="corredor" class="filter-select">
+            <option value="">Todos</option>
+            {% for cor in corredores %}
+              <option value="{{ cor }}" {% if corredor_f == cor %}selected{% endif %}>{{ cor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary" style="padding:8px 16px;font-size:.82rem;">Filtrar</button>
+        {% if query or tipo_f or corredor_f %}
+          <a href="{% url 'dempam:sector_detail' setor.pk %}" class="btn btn-ghost" style="padding:8px 16px;font-size:.82rem;">Limpar</a>
+        {% endif %}
+        {% if corredor_f %}
+          <a href="{% url 'dempam:corredor_detail' setor.pk corredor_f %}" class="btn btn-ghost" style="padding:8px 16px;font-size:.82rem;">
+            🗺️ Ver página do corredor {{ corredor_f }}
+          </a>
+        {% endif %}
+      </div>
+    </form>
+
     <div class="main-table-wrap">
       <table class="main-table">
         <thead>
           <tr>
             <th>#</th>
             <th>Identificação</th>
+            <th>Corredor/Estante/Prateleira</th>
             <th>Tipo</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -164,6 +284,12 @@
               <a href="{% url 'dempam:locate_detail' loc.pk %}" style="font-weight:600;color:var(--accent);font-family:var(--mono);font-size:.85rem;text-decoration:none;">
                 {{ loc.prateleira_pallet|default:"—" }}
               </a>
+            </td>
+            <td class="mono-cell">
+              {% if loc.corredor %}
+                <a href="{% url 'dempam:corredor_detail' setor.pk loc.corredor %}" style="color:var(--ink-3);text-decoration:none;border-bottom:1px dashed var(--border-strong);" title="Ver corredor {{ loc.corredor }}">{{ loc.corredor }}</a>
+                / {{ loc.estante }} / {{ loc.prateleira }}
+              {% else %}—{% endif %}
             </td>
             <td>
               {% with t=loc.tipo_localizacao %}
@@ -176,14 +302,25 @@
                 {% endif %}
               {% endwith %}
             </td>
+            <td>
+              <div class="row-actions">
+                <a href="{% url 'dempam:locate_edit' loc.pk %}" class="icon-btn" title="Editar">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </a>
+              </div>
+            </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="3">
+            <td colspan="5">
               <div class="table-empty">
                 <span class="table-empty-icon">📦</span>
-                <div class="table-empty-title">Nenhuma localização cadastrada</div>
-                <div>Clique em "Adicionar Localização" para começar.</div>
+                <div class="table-empty-title">
+                  {% if query or tipo_f or corredor_f %}Nenhum resultado para esse filtro{% else %}Nenhuma localização cadastrada{% endif %}
+                </div>
+                <div>
+                  {% if query or tipo_f or corredor_f %}Tente ajustar a busca ou o filtro.{% else %}Clique em "Adicionar Localização" para começar.{% endif %}
+                </div>
               </div>
             </td>
           </tr>
@@ -194,4 +331,10 @@
   </div>
 
 </div>
+
+<script>
+  function toggleBlock(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+</script>
 {% endblock %}
