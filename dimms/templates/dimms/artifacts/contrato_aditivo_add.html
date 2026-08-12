@@ -1,0 +1,480 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Novo Aditivo{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px; --r-md:16px; --r-lg:20px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .pg{font-family:var(--font);background:var(--bg);padding:28px 24px 60px;color:var(--ink);}
+  .pg-wrap{max-width:900px;margin:0 auto;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:18px;font-weight:500;flex-wrap:wrap;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .pg-header{margin-bottom:22px;}
+  .pg-title{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;}
+  .pg-sub{margin-top:4px;font-size:.87rem;color:var(--ink-3);}
+  .pg-sub .mono{font-family:var(--mono);color:var(--blue);font-weight:700;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px;}
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .card-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex-shrink:0;background:var(--blue-soft);}
+  .card-title{font-size:.9rem;font-weight:700;color:var(--ink);}
+  .card-sub{font-size:.78rem;color:var(--ink-3);margin-left:auto;}
+  .card-body{padding:20px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid .span-2{grid-column:1/-1;}
+  @media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .label-opt{text-transform:none;letter-spacing:0;opacity:.7;font-weight:500;}
+  .form-control{
+    height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 12px;font-family:var(--font);font-size:.86rem;color:var(--ink);
+    background:var(--surface);outline:none;width:100%;
+  }
+  textarea.form-control{height:auto;padding:10px 12px;resize:vertical;min-height:70px;}
+  .form-control:focus{border-color:var(--accent);}
+
+  /* Tabela de itens já existentes */
+  .itens-search-wrap{position:relative;padding:14px 16px;border-bottom:1px solid var(--border);}
+  .itens-search-wrap .search-icon-abs{position:absolute;left:29px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;}
+  .itens-search-wrap input{padding-left:38px;}
+  .itens-search-empty{padding:24px;text-align:center;font-size:.83rem;color:var(--ink-3);}
+
+  .exist-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .exist-table th{text-align:left;padding:9px 12px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);background:var(--surface-2);border-bottom:2px solid var(--border);white-space:nowrap;}
+  .exist-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .exist-table tbody tr:last-child td{border-bottom:none;}
+  .exist-table tbody tr:hover td{background:var(--blue-soft);}
+  .exist-qty-input{width:110px;height:34px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 10px;font-family:var(--mono);font-size:.85rem;outline:none;}
+  .exist-qty-input:focus{border-color:var(--accent);}
+
+  /* Busca de E-Fisco (item novo) */
+  .search-wrap{position:relative;}
+  .search-input-row{display:flex;gap:10px;align-items:center;}
+  .search-field{
+    flex:1;height:44px;border:2px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 14px 0 42px;font-family:var(--font);font-size:.92rem;color:var(--ink);
+    background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .search-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--surface);}
+  .search-icon-abs{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;}
+  .dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);
+    border:1px solid var(--border-strong);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(15,23,42,.14);
+    z-index:200;max-height:300px;overflow-y:auto;display:none;
+  }
+  .dropdown.open{display:block;}
+  .dropdown-item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+  .dropdown-item:last-child{border-bottom:none;}
+  .dropdown-item:hover,.dropdown-item.focused{background:var(--blue-soft);}
+  .di-code{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--blue);white-space:nowrap;flex-shrink:0;background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:6px;padding:2px 8px;}
+  .di-desc{font-size:.84rem;color:var(--ink-2);line-height:1.4;}
+  .di-medida{font-size:.74rem;color:var(--ink-3);margin-top:2px;}
+  .dropdown-empty{padding:16px 14px;text-align:center;font-size:.85rem;color:var(--ink-3);}
+
+  /* Lista de itens novos pendentes */
+  .pending-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:14px;}
+  .pending-table th{text-align:left;padding:9px 12px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);background:var(--surface-2);border-bottom:2px solid var(--border);}
+  .pending-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .qty-inline{width:100px;height:34px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 10px;font-family:var(--mono);font-size:.85rem;outline:none;}
+  .btn-danger-sm{background:var(--red-soft);border:1px solid var(--red-mid);color:var(--red);border-radius:8px;width:28px;height:28px;display:grid;place-items:center;cursor:pointer;}
+  .btn-danger-sm:hover{background:var(--red-mid);}
+  .pending-empty{padding:16px;text-align:center;color:var(--ink-3);font-size:.82rem;}
+
+  .form-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  .empty-state{padding:32px 20px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:1.8rem;margin-bottom:8px;opacity:.4;}
+
+  @media(max-width:600px){
+    .pg{padding:18px 14px 60px;}
+    .card-body{padding:14px;}
+    .exist-table, .pending-table{display:block;overflow-x:auto;}
+  }
+</style>
+
+<div class="pg">
+  <div class="pg-wrap">
+
+    <nav class="breadcrumb">
+      <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+      <span>›</span>
+      <a href="{% url 'dimms:contrato_detail' contrato.pk %}?tab=aditivo">Contrato {{ contrato.contrato }}</a>
+      <span>›</span>
+      Novo Aditivo
+    </nav>
+
+    <div class="pg-header">
+      <div class="pg-title">➕ Novo Aditivo de Contrato</div>
+      <div class="pg-sub">Contrato <span class="mono">{{ contrato.contrato }}</span>{% if contrato.supplier_contract %} — {{ contrato.supplier_contract }}{% endif %}</div>
+    </div>
+
+    <form method="post" id="formAditivo" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Dados do aditivo -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon">📎</div>
+          <div class="card-title">Dados do Aditivo</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">N° Empenho <span class="label-opt">(opcional)</span></label>
+              <input type="text" name="numero_empenho" class="form-control" placeholder="N° do empenho…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Documento <span class="label-opt">(opcional)</span></label>
+              <input type="file" name="documento" class="form-control" style="padding:7px 12px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Itens já existentes — acrescentar quantidade -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon">📦</div>
+          <div class="card-title">Itens já no contrato — acrescentar quantidade</div>
+          <div class="card-sub">preencha só os itens que vão receber acréscimo</div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          {% if saldos %}
+            <div class="itens-search-wrap">
+              <svg class="search-icon-abs" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="existSearch" class="form-control" placeholder="Buscar por E-Fisco ou nome do item…" autocomplete="off">
+            </div>
+            <table class="exist-table">
+              <thead>
+                <tr>
+                  <th>E-Fisco</th>
+                  <th>Descrição</th>
+                  <th>Qtd. Atual</th>
+                  <th>Saldo Disponível</th>
+                  <th>Preço Unitário</th>
+                  <th>Qtd. a Acrescer</th>
+                </tr>
+              </thead>
+              <tbody id="existTbody">
+                {% for saldo in saldos %}
+                  <tr data-search="{{ saldo.efisco.efisco|lower }} {{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco|lower }}">
+                    <td><span class="mono" style="color:var(--blue);font-weight:700;">{{ saldo.efisco.efisco }}</span></td>
+                    <td>{{ saldo.descricao_manual|default:saldo.efisco.descricao_efisco }}</td>
+                    <td class="mono">{{ saldo.quantidade_contrato }}</td>
+                    <td class="mono">{{ saldo.saldo_disponivel|default:0 }}</td>
+                    <td>
+                      {% if saldo.preco_unitario %}
+                        <span class="mono">R$ {{ saldo.preco_unitario|floatformat:2 }}</span>
+                      {% else %}
+                        <input type="number" name="preco_saldo_{{ saldo.pk }}" class="exist-qty-input preco-req" data-for="qtd_saldo_{{ saldo.pk }}" min="0.01" step="0.0001" placeholder="R$ obrigatório">
+                      {% endif %}
+                    </td>
+                    <td>
+                      <input type="number" name="qtd_saldo_{{ saldo.pk }}" class="exist-qty-input" min="0" step="0.01" placeholder="0">
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div id="existSearchEmpty" class="itens-search-empty" style="display:none;">Nenhum item encontrado para essa busca.</div>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">📦</div>
+              Este contrato ainda não tem itens no saldo ativo.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Adicionar item novo -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">Adicionar item novo ao contrato</div>
+        </div>
+        <div class="card-body">
+          <div class="search-wrap" id="searchWrap">
+            <svg class="search-icon-abs" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <div class="search-input-row">
+              <input type="text" id="efiscoSearch" class="search-field" placeholder="Buscar E-Fisco por código ou descrição…" autocomplete="off">
+            </div>
+            <div class="dropdown" id="dropdown"></div>
+          </div>
+
+          <div id="pendingEmpty" class="pending-empty">Nenhum item novo adicionado ainda.</div>
+          <table class="pending-table" id="pendingTable" style="display:none;">
+            <thead>
+              <tr>
+                <th>E-Fisco</th>
+                <th>Descrição</th>
+                <th style="width:100px;">Quantidade</th>
+                <th style="width:120px;">Preço Unitário</th>
+                <th style="width:110px;">Total</th>
+                <th style="width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="pendingBody"></tbody>
+          </table>
+          <input type="hidden" name="novos_count" id="novosCount" value="0">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:16px 20px;">
+          <span class="form-label" style="text-transform:none;letter-spacing:0;">Valor total do aditivo</span>
+          <span class="mono" id="valorTotalAditivo" style="font-size:1.15rem;font-weight:800;color:var(--green);">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <a href="{% url 'dimms:contrato_detail' contrato.pk %}?tab=aditivo" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Criar Aditivo
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+const SEARCH_URL  = "{% url 'dimms:efisco_search' %}";
+const searchInput = document.getElementById('efiscoSearch');
+const dropdown    = document.getElementById('dropdown');
+const searchWrap  = document.getElementById('searchWrap');
+const pendingEmpty = document.getElementById('pendingEmpty');
+const pendingTable = document.getElementById('pendingTable');
+const pendingBody  = document.getElementById('pendingBody');
+const novosCount   = document.getElementById('novosCount');
+
+let debounceTimer = null;
+let focusedIndex = -1;
+let lastResults = [];
+let rowIndex = 0;
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function closeDropdown() {
+  dropdown.classList.remove('open');
+  dropdown.innerHTML = '';
+  focusedIndex = -1;
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  focusedIndex = -1;
+  const q = searchInput.value.trim();
+  if (q.length < 2) { closeDropdown(); return; }
+  debounceTimer = setTimeout(() => fetchEfiscos(q), 280);
+});
+
+async function fetchEfiscos(q) {
+  try {
+    const resp = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`);
+    lastResults = await resp.json();
+    renderDropdown(lastResults, q);
+  } catch {
+    dropdown.innerHTML = '<div class="dropdown-empty">Erro ao buscar. Tente novamente.</div>';
+    dropdown.classList.add('open');
+  }
+}
+
+function renderDropdown(items, q) {
+  if (!items.length) {
+    dropdown.innerHTML = '<div class="dropdown-empty">Nenhum E-Fisco encontrado para "<strong>' + escHtml(q) + '</strong>"</div>';
+    dropdown.classList.add('open');
+    return;
+  }
+  dropdown.innerHTML = items.map((item, i) => `
+    <div class="dropdown-item" data-idx="${i}" onmousedown="selectItem(${i})">
+      <span class="di-code">${escHtml(item.efisco)}</span>
+      <div>
+        <div class="di-desc">${escHtml(item.descricao_efisco)}</div>
+        <div class="di-medida">${escHtml(item.medida)}</div>
+      </div>
+    </div>
+  `).join('');
+  dropdown.classList.add('open');
+}
+
+function selectItem(idx) {
+  const item = lastResults[idx];
+  if (!item) return;
+  addRow(item);
+  searchInput.value = '';
+  closeDropdown();
+  lastResults = [];
+}
+
+searchInput.addEventListener('keydown', e => {
+  const items = dropdown.querySelectorAll('.dropdown-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
+    highlightItem(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusedIndex = Math.max(focusedIndex - 1, 0);
+    highlightItem(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (focusedIndex >= 0 && lastResults[focusedIndex]) selectItem(focusedIndex);
+    else if (lastResults.length === 1) selectItem(0);
+  } else if (e.key === 'Escape') {
+    closeDropdown();
+  }
+});
+
+function highlightItem(items) {
+  items.forEach((el, i) => el.classList.toggle('focused', i === focusedIndex));
+  if (items[focusedIndex]) items[focusedIndex].scrollIntoView({ block: 'nearest' });
+}
+
+document.addEventListener('click', e => {
+  if (!searchWrap.contains(e.target)) closeDropdown();
+});
+
+function addRow(item) {
+  const idx = rowIndex++;
+  pendingEmpty.style.display = 'none';
+  pendingTable.style.display = 'table';
+
+  const tr = document.createElement('tr');
+  tr.id = `prow_${idx}`;
+  tr.innerHTML = `
+    <td>
+      <span class="mono" style="color:var(--blue);font-weight:700;">${escHtml(item.efisco)}</span>
+      <input type="hidden" name="novo_${idx}_efisco_id" value="${item.id}">
+    </td>
+    <td style="max-width:220px;"><span style="font-size:.82rem;color:var(--ink-2);">${escHtml(item.descricao_efisco)}</span></td>
+    <td><input type="number" name="novo_${idx}_qtd" class="qty-inline novo-qtd" min="0.01" step="0.01" placeholder="Qtd." required></td>
+    <td><input type="number" name="novo_${idx}_preco" class="qty-inline novo-preco" min="0.01" step="0.0001" placeholder="R$" required></td>
+    <td><span class="mono novo-total" id="total_${idx}">R$ 0,00</span></td>
+    <td>
+      <button type="button" class="btn-danger-sm" onclick="removeRow(${idx})" title="Remover">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </td>
+  `;
+  pendingBody.appendChild(tr);
+
+  const qtyInput = tr.querySelector('.novo-qtd');
+  const precoInput = tr.querySelector('.novo-preco');
+  const totalEl = tr.querySelector('.novo-total');
+  function recalcRow() {
+    const qtd = parseFloat(qtyInput.value.replace(',', '.')) || 0;
+    const preco = parseFloat(precoInput.value.replace(',', '.')) || 0;
+    totalEl.textContent = 'R$ ' + (qtd * preco).toFixed(2).replace('.', ',');
+    recalcTotalGeral();
+  }
+  qtyInput.addEventListener('input', recalcRow);
+  precoInput.addEventListener('input', recalcRow);
+
+  updateCount();
+  qtyInput.focus();
+}
+
+function removeRow(idx) {
+  const row = document.getElementById(`prow_${idx}`);
+  if (row) row.remove();
+  updateCount();
+  recalcTotalGeral();
+}
+
+function updateCount() {
+  const rows = pendingBody.querySelectorAll('tr');
+  novosCount.value = rowIndex;
+  if (rows.length === 0) {
+    pendingEmpty.style.display = '';
+    pendingTable.style.display = 'none';
+  }
+}
+
+/* ── Total geral do aditivo (itens existentes + itens novos) ── */
+const valorTotalEl = document.getElementById('valorTotalAditivo');
+
+function recalcTotalGeral() {
+  let total = 0;
+
+  document.querySelectorAll('.exist-table tbody tr').forEach(row => {
+    const qtyInput = row.querySelector('input[name^="qtd_saldo_"]');
+    if (!qtyInput) return;
+    const qtd = parseFloat(qtyInput.value.replace(',', '.')) || 0;
+    if (!qtd) return;
+
+    const precoCell = row.children[4];
+    const precoInput = precoCell.querySelector('input');
+    let preco = 0;
+    if (precoInput) {
+      preco = parseFloat(precoInput.value.replace(',', '.')) || 0;
+    } else {
+      const texto = precoCell.textContent.replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
+      preco = parseFloat(texto) || 0;
+    }
+    total += qtd * preco;
+  });
+
+  pendingBody.querySelectorAll('tr').forEach(row => {
+    const qtd = parseFloat((row.querySelector('.novo-qtd')?.value || '0').replace(',', '.')) || 0;
+    const preco = parseFloat((row.querySelector('.novo-preco')?.value || '0').replace(',', '.')) || 0;
+    total += qtd * preco;
+  });
+
+  valorTotalEl.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+
+document.querySelectorAll('.exist-table tbody tr input').forEach(input => {
+  input.addEventListener('input', recalcTotalGeral);
+});
+
+/* ── Busca nos itens já existentes do contrato ── */
+const existSearch = document.getElementById('existSearch');
+const existTbody = document.getElementById('existTbody');
+const existSearchEmpty = document.getElementById('existSearchEmpty');
+
+if (existSearch) {
+  existSearch.addEventListener('input', () => {
+    const q = existSearch.value.trim().toLowerCase();
+    const rows = existTbody.querySelectorAll('tr');
+    let visiveis = 0;
+    rows.forEach(tr => {
+      const match = !q || tr.dataset.search.includes(q);
+      tr.style.display = match ? '' : 'none';
+      if (match) visiveis++;
+    });
+    existSearchEmpty.style.display = (rows.length > 0 && visiveis === 0) ? 'block' : 'none';
+  });
+}
+</script>
+{% endblock %}

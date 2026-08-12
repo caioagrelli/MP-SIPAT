@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum, F
 from django.db.models.deletion import ProtectedError
 from django.contrib import messages
 
@@ -170,10 +170,11 @@ def recalcular_consumo_view(request):
 # Página para visualizar bens de consumo
 @login_required
 def bensconsumo(request):
-    itens = BensConsumo.objects.all().order_by('efisco')
+    itens = BensConsumo.objects.all().order_by('efisco').prefetch_related('bem_estoque')
 
     busca = request.GET.get('q', '').strip()
     grupo = request.GET.get('grupo', '').strip()
+    preco = request.GET.get('preco', '').strip()
 
     if busca:
         itens = itens.filter(
@@ -184,13 +185,41 @@ def bensconsumo(request):
     if grupo:
         itens = itens.filter(grupo_consumo=grupo)
 
+    if preco == 'com':
+        itens = itens.filter(preco_medio__isnull=False)
+    elif preco == 'sem':
+        itens = itens.filter(preco_medio__isnull=True)
+
     grupos = BensConsumo._meta.get_field('grupo_consumo').choices
+
+    total_geral = BensConsumo.objects.count()
+    total_sem_preco = BensConsumo.objects.filter(preco_medio__isnull=True).count()
+    total_grupos = (
+        BensConsumo.objects
+        .exclude(grupo_consumo__isnull=True)
+        .exclude(grupo_consumo='')
+        .values('grupo_consumo')
+        .distinct()
+        .count()
+    )
+    valor_total_estoque = (
+        Estoque.objects
+        .filter(item_shock__preco_medio__isnull=False)
+        .aggregate(total=Sum(F('amount_shock') * F('item_shock__preco_medio')))
+        ['total'] or 0
+    )
 
     context = {
         'itens': itens,
         'busca': busca,
         'grupo_selecionado': grupo,
+        'preco_selecionado': preco,
         'grupos': grupos,
+        'total_geral': total_geral,
+        'total_com_preco': total_geral - total_sem_preco,
+        'total_sem_preco': total_sem_preco,
+        'total_grupos': total_grupos,
+        'valor_total_estoque': valor_total_estoque,
     }
 
     return render(request, 'dimms/stock/bensconsumo.html', context)

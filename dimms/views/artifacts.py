@@ -1,5 +1,8 @@
 # Importações do Django     - D(Artocarpus heterophyllus)o
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -10,7 +13,10 @@ from django.http import JsonResponse
 # Importações do Projeto
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
-from ..models import Artifacts, Proposal, ItensArtifacts, ItensProposal, Supplier, Contrato, SaldoAtivo, BensConsumo
+from ..models import (
+    Artifacts, Proposal, ItensArtifacts, ItensProposal, Supplier, Contrato, SaldoAtivo, BensConsumo,
+    AditivoContrato, ItemAditivoContrato,
+)
 from ..forms import (
     ItensArtifactsForm, ArtifactDocumentsForm, ArtifactsCreateForm,
     ProposalForm, ItensProposalForm, ContratoForm, SaldoAtivoItemForm, SupplierForm,
@@ -425,26 +431,9 @@ def contrato_detail(request, pk):
         contrato=contrato
     ).select_related('usuario').order_by('-data_hora')
 
-    form_saldo = SaldoAtivoItemForm()
     form_contrato = ContratoForm(instance=contrato)
 
     active_tab = request.GET.get('tab', 'info')
-
-    if request.method == 'POST' and 'add_saldo' in request.POST:
-        if contrato.status == StatusContrato.cancelado:
-            messages.error(request, 'Contrato cancelado — não é possível adicionar itens.')
-            return redirect(f"{request.path}?tab=saldo")
-        form_saldo = SaldoAtivoItemForm(request.POST)
-        if form_saldo.is_valid():
-            saldo = form_saldo.save(commit=False)
-            saldo.contrato_saldo = contrato
-            try:
-                saldo.full_clean()
-                saldo.save()
-                messages.success(request, 'Item adicionado ao saldo ativo.')
-            except Exception as e:
-                messages.error(request, str(e))
-        return redirect(f"{request.path}?tab=saldo")
 
     if request.method == 'POST' and 'delete_saldo' in request.POST:
         saldo_id = request.POST.get('saldo_id')
@@ -491,14 +480,198 @@ def contrato_detail(request, pk):
     if from_proposal_pk:
         from_proposal = Proposal.objects.filter(pk=from_proposal_pk).first()
 
+    aditivos = (
+        AditivoContrato.objects
+        .filter(contrato=contrato)
+        .select_related('criado_por')
+        .prefetch_related('itens')
+    )
+
     return render(request, 'dimms/artifacts/contrato_detail.html', {
         'contrato': contrato,
         'saldos': saldos,
         'solicitacoes': solicitacoes,
-        'form': form_saldo,
+        'aditivos': aditivos,
         'form_contrato': form_contrato,
         'from_proposal': from_proposal,
         'active_tab': active_tab,
+    })
+
+
+# Tela dedicada para adicionar um item ao saldo ativo de um contrato
+@login_required
+def contrato_saldo_add(request, pk):
+    contrato = get_object_or_404(Contrato, pk=pk)
+
+    if contrato.status == StatusContrato.cancelado:
+        messages.error(request, 'Contrato cancelado — não é possível adicionar itens.')
+        return redirect(f"{reverse('dimms:contrato_detail', args=[contrato.pk])}?tab=saldo")
+
+    if request.method == 'POST':
+        form = SaldoAtivoItemForm(request.POST)
+        if form.is_valid():
+            saldo = form.save(commit=False)
+            saldo.contrato_saldo = contrato
+            try:
+                saldo.full_clean()
+                saldo.save()
+                messages.success(request, f'Item {saldo.efisco.efisco} adicionado ao saldo ativo.')
+                return redirect(f"{reverse('dimms:contrato_detail', args=[contrato.pk])}?tab=saldo")
+            except Exception as e:
+                messages.error(request, str(e))
+    else:
+        form = SaldoAtivoItemForm()
+
+    return render(request, 'dimms/artifacts/contrato_saldo_add.html', {
+        'contrato': contrato,
+        'form': form,
+    })
+
+
+# Tela dedicada pra criar um aditivo de contrato — acrescenta quantidade em itens já
+# existentes no saldo ativo e/ou adiciona itens novos (por E-Fisco) ao contrato
+@login_required
+def contrato_aditivo_create(request, pk):
+    contrato = get_object_or_404(Contrato, pk=pk)
+
+    if contrato.status == StatusContrato.cancelado:
+        messages.error(request, 'Contrato cancelado — não é possível criar aditivo.')
+        return redirect(f"{reverse('dimms:contrato_detail', args=[contrato.pk])}?tab=aditivo")
+
+    saldos = (
+        SaldoAtivo.objects
+        .filter(contrato_saldo=contrato)
+        .select_related('efisco')
+        .order_by('efisco__efisco')
+    )
+
+    if request.method == 'POST':
+        numero_empenho = request.POST.get('numero_empenho', '').strip()
+        documento = request.FILES.get('documento')
+
+        erros = []
+
+        # itens já existentes no contrato — acréscimo de quantidade. Se o item já tem preço
+        # cadastrado no saldo, usa ele; se não tem, exige que o preço seja informado agora.
+        itens_existentes = []
+        for saldo in saldos:
+            raw_qtd = request.POST.get(f'qtd_saldo_{saldo.pk}', '').strip().replace(',', '.')
+            if not raw_qtd:
+                continue
+            try:
+                qtd = Decimal(raw_qtd)
+            except InvalidOperation:
+                erros.append(f'Quantidade inválida para "{saldo.efisco.efisco}".')
+                continue
+            if qtd <= 0:
+                continue
+
+            if saldo.preco_unitario:
+                preco = saldo.preco_unitario
+            else:
+                raw_preco = request.POST.get(f'preco_saldo_{saldo.pk}', '').strip().replace(',', '.')
+                if not raw_preco:
+                    erros.append(f'Informe o preço unitário de "{saldo.efisco.efisco}" pra acrescer a quantidade.')
+                    continue
+                try:
+                    preco = Decimal(raw_preco)
+                except InvalidOperation:
+                    erros.append(f'Preço unitário inválido para "{saldo.efisco.efisco}".')
+                    continue
+                if preco <= 0:
+                    erros.append(f'Preço unitário de "{saldo.efisco.efisco}" precisa ser maior que zero.')
+                    continue
+
+            itens_existentes.append((saldo, qtd, preco))
+
+        # itens novos, adicionados via busca de E-Fisco — preço sempre obrigatório
+        itens_novos = []
+        novos_count = int(request.POST.get('novos_count', 0) or 0)
+        for i in range(novos_count):
+            efisco_id = request.POST.get(f'novo_{i}_efisco_id', '').strip()
+            qtd_raw = request.POST.get(f'novo_{i}_qtd', '').strip().replace(',', '.')
+            preco_raw = request.POST.get(f'novo_{i}_preco', '').strip().replace(',', '.')
+            if not efisco_id or not qtd_raw:
+                continue
+            try:
+                qtd = Decimal(qtd_raw)
+            except InvalidOperation:
+                erros.append('Quantidade inválida em um dos itens novos.')
+                continue
+            if qtd <= 0:
+                continue
+            if not preco_raw:
+                erros.append('Informe o preço unitário de todos os itens novos.')
+                continue
+            try:
+                preco = Decimal(preco_raw)
+            except InvalidOperation:
+                erros.append('Preço unitário inválido em um dos itens novos.')
+                continue
+            if preco <= 0:
+                erros.append('Preço unitário dos itens novos precisa ser maior que zero.')
+                continue
+            itens_novos.append((efisco_id, qtd, preco))
+
+        if erros:
+            for erro in erros:
+                messages.error(request, erro)
+            return redirect('dimms:contrato_aditivo_add', pk=contrato.pk)
+
+        if not itens_existentes and not itens_novos:
+            messages.error(request, 'Informe pelo menos um item (existente ou novo) com quantidade a acrescer.')
+            return redirect('dimms:contrato_aditivo_add', pk=contrato.pk)
+
+        with transaction.atomic():
+            aditivo = AditivoContrato.objects.create(
+                contrato=contrato,
+                numero_empenho=numero_empenho,
+                documento=documento,
+                criado_por=request.user,
+            )
+
+            for saldo, qtd, preco in itens_existentes:
+                saldo_locked = SaldoAtivo.objects.select_for_update().get(pk=saldo.pk)
+                ItemAditivoContrato.objects.create(
+                    aditivo=aditivo, efisco=saldo_locked.efisco, quantidade_acrescida=qtd,
+                    preco_unitario=preco, item_novo=False,
+                )
+                saldo_locked.quantidade_contrato = (saldo_locked.quantidade_contrato or 0) + qtd
+                saldo_locked.saldo_disponivel = (saldo_locked.saldo_disponivel or 0) + qtd
+                update_fields = ['quantidade_contrato', 'saldo_disponivel']
+                if not saldo_locked.preco_unitario:
+                    saldo_locked.preco_unitario = preco
+                    update_fields.append('preco_unitario')
+                saldo_locked.save(update_fields=update_fields)
+
+            for efisco_id, qtd, preco in itens_novos:
+                efisco = get_object_or_404(BensConsumo, pk=efisco_id)
+                ItemAditivoContrato.objects.create(
+                    aditivo=aditivo, efisco=efisco, quantidade_acrescida=qtd,
+                    preco_unitario=preco, item_novo=True,
+                )
+                saldo_existente = SaldoAtivo.objects.select_for_update().filter(
+                    contrato_saldo=contrato, efisco=efisco,
+                ).first()
+                if saldo_existente:
+                    saldo_existente.quantidade_contrato = (saldo_existente.quantidade_contrato or 0) + qtd
+                    saldo_existente.saldo_disponivel = (saldo_existente.saldo_disponivel or 0) + qtd
+                    update_fields = ['quantidade_contrato', 'saldo_disponivel']
+                    if not saldo_existente.preco_unitario:
+                        saldo_existente.preco_unitario = preco
+                        update_fields.append('preco_unitario')
+                    saldo_existente.save(update_fields=update_fields)
+                else:
+                    SaldoAtivo.objects.create(
+                        contrato_saldo=contrato, efisco=efisco, quantidade_contrato=qtd, preco_unitario=preco,
+                    )
+
+        messages.success(request, f'Aditivo {aditivo.numero} criado com sucesso — valor total acrescido: R$ {aditivo.valor_total:.2f}')
+        return redirect(f"{reverse('dimms:contrato_detail', args=[contrato.pk])}?tab=aditivo")
+
+    return render(request, 'dimms/artifacts/contrato_aditivo_add.html', {
+        'contrato': contrato,
+        'saldos': saldos,
     })
 
 

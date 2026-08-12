@@ -1,0 +1,337 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Adicionar Item ao Saldo{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#fff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --accent:#2563eb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08);
+    --r-sm:10px; --r-md:16px; --r-lg:20px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .pg{font-family:var(--font);background:var(--bg);padding:28px 24px 60px;color:var(--ink);}
+  .pg-wrap{max-width:760px;margin:0 auto;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:18px;font-weight:500;flex-wrap:wrap;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  .pg-header{margin-bottom:22px;}
+  .pg-title{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;}
+  .pg-sub{margin-top:4px;font-size:.87rem;color:var(--ink-3);}
+  .pg-sub .mono{font-family:var(--mono);color:var(--blue);font-weight:700;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px;}
+  .card-head{padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#1e2d42 0%,#243451 100%);color:#fff;display:flex;align-items:center;gap:12px;}
+  .sch-icon{width:34px;height:34px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:9px;display:grid;place-items:center;font-size:16px;flex-shrink:0;}
+  .sch-title{font-size:1rem;font-weight:800;}
+  .sch-sub{font-size:.8rem;color:rgba(200,220,255,.75);margin-top:3px;}
+  .card-body{padding:20px;}
+
+  /* Busca de E-Fisco */
+  .search-wrap{position:relative;}
+  .search-input-row{display:flex;gap:10px;align-items:center;}
+  .search-field{
+    flex:1;height:46px;border:2px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 14px 0 42px;font-family:var(--font);font-size:.95rem;color:var(--ink);
+    background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .search-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--surface);}
+  .search-icon-abs{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;}
+  .dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);
+    border:1px solid var(--border-strong);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(15,23,42,.14);
+    z-index:200;max-height:320px;overflow-y:auto;display:none;
+  }
+  .dropdown.open{display:block;}
+  .dropdown-item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+  .dropdown-item:last-child{border-bottom:none;}
+  .dropdown-item:hover,.dropdown-item.focused{background:var(--blue-soft);}
+  .di-code{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--blue);white-space:nowrap;flex-shrink:0;background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:6px;padding:2px 8px;}
+  .di-desc{font-size:.84rem;color:var(--ink-2);line-height:1.4;}
+  .di-medida{font-size:.74rem;color:var(--ink-3);margin-top:2px;}
+  .dropdown-empty{padding:16px 14px;text-align:center;font-size:.85rem;color:var(--ink-3);}
+  .dropdown-loading{padding:14px;text-align:center;font-size:.82rem;color:var(--ink-3);display:flex;align-items:center;justify-content:center;gap:8px;}
+  .spinner{width:14px;height:14px;border:2px solid var(--border-strong);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Item selecionado */
+  .selected-box{
+    display:none;align-items:center;gap:14px;background:var(--blue-soft);border:1.5px solid var(--blue-mid);
+    border-radius:var(--r-sm);padding:14px 16px;
+  }
+  .selected-box.show{display:flex;}
+  .selected-info{flex:1;min-width:0;}
+  .selected-desc{font-weight:700;color:var(--ink);font-size:.92rem;}
+  .selected-medida{font-size:.78rem;color:var(--ink-3);margin-top:2px;}
+  .btn-trocar{
+    font-family:var(--font);font-size:.78rem;font-weight:700;color:var(--accent);background:none;
+    border:1.5px solid var(--blue-mid);border-radius:var(--r-sm);padding:6px 12px;cursor:pointer;white-space:nowrap;
+  }
+  .btn-trocar:hover{background:var(--surface);}
+
+  /* Grid do form */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  .form-grid .span-2{grid-column:1/-1;}
+  @media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);}
+  .label-opt{text-transform:none;letter-spacing:0;opacity:.7;font-weight:500;}
+  .form-select,.form-control{
+    height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    padding:0 12px;font-family:var(--font);font-size:.86rem;color:var(--ink);
+    background:var(--surface);outline:none;width:100%;
+  }
+  .form-select:focus,.form-control:focus{border-color:var(--accent);}
+  .field-error{color:#b91c1c;font-size:.75rem;margin-top:2px;}
+
+  .form-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+
+  .tip-box{display:flex;gap:8px;align-items:flex-start;background:var(--amber-soft);border:1px solid var(--amber-mid);color:var(--amber);border-radius:var(--r-sm);padding:11px 14px;font-size:.82rem;margin-bottom:18px;}
+</style>
+
+<div class="pg">
+  <div class="pg-wrap">
+
+    <nav class="breadcrumb">
+      <a href="{% url 'dimms:saldo_ativo_homepage' %}">Saldo Ativo</a>
+      <span>›</span>
+      <a href="{% url 'dimms:contrato_detail' contrato.pk %}?tab=saldo">Contrato {{ contrato.contrato }}</a>
+      <span>›</span>
+      Adicionar Item
+    </nav>
+
+    <div class="pg-header">
+      <div class="pg-title">➕ Adicionar Item ao Saldo Ativo</div>
+      <div class="pg-sub">Contrato <span class="mono">{{ contrato.contrato }}</span>{% if contrato.supplier_contract %} — {{ contrato.supplier_contract }}{% endif %}</div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="tip-box">⚠️ {{ form.non_field_errors|join:", " }}</div>
+    {% endif %}
+
+    <form method="post" id="formSaldoAdd" novalidate>
+      {% csrf_token %}
+
+      <div class="card">
+        <div class="card-head">
+          <div class="sch-icon">🔍</div>
+          <div>
+            <div class="sch-title">Buscar E-Fisco</div>
+            <div class="sch-sub">Digite o código ou parte da descrição para localizar o bem</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div class="search-wrap" id="searchWrap">
+            <svg class="search-icon-abs" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <div class="search-input-row">
+              <input type="text" id="efiscoSearch" class="search-field" placeholder="Ex: 03.17.001 ou papel toalha..." autocomplete="off">
+            </div>
+            <div class="dropdown" id="dropdown"></div>
+          </div>
+
+          <div class="selected-box" id="selectedBox" style="margin-top:14px;">
+            <span class="di-code" id="selectedCode"></span>
+            <div class="selected-info">
+              <div class="selected-desc" id="selectedDesc"></div>
+              <div class="selected-medida" id="selectedMedida"></div>
+            </div>
+            <button type="button" class="btn-trocar" id="btnTrocar">Trocar</button>
+          </div>
+
+          {% if form.efisco.errors %}<div class="field-error">{{ form.efisco.errors|join:", " }}</div>{% endif %}
+          <div style="display:none;">{{ form.efisco }}</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">{{ form.quantidade_contrato.label }}</label>
+              {{ form.quantidade_contrato }}
+              {% if form.quantidade_contrato.errors %}<div class="field-error">{{ form.quantidade_contrato.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.preco_unitario.label }} <span class="label-opt">(opcional)</span></label>
+              {{ form.preco_unitario }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.marca.label }} <span class="label-opt">(opcional)</span></label>
+              {{ form.marca }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.cota.label }} <span class="label-opt">(opcional)</span></label>
+              {{ form.cota }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.numero_item.label }} <span class="label-opt">(opcional)</span></label>
+              {{ form.numero_item }}
+            </div>
+            <div class="form-group span-2">
+              <label class="form-label">{{ form.descricao_manual.label }} <span class="label-opt">(opcional)</span></label>
+              {{ form.descricao_manual }}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <a href="{% url 'dimms:contrato_detail' contrato.pk %}?tab=saldo" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Adicionar ao Saldo
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+const SEARCH_URL   = "{% url 'dimms:efisco_search' %}";
+const searchInput  = document.getElementById('efiscoSearch');
+const dropdown     = document.getElementById('dropdown');
+const efiscoSelect = document.getElementById('id_efisco');
+const selectedBox  = document.getElementById('selectedBox');
+const selectedCode = document.getElementById('selectedCode');
+const selectedDesc = document.getElementById('selectedDesc');
+const selectedMedida = document.getElementById('selectedMedida');
+const btnTrocar    = document.getElementById('btnTrocar');
+const submitBtn    = document.getElementById('submitBtn');
+const searchWrap   = document.getElementById('searchWrap');
+
+let debounceTimer = null;
+let focusedIndex = -1;
+let lastResults = [];
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function closeDropdown() {
+  dropdown.classList.remove('open');
+  dropdown.innerHTML = '';
+  focusedIndex = -1;
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  focusedIndex = -1;
+  const q = searchInput.value.trim();
+  if (q.length < 2) { closeDropdown(); return; }
+  dropdown.innerHTML = '<div class="dropdown-loading"><div class="spinner"></div> Buscando...</div>';
+  dropdown.classList.add('open');
+  debounceTimer = setTimeout(() => fetchEfiscos(q), 280);
+});
+
+async function fetchEfiscos(q) {
+  try {
+    const resp = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`);
+    lastResults = await resp.json();
+    renderDropdown(lastResults, q);
+  } catch {
+    dropdown.innerHTML = '<div class="dropdown-empty">Erro ao buscar. Tente novamente.</div>';
+  }
+}
+
+function renderDropdown(items, q) {
+  if (!items.length) {
+    dropdown.innerHTML = '<div class="dropdown-empty">Nenhum E-Fisco encontrado para "<strong>' + escHtml(q) + '</strong>"</div>';
+    return;
+  }
+  dropdown.innerHTML = items.map((item, i) => `
+    <div class="dropdown-item" data-idx="${i}" onmousedown="selectItem(${i})">
+      <span class="di-code">${escHtml(item.efisco)}</span>
+      <div>
+        <div class="di-desc">${escHtml(item.descricao_efisco)}</div>
+        <div class="di-medida">${escHtml(item.medida)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectItem(idx) {
+  const item = lastResults[idx];
+  if (!item) return;
+  efiscoSelect.value = item.id;
+  selectedCode.textContent = item.efisco;
+  selectedDesc.textContent = item.descricao_efisco;
+  selectedMedida.textContent = item.medida;
+  selectedBox.classList.add('show');
+  searchWrap.style.display = 'none';
+  searchInput.value = '';
+  closeDropdown();
+  lastResults = [];
+  submitBtn.disabled = false;
+}
+
+btnTrocar.addEventListener('click', () => {
+  efiscoSelect.value = '';
+  selectedBox.classList.remove('show');
+  searchWrap.style.display = '';
+  submitBtn.disabled = true;
+  searchInput.focus();
+});
+
+searchInput.addEventListener('keydown', e => {
+  const items = dropdown.querySelectorAll('.dropdown-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
+    highlightItem(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusedIndex = Math.max(focusedIndex - 1, 0);
+    highlightItem(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (focusedIndex >= 0 && lastResults[focusedIndex]) selectItem(focusedIndex);
+    else if (lastResults.length === 1) selectItem(0);
+  } else if (e.key === 'Escape') {
+    closeDropdown();
+  }
+});
+
+function highlightItem(items) {
+  items.forEach((el, i) => el.classList.toggle('focused', i === focusedIndex));
+  if (items[focusedIndex]) items[focusedIndex].scrollIntoView({ block: 'nearest' });
+}
+
+document.addEventListener('click', e => {
+  if (!searchWrap.contains(e.target)) closeDropdown();
+});
+
+// se o form voltou com erro e o efisco já estava selecionado, restaura a caixa "selecionado"
+if (efiscoSelect.value) {
+  const opt = efiscoSelect.options[efiscoSelect.selectedIndex];
+  if (opt && opt.value) {
+    selectedCode.textContent = opt.text;
+    selectedDesc.textContent = 'Item selecionado — use "Trocar" para buscar outro.';
+    selectedMedida.textContent = '';
+    selectedBox.classList.add('show');
+    searchWrap.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

@@ -278,6 +278,7 @@
         <button type="submit" class="btn-login">Entrar</button>
       </form>
 
+      {% if oidc_enabled %}
       <div class="login-divider">
         <span>ou</span>
       </div>
@@ -285,6 +286,7 @@
       <a href="{% url 'oidc_authentication_init' %}" class="btn-oidc">
         Entrar com conta institucional
       </a>
+      {% endif %}
 
       <div class="login-note">Acesso restrito · Uso institucional</div>
 

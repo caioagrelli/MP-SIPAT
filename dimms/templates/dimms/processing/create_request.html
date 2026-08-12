@@ -454,6 +454,11 @@
               </div>
 
               <div class="form-group">
+                <label class="form-label">N° PE Integrado <span class="label-opt">(opcional)</span></label>
+                {{ form.numero_pe_integrado }}
+              </div>
+
+              <div class="form-group">
                 <label class="form-label">Tipo de Abertura</label>
                 {{ form.situation }}
                 <div class="form-hint">
@@ -754,6 +759,33 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ── Autocomplete de E-Fisco ── */
   let debounceTimer = null;
 
+  // Reposiciona um dropdown de autocomplete pra cima ou pra baixo do campo, conforme o
+  // espaço disponível na tela — evita que ele abra pra baixo e saia da área visível.
+  function positionDropdownEl(inputEl, dropdownEl) {
+    const rect       = inputEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const maxH       = Math.min(240, Math.max(spaceBelow, spaceAbove) - 8);
+
+    dropdownEl.style.maxHeight = maxH + 'px';
+
+    if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
+      // Abre para baixo
+      dropdownEl.style.top    = '100%';
+      dropdownEl.style.bottom = 'auto';
+      dropdownEl.style.borderTop    = 'none';
+      dropdownEl.style.borderBottom = '';
+      dropdownEl.style.borderRadius = '0 0 var(--r-sm) var(--r-sm)';
+    } else {
+      // Abre para cima
+      dropdownEl.style.top    = 'auto';
+      dropdownEl.style.bottom = '100%';
+      dropdownEl.style.borderTop    = '';
+      dropdownEl.style.borderBottom = 'none';
+      dropdownEl.style.borderRadius = 'var(--r-sm) var(--r-sm) 0 0';
+    }
+  }
+
   function bindAutocomplete(row) {
     const textInput   = row.querySelector('.efisco-text');
     const hiddenInput = row.querySelector('.efisco-hidden');
@@ -770,28 +802,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function positionDropdown() {
-      const rect      = textInput.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      const maxH       = Math.min(240, Math.max(spaceBelow, spaceAbove) - 8);
-
-      dropdown.style.maxHeight = maxH + 'px';
-
-      if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
-        // Abre para baixo
-        dropdown.style.top    = '100%';
-        dropdown.style.bottom = 'auto';
-        dropdown.style.borderTop    = 'none';
-        dropdown.style.borderBottom = '';
-        dropdown.style.borderRadius = '0 0 var(--r-sm) var(--r-sm)';
-      } else {
-        // Abre para cima
-        dropdown.style.top    = 'auto';
-        dropdown.style.bottom = '100%';
-        dropdown.style.borderTop    = '';
-        dropdown.style.borderBottom = 'none';
-        dropdown.style.borderRadius = 'var(--r-sm) var(--r-sm) 0 0';
-      }
+      positionDropdownEl(textInput, dropdown);
     }
 
     function selectItem(item) {
@@ -994,6 +1005,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (!data.length) {
             uaDrop.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhuma UA encontrada</div>';
             uaDrop.style.display = 'block';
+            positionDropdownEl(uaText, uaDrop);
             return;
           }
           data.forEach(ua => {
@@ -1007,6 +1019,7 @@ document.addEventListener('DOMContentLoaded', function () {
             uaDrop.appendChild(opt);
           });
           uaDrop.style.display = 'block';
+          positionDropdownEl(uaText, uaDrop);
         });
     }, 250);
   });

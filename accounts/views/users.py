@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from accounts.views import management_required
 from accounts.models import Profile
+from accounts.utils import generate_temp_password, send_password_reset_email
 from dempam.models import InfoUA
 
 
@@ -169,3 +170,37 @@ def user_create(request):
         'all_groups': all_groups,
         'form_data': {},
     })
+
+
+@management_required
+def user_reset_password(request, pk):
+    if request.method != 'POST':
+        return redirect('accounts:user_edit', pk=pk)
+
+    edited_user = get_object_or_404(User, pk=pk)
+    profile, _ = Profile.objects.get_or_create(user=edited_user)
+
+    temp_password = generate_temp_password()
+    edited_user.set_password(temp_password)
+    edited_user.save(update_fields=['password'])
+
+    profile.must_change_password = True
+    profile.save(update_fields=['must_change_password'])
+
+    send_password_reset_email(edited_user, temp_password)
+
+    if edited_user.email:
+        messages.success(
+            request,
+            f'Senha de "{edited_user.username}" redefinida com sucesso. '
+            f'Um e-mail com a nova senha foi enviado para {edited_user.email}. '
+            f'Senha temporária: {temp_password}'
+        )
+    else:
+        messages.success(
+            request,
+            f'Senha de "{edited_user.username}" redefinida com sucesso. '
+            f'Como o usuário não tem e-mail cadastrado, informe a senha temporária manualmente: {temp_password}'
+        )
+
+    return redirect('accounts:user_edit', pk=pk)

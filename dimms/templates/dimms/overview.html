@@ -594,6 +594,22 @@
     color: var(--ink);
   }
 
+  /* ─── LOCALIZAÇÕES (exibição) ─── */
+  .extra-loc-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px;
+    border-radius: 999px; background: var(--blue-soft); border: 1px solid var(--blue-mid);
+    color: var(--blue); font-family: var(--mono); font-size: .8rem; font-weight: 700;
+  }
+  .extra-loc-chip a.loc-link { color: var(--blue); text-decoration: none; }
+  .extra-loc-chip a.loc-link:hover { text-decoration: underline; }
+  .extra-loc-chip.principal { background: var(--green-soft); border-color: var(--green-mid); color: var(--green); }
+  .extra-loc-chip.principal a.loc-link { color: var(--green); }
+  .extra-loc-tag {
+    font-family: var(--font); font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    background: rgba(255,255,255,.6); border-radius: 999px; padding: 2px 8px;
+  }
+  .extra-loc-empty { color: var(--ink-3); font-size: .84rem; }
+
   /* ─── ANIMATION ─── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
@@ -788,22 +804,6 @@
               <td>Marca</td>
               <td>{{ item.mark|default:"—" }}</td>
             </tr>
-            <tr>
-              <td>Localização</td>
-              <td>{{ item.locate.setor_sala|default:"—" }}</td>
-            </tr>
-            <tr>
-              <td>Prateleira / Pallet</td>
-              <td>
-                {% if item.locate %}
-                  <a href="{% url 'dempam:locate_detail' item.locate.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">{{ item.locate }}</a>
-                {% else %}—{% endif %}
-              </td>
-            </tr>
-            <tr>
-              <td>Tipo de Armazenamento</td>
-              <td>{{ item.locate.tipo_localizacao|default:"—" }}</td>
-            </tr>
           </table>
         </div>
 
@@ -824,6 +824,40 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
             Gerar Etiqueta
           </a>
+        </div>
+      </div>
+
+      <!-- LOCALIZAÇÕES (somente leitura — gerenciar em Editar) -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="card-icon ci-blue">📍</div>
+            <div class="card-title">Localizações</div>
+          </div>
+          <a href="{% url 'dimms:overview_edit' item.pk %}" style="font-size:.76rem;color:var(--accent);text-decoration:none;font-weight:600;">Gerenciar em Editar →</a>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            {% if item.locate %}
+              <span class="extra-loc-chip principal">
+                <a href="{% url 'dempam:locate_detail' item.locate.pk %}" class="loc-link">
+                  🗄️ {{ item.locate }}{% if item.locate.setor_sala %} · {{ item.locate.setor_sala }}{% endif %} · {{ item.locate.get_tipo_localizacao_display|default:"—" }}
+                </a>
+                <span class="extra-loc-tag">Principal</span>
+              </span>
+            {% endif %}
+            {% for loc in item.outras_localizacoes.all %}
+              <span class="extra-loc-chip">
+                <a href="{% url 'dempam:locate_detail' loc.pk %}" class="loc-link">
+                  🗄️ {{ loc }}{% if loc.setor_sala %} · {{ loc.setor_sala }}{% endif %} · {{ loc.get_tipo_localizacao_display|default:"—" }}
+                </a>
+              </span>
+            {% empty %}
+              {% if not item.locate %}
+                <span class="extra-loc-empty">Este item ainda não está associado a nenhuma localização.</span>
+              {% endif %}
+            {% endfor %}
+          </div>
         </div>
       </div>
 

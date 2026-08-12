@@ -1,0 +1,204 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Divergências do Inventário{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f7f8fa; --surface:#ffffff;
+    --border:#e8eaef; --border-strong:#d7dbe3;
+    --ink:#1c1f26; --ink-2:#565d6b; --ink-3:#969dab;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-soft:#eef1fc;
+    --amber:#b7791f; --amber-soft:#fdf3e2; --amber-mid:#f3d79a;
+    --green:#1a7f5a; --green-soft:#e8f7f1; --green-mid:#bbf7d0;
+    --red:#b91c1c; --red-soft:#fef2f2; --red-mid:#fecaca;
+    --shadow:0 1px 2px rgba(20,24,34,.04), 0 8px 24px rgba(20,24,34,.05);
+    --r-sm:12px; --r-md:16px; --r-lg:20px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  .ipage{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--ink);}
+  .iwrap{max-width:880px;margin:0 auto;padding:36px 24px 64px;}
+
+  .aback{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--ink-3);text-decoration:none;margin-bottom:18px;font-weight:500;}
+  .aback:hover{color:var(--ink-2);}
+  .atitle{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;}
+  .asub{margin-top:6px;font-size:.92rem;color:var(--ink-3);}
+
+  .ihead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .iperiodo-select{
+    height:42px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);
+    font-family:var(--font);font-size:.85rem;font-weight:600;color:var(--ink-2);background:var(--surface);
+    box-shadow:var(--shadow);cursor:pointer;
+  }
+
+  .iseg{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px;margin:22px 0 20px;box-shadow:var(--shadow);}
+  .iseg a{flex:1;text-align:center;padding:14px 12px;border-radius:999px;text-decoration:none;font-size:.9rem;font-weight:600;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:8px;}
+  .iseg a .n{font-family:var(--mono);font-size:.82rem;opacity:.75;}
+  .iseg a.active{background:var(--ink);color:#fff;}
+
+  .dcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:14px;}
+  .dcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .dcard-desc{font-size:1rem;font-weight:700;color:var(--ink);}
+  .dcard-efisco{font-family:var(--mono);font-size:.76rem;color:var(--ink-3);margin-top:2px;}
+  .dcard-meta{font-size:.76rem;color:var(--ink-3);text-align:right;white-space:nowrap;}
+
+  .ddiff-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  @media(max-width:560px){.ddiff-grid{grid-template-columns:1fr;}}
+  .ddiff-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;}
+  .ddiff-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px;}
+  .ddiff-row{display:flex;align-items:center;gap:10px;font-size:.9rem;}
+  .ddiff-old{color:var(--ink-3);text-decoration:line-through;font-family:var(--mono);}
+  .ddiff-arrow{color:var(--ink-3);}
+  .ddiff-new{color:var(--ink);font-weight:800;font-family:var(--mono);}
+  .ddiff-new.warn{color:var(--amber);}
+
+  .dobs{background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--r-sm);padding:10px 14px;font-size:.85rem;color:#8a5a10;margin-bottom:14px;}
+
+  .dactions{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-approve{background:var(--green);color:#fff;border-color:#0f5c2b;}
+  .btn-approve:hover{background:#0f5c2b;}
+  .btn-reject{background:var(--surface);color:var(--red);border-color:var(--red-mid);}
+  .btn-reject:hover{background:var(--red-soft);}
+
+  .ddecidido-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:700;border:1px solid;}
+  .p-aprovado{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .p-rejeitado{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+  .ddecidido-info{font-size:.76rem;color:var(--ink-3);margin-top:6px;}
+
+  .iempty{padding:56px 24px;text-align:center;color:var(--ink-3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+  .iempty-icon{font-size:2rem;display:block;margin-bottom:12px;opacity:.5;}
+  .iempty-title{font-weight:600;color:var(--ink-2);font-size:.95rem;}
+
+  @media(max-width:600px){
+    .iwrap{padding:24px 16px 48px;}
+    .dcard{padding:16px;}
+  }
+</style>
+
+<div class="ipage">
+  <div class="iwrap">
+
+    <a href="{% url 'dimms:inventario_homepage' %}?periodo={{ periodo.pk }}" class="aback">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Inventário
+    </a>
+
+    <div class="ihead-row">
+      <div>
+        <div class="atitle">⚠️ Divergências — {{ periodo.mes|stringformat:"02d" }}/{{ periodo.ano }}</div>
+        <div class="asub">Itens conferidos com quantidade ou localização diferente do estoque atual. A conferência não altera o estoque sozinha — cada divergência precisa ser investigada e aprovada (ou rejeitada) aqui.</div>
+      </div>
+      {% if periodos|length > 1 %}
+        <form method="get" class="iperiodo-form">
+          <input type="hidden" name="aba" value="{{ aba }}">
+          <select name="periodo" onchange="this.form.submit()" class="iperiodo-select">
+            {% for p in periodos %}
+              <option value="{{ p.pk }}" {% if p.pk == periodo.pk %}selected{% endif %}>{{ p.mes|stringformat:"02d" }}/{{ p.ano }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      {% endif %}
+    </div>
+
+    <div class="iseg">
+      <a href="?aba=pendentes&periodo={{ periodo.pk }}" class="{% if aba == 'pendentes' %}active{% endif %}">
+        Pendentes <span class="n">{{ total_pendentes }}</span>
+      </a>
+      <a href="?aba=decididas&periodo={{ periodo.pk }}" class="{% if aba == 'decididas' %}active{% endif %}">
+        Decididas <span class="n">{{ total_decididas }}</span>
+      </a>
+    </div>
+
+    {% for c in lista %}
+      <div class="dcard">
+        <div class="dcard-top">
+          <div>
+            <div class="dcard-desc">{{ c.item.description_manual|default:c.item.item_shock.descricao_efisco }}</div>
+            <div class="dcard-efisco">{{ c.item.item_shock.efisco }}</div>
+          </div>
+          <div class="dcard-meta">
+            Conferido por {{ c.conferido_por.get_full_name|default:c.conferido_por.username|default:"—" }}<br>
+            {{ c.conferido_em|date:"d/m/Y H:i" }}
+          </div>
+        </div>
+
+        <div class="ddiff-grid">
+          <div class="ddiff-box">
+            <div class="ddiff-label">Quantidade</div>
+            {% if c.houve_ajuste_quantidade %}
+              <div class="ddiff-row">
+                <span class="ddiff-old">{{ c.quantidade_anterior }}</span>
+                <span class="ddiff-arrow">→</span>
+                <span class="ddiff-new warn">{{ c.quantidade_conferida }}</span>
+              </div>
+            {% else %}
+              <div class="ddiff-row"><span class="ddiff-new">{{ c.quantidade_conferida }}</span> <span style="color:var(--ink-3);font-weight:500;">(sem alteração)</span></div>
+            {% endif %}
+          </div>
+          <div class="ddiff-box">
+            <div class="ddiff-label">Localização</div>
+            {% if c.houve_ajuste_localizacao %}
+              <div class="ddiff-row">
+                <span class="ddiff-old">{{ c.localizacao_anterior|default:"Sem local" }}</span>
+                <span class="ddiff-arrow">→</span>
+                <span class="ddiff-new warn">{{ c.localizacao_conferida|default:"Sem local" }}</span>
+              </div>
+            {% else %}
+              <div class="ddiff-row"><span class="ddiff-new">{{ c.localizacao_conferida|default:"Sem local" }}</span> <span style="color:var(--ink-3);font-weight:500;">(sem alteração)</span></div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if c.observacao %}
+          <div class="dobs">📝 {{ c.observacao }}</div>
+        {% endif %}
+
+        {% if aba == 'pendentes' %}
+          <div class="dactions">
+            <form method="post" action="{% url 'dimms:inventario_divergencia_decidir' c.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="decisao" value="APROVADO">
+              <input type="hidden" name="aba" value="{{ aba }}">
+              <input type="hidden" name="periodo_id" value="{{ periodo.pk }}">
+              <button type="submit" class="btn btn-approve" onclick="return confirm('Aprovar este ajuste? O estoque será atualizado para {{ c.quantidade_conferida }}.')">
+                ✅ Aprovar e atualizar estoque
+              </button>
+            </form>
+            <form method="post" action="{% url 'dimms:inventario_divergencia_decidir' c.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="decisao" value="REJEITADO">
+              <input type="hidden" name="aba" value="{{ aba }}">
+              <input type="hidden" name="periodo_id" value="{{ periodo.pk }}">
+              <button type="submit" class="btn btn-reject" onclick="return confirm('Rejeitar esta divergência? O estoque atual será mantido como está.')">
+                ✕ Rejeitar (manter estoque)
+              </button>
+            </form>
+          </div>
+        {% else %}
+          {% if c.decisao_ajuste == 'APROVADO' %}
+            <span class="ddecidido-pill p-aprovado">✅ Aprovado — estoque atualizado</span>
+          {% else %}
+            <span class="ddecidido-pill p-rejeitado">✕ Rejeitado — estoque mantido</span>
+          {% endif %}
+          <div class="ddecidido-info">
+            por {{ c.decidido_por.get_full_name|default:c.decidido_por.username|default:"—" }} em {{ c.decidido_em|date:"d/m/Y H:i" }}
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="iempty">
+        <span class="iempty-icon">{% if aba == 'pendentes' %}🎉{% else %}📭{% endif %}</span>
+        <div class="iempty-title">
+          {% if aba == 'pendentes' %}Nenhuma divergência pendente neste período.
+          {% else %}Nenhuma divergência decidida ainda.{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+
+  </div>
+</div>
+{% endblock %}

@@ -109,6 +109,24 @@
   /* Divisor de seção de senha */
   .password-section { display: flex; flex-direction: column; gap: 16px; }
 
+  /* Checklist de requisitos da senha */
+  .pwd-requirements { display: flex; flex-direction: column; gap: 6px; }
+  .pwd-req {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .78rem; font-weight: 600; color: var(--ink-3);
+    transition: color .15s;
+  }
+  .pwd-req-icon {
+    width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; font-size: .6rem; font-weight: 800;
+    border: 1.5px solid var(--border-strong); background: var(--surface-2);
+    color: transparent; transition: all .15s;
+  }
+  .pwd-req.valid { color: var(--green); }
+  .pwd-req.valid .pwd-req-icon { background: var(--green); border-color: var(--green); color: #fff; }
+  .pwd-req.invalid { color: var(--red); }
+  .pwd-req.invalid .pwd-req-icon { background: var(--red-soft); border-color: var(--red-mid); color: var(--red); }
+
   /* Botões */
   .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
   .btn {
@@ -238,20 +256,60 @@
     </div>
   </form>
 
-  <!-- Redefinir senha por e-mail -->
+  <!-- Alterar senha -->
   <div class="form-card" style="margin-top:20px;">
-    <div class="form-card-head">🔑 Senha</div>
-    <div class="form-card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:.88rem;font-weight:600;color:var(--ink);">Redefinir senha por e-mail</div>
-        <div style="font-size:.8rem;color:var(--ink-3);margin-top:3px;">
-          Enviaremos um link para <strong>{{ user.email|default:"o seu e-mail cadastrado" }}</strong>.
+    <div class="form-card-head">🔑 Alterar Senha</div>
+    <div class="form-card-body">
+      <form method="post" id="changePasswordForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="password-section">
+          <div class="field-group">
+            <label class="field-label" for="id_current_password">Senha atual</label>
+            <input class="field-input" type="password" id="id_current_password"
+              name="current_password" autocomplete="current-password" placeholder="Digite sua senha atual" required>
+          </div>
+
+          <div class="fields-row">
+            <div class="field-group">
+              <label class="field-label" for="id_new_password1">Nova senha</label>
+              <input class="field-input" type="password" id="id_new_password1"
+                name="new_password1" autocomplete="new-password" placeholder="Nova senha" minlength="8" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="id_new_password2">Confirmar nova senha</label>
+              <input class="field-input" type="password" id="id_new_password2"
+                name="new_password2" autocomplete="new-password" placeholder="Repita a nova senha" minlength="8" required>
+            </div>
+          </div>
+          <div class="pwd-requirements" id="pwdRequirements">
+            <div class="pwd-req" data-check="length">
+              <span class="pwd-req-icon">•</span> Mínimo de 8 caracteres
+            </div>
+            <div class="pwd-req" data-check="notnumeric">
+              <span class="pwd-req-icon">•</span> Não pode ser só números
+            </div>
+            <div class="pwd-req" data-check="match">
+              <span class="pwd-req-icon">•</span> As senhas coincidem
+            </div>
+          </div>
         </div>
+
+        <div class="form-actions" style="margin-top:20px;">
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Alterar senha
+          </button>
+        </div>
+      </form>
+
+      <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;font-size:.8rem;color:var(--ink-3);">
+        Esqueceu sua senha atual?
+        <a href="{% url 'password_reset' %}" style="color:var(--accent);font-weight:600;text-decoration:none;">
+          Recuperar senha
+        </a>
       </div>
-      <a href="{% url 'password_reset' %}" class="btn btn-danger" style="white-space:nowrap;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Redefinir senha
-      </a>
     </div>
   </div>
 
@@ -281,6 +339,54 @@
     };
     reader.readAsDataURL(input.files[0]);
   }
+
+  // Checklist ao vivo dos requisitos da senha (verde = ok, vermelho = falta)
+  function wirePasswordRequirements(pass1Id, pass2Id, containerId) {
+    const pass1 = document.getElementById(pass1Id);
+    const pass2 = pass2Id ? document.getElementById(pass2Id) : null;
+    const container = document.getElementById(containerId);
+    if (!pass1 || !container) return;
+
+    function setState(el, valid) {
+      if (!el) return;
+      el.classList.toggle('valid', valid);
+      el.classList.toggle('invalid', !valid);
+      el.querySelector('.pwd-req-icon').textContent = valid ? '✓' : '✕';
+    }
+
+    function evaluate() {
+      const v1 = pass1.value;
+      const v2 = pass2 ? pass2.value : '';
+
+      setState(container.querySelector('[data-check="length"]'), v1.length >= 8);
+      setState(container.querySelector('[data-check="notnumeric"]'), v1.length > 0 && !/^\d+$/.test(v1));
+
+      const matchEl = container.querySelector('[data-check="match"]');
+      if (matchEl) setState(matchEl, v1.length > 0 && v1 === v2);
+
+      pass1.setCustomValidity(v1.length > 0 && v1.length < 8 ? 'A senha precisa ter pelo menos 8 caracteres.' : '');
+      if (pass2) {
+        const mismatch = v1 && v2 && v1 !== v2;
+        pass2.setCustomValidity(mismatch ? 'As senhas não coincidem.' : '');
+      }
+    }
+
+    pass1.addEventListener('input', evaluate);
+    if (pass2) pass2.addEventListener('input', evaluate);
+  }
+
+  wirePasswordRequirements('id_new_password1', 'id_new_password2', 'pwdRequirements');
+
+  (function () {
+    const form = document.getElementById('changePasswordForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      if (!form.checkValidity()) {
+        e.preventDefault();
+        form.reportValidity();
+      }
+    });
+  })();
 </script>
 
 {% endblock %}

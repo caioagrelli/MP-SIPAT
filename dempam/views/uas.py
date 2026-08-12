@@ -2,7 +2,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 # importações do código
 from ..forms import InfoUAForm
@@ -58,6 +63,66 @@ def ua_homepage(request):
         "total_predios": total_predios,
     }
     return render(request, "dempam/uas/ua_homepage.html", context)
+
+
+# Planilha (.xlsx) com todas as UAs cadastradas, pra preencher/conferir informações
+@login_required
+def ua_export_xlsx(request):
+    uas = (
+        InfoUA.objects
+        .select_related("circunscricao_predio", "gestor")
+        .order_by("ua")
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "UAs"
+
+    colunas = [
+        ("Código", 14),
+        ("UA", 46),
+        ("Sigla", 14),
+        ("Circunscrição/Prédio", 32),
+        ("Nível", 8),
+        ("Sede", 8),
+        ("Responsável da UA", 30),
+        ("Matrícula do Responsável", 20),
+        ("Contato da UA", 16),
+        ("Email da UA", 32),
+        ("Gestor (usuário)", 22),
+    ]
+
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="1E2D42", end_color="1E2D42", fill_type="solid")
+
+    for col_idx, (titulo, largura) in enumerate(colunas, start=1):
+        cel = ws.cell(row=1, column=col_idx, value=titulo)
+        cel.font = header_font
+        cel.fill = header_fill
+        ws.column_dimensions[get_column_letter(col_idx)].width = largura
+
+    ws.freeze_panes = "A2"
+
+    for row_idx, ua in enumerate(uas, start=2):
+        ws.cell(row=row_idx, column=1, value=ua.codigo or "")
+        ws.cell(row=row_idx, column=2, value=ua.ua)
+        ws.cell(row=row_idx, column=3, value=ua.sigla or "")
+        ws.cell(row=row_idx, column=4, value=ua.circunscricao_predio.local if ua.circunscricao_predio else "")
+        ws.cell(row=row_idx, column=5, value=ua.nivel)
+        ws.cell(row=row_idx, column=6, value="Sim" if ua.sede else "Não")
+        ws.cell(row=row_idx, column=7, value=ua.responsavel_ua or "")
+        ws.cell(row=row_idx, column=8, value=ua.mat_resp_ua)
+        ws.cell(row=row_idx, column=9, value=ua.contato_ua or "")
+        ws.cell(row=row_idx, column=10, value=ua.email_ua or "")
+        ws.cell(row=row_idx, column=11, value=ua.gestor.get_full_name() or ua.gestor.username if ua.gestor else "")
+
+    resp = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    resp["Content-Disposition"] = 'attachment; filename="uas_sipat.xlsx"'
+    wb.save(resp)
+    return resp
+
 
 @login_required
 def ua_detail(request, pk):

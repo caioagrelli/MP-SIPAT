@@ -1,0 +1,259 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Receber em Lote{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  .rpage{font-family:var(--font);background:var(--bg);padding:28px 24px 100px;color:var(--ink);}
+  .rwrap{max-width:720px;margin:0 auto;}
+
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3);margin-bottom:18px;font-weight:500;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .breadcrumb span{opacity:.45;}
+
+  .rtitle{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;}
+  .rsub{font-size:.9rem;color:var(--ink-3);margin-bottom:24px;}
+
+  .rsection-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin:26px 0 12px;display:flex;align-items:center;justify-content:space-between;}
+  .rsection-label span.count{font-family:var(--mono);color:var(--accent);}
+
+  /* ── Lista de seleção ── */
+  .rselect-all{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:10px;cursor:pointer;
+    font-size:.85rem;font-weight:600;color:var(--ink-2);
+  }
+
+  .rlist{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+  .rrow{
+    display:flex;align-items:center;gap:16px;padding:16px 18px;border-bottom:1px solid var(--border);
+    cursor:pointer;transition:background .12s;
+  }
+  .rrow:last-child{border-bottom:none;}
+  .rrow:hover{background:var(--surface-2);}
+  .rrow.checked{background:var(--green-soft);}
+
+  .rcheck{
+    width:24px;height:24px;border-radius:7px;border:2px solid var(--border-strong);flex-shrink:0;
+    display:grid;place-items:center;background:#fff;transition:all .12s;
+  }
+  .rrow.checked .rcheck{background:var(--green);border-color:var(--green);}
+  .rcheck svg{opacity:0;transition:opacity .12s;color:#fff;}
+  .rrow.checked .rcheck svg{opacity:1;}
+  .rrow input[type="checkbox"]{display:none;}
+
+  .rrow-main{flex:1;min-width:0;}
+  .rrow-code{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);font-weight:600;}
+  .rrow-ua{font-size:.92rem;font-weight:600;color:var(--ink);margin-top:2px;}
+  .rrow-date{font-family:var(--mono);font-size:.75rem;color:var(--ink-3);flex-shrink:0;}
+
+  .rempty{padding:44px 22px;text-align:center;color:var(--ink-3);font-size:.9rem;}
+
+  /* ── Campos ── */
+  .rfield{margin-bottom:20px;}
+  .rfield-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:10px;}
+  .rname-input{
+    width:100%;height:56px;padding:0 18px;border:1.5px solid var(--border-strong);border-radius:var(--r-lg);
+    font-family:var(--font);font-size:1rem;color:var(--ink);background:var(--surface);outline:none;
+  }
+  .rname-input:focus{border-color:var(--accent);}
+
+  .rfoto-input{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px dashed var(--border-strong);
+    border-radius:var(--r-lg);cursor:pointer;background:var(--surface);
+  }
+  .rfoto-input input{display:none;}
+  .rfoto-icon{font-size:1.3rem;}
+  .rfoto-label{font-size:.88rem;font-weight:600;color:var(--ink-2);}
+  .rfoto-preview{margin-top:10px;max-width:160px;border-radius:var(--r-md);border:1px solid var(--border);display:none;}
+
+  /* ── Barra de ações ── */
+  .rbar{
+    position:sticky;bottom:16px;display:flex;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow-md);margin-top:24px;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:14px 18px;border-radius:var(--r-sm);
+    font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:none;
+    border:1px solid transparent;transition:all .15s ease;white-space:nowrap;
+  }
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);flex:0 0 auto;}
+  .btn-ghost:hover{background:var(--bg);}
+  .btn-green{background:var(--green);border-color:#0f5c2b;color:#fff;flex:1;}
+  .btn-green:hover{background:#0f5c2b;}
+  .btn-green:disabled{opacity:.5;cursor:not-allowed;}
+
+  .rerror{background:var(--amber-soft);color:var(--amber);border:1px solid #f3d79a;border-radius:var(--r-md);padding:12px 16px;font-size:.85rem;font-weight:600;margin-bottom:16px;display:none;}
+
+  @media(max-width:600px){
+    .rpage{padding:20px 14px 100px;}
+    .rrow{padding:14px;}
+    .rbar .btn-ghost{flex:1 1 100%;}
+    .rbar .btn-green{flex:1 1 100%;}
+  }
+</style>
+
+<div class="rpage">
+  <div class="rwrap">
+
+    <div class="breadcrumb">
+      <a href="{% url 'dimms:almoxarifado_acesso_rapido' %}">Almoxarifado</a>
+      <span>/</span>
+      Receber em Lote
+    </div>
+
+    <div class="rtitle">📥 Receber em Lote</div>
+    <div class="rsub">Selecione as solicitações separadas que estão sendo entregues agora e informe quem recebeu.</div>
+
+    <div class="rerror" id="rerror"></div>
+
+    <form method="post" enctype="multipart/form-data" id="form-receber-lote">
+      {% csrf_token %}
+
+      <div class="rsection-label">
+        Solicitações separadas <span class="count">{{ fila|length }}</span>
+      </div>
+
+      {% if fila %}
+        <label class="rselect-all">
+          <input type="checkbox" id="selectAll">
+          Selecionar todas
+        </label>
+
+        <div class="rlist">
+          {% for s in fila %}
+            <label class="rrow" data-row>
+              <input type="checkbox" name="solicitacoes" value="{{ s.pk }}" class="row-check">
+              <span class="rcheck">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <div class="rrow-main">
+                <div class="rrow-code">{{ s.request_code }}</div>
+                <div class="rrow-ua">{{ s.ua_order|default:"UA não informada" }}</div>
+              </div>
+              <div class="rrow-date">{{ s.data_order|date:"d/m H:i" }}</div>
+            </label>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="rlist">
+          <div class="rempty">Nenhuma solicitação separada no momento.</div>
+        </div>
+      {% endif %}
+
+      <div class="rfield" style="margin-top:26px;">
+        <div class="rfield-label">Nome de quem vai receber</div>
+        <input type="text" name="nome_recebedor" id="nomeRecebedor" class="rname-input" placeholder="Nome completo…" autocomplete="off">
+      </div>
+
+      <div class="rfield">
+        <div class="rfield-label">Matrícula (opcional)</div>
+        <input type="text" name="matricula_recebedor" class="rname-input" placeholder="Matrícula…" autocomplete="off">
+      </div>
+
+      <div class="rfield">
+        <div class="rfield-label">CPF (opcional)</div>
+        <input type="text" name="cpf_recebedor" class="rname-input" placeholder="000.000.000-00" autocomplete="off">
+      </div>
+
+      <div class="rfield">
+        <div class="rfield-label">Empresa/Órgão (opcional)</div>
+        <input type="text" name="empresa_orgao_recebedor" class="rname-input" placeholder="Empresa/Órgão…" autocomplete="off">
+      </div>
+
+      <div class="rfield">
+        <div class="rfield-label">Foto (opcional)</div>
+        <label class="rfoto-input" id="fotoLabel">
+          <span class="rfoto-icon">📷</span>
+          <span class="rfoto-label" id="fotoLabelText">Tirar ou escolher uma foto</span>
+          <input type="file" name="foto_recebedor" accept="image/*" capture="environment" id="fotoInput">
+        </label>
+        <img id="fotoPreview" class="rfoto-preview" alt="Prévia da foto">
+      </div>
+
+      <div class="rbar">
+        <a href="{% url 'dimms:almoxarifado_acesso_rapido' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-green" id="btnConfirmar">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmar Recebimento
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    // ── checkboxes ──
+    document.querySelectorAll('[data-row] .row-check').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        cb.closest('[data-row]').classList.toggle('checked', cb.checked);
+      });
+    });
+
+    var selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+      selectAll.addEventListener('change', function () {
+        document.querySelectorAll('.row-check').forEach(function (cb) {
+          cb.checked = selectAll.checked;
+          cb.closest('[data-row]').classList.toggle('checked', selectAll.checked);
+        });
+      });
+    }
+
+    // ── foto preview ──
+    var fotoInput = document.getElementById('fotoInput');
+    var fotoPreview = document.getElementById('fotoPreview');
+    var fotoLabelText = document.getElementById('fotoLabelText');
+    fotoInput.addEventListener('change', function () {
+      var file = fotoInput.files[0];
+      if (!file) return;
+      fotoLabelText.textContent = file.name;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        fotoPreview.src = e.target.result;
+        fotoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ── validação + submit ──
+    var form = document.getElementById('form-receber-lote');
+    var errorBox = document.getElementById('rerror');
+
+    form.addEventListener('submit', function (e) {
+      var erros = [];
+      var selecionados = document.querySelectorAll('.row-check:checked').length;
+      var nome = document.getElementById('nomeRecebedor').value.trim();
+
+      if (selecionados === 0) erros.push('Selecione ao menos uma solicitação.');
+      if (!nome) erros.push('Informe o nome de quem vai receber.');
+
+      if (erros.length) {
+        e.preventDefault();
+        errorBox.innerHTML = erros.join('<br>');
+        errorBox.style.display = 'block';
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  })();
+</script>
+{% endblock %}

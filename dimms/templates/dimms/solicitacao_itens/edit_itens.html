@@ -147,6 +147,7 @@
 
   .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
   .form-label { font-size: .75rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .03em; }
+  .field-error { font-size: .76rem; color: var(--red); font-weight: 600; }
 
   input[type="text"], input[type="number"], select, textarea {
     font-family: var(--font); font-size: .85rem; padding: 9px 12px;
@@ -155,6 +156,10 @@
     transition: border-color .15s;
   }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+  .qty-stock { font-size: .74rem; color: var(--ink-3); font-weight: 600; }
+  .qty-warning { font-size: .76rem; color: var(--red); font-weight: 700; }
+  .item-row.row-invalid input[type="number"] { border-color: var(--red); background: var(--red-soft); }
 
   .btn-remove {
     display: inline-flex; align-items: center; gap: 5px;
@@ -255,7 +260,7 @@
     </div>
   </div>
 
-  <form method="POST">
+  <form method="POST" id="formEditItens">
     {% csrf_token %}
 
     <div class="layout">
@@ -264,6 +269,10 @@
         <div class="info-box">
           <strong>⚠</strong> Apenas itens podem ser alterados.
           Solicitação em <strong>{{ solicitacao.get_situation_display }}</strong>.
+        </div>
+
+        <div class="error-box" id="qty-block-banner" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#b91c1c;font-weight:600;">
+          ⚠ Corrija as quantidades destacadas em vermelho antes de salvar.
         </div>
 
         {% if formset.non_form_errors %}
@@ -288,7 +297,7 @@
             {{ formset.management_form }}
             <div id="formset-container">
               {% for form in formset %}
-              {% if form.instance.pk %}
+              {% if form.instance.pk or formset.is_bound %}
               <div class="item-row" data-form-idx="{{ forloop.counter0 }}">
                 <div class="form-group" style="position:relative;">
                   <label class="form-label">Item do Estoque</label>
@@ -297,13 +306,25 @@
                          class="efisco-text"
                          placeholder="Digite o código E-Fisco ou descrição…"
                          autocomplete="off"
+                         value="{% if form.instance.item_order_id %}{{ form.instance.item_order.item_shock.efisco }}{% endif %}"
                          data-target="id_bens_solicitados-{{ forloop.counter0 }}-item_order">
                   <div class="efisco-dropdown" style="display:none;"></div>
-                  <div class="efisco-selected" style="display:none;"></div>
+                  <div class="efisco-selected" style="{% if form.instance.item_order_id %}display:flex;{% else %}display:none;{% endif %}">
+                    {% if form.instance.item_order_id %}
+                    <span>{{ form.instance.item_order.item_shock.efisco }} — {{ form.instance.item_order.item_shock.descricao_efisco }}</span>
+                    <button type="button" class="efisco-clear">✕</button>
+                    {% endif %}
+                  </div>
+                  {% if form.item_order.errors %}<div class="field-error">{{ form.item_order.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div class="form-group">
                   <label class="form-label">Quantidade</label>
                   {{ form.amount_order }}
+                  <div class="qty-stock" data-stock="{% if form.instance.item_order_id %}{{ form.instance.item_order.amount_shock }}{% endif %}">
+                    {% if form.instance.item_order_id %}Disponível: {{ form.instance.item_order.amount_shock }}{% endif %}
+                  </div>
+                  <div class="qty-warning" style="display:none;"></div>
+                  {% if form.amount_order.errors %}<div class="field-error">{{ form.amount_order.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div style="align-self:flex-end;">
                   <button type="button" class="btn-remove remove-item">
@@ -393,6 +414,8 @@
     <div class="form-group">
       <label class="form-label">Quantidade</label>
       {{ formset.empty_form.amount_order }}
+      <div class="qty-stock" data-stock=""></div>
+      <div class="qty-warning" style="display:none;"></div>
     </div>
     <div style="align-self:flex-end;">
       <button type="button" class="btn-remove remove-item">
@@ -405,7 +428,6 @@
 
 <script>
 const ESTOQUE_SEARCH_URL = "{% url 'dimms:estoque_search' %}";
-const ITENS_INICIAIS = {{ itens_iniciais_json|safe }};
 
 document.addEventListener('DOMContentLoaded', function () {
   const addBtn     = document.getElementById('add-item');
@@ -452,6 +474,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Confere a quantidade digitada contra o estoque disponível do item selecionado na linha.
+  // Retorna true se a linha está válida (ou sem item selecionado ainda, nada a checar).
+  function validateRow(row) {
+    const qtyInput = row.querySelector('input[type="number"]');
+    const stockEl  = row.querySelector('.qty-stock');
+    const warnEl   = row.querySelector('.qty-warning');
+    if (!qtyInput || !stockEl || !warnEl) return true;
+
+    const stockRaw = stockEl.dataset.stock;
+    const temItem  = stockRaw !== undefined && stockRaw !== '';
+    const stock    = temItem ? parseFloat(stockRaw) : null;
+    const qtyRaw   = qtyInput.value.trim();
+    const qty      = qtyRaw === '' ? null : parseFloat(qtyRaw);
+
+    let msg = '';
+    if (temItem) {
+      if (qty === null || isNaN(qty) || qty <= 0) {
+        msg = 'A quantidade deve ser maior que zero.';
+      } else if (qty > stock) {
+        msg = `Apenas ${stock} disponível em estoque.`;
+      }
+    }
+
+    if (msg) {
+      warnEl.textContent = msg;
+      warnEl.style.display = 'block';
+      row.classList.add('row-invalid');
+      return false;
+    }
+    warnEl.style.display = 'none';
+    row.classList.remove('row-invalid');
+    return true;
+  }
+
+  function validateAllRows() {
+    let tudoValido = true;
+    getVisibleRows().forEach(row => {
+      if (!validateRow(row)) tudoValido = false;
+    });
+    return tudoValido;
+  }
+
   function bindAutocomplete(row) {
     const textInput = row.querySelector('.efisco-text');
     const hidden    = getHiddenSelect(row);
@@ -472,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="efisco-desc">${item.item_shock__descricao_efisco || item.descricao || ''}</div>
           <div class="efisco-qty">Estoque: ${item.amount_shock || item.estoque || 0} un.</div>
         `;
-        div.addEventListener('mousedown', (e) => { e.preventDefault(); selectItem(item); });
+        div.addEventListener('pointerdown', (e) => { e.preventDefault(); selectItem(item); });
         dropdown.appendChild(div);
       });
     }
@@ -481,6 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const id    = item.id || item.item_id;
       const efisco = item.item_shock__efisco || item.efisco || '';
       const desc   = item.item_shock__descricao_efisco || item.descricao || '';
+      const estoque = item.amount_shock !== undefined ? item.amount_shock : (item.estoque || 0);
       textInput.value = efisco;
       // Cria a option dinamicamente se ainda não existir (caso de linhas novas)
       let opt = Array.from(hidden.options).find(o => o.value === String(id));
@@ -497,13 +562,25 @@ document.addEventListener('DOMContentLoaded', function () {
         e.stopPropagation();
         clearItem();
       });
-      syncBadge(); syncQty();
+
+      const stockEl = row.querySelector('.qty-stock');
+      if (stockEl) {
+        stockEl.dataset.stock = String(estoque);
+        stockEl.textContent = `Disponível: ${estoque}`;
+      }
+
+      syncBadge(); syncQty(); validateRow(row);
     }
 
     function clearItem() {
       textInput.value = '';
       hidden.value = '';
       selected.style.display = 'none';
+      const stockEl = row.querySelector('.qty-stock');
+      if (stockEl) { stockEl.dataset.stock = ''; stockEl.textContent = ''; }
+      const warnEl = row.querySelector('.qty-warning');
+      if (warnEl) warnEl.style.display = 'none';
+      row.classList.remove('row-invalid');
       syncBadge(); syncQty();
     }
 
@@ -522,11 +599,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     textInput.addEventListener('blur', () => {
-      setTimeout(() => { dropdown.style.display = 'none'; }, 200);
+      setTimeout(() => { dropdown.style.display = 'none'; }, 300);
     });
     textInput.addEventListener('focus', function () {
       if (this.value.trim().length >= 2) this.dispatchEvent(new Event('input'));
     });
+
+    // linha já vem com um item selecionado, renderizado pelo servidor — só falta ligar o botão de limpar
+    const clearBtn = selected.querySelector('.efisco-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearItem();
+      });
+    }
   }
 
   function addNewRow() {
@@ -566,36 +652,31 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   container.addEventListener('input', function (e) {
-    if (e.target.closest('input[type="number"]')) syncQty();
-  });
-
-  // Inicializa linhas existentes com autocomplete e exibe item selecionado
-  getVisibleRows().forEach(row => {
-    bindAutocomplete(row);
-    const hidden = getHiddenSelect(row);
-    if (hidden && hidden.value) {
-      const match = ITENS_INICIAIS.find(i => i.item_order_id === parseInt(hidden.value));
-      const efisco = match ? (match.item_order__item_shock__efisco || '') : (hidden.options[hidden.selectedIndex]?.text || '');
-      const desc   = match ? (match.item_order__item_shock__descricao_efisco || '') : '';
-      const textInput = row.querySelector('.efisco-text');
-      const selected  = row.querySelector('.efisco-selected');
-      if (textInput) textInput.value = efisco;
-      if (selected && efisco) {
-        selected.style.display = 'flex';
-        selected.innerHTML = `<span>${efisco}${desc ? ' — ' + desc : ''}</span><button type="button" class="efisco-clear">✕</button>`;
-        selected.querySelector('.efisco-clear').addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (textInput) textInput.value = '';
-          hidden.value = '';
-          selected.style.display = 'none';
-          syncBadge(); syncQty();
-        });
-      }
+    const numberInput = e.target.closest('input[type="number"]');
+    if (numberInput) {
+      syncQty();
+      validateRow(numberInput.closest('.item-row'));
     }
   });
 
+  // Inicializa linhas existentes — o servidor já renderiza o item selecionado (se houver),
+  // aqui só liga a busca/autocomplete e o botão de limpar de cada linha
+  getVisibleRows().forEach(row => { bindAutocomplete(row); validateRow(row); });
+
   lockRemove();
   syncBadge(); syncQty();
+
+  const form = document.getElementById('formEditItens');
+  const qtyBlockBanner = document.getElementById('qty-block-banner');
+  form.addEventListener('submit', function (e) {
+    if (!validateAllRows()) {
+      e.preventDefault();
+      qtyBlockBanner.style.display = 'block';
+      qtyBlockBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      qtyBlockBanner.style.display = 'none';
+    }
+  });
 });
 </script>
 {% endblock %}

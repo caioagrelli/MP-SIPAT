@@ -6,3 +6,4 @@ from .saldoativo import *
 from .solicitacoes import *
 from .catalogo import *
 from .acompanhamentos import *
+from .inventario import *

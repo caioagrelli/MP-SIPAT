@@ -1,0 +1,874 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Almoxarifado{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f7f8fa; --surface:#ffffff;
+    --border:#e8eaef; --border-strong:#d7dbe3;
+    --ink:#1c1f26; --ink-2:#565d6b; --ink-3:#969dab;
+    --accent:#3454d1; --accent-dark:#2a44b0; --accent-soft:#eef1fc;
+    --amber:#b7791f; --amber-soft:#fdf3e2;
+    --green:#1a7f5a; --green-soft:#e8f7f1;
+    --red:#c23b3b; --red-soft:#fbecec;
+    --shadow:0 1px 2px rgba(20,24,34,.04), 0 8px 24px rgba(20,24,34,.05);
+    --r-sm:12px; --r-md:16px; --r-lg:20px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--ink);}
+  .awrap{max-width:760px;margin:0 auto;padding:36px 24px 64px;}
+
+  /* ── Header ── */
+  .ahead{margin-bottom:28px;}
+  .aback{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--ink-3);text-decoration:none;margin-bottom:18px;font-weight:500;}
+  .aback:hover{color:var(--ink-2);}
+  .atitle{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .aprov{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;}
+  .asub{margin-top:6px;font-size:.92rem;color:var(--ink-3);}
+
+  /* ── Busca ── */
+  .asearch{margin-bottom:22px;}
+  .asearch-row{display:flex;gap:10px;}
+  .asearch-input{
+    flex:1;height:56px;padding:0 20px;border:1.5px solid var(--border-strong);border-radius:var(--r-lg);
+    font-family:var(--font);font-size:1rem;color:var(--ink);background:var(--surface);outline:none;
+    box-shadow:var(--shadow);transition:border-color .15s;
+  }
+  .asearch-input::placeholder{color:var(--ink-3);}
+  .asearch-input:focus{border-color:var(--accent);}
+  .asearch-btn{
+    width:56px;height:56px;border-radius:var(--r-lg);background:var(--accent);border:none;color:#fff;
+    display:grid;place-items:center;cursor:pointer;flex-shrink:0;box-shadow:var(--shadow);transition:background .15s;
+  }
+  .asearch-btn:hover{background:var(--accent-dark);}
+
+  /* ── Segmented tabs ── */
+  .aseg{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px;margin-bottom:20px;box-shadow:var(--shadow);}
+  .aseg a{
+    flex:1;text-align:center;padding:14px 12px;border-radius:999px;text-decoration:none;
+    font-size:.9rem;font-weight:600;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:background .15s,color .15s;
+  }
+  .aseg a .n{font-family:var(--mono);font-size:.82rem;opacity:.75;}
+  .aseg a.active{background:var(--ink);color:#fff;}
+
+  /* ── Seção ── */
+  .asection-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin:30px 0 12px;padding:0 4px;}
+
+  /* ── Lista ── */
+  .alist{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);}
+  .arow{
+    display:flex;align-items:center;gap:16px;padding:20px 22px;text-decoration:none;color:inherit;
+    border-bottom:1px solid var(--border);transition:background .12s;
+  }
+  .arow:last-child{border-bottom:none;}
+  .arow:hover{background:var(--bg);}
+  .arow-main{min-width:0;flex:1;}
+  .arow-code{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);font-weight:600;letter-spacing:.01em;}
+  .arow-ua{font-size:1rem;font-weight:600;color:var(--ink);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .arow-side{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+  .arow-date{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);white-space:nowrap;}
+  .arow-arrow{color:var(--ink-3);flex-shrink:0;}
+
+  .abadge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px;white-space:nowrap;}
+  .b-green{background:var(--green-soft);color:var(--green);}
+  .b-amber{background:var(--amber-soft);color:var(--amber);}
+  .b-red{background:var(--red-soft);color:var(--red);}
+  .b-accent{background:var(--accent-soft);color:var(--accent);}
+  .b-neutral{background:var(--bg);color:var(--ink-3);}
+
+  /* ── Vazio ── */
+  .aempty{padding:56px 24px;text-align:center;color:var(--ink-3);}
+  .aempty-icon{font-size:2rem;display:block;margin-bottom:12px;opacity:.5;}
+  .aempty-title{font-weight:600;color:var(--ink-2);font-size:.95rem;}
+
+  /* ── Botões de acesso rápido (mesmo tamanho e mesma cor — grid 2x2) ── */
+  .aitem-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+  .aitem-btn{
+    display:inline-flex;align-items:center;gap:10px;text-align:left;text-decoration:none;
+    background:#1e2d42;border:1px solid rgba(255,255,255,.07);border-radius:var(--r-md);
+    padding:9px 14px;cursor:pointer;
+    box-shadow:0 4px 14px rgba(15,23,42,.18);transition:transform .15s,box-shadow .15s,background .15s;
+  }
+  .aitem-btn:hover{background:#263650;box-shadow:0 8px 20px rgba(15,23,42,.24);}
+  .aitem-btn:active{transform:scale(.98);}
+  .aitem-icon{
+    width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.09);
+    display:grid;place-items:center;font-size:15px;flex-shrink:0;
+  }
+  .aitem-text{min-width:0;flex:1;}
+  .aitem-title{font-size:.85rem;font-weight:700;color:#f0f4ff;line-height:1.2;}
+  .aitem-sub{font-size:.7rem;color:rgba(160,175,210,.75);margin-top:1px;}
+  .aitem-arrow{color:rgba(255,255,255,.7);flex-shrink:0;}
+
+  /* ── Modal de busca de item ── */
+  .imodal-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(20,24,34,.5);z-index:500;
+    align-items:flex-start;justify-content:center;padding:64px 18px;
+  }
+  .imodal-backdrop.open{display:flex;}
+  .imodal{
+    background:var(--surface);border-radius:var(--r-lg);width:100%;max-width:540px;max-height:78vh;
+    display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(20,24,34,.3);overflow:hidden;
+  }
+  .imodal-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid var(--border);}
+  .imodal-title{font-size:1.05rem;font-weight:700;}
+  .imodal-sub{font-size:.8rem;color:var(--ink-3);margin-top:3px;}
+  .imodal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--bg);color:var(--ink-3);cursor:pointer;display:grid;place-items:center;font-size:1rem;flex-shrink:0;}
+  .imodal-close:hover{background:var(--border);color:var(--ink);}
+  .imodal-search{padding:16px 22px;border-bottom:1px solid var(--border);}
+  .imodal-search input{
+    width:100%;height:50px;padding:0 16px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);
+    font-family:var(--font);font-size:.95rem;outline:none;color:var(--ink);background:var(--surface);
+  }
+  .imodal-search input:focus{border-color:var(--accent);}
+  .imodal-results{overflow-y:auto;flex:1;}
+  .imodal-hint,.imodal-empty{padding:44px 22px;text-align:center;color:var(--ink-3);font-size:.88rem;}
+
+  .irow{padding:16px 22px;border-bottom:1px solid var(--border);}
+  .irow:last-child{border-bottom:none;}
+  .irow-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+  .irow-desc{font-weight:600;font-size:.92rem;color:var(--ink);}
+  .irow-efisco{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);margin-top:3px;letter-spacing:.02em;}
+  .irow-qtd{font-family:var(--mono);font-weight:700;font-size:1.2rem;color:var(--accent);white-space:nowrap;text-align:right;flex-shrink:0;}
+  .irow-qtd-unit{display:block;font-family:var(--font);font-weight:600;font-size:.62rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px;}
+  .irow-locs{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;}
+  .iloc{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:999px;font-family:var(--mono);}
+  .iloc-primary{background:var(--amber-soft);color:var(--amber);}
+  .iloc-extra{background:var(--bg);color:var(--ink-3);border:1px solid var(--border);}
+  .irow-noloc{font-size:.78rem;color:var(--ink-3);font-style:italic;margin-top:9px;}
+  .irow-pick{cursor:pointer;transition:background .12s;}
+  .irow-pick:hover{background:var(--bg);}
+
+  /* ── Modal de mudança de localização ── */
+  .ml-selected{padding:16px 22px;border-bottom:1px solid var(--border);background:var(--bg);}
+  .ml-selected-desc{font-weight:700;font-size:.92rem;color:var(--ink);}
+  .ml-selected-efisco{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);margin-top:2px;}
+  .ml-selected-current{margin-top:9px;font-size:.8rem;color:var(--ink-2);}
+  .ml-selected-current .iloc{margin-left:4px;}
+  .ml-swap{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer;padding:0;margin-top:10px;}
+  .ml-swap:hover{text-decoration:underline;}
+
+  .ml-loc-wrap{padding:16px 22px;position:relative;}
+  .ml-loc-wrap label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px;}
+  .ml-loc-input{
+    width:100%;height:50px;padding:0 16px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);
+    font-family:var(--font);font-size:.95rem;outline:none;color:var(--ink);background:var(--surface);
+  }
+  .ml-loc-input:focus{border-color:var(--accent);}
+  .ml-loc-dropdown{
+    display:none;position:absolute;left:22px;right:22px;top:calc(100% - 6px);
+    background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-sm);
+    box-shadow:0 12px 28px rgba(20,24,34,.16);max-height:220px;overflow-y:auto;z-index:10;
+  }
+  .ml-loc-dropdown.open{display:block;}
+  .ml-loc-option{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;}
+  .ml-loc-option:last-child{border-bottom:none;}
+  .ml-loc-option:hover{background:var(--bg);}
+  .ml-loc-option .codigo{font-family:var(--mono);font-weight:700;color:var(--ink);}
+  .ml-loc-option .setor{color:var(--ink-3);font-size:.76rem;}
+  .ml-loc-dropdown-empty{padding:12px 14px;font-size:.82rem;color:var(--ink-3);}
+
+  .ml-range-wrap{padding:0 22px 16px;}
+  .ml-range-wrap label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px;}
+  .ml-range-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .ml-range-input{
+    width:104px;height:42px;padding:0 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);
+    font-family:var(--mono);font-size:.86rem;outline:none;color:var(--ink);background:var(--surface);text-transform:uppercase;
+  }
+  .ml-range-input:focus{border-color:var(--accent);}
+  .ml-range-sep{font-size:.8rem;color:var(--ink-3);flex-shrink:0;}
+  .ml-range-msg{margin-top:9px;font-size:.78rem;line-height:1.5;}
+  .ml-range-msg.ok{color:var(--green);}
+  .ml-range-msg.warn{color:var(--amber);}
+  .ml-range-msg.err{color:var(--red);}
+
+  .ml-chips{padding:2px 22px 18px;display:flex;flex-wrap:wrap;gap:8px;}
+  .ml-chip{
+    display:inline-flex;align-items:center;gap:7px;padding:6px 8px 6px 12px;border-radius:999px;
+    background:var(--accent-soft);border:1px solid #c7d4f9;font-size:.8rem;
+  }
+  .ml-chip.principal{background:var(--amber-soft);border-color:#f3dca8;}
+  .ml-chip .codigo{font-family:var(--mono);font-weight:700;color:var(--ink);}
+  .ml-chip .tag{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--amber);}
+  .ml-chip button{
+    width:18px;height:18px;border-radius:50%;border:none;background:rgba(0,0,0,.08);color:var(--ink-2);
+    cursor:pointer;display:grid;place-items:center;font-size:.7rem;line-height:1;flex-shrink:0;
+  }
+  .ml-chip button:hover{background:rgba(0,0,0,.16);}
+  .ml-chips-empty{padding:2px 22px 18px;font-size:.8rem;color:var(--ink-3);font-style:italic;}
+
+  .ml-footer{padding:16px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);}
+  .ml-btn{
+    padding:11px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.87rem;font-weight:700;
+    cursor:pointer;border:1.5px solid transparent;transition:all .15s;
+  }
+  .ml-btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);}
+  .ml-btn-ghost:hover{background:var(--bg);}
+  .ml-btn-primary{background:var(--accent);color:#fff;}
+  .ml-btn-primary:hover{background:var(--accent-dark);}
+  .ml-btn-primary:disabled{background:var(--border-strong);color:var(--ink-3);cursor:not-allowed;}
+
+  .ml-success{padding:44px 22px;text-align:center;}
+  .ml-success-icon{font-size:2.2rem;display:block;margin-bottom:12px;}
+  .ml-success-msg{font-weight:600;color:var(--ink);font-size:.95rem;}
+  .ml-success-sub{margin-top:6px;font-size:.82rem;color:var(--ink-3);}
+  .ml-success .ml-btn{margin-top:18px;}
+
+  @media(max-width:600px){
+    .awrap{padding:24px 16px 48px;}
+    .arow{padding:16px;}
+    .arow-date{display:none;}
+    .imodal-backdrop{padding:0;align-items:flex-end;}
+    .imodal{max-width:100%;max-height:88vh;border-radius:var(--r-lg) var(--r-lg) 0 0;}
+  }
+</style>
+
+<div class="apage">
+  <div class="awrap">
+
+    <div class="ahead">
+      <a href="{% url 'dimms:homepage' %}" class="aback">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        DIMMS
+      </a>
+      <div class="atitle">
+        Almoxarifado
+        <span class="aprov">Provisório</span>
+      </div>
+      <div class="asub">Consulte solicitações por UA ou código, e acompanhe a fila de separação.</div>
+    </div>
+
+    <div class="aitem-row">
+      <button type="button" class="aitem-btn" id="btnItemSearch">
+        <div class="aitem-icon">🔍</div>
+        <div class="aitem-text">
+          <div class="aitem-title">Pesquisar Bem</div>
+          <div class="aitem-sub">Localização e quantidade em estoque</div>
+        </div>
+        <svg class="aitem-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <a href="{% url 'dimms:inventario_homepage' %}" class="aitem-btn">
+        <div class="aitem-icon">📋</div>
+        <div class="aitem-text">
+          <div class="aitem-title">Inventário</div>
+          <div class="aitem-sub">Conferência mensal</div>
+        </div>
+        <svg class="aitem-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+
+      <a href="{% url 'dimms:receber_lote' %}" class="aitem-btn">
+        <div class="aitem-icon">📥</div>
+        <div class="aitem-text">
+          <div class="aitem-title">Receber</div>
+          <div class="aitem-sub">{{ total_separadas }} solicitaç{{ total_separadas|pluralize:"ão,ões" }} separada{{ total_separadas|pluralize }}</div>
+        </div>
+        <svg class="aitem-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+
+      <button type="button" class="aitem-btn" id="btnMudarLocal">
+        <div class="aitem-icon">📍</div>
+        <div class="aitem-text">
+          <div class="aitem-title">Mudar Localização</div>
+          <div class="aitem-sub">Registrar onde o item passou a ficar</div>
+        </div>
+        <svg class="aitem-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <form method="get" class="asearch">
+      <div class="asearch-row">
+        <input
+          type="text"
+          name="q"
+          class="asearch-input"
+          placeholder="UA, sigla ou código da solicitação…"
+          value="{{ query }}"
+        >
+        <button type="submit" class="asearch-btn" aria-label="Pesquisar">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </button>
+      </div>
+    </form>
+
+    {% if resultados is not None %}
+      <div class="asection-label">Resultado da busca · {{ resultados|length }}</div>
+      <div class="alist">
+        {% for s in resultados %}
+          <a href="{% url 'dimms:details_processing' s.pk %}" class="arow">
+            <div class="arow-main">
+              <div class="arow-code">{{ s.request_code }}</div>
+              <div class="arow-ua">{{ s.ua_order|default:"UA não informada" }}</div>
+            </div>
+            <div class="arow-side">
+              {% with sit=s.situation %}
+                {% if sit == "RECEBIDA" %}
+                  <span class="abadge b-green">{{ s.get_situation_display }}</span>
+                {% elif sit == "CANCELADA" %}
+                  <span class="abadge b-red">{{ s.get_situation_display }}</span>
+                {% elif sit == "ATENDIMENTO" %}
+                  <span class="abadge b-accent">{{ s.get_situation_display }}</span>
+                {% elif sit == "AGUAR_SEPARACAO" or sit == "SEPARADA" or sit == "EXPEDICAO" %}
+                  <span class="abadge b-amber">{{ s.get_situation_display }}</span>
+                {% else %}
+                  <span class="abadge b-neutral">{{ s.get_situation_display }}</span>
+                {% endif %}
+              {% endwith %}
+              <span class="arow-date">{{ s.data_order|date:"d/m H:i" }}</span>
+              <svg class="arow-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </a>
+        {% empty %}
+          <div class="aempty">
+            <span class="aempty-icon">🔍</span>
+            <div class="aempty-title">Nenhuma solicitação encontrada para "{{ query }}"</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="aseg" style="margin-top:32px;">
+      <a href="?aba=aguardando{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if aba == 'aguardando' %}active{% endif %}">
+        Aguardando Separação <span class="n">{{ total_aguardando }}</span>
+      </a>
+      <a href="?aba=separadas{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if aba == 'separadas' %}active{% endif %}">
+        Separadas <span class="n">{{ total_separadas }}</span>
+      </a>
+    </div>
+
+    <div class="alist">
+      {% for s in fila %}
+        <a href="{% url 'dimms:details_processing' s.pk %}" class="arow">
+          <div class="arow-main">
+            <div class="arow-code">{{ s.request_code }}</div>
+            <div class="arow-ua">{{ s.ua_order|default:"UA não informada" }}</div>
+          </div>
+          <div class="arow-side">
+            <span class="arow-date">{{ s.data_order|date:"d/m H:i" }}</span>
+            <svg class="arow-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </a>
+      {% empty %}
+        <div class="aempty">
+          <span class="aempty-icon">📭</span>
+          <div class="aempty-title">
+            {% if aba == 'aguardando' %}Nenhuma solicitação aguardando separação
+            {% else %}Nenhuma solicitação separada no momento{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: busca de bem de consumo -->
+<div class="imodal-backdrop" id="imodalBackdrop">
+  <div class="imodal">
+    <div class="imodal-head">
+      <div>
+        <div class="imodal-title">Buscar bem de consumo</div>
+        <div class="imodal-sub">Veja onde está e quanto tem em estoque</div>
+      </div>
+      <button type="button" class="imodal-close" id="imodalClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="imodal-search">
+      <input type="text" id="imodalInput" placeholder="E-Fisco ou descrição do item…" autocomplete="off">
+    </div>
+    <div class="imodal-results" id="imodalResults">
+      <div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: mudança de localização -->
+<div class="imodal-backdrop" id="mlModalBackdrop">
+  {% csrf_token %}
+  <div class="imodal">
+    <div class="imodal-head">
+      <div>
+        <div class="imodal-title">Mudança de localização</div>
+        <div class="imodal-sub" id="mlModalSub">Busque o item que você quer mover</div>
+      </div>
+      <button type="button" class="imodal-close" id="mlModalClose" aria-label="Fechar">✕</button>
+    </div>
+
+    <!-- Etapa 1: buscar item -->
+    <div id="mlStepSearch">
+      <div class="imodal-search">
+        <input type="text" id="mlItemInput" placeholder="E-Fisco ou descrição do item…" autocomplete="off">
+      </div>
+      <div class="imodal-results" id="mlItemResults">
+        <div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>
+      </div>
+    </div>
+
+    <!-- Etapa 2: confirmar nova(s) localização(ões) -->
+    <div id="mlStepLocation" style="display:none;">
+      <div class="ml-selected" id="mlSelected"></div>
+
+      <div class="ml-loc-wrap">
+        <label for="mlLocInput">Adicionar localização</label>
+        <input type="text" class="ml-loc-input" id="mlLocInput" placeholder="Buscar por código (ex.: A36)…" autocomplete="off">
+        <div class="ml-loc-dropdown" id="mlLocDropdown"></div>
+      </div>
+
+      <div class="ml-range-wrap">
+        <label>Ou adicionar um intervalo (ex.: I11 até I26)</label>
+        <div class="ml-range-row">
+          <input type="text" class="ml-range-input" id="mlRangeDe" placeholder="De (I11)">
+          <span class="ml-range-sep">até</span>
+          <input type="text" class="ml-range-input" id="mlRangeAte" placeholder="Até (I26)">
+          <button type="button" class="ml-btn ml-btn-ghost" id="mlRangeAddBtn">+ Adicionar intervalo</button>
+        </div>
+        <div class="ml-range-msg" id="mlRangeMsg"></div>
+      </div>
+
+      <div class="ml-chips" id="mlChips"></div>
+      <div class="ml-chips-empty" id="mlChipsEmpty">Nenhuma localização adicionada ainda.</div>
+
+      <div class="ml-footer">
+        <button type="button" class="ml-btn ml-btn-ghost" id="mlBackBtn">← Trocar item</button>
+        <button type="button" class="ml-btn ml-btn-primary" id="mlConfirmBtn" disabled>Confirmar mudança</button>
+      </div>
+    </div>
+
+    <!-- Etapa 3: sucesso -->
+    <div id="mlStepSuccess" style="display:none;">
+      <div class="ml-success">
+        <span class="ml-success-icon">✅</span>
+        <div class="ml-success-msg" id="mlSuccessMsg"></div>
+        <div class="ml-success-sub" id="mlSuccessSub"></div>
+        <button type="button" class="ml-btn ml-btn-primary" id="mlAnotherBtn">Mudar outro item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('btnItemSearch');
+    var backdrop = document.getElementById('imodalBackdrop');
+    var closeBtn = document.getElementById('imodalClose');
+    var input = document.getElementById('imodalInput');
+    var results = document.getElementById('imodalResults');
+    var timer = null;
+
+    function abrir() {
+      backdrop.classList.add('open');
+      input.value = '';
+      results.innerHTML = '<div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>';
+      setTimeout(function () { input.focus(); }, 50);
+    }
+    function fechar() {
+      backdrop.classList.remove('open');
+    }
+
+    btn.addEventListener('click', abrir);
+    closeBtn.addEventListener('click', fechar);
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) fechar();
+    });
+
+    if (new URLSearchParams(window.location.search).get('abrir_busca') === '1') {
+      abrir();
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && backdrop.classList.contains('open')) fechar();
+    });
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderResultados(itens) {
+      if (!itens.length) {
+        results.innerHTML = '<div class="imodal-empty">Nenhum item encontrado.</div>';
+        return;
+      }
+      results.innerHTML = itens.map(function (item) {
+        var locsHtml = '';
+        if (item.localizacoes.length) {
+          locsHtml = '<div class="irow-locs">' + item.localizacoes.map(function (loc) {
+            var cls = loc.principal ? 'iloc iloc-primary' : 'iloc iloc-extra';
+            var setor = loc.setor ? escapeHtml(loc.setor) + ' · ' : '';
+            return '<span class="' + cls + '">' + (loc.principal ? '📍 ' : '') + setor + escapeHtml(loc.codigo) + '</span>';
+          }).join('') + '</div>';
+        } else {
+          locsHtml = '<div class="irow-noloc">Sem localização cadastrada</div>';
+        }
+        return (
+          '<div class="irow">' +
+            '<div class="irow-top">' +
+              '<div>' +
+                '<div class="irow-desc">' + escapeHtml(item.descricao || '') + '</div>' +
+                '<div class="irow-efisco">' + escapeHtml(item.efisco || '') + '</div>' +
+              '</div>' +
+              '<div class="irow-qtd">' + escapeHtml(item.quantidade) + '<span class="irow-qtd-unit">' + escapeHtml(item.medida || '') + '</span></div>' +
+            '</div>' +
+            locsHtml +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    input.addEventListener('input', function () {
+      var q = input.value.trim();
+      clearTimeout(timer);
+
+      if (q.length < 2) {
+        results.innerHTML = '<div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>';
+        return;
+      }
+
+      timer = setTimeout(function () {
+        fetch('{% url "dimms:almoxarifado_item_search" %}?q=' + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(renderResultados)
+          .catch(function () {
+            results.innerHTML = '<div class="imodal-empty">Erro ao buscar. Tente novamente.</div>';
+          });
+      }, 280);
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    var openBtn = document.getElementById('btnMudarLocal');
+    var backdrop = document.getElementById('mlModalBackdrop');
+    if (!openBtn || !backdrop) return;
+
+    var closeBtn = document.getElementById('mlModalClose');
+    var sub = document.getElementById('mlModalSub');
+
+    var stepSearch = document.getElementById('mlStepSearch');
+    var stepLocation = document.getElementById('mlStepLocation');
+    var stepSuccess = document.getElementById('mlStepSuccess');
+
+    var itemInput = document.getElementById('mlItemInput');
+    var itemResults = document.getElementById('mlItemResults');
+
+    var selectedBox = document.getElementById('mlSelected');
+    var locInput = document.getElementById('mlLocInput');
+    var locDropdown = document.getElementById('mlLocDropdown');
+    var rangeDe = document.getElementById('mlRangeDe');
+    var rangeAte = document.getElementById('mlRangeAte');
+    var rangeAddBtn = document.getElementById('mlRangeAddBtn');
+    var rangeMsg = document.getElementById('mlRangeMsg');
+    var chipsBox = document.getElementById('mlChips');
+    var chipsEmpty = document.getElementById('mlChipsEmpty');
+    var backBtn = document.getElementById('mlBackBtn');
+    var confirmBtn = document.getElementById('mlConfirmBtn');
+
+    var successMsg = document.getElementById('mlSuccessMsg');
+    var successSub = document.getElementById('mlSuccessSub');
+    var anotherBtn = document.getElementById('mlAnotherBtn');
+
+    var csrfToken = backdrop.querySelector('[name=csrfmiddlewaretoken]').value;
+    var itemTimer = null, locTimer = null;
+    var selectedItem = null;
+    var selectedLocs = []; // [{id, codigo}] — a primeira vira a localização principal
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function mostrarEtapa(nome) {
+      stepSearch.style.display = nome === 'search' ? '' : 'none';
+      stepLocation.style.display = nome === 'location' ? '' : 'none';
+      stepSuccess.style.display = nome === 'success' ? '' : 'none';
+      sub.textContent = nome === 'search'
+        ? 'Busque o item que você quer mover'
+        : nome === 'location'
+          ? 'Escolha pra onde ele foi'
+          : 'Localização atualizada';
+    }
+
+    function renderChips() {
+      if (!selectedLocs.length) {
+        chipsBox.innerHTML = '';
+        chipsEmpty.style.display = 'block';
+        confirmBtn.disabled = true;
+        return;
+      }
+      chipsEmpty.style.display = 'none';
+      chipsBox.innerHTML = selectedLocs.map(function (loc, idx) {
+        return '<span class="ml-chip' + (idx === 0 ? ' principal' : '') + '" data-id="' + loc.id + '">' +
+                 (idx === 0 ? '<span class="tag">Principal</span>' : '') +
+                 '<span class="codigo">' + escapeHtml(loc.codigo) + '</span>' +
+                 '<button type="button" data-remove="' + loc.id + '" aria-label="Remover">✕</button>' +
+               '</span>';
+      }).join('');
+      confirmBtn.disabled = false;
+    }
+
+    function addLocalizacao(id, codigo) {
+      id = String(id);
+      if (selectedLocs.some(function (l) { return l.id === id; })) return false;
+      selectedLocs.push({ id: id, codigo: codigo });
+      renderChips();
+      return true;
+    }
+
+    chipsBox.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-remove]');
+      if (!btn) return;
+      var id = btn.dataset.remove;
+      selectedLocs = selectedLocs.filter(function (l) { return l.id !== id; });
+      renderChips();
+    });
+
+    function abrir() {
+      backdrop.classList.add('open');
+      itemInput.value = '';
+      itemResults.innerHTML = '<div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>';
+      selectedItem = null;
+      selectedLocs = [];
+      mostrarEtapa('search');
+      setTimeout(function () { itemInput.focus(); }, 50);
+    }
+    function fechar() {
+      backdrop.classList.remove('open');
+    }
+
+    openBtn.addEventListener('click', abrir);
+    closeBtn.addEventListener('click', fechar);
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) fechar();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && backdrop.classList.contains('open')) fechar();
+    });
+
+    function renderItemResultados(itens) {
+      if (!itens.length) {
+        itemResults.innerHTML = '<div class="imodal-empty">Nenhum item encontrado.</div>';
+        return;
+      }
+      itemResults.innerHTML = itens.map(function (item) {
+        var locAtual = item.localizacoes.filter(function (l) { return l.principal; })[0];
+        var locHtml = locAtual
+          ? '<div class="irow-locs"><span class="iloc iloc-primary">📍 ' + escapeHtml(locAtual.codigo) + '</span></div>'
+          : '<div class="irow-noloc">Sem localização cadastrada</div>';
+        return (
+          '<div class="irow irow-pick" data-id="' + item.id + '" data-efisco="' + escapeHtml(item.efisco || '') + '" ' +
+            'data-descricao="' + escapeHtml(item.descricao || '') + '" data-loc="' + (locAtual ? escapeHtml(locAtual.codigo) : '') + '">' +
+            '<div class="irow-top">' +
+              '<div>' +
+                '<div class="irow-desc">' + escapeHtml(item.descricao || '') + '</div>' +
+                '<div class="irow-efisco">' + escapeHtml(item.efisco || '') + '</div>' +
+              '</div>' +
+            '</div>' +
+            locHtml +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    itemInput.addEventListener('input', function () {
+      var q = itemInput.value.trim();
+      clearTimeout(itemTimer);
+
+      if (q.length < 2) {
+        itemResults.innerHTML = '<div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>';
+        return;
+      }
+
+      itemTimer = setTimeout(function () {
+        fetch('{% url "dimms:almoxarifado_item_search" %}?q=' + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(renderItemResultados)
+          .catch(function () {
+            itemResults.innerHTML = '<div class="imodal-empty">Erro ao buscar. Tente novamente.</div>';
+          });
+      }, 280);
+    });
+
+    itemResults.addEventListener('click', function (e) {
+      var row = e.target.closest('.irow-pick');
+      if (!row) return;
+
+      selectedItem = {
+        id: row.dataset.id,
+        efisco: row.dataset.efisco,
+        descricao: row.dataset.descricao,
+        locAtual: row.dataset.loc,
+      };
+      selectedLocs = [];
+
+      selectedBox.innerHTML =
+        '<div class="ml-selected-desc">' + escapeHtml(selectedItem.descricao) + '</div>' +
+        '<div class="ml-selected-efisco">' + escapeHtml(selectedItem.efisco) + '</div>' +
+        '<div class="ml-selected-current">Localização atual: ' +
+          (selectedItem.locAtual ? '<span class="iloc iloc-primary">📍 ' + escapeHtml(selectedItem.locAtual) + '</span>' : '<em>não cadastrada</em>') +
+        '</div>';
+
+      locInput.value = '';
+      locDropdown.classList.remove('open');
+      locDropdown.innerHTML = '';
+      rangeDe.value = '';
+      rangeAte.value = '';
+      rangeMsg.textContent = '';
+      rangeMsg.className = 'ml-range-msg';
+      renderChips();
+      mostrarEtapa('location');
+      setTimeout(function () { locInput.focus(); }, 50);
+    });
+
+    backBtn.addEventListener('click', function () {
+      mostrarEtapa('search');
+      setTimeout(function () { itemInput.focus(); }, 50);
+    });
+
+    locInput.addEventListener('input', function () {
+      var termo = locInput.value.trim();
+      clearTimeout(locTimer);
+
+      if (termo.length < 1) {
+        locDropdown.classList.remove('open');
+        locDropdown.innerHTML = '';
+        return;
+      }
+
+      locTimer = setTimeout(function () {
+        fetch('{% url "dimms:localizacao_search_ajax" %}?q=' + encodeURIComponent(termo))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.resultados.length) {
+              locDropdown.innerHTML = '<div class="ml-loc-dropdown-empty">Nenhuma prateleira encontrada.</div>';
+              locDropdown.classList.add('open');
+              return;
+            }
+            locDropdown.innerHTML = data.resultados.map(function (r) {
+              return '<div class="ml-loc-option" data-id="' + r.id + '" data-codigo="' + escapeHtml(r.codigo || '') + '">' +
+                       '<span class="codigo">' + escapeHtml(r.codigo || '') + '</span>' +
+                       '<span class="setor">' + escapeHtml(r.setor || '') + '</span>' +
+                     '</div>';
+            }).join('');
+            locDropdown.classList.add('open');
+          });
+      }, 250);
+    });
+
+    locDropdown.addEventListener('click', function (e) {
+      var opt = e.target.closest('.ml-loc-option');
+      if (!opt) return;
+      addLocalizacao(opt.dataset.id, opt.dataset.codigo);
+      locInput.value = '';
+      locDropdown.classList.remove('open');
+      locDropdown.innerHTML = '';
+      locInput.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.ml-loc-wrap')) {
+        locDropdown.classList.remove('open');
+      }
+    });
+
+    rangeAddBtn.addEventListener('click', function () {
+      var de = rangeDe.value.trim();
+      var ate = rangeAte.value.trim();
+      rangeMsg.className = 'ml-range-msg';
+      if (!de || !ate) {
+        rangeMsg.textContent = 'Informe os dois códigos (ex.: I11 até I26).';
+        rangeMsg.classList.add('err');
+        return;
+      }
+
+      rangeAddBtn.disabled = true;
+      rangeMsg.textContent = 'Buscando…';
+
+      fetch('{% url "dimms:localizacao_intervalo_ajax" %}?de=' + encodeURIComponent(de) + '&ate=' + encodeURIComponent(ate))
+        .then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+        .then(function (res) {
+          rangeAddBtn.disabled = false;
+          if (res.status !== 200) {
+            rangeMsg.textContent = res.data.erro || 'Não foi possível resolver o intervalo.';
+            rangeMsg.classList.add('err');
+            return;
+          }
+          var adicionadas = 0;
+          res.data.resultados.forEach(function (r) {
+            if (addLocalizacao(r.id, r.codigo)) adicionadas++;
+          });
+
+          var partes = [];
+          if (adicionadas) partes.push(adicionadas + ' localizaç' + (adicionadas === 1 ? 'ão adicionada' : 'ões adicionadas'));
+          if (res.data.nao_encontrados.length) {
+            partes.push(res.data.nao_encontrados.length + ' não encontrada' + (res.data.nao_encontrados.length === 1 ? '' : 's') + ' (' + res.data.nao_encontrados.join(', ') + ')');
+          }
+          rangeMsg.textContent = partes.join(' · ') || 'Nenhuma localização nova nesse intervalo.';
+          rangeMsg.classList.add(res.data.nao_encontrados.length ? 'warn' : 'ok');
+
+          if (adicionadas) {
+            rangeDe.value = '';
+            rangeAte.value = '';
+          }
+        })
+        .catch(function () {
+          rangeAddBtn.disabled = false;
+          rangeMsg.textContent = 'Erro ao buscar o intervalo. Tente novamente.';
+          rangeMsg.classList.add('err');
+        });
+    });
+
+    confirmBtn.addEventListener('click', function () {
+      if (!selectedItem || !selectedLocs.length) return;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Confirmando…';
+
+      var body = new URLSearchParams();
+      body.set('item_id', selectedItem.id);
+      selectedLocs.forEach(function (loc) { body.append('localizacao_id', loc.id); });
+
+      fetch('{% url "dimms:mudar_localizacao_estoque" %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      })
+        .then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+        .then(function (res) {
+          confirmBtn.textContent = 'Confirmar mudança';
+          if (res.status !== 200) {
+            confirmBtn.disabled = false;
+            alert(res.data.erro || 'Não foi possível registrar a mudança.');
+            return;
+          }
+          successMsg.textContent = res.data.mensagem;
+          successSub.textContent = res.data.localizacao_anterior
+            ? 'Antes: ' + res.data.localizacao_anterior
+            : 'Não tinha localização cadastrada antes.';
+          mostrarEtapa('success');
+        })
+        .catch(function () {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirmar mudança';
+          alert('Erro ao registrar a mudança. Tente novamente.');
+        });
+    });
+
+    anotherBtn.addEventListener('click', function () {
+      itemInput.value = '';
+      itemResults.innerHTML = '<div class="imodal-hint">Digite ao menos 2 letras para buscar.</div>';
+      selectedItem = null;
+      selectedLocs = [];
+      mostrarEtapa('search');
+      setTimeout(function () { itemInput.focus(); }, 50);
+    });
+  })();
+</script>
+{% endblock %}

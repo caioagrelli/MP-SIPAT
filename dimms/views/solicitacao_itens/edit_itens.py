@@ -1,9 +1,6 @@
-import json
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.serializers.json import DjangoJSONEncoder
 
 from ...models import Solicitacao
 from ...forms import SolicitacaoItemFormSet
@@ -29,24 +26,13 @@ def edit_solicitacao_itens(request, pk):
             formset.save()
             messages.success(request, "Itens da solicitação atualizados com sucesso.")
             return redirect("dimms:details_processing", pk=pk)
+        else:
+            messages.error(request, "Corrija os erros indicados abaixo antes de salvar.")
     else:
         formset = SolicitacaoItemFormSet(instance=solicitacao)
-
-    itens_iniciais = list(
-        solicitacao.bens_solicitados
-        .select_related("item_order__item_shock")
-        .values(
-            "id",
-            "item_order_id",
-            "amount_order",
-            "item_order__item_shock__efisco",
-            "item_order__item_shock__descricao_efisco",
-        )
-    )
 
     context = {
         "solicitacao": solicitacao,
         "formset": formset,
-        "itens_iniciais_json": json.dumps(itens_iniciais, cls=DjangoJSONEncoder),
     }
     return render(request, "dimms/solicitacao_itens/edit_itens.html", context)

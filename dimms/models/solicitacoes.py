@@ -7,6 +7,9 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+# Importações de validação
+from localflavor.br.models import BRCPFField
+
 # Importações do código
 from ..utils import *
 from dempam.models import InfoUA
@@ -41,7 +44,14 @@ class Solicitacao(models.Model):
         null=True,
         verbose_name='Usuário Solicitante',
     )
-      
+
+    numero_pe_integrado = models.CharField(
+        max_length=60,
+        blank=True,
+        null=True,
+        verbose_name='N° PE Integrado',
+    )
+
     data_order = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Data e Hora da Movimentação'
@@ -86,14 +96,9 @@ class Solicitacao(models.Model):
         
     def save(self, *args, **kwargs):
         if not self.request_code:
-            ano = timezone.now().year
-            ultimo = Solicitacao.objects.filter(
-                request_code__startswith=f'SBC-{ano}'
-            ).count() + 1
- 
-            self.request_code = f'SBC-{ano}-{ultimo:04d}'
-
-        super().save(*args, **kwargs)        
+            salvar_com_codigo_sequencial(self, 'request_code', 'SBC', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
         
     def __str__(self):
        return str(self.request_code)  
@@ -125,6 +130,11 @@ class SolicitacaoItens(models.Model):
         blank=True,
         null=True,
         verbose_name='Quantidade',
+    )
+
+    separado = models.BooleanField(
+        default=False,
+        verbose_name='Separado',
     )
 
     def clean(self):
@@ -207,7 +217,31 @@ class Tramitacao(models.Model):
         null=True,
         verbose_name='Foto do Item',
     )
-    
+
+    assinatura_recebedor = models.ImageField(
+        upload_to=path_solicitation_assinatura,
+        blank=True,
+        null=True,
+        verbose_name='Assinatura de Quem Recebeu',
+    )
+
+    matricula_recebedor = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name='Matrícula de Quem Recebeu',
+    )
+
+    cpf_recebedor = BRCPFField(
+        blank=True,
+        verbose_name='CPF de Quem Recebeu',
+    )
+
+    empresa_orgao_recebedor = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Empresa/Órgão de Quem Recebeu',
+    )
+
     date_update = models.DateTimeField(
         blank=True,
         null=True,
@@ -229,6 +263,8 @@ class Tramitacao(models.Model):
         verbose_name_plural='11 - Tramitação'
     
     def save(self, *args, **kwargs):
+        solicitacao_para_notificar = None
+
         with transaction.atomic():
             novo_registro = self.pk is None
 
@@ -253,6 +289,11 @@ class Tramitacao(models.Model):
                 # baixa automática do estoque apenas quando o status muda de fato
                 # (evita retentativa de baixa ao apenas re-salvar/anexar documento no mesmo status)
                 mudou_status = novo_registro and status_anterior != self.update
+
+                # avisa a UA por WhatsApp quando a solicitação é separada — envio real
+                # acontece só depois que a transação for commitada (fora do `with`)
+                if mudou_status and self.update == StatusTramitacao.separada:
+                    solicitacao_para_notificar = solicitacao
 
                 if (
                     mudou_status
@@ -294,6 +335,10 @@ class Tramitacao(models.Model):
 
                     solicitacao.stock_deducted = True
                     solicitacao.save(update_fields=["stock_deducted"])
+
+        if solicitacao_para_notificar is not None:
+            from ..services import notificar_ua_solicitacao_separada
+            notificar_ua_solicitacao_separada(solicitacao_para_notificar)
 
     def __str__(self):
         return str(self.request_update)

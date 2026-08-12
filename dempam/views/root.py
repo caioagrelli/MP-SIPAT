@@ -1,13 +1,19 @@
 # bibliotecas do django
+from functools import wraps
+
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.conf import settings
+from django.utils import timezone
 
 # importações do código
-from accounts.views import management_required
-from ..models import InfoUA
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+
+from ..models import InfoUA, Aviso
 from ..forms import AvisoForm
 from ..services import montar_dashboard_usuario
 from dimms.models import Estoque, Solicitacao
@@ -16,6 +22,23 @@ from dimrcbp.models import BensPermanentes
 # ====================================================
 # VIEWS CENTRAIS DO SIPAT (DIRECIONAMENTO DE PÁGINAS)
 # ====================================================
+
+
+def gerencia_dempam_required(view_func):
+    """Permite superusuários, staff, ou membros da Gerência DEMPAM — mais restrito
+    que management_required (que também libera gestão de usuários/grupos)."""
+    @wraps(view_func)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        user = request.user
+        if (
+            user.is_superuser
+            or user.is_staff
+            or user.groups.filter(name='Gerência DEMPAM').exists()
+        ):
+            return view_func(request, *args, **kwargs)
+        raise PermissionDenied
+    return wrapper
 
 
 
@@ -49,7 +72,7 @@ def homepage(request):
 
 ''' Mural de Avisos '''
 # Publicar um novo aviso no mural do DEMPAM (exibido em /home/)
-@management_required
+@gerencia_dempam_required
 def aviso_criar(request):
     if request.method == 'POST':
         form = AvisoForm(request.POST)
@@ -63,3 +86,36 @@ def aviso_criar(request):
         form = AvisoForm()
 
     return render(request, 'dempam/aviso_form.html', {'form': form})
+
+
+''' Editar um aviso existente do mural '''
+@gerencia_dempam_required
+def aviso_editar(request, pk):
+    aviso = get_object_or_404(Aviso, pk=pk)
+    if request.method == 'POST':
+        form = AvisoForm(request.POST, instance=aviso)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Aviso atualizado com sucesso.')
+            return redirect('dempam:aviso_lista')
+    else:
+        form = AvisoForm(instance=aviso)
+
+    return render(request, 'dempam/aviso_form.html', {'form': form, 'aviso': aviso, 'editando': True})
+
+
+''' Listar avisos do mural (para gerenciar/excluir) '''
+@gerencia_dempam_required
+def aviso_lista(request):
+    avisos = Aviso.objects.select_related('autor').all()
+    return render(request, 'dempam/aviso_lista.html', {'avisos': avisos, 'now': timezone.now()})
+
+
+''' Excluir um aviso do mural '''
+@gerencia_dempam_required
+@require_POST
+def aviso_excluir(request, pk):
+    aviso = get_object_or_404(Aviso, pk=pk)
+    aviso.delete()
+    messages.success(request, 'Aviso excluído com sucesso.')
+    return redirect('dempam:aviso_lista')

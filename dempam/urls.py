@@ -8,13 +8,21 @@ urlpatterns = [
     path('', homepage, name='homepage'),
 
     # Mural de Avisos
+    path('avisos/', aviso_lista, name='aviso_lista'),
     path('avisos/novo/', aviso_criar, name='aviso_criar'),
+    path('avisos/<int:pk>/editar/', aviso_editar, name='aviso_editar'),
+    path('avisos/<int:pk>/excluir/', aviso_excluir, name='aviso_excluir'),
+
+    # Painel de TV (gestão à vista)
+    path('tv/', painel_tv, name='painel_tv'),
+    path('tv/config/', painel_tv_config, name='painel_tv_config'),
 
     # Busca de UA (autocomplete)
     path("uas/search/", ua_search, name="ua_search"),
 
     # Url's das UAs (Unidades Administrativas)
     path("uas/", ua_homepage, name="ua_homepage"),
+    path("uas/exportar/", ua_export_xlsx, name="ua_export_xlsx"),
     path("uas/add/", ua_add, name="ua_add"),
     path("uas/<int:pk>/", ua_detail, name="ua_detail"),
     path("uas/<int:pk>/update/", ua_update, name="ua_update"),
@@ -29,6 +37,7 @@ urlpatterns = [
     path("sector/add/", sector_add, name="sector_add"),
     path("sector/<int:pk>/", sector_detail, name="sector_detail"),
     path("sector/<int:pk>/edit/", sector_edit, name="sector_edit"),
+    path("sector/<int:pk>/itens/buscar/", sector_item_search, name="sector_item_search"),
     path("sector/<int:pk>/delete/", sector_delete, name="sector_delete"),
     path("sector/<int:pk>/corredores/imprimir/", imprimir_corredores, name="imprimir_corredores"),
     path("sector/<int:pk>/corredor/<str:corredor>/", corredor_detail, name="corredor_detail"),

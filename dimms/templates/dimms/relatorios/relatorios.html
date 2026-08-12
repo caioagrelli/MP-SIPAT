@@ -52,6 +52,12 @@
       <div class="report-title">Ajuste de Inventário</div>
       <div class="report-sub">PDF por grupo com E-Fisco, descrição e quantidade, com coluna em branco para a contagem física.</div>
     </a>
+
+    <a href="{% url 'dimms:custo_por_regiao' %}" class="report-card">
+      <div class="report-icon">🗺️</div>
+      <div class="report-title">Custo por Região</div>
+      <div class="report-sub">Soma o preço médio × quantidade pedida por todas as UAs de uma circunscrição, com detalhamento por unidade.</div>
+    </a>
   </div>
 </div>
 {% endblock %}

@@ -136,16 +136,11 @@ class Artifacts(models.Model):
         verbose_name='Última edição por'
         )
 
-    def save(self, *args, **kwargs): #pra ajeitar
+    def save(self, *args, **kwargs):
         if not self.artifacts_code:
-            ano = timezone.now().year
-            ultimo = Artifacts.objects.filter(
-                artifacts_code__startswith=f'ART-{ano}'
-            ).count() + 1
-
-            self.artifacts_code = f'ART-{ano}-{ultimo:02d}'
-
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'artifacts_code', 'ART', super().save, *args, digitos=2, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.artifacts_code)

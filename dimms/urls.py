@@ -16,9 +16,19 @@ urlpatterns = [
     # Url's da Homepage e Páginas de Aviso
     path('', homepage, name='homepage'),
     path('exportar-planilha/', exportar_planilha, name='exportar_planilha'),
+    path('almoxarifado/', almoxarifado_acesso_rapido, name='almoxarifado_acesso_rapido'),
+    path('almoxarifado/item-busca/', almoxarifado_item_search, name='almoxarifado_item_search'),
+    path('almoxarifado/mudanca-localizacao/', mudar_localizacao_estoque, name='mudar_localizacao_estoque'),
+    path('almoxarifado/mudanca-localizacao/intervalo/', localizacao_intervalo_ajax, name='localizacao_intervalo_ajax'),
+
+    path('inventario/', inventario_homepage, name='inventario_homepage'),
+    path('inventario/item/<int:pk>/', inventario_item_conferir, name='inventario_item_conferir'),
+    path('inventario/divergencias/', inventario_divergencias, name='inventario_divergencias'),
+    path('inventario/divergencias/<int:pk>/decidir/', inventario_divergencia_decidir, name='inventario_divergencia_decidir'),
     path('relatorios/', relatorios, name='relatorios'),
     path('relatorios/ajuste-inventario/', ajuste_inventario, name='ajuste_inventario'),
     path('relatorios/ajuste-inventario/pdf/', ajuste_inventario_pdf, name='ajuste_inventario_pdf'),
+    path('relatorios/custo-por-regiao/', custo_por_regiao, name='custo_por_regiao'),
     path('essential/', essential, name='essential'),
     path('low_stock/', low_stock, name='low_stock'),
     path('expiration_alert/', expiration_alert, name='expiration_alert'),
@@ -31,6 +41,9 @@ urlpatterns = [
     path('overview/<int:pk>/ficha-tecnica/', ficha_tecnica, name='ficha_tecnica'),
     path('overview/<int:pk>/edit/', overview_edit, name='overview_edit'),
     path('overview/<int:pk>/essencial/', toggle_essential, name='toggle_essential'),
+    path('overview/<int:pk>/localizacao/adicionar/', adicionar_localizacao_extra, name='adicionar_localizacao_extra'),
+    path('overview/<int:pk>/localizacao/<int:localizacao_pk>/remover/', remover_localizacao_extra, name='remover_localizacao_extra'),
+    path('localizacao/buscar/', localizacao_search_ajax, name='localizacao_search_ajax'),
     
 
     # Url's de Solicitações
@@ -39,6 +52,7 @@ urlpatterns = [
     path('processing/create_request/', create_request, name='create_request'), 
     path('processing/create_update/',create_update,name= 'create_update'),
     path('processing/<int:pk>/update_request/', update_request, name='update_request'),
+    path('processing/<int:pk>/separar/', separar_solicitacao, name='separar_solicitacao'),
     path('processing/<int:pk>/update_request/qrcode/', qrcode_update, name='qrcode_update'),
     path('processing/<int:pk>/update_request/label/', label_update, name='label_update'),
     path('processing/<int:solicitacao_pk>/course/<int:tramitacao_pk>/', course, name='course'),
@@ -47,6 +61,7 @@ urlpatterns = [
     path('processing/parse-guia-remessa/', parse_guia_remessa, name='parse_guia_remessa'),
     path('processing/<int:pk>/edit-itens/', edit_solicitacao_itens, name='edit_solicitacao_itens'),
     path('processing/<int:pk>/edit/', edit_solicitacao, name='edit_solicitacao'),
+    path('processing/receber-lote/', receber_lote, name='receber_lote'),
     path('processing/<int:pk>/receber/', receber_solicitacao, name='receber_solicitacao'),
     path('processing/<int:solicitacao_pk>/receber/<int:tramitacao_pk>/confirmacao/', receber_confirmacao, name='receber_confirmacao'),
     path('processing/<int:solicitacao_pk>/receber/<int:tramitacao_pk>/pdf/', pdf_termo_recebimento, name='pdf_termo_recebimento'),
@@ -75,6 +90,8 @@ urlpatterns = [
     path('proposals/item/<int:pk>/delete/', proposal_item_delete, name='proposal_item_delete'),
     path('proposals/<int:pk>/contrato/', contrato_create, name='contrato_create'),
     path('contrato/<int:pk>/', contrato_detail, name='contrato_detail'),
+    path('contrato/<int:pk>/saldo/adicionar/', contrato_saldo_add, name='contrato_saldo_add'),
+    path('contrato/<int:pk>/aditivo/adicionar/', contrato_aditivo_create, name='contrato_aditivo_add'),
     path('contrato/<int:contrato_pk>/saldo/gerar/<int:proposal_pk>/', contrato_gerar_saldo, name='contrato_gerar_saldo'),
 
 

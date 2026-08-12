@@ -1,0 +1,260 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Conferir {{ item.item_shock.efisco }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f7f8fa; --surface:#ffffff;
+    --border:#e8eaef; --border-strong:#d7dbe3;
+    --ink:#1c1f26; --ink-2:#565d6b; --ink-3:#969dab;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-soft:#eef1fc;
+    --amber:#b7791f; --amber-soft:#fdf3e2;
+    --green:#1a7f5a; --green-soft:#e8f7f1; --green-mid:#bbf7d0;
+    --shadow:0 1px 2px rgba(20,24,34,.04), 0 8px 24px rgba(20,24,34,.05);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+    --r-sm:12px; --r-md:16px; --r-lg:20px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  .cpage{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--ink);}
+  .cwrap{max-width:620px;margin:0 auto;padding:32px 24px 100px;}
+
+  .aback{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--ink-3);text-decoration:none;margin-bottom:18px;font-weight:500;}
+  .aback:hover{color:var(--ink-2);}
+
+  /* ── Cabeçalho do item ── */
+  .chead{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:20px;box-shadow:var(--shadow);}
+  .cbadge{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:4px 11px;border-radius:999px;background:var(--green-soft);color:var(--green);margin-bottom:10px;}
+  .ctitle{font-size:1.15rem;font-weight:700;line-height:1.3;}
+  .cefisco{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);margin-top:5px;}
+  .cprev{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
+  .cprev-item{font-size:.82rem;color:var(--ink-2);}
+  .cprev-item b{font-family:var(--mono);color:var(--ink);}
+
+  /* ── Campos ── */
+  .cfield{margin-bottom:20px;}
+  .cfield-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:10px;}
+
+  .cstepper{display:flex;align-items:center;gap:12px;}
+  .cstepper-btn{
+    width:56px;height:56px;border-radius:var(--r-md);border:1.5px solid var(--border-strong);background:var(--surface);
+    color:var(--ink-2);font-size:1.5rem;font-weight:700;display:grid;place-items:center;cursor:pointer;flex-shrink:0;
+    box-shadow:var(--shadow);user-select:none;
+  }
+  .cstepper-btn:active{background:var(--bg);}
+  .cqty-input{
+    flex:1;height:64px;text-align:center;font-family:var(--mono);font-size:1.8rem;font-weight:800;color:var(--ink);
+    border:1.5px solid var(--border-strong);border-radius:var(--r-lg);background:var(--surface);outline:none;
+  }
+  .cqty-input:focus{border-color:var(--accent);}
+  .cqty-unit{text-align:center;font-size:.8rem;color:var(--ink-3);margin-top:8px;font-weight:600;}
+
+  .cloc-wrap{position:relative;}
+  .cloc-input{
+    width:100%;height:56px;padding:0 18px;border:1.5px solid var(--border-strong);border-radius:var(--r-lg);
+    font-family:var(--font);font-size:.95rem;color:var(--ink);background:var(--surface);outline:none;
+  }
+  .cloc-input:focus{border-color:var(--accent);}
+  .cloc-dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r-md);box-shadow:var(--shadow-md);max-height:220px;overflow-y:auto;z-index:20;display:none;
+  }
+  .cloc-dropdown.open{display:block;}
+  .cloc-opt{padding:12px 16px;cursor:pointer;font-size:.88rem;border-bottom:1px solid var(--border);}
+  .cloc-opt:last-child{border-bottom:none;}
+  .cloc-opt:hover{background:var(--bg);}
+  .cloc-opt b{font-family:var(--mono);}
+  .cloc-opt small{display:block;color:var(--ink-3);font-size:.72rem;margin-top:2px;}
+  .cloc-chip{
+    display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:8px 14px;border-radius:999px;
+    background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:.85rem;font-family:var(--mono);
+  }
+  .cloc-chip button{background:none;border:none;color:inherit;cursor:pointer;font-size:1rem;line-height:1;padding:0;}
+
+  .cobs textarea{
+    width:100%;padding:14px 16px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);
+    font-family:var(--font);font-size:.88rem;color:var(--ink);resize:vertical;min-height:70px;outline:none;
+  }
+  .cobs textarea:focus{border-color:var(--accent);}
+
+  /* ── Barra de ações ── */
+  .cbar{
+    position:sticky;bottom:16px;display:flex;gap:10px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow-md);margin-top:24px;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:14px 18px;border-radius:var(--r-sm);
+    font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:none;
+    border:1px solid transparent;transition:all .15s ease;white-space:nowrap;
+  }
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);flex:0 0 auto;}
+  .btn-ghost:hover{background:var(--bg);}
+  .btn-green{background:var(--green);border-color:#0f5c2b;color:#fff;flex:1;}
+  .btn-green:hover{background:#0f5c2b;}
+
+  @media(max-width:600px){
+    .cwrap{padding:20px 14px 100px;}
+  }
+</style>
+
+<div class="cpage">
+  <div class="cwrap">
+
+    <a href="{% url 'dimms:inventario_homepage' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="aback">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Inventário
+    </a>
+
+    <div class="chead">
+      {% if conferencia_existente %}
+        <span class="cbadge">✅ Já conferido neste período</span>
+      {% endif %}
+      <div class="ctitle">{{ item.description_manual|default:item.item_shock.descricao_efisco }}</div>
+      <div class="cefisco">{{ item.item_shock.efisco }}</div>
+      <div class="cprev">
+        <div class="cprev-item">Antes: <b>{{ item.amount_shock }} {{ item.item_shock.get_medida_display }}</b></div>
+        <div class="cprev-item">Local: <b>{{ item.locate|default:"—" }}</b></div>
+      </div>
+    </div>
+
+    <form method="post" id="form-conferir">
+      {% csrf_token %}
+      <input type="hidden" name="q" value="{{ query }}">
+      <input type="hidden" name="proximo_id" value="{% if proximo %}{{ proximo.pk }}{% endif %}">
+      <input type="hidden" name="localizacao_id" id="localizacaoId" value="{{ item.locate.pk|default:'' }}">
+
+      <div class="cfield">
+        <div class="cfield-label">Quantidade contada</div>
+        <div class="cstepper">
+          <button type="button" class="cstepper-btn" id="btnMenos">−</button>
+          <input type="text" inputmode="decimal" name="quantidade" id="qtyInput" class="cqty-input" value="{{ item.amount_shock }}">
+          <button type="button" class="cstepper-btn" id="btnMais">+</button>
+        </div>
+        <div class="cqty-unit">{{ item.item_shock.get_medida_display }}</div>
+      </div>
+
+      <div class="cfield">
+        <div class="cfield-label">Localização</div>
+        <div class="cloc-wrap">
+          <input type="text" class="cloc-input" id="locInput" placeholder="Digite o código (ex.: A36)…" autocomplete="off"
+                 value="{{ item.locate.prateleira_pallet|default:'' }}">
+          <div class="cloc-dropdown" id="locDropdown"></div>
+        </div>
+        <div id="locChipWrap">
+          {% if item.locate %}
+            <div class="cloc-chip" id="locChip">
+              📍 {{ item.locate }}
+              <button type="button" id="locChipClear">✕</button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="cfield cobs">
+        <div class="cfield-label">Observação (opcional)</div>
+        <textarea name="observacao" placeholder="Alguma divergência ou observação sobre este item…"></textarea>
+      </div>
+
+      <div class="cbar">
+        {% if proximo %}
+          <a href="{% url 'dimms:inventario_item_conferir' proximo.pk %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="btn btn-ghost">Pular</a>
+        {% else %}
+          <a href="{% url 'dimms:inventario_homepage' %}" class="btn btn-ghost">Pular</a>
+        {% endif %}
+        <button type="submit" class="btn btn-green">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmar {% if proximo %}e Próximo{% endif %}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    var qtyInput = document.getElementById('qtyInput');
+    var btnMais = document.getElementById('btnMais');
+    var btnMenos = document.getElementById('btnMenos');
+
+    function passo() {
+      var v = parseFloat(qtyInput.value.replace(',', '.'));
+      return isNaN(v) ? 1 : 1;
+    }
+
+    btnMais.addEventListener('click', function () {
+      var v = parseFloat(qtyInput.value.replace(',', '.')) || 0;
+      qtyInput.value = (v + passo()).toString();
+    });
+    btnMenos.addEventListener('click', function () {
+      var v = parseFloat(qtyInput.value.replace(',', '.')) || 0;
+      qtyInput.value = Math.max(0, v - passo()).toString();
+    });
+
+    var locInput = document.getElementById('locInput');
+    var locDropdown = document.getElementById('locDropdown');
+    var locId = document.getElementById('localizacaoId');
+    var chipWrap = document.getElementById('locChipWrap');
+    var timer = null;
+
+    function setChip(codigo, setor, id) {
+      locId.value = id;
+      chipWrap.innerHTML =
+        '<div class="cloc-chip" id="locChip">📍 ' + codigo + (setor ? ' · ' + setor : '') +
+        '<button type="button" id="locChipClear">✕</button></div>';
+      locInput.value = codigo;
+      document.getElementById('locChipClear').addEventListener('click', clearChip);
+    }
+    function clearChip() {
+      locId.value = '';
+      chipWrap.innerHTML = '';
+      locInput.value = '';
+      locInput.focus();
+    }
+
+    var existingClear = document.getElementById('locChipClear');
+    if (existingClear) existingClear.addEventListener('click', clearChip);
+
+    locInput.addEventListener('input', function () {
+      locId.value = '';
+      var q = locInput.value.trim();
+      clearTimeout(timer);
+      if (q.length < 1) {
+        locDropdown.classList.remove('open');
+        return;
+      }
+      timer = setTimeout(function () {
+        fetch('{% url "dimms:localizacao_search_ajax" %}?q=' + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var resultados = data.resultados || [];
+            if (!resultados.length) {
+              locDropdown.classList.remove('open');
+              return;
+            }
+            locDropdown.innerHTML = resultados.map(function (loc) {
+              return '<div class="cloc-opt" data-id="' + loc.id + '" data-codigo="' + loc.codigo + '" data-setor="' + (loc.setor || '') + '">' +
+                '<b>' + loc.codigo + '</b><small>' + (loc.setor || '') + '</small></div>';
+            }).join('');
+            locDropdown.classList.add('open');
+            locDropdown.querySelectorAll('.cloc-opt').forEach(function (opt) {
+              opt.addEventListener('click', function () {
+                setChip(opt.dataset.codigo, opt.dataset.setor, opt.dataset.id);
+                locDropdown.classList.remove('open');
+              });
+            });
+          });
+      }, 250);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!locDropdown.contains(e.target) && e.target !== locInput) {
+        locDropdown.classList.remove('open');
+      }
+    });
+  })();
+</script>
+{% endblock %}

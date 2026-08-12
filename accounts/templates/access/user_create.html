@@ -131,6 +131,24 @@
   .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
   .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
+  /* Checklist de requisitos da senha */
+  .pwd-requirements { display: flex; flex-direction: column; gap: 6px; }
+  .pwd-req {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .78rem; font-weight: 600; color: var(--ink-3);
+    transition: color .15s;
+  }
+  .pwd-req-icon {
+    width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; font-size: .6rem; font-weight: 800;
+    border: 1.5px solid var(--border-strong); background: var(--surface-2);
+    color: transparent; transition: all .15s;
+  }
+  .pwd-req.valid { color: var(--green); }
+  .pwd-req.valid .pwd-req-icon { background: var(--green); border-color: var(--green); color: #fff; }
+  .pwd-req.invalid { color: var(--red); }
+  .pwd-req.invalid .pwd-req-icon { background: var(--red-soft); border-color: var(--red-mid); color: var(--red); }
+
   @media (max-width: 600px) {
     .apage { padding: 14px 12px 32px; }
     .fields-row { grid-template-columns: 1fr; }
@@ -150,7 +168,7 @@
   <div class="page-title">Novo Usuário</div>
   <div class="page-sub">Preencha os dados para criar um novo acesso ao sistema.</div>
 
-  <form method="post" novalidate>
+  <form method="post" id="userCreateForm" novalidate>
     {% csrf_token %}
 
     <!-- Dados pessoais -->
@@ -195,11 +213,23 @@
         <div class="fields-row">
           <div class="field-group">
             <label class="field-label" for="id_password1">Senha <span>*</span></label>
-            <input class="field-input" type="password" id="id_password1" name="password1" placeholder="Mínimo 8 caracteres">
+            <input class="field-input" type="password" id="id_password1" name="password1" placeholder="Mínimo 8 caracteres" minlength="8" required>
           </div>
           <div class="field-group">
             <label class="field-label" for="id_password2">Confirmar Senha <span>*</span></label>
-            <input class="field-input" type="password" id="id_password2" name="password2" placeholder="Repita a senha">
+            <input class="field-input" type="password" id="id_password2" name="password2" placeholder="Repita a senha" minlength="8" required>
+          </div>
+        </div>
+
+        <div class="pwd-requirements" id="pwdRequirements">
+          <div class="pwd-req" data-check="length">
+            <span class="pwd-req-icon">•</span> Mínimo de 8 caracteres
+          </div>
+          <div class="pwd-req" data-check="notnumeric">
+            <span class="pwd-req-icon">•</span> Não pode ser só números
+          </div>
+          <div class="pwd-req" data-check="match">
+            <span class="pwd-req-icon">•</span> As senhas coincidem
           </div>
         </div>
       </div>
@@ -260,4 +290,60 @@
   </form>
 
 </div>
+
+<script>
+  // Checklist ao vivo dos requisitos da senha (verde = ok, vermelho = falta)
+  function wirePasswordRequirements(pass1Id, pass2Id, containerId) {
+    const pass1 = document.getElementById(pass1Id);
+    const pass2 = pass2Id ? document.getElementById(pass2Id) : null;
+    const container = document.getElementById(containerId);
+    if (!pass1 || !container) return;
+
+    function setState(el, valid) {
+      if (!el) return;
+      el.classList.toggle('valid', valid);
+      el.classList.toggle('invalid', !valid);
+      el.querySelector('.pwd-req-icon').textContent = valid ? '✓' : '✕';
+    }
+
+    function evaluate() {
+      const v1 = pass1.value;
+      const v2 = pass2 ? pass2.value : '';
+
+      setState(container.querySelector('[data-check="length"]'), v1.length >= 8);
+      setState(container.querySelector('[data-check="notnumeric"]'), v1.length > 0 && !/^\d+$/.test(v1));
+
+      const matchEl = container.querySelector('[data-check="match"]');
+      if (matchEl) setState(matchEl, v1.length > 0 && v1 === v2);
+
+      pass1.setCustomValidity(v1.length > 0 && v1.length < 8 ? 'A senha precisa ter pelo menos 8 caracteres.' : '');
+      if (pass2) {
+        const mismatch = v1 && v2 && v1 !== v2;
+        pass2.setCustomValidity(mismatch ? 'As senhas não coincidem.' : '');
+      }
+    }
+
+    pass1.addEventListener('input', evaluate);
+    if (pass2) pass2.addEventListener('input', evaluate);
+  }
+
+  wirePasswordRequirements('id_password1', 'id_password2', 'pwdRequirements');
+
+  (function () {
+    const form = document.getElementById('userCreateForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      const pass1 = document.getElementById('id_password1');
+      const pass2 = document.getElementById('id_password2');
+      if (!pass1 || !pass2) return;
+      if (!pass1.checkValidity()) {
+        e.preventDefault();
+        pass1.reportValidity();
+      } else if (!pass2.checkValidity()) {
+        e.preventDefault();
+        pass2.reportValidity();
+      }
+    });
+  })();
+</script>
 {% endblock %}

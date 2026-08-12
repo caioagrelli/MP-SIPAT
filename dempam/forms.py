@@ -2,7 +2,7 @@
 from django import forms
 
 # Importações do código
-from .models import InfoUA, CircunscricaoPredio, SetorDEMPAM, LocalizacaoDEMPAM, Aviso
+from .models import InfoUA, CircunscricaoPredio, SetorDEMPAM, LocalizacaoDEMPAM, Aviso, ConfiguracaoPainelTV
 from .utils import TipoLocalizacao
 
 # ================================================================
@@ -43,7 +43,7 @@ class InfoUAForm(forms.ModelForm):
 class AvisoForm(forms.ModelForm):
     class Meta:
         model = Aviso
-        fields = ['titulo', 'mensagem']
+        fields = ['titulo', 'mensagem', 'exibir_de', 'exibir_ate']
         widgets = {
             'titulo': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -53,6 +53,39 @@ class AvisoForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Mensagem do aviso',
+            }),
+            'exibir_de': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+            }),
+            'exibir_ate': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        exibir_de = cleaned_data.get('exibir_de')
+        exibir_ate = cleaned_data.get('exibir_ate')
+        if exibir_de and exibir_ate and exibir_de >= exibir_ate:
+            raise forms.ValidationError('A data final precisa ser depois da data inicial.')
+        return cleaned_data
+
+
+''' Painel de TV '''
+class ConfiguracaoPainelTVForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracaoPainelTV
+        fields = ['video_arquivo', 'video_url']
+        widgets = {
+            'video_arquivo': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'video/*',
+            }),
+            'video_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Link do YouTube ou link direto de um vídeo (.mp4)',
             }),
         }
 

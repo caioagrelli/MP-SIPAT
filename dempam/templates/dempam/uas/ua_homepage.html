@@ -28,6 +28,9 @@
   .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
   .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
   .btn-primary:hover{background:var(--accent-dark);color:#fff;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
   /* ── KPI strip ── */
   .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
@@ -100,10 +103,16 @@
       <div class="topbar-title">Unidades Administrativas</div>
       <div class="topbar-sub">Visualize e gerencie as UAs cadastradas.</div>
     </div>
-    <a href="{% url 'dempam:ua_add' %}" class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      Nova UA
-    </a>
+    <div class="topbar-actions">
+      <a href="{% url 'dempam:ua_export_xlsx' %}" class="btn btn-ghost">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar Planilha
+      </a>
+      <a href="{% url 'dempam:ua_add' %}" class="btn btn-primary">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Nova UA
+      </a>
+    </div>
   </div>
 
   <!-- ── KPIs ── -->

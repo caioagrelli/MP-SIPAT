@@ -69,7 +69,7 @@
   <div class="form-card">
     <div class="form-title">{{ action }} acompanhamento</div>
 
-    <form method="post">
+    <form method="post" id="formSei">
       {% csrf_token %}
 
       <div class="form-group">
@@ -229,7 +229,7 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.tema-search-wrap')) closeDropdown();
 });
 
-document.querySelector('form').addEventListener('submit', (e) => {
+document.getElementById('formSei').addEventListener('submit', (e) => {
   if (!temaHidden.value) {
     e.preventDefault();
     alert('Selecione um tema existente na lista de sugestões antes de salvar.');

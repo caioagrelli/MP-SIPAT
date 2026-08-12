@@ -99,6 +99,11 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL  = config('DEFAULT_FROM_EMAIL', default='SIPAT <noreply@mppe.mp.br>')
 SIPAT_URL           = config('SIPAT_URL', default='http://localhost:8000')
 
+# Evolution API — envio de mensagens de WhatsApp
+EVOLUTION_API_URL   = config('EVOLUTION_API_URL', default='').rstrip('/')
+EVOLUTION_API_KEY   = config('EVOLUTION_API_KEY', default='')
+EVOLUTION_INSTANCE  = config('EVOLUTION_INSTANCE', default='')
+
 # comportamento comum do OIDC
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_RP_SCOPES = "openid email profile"

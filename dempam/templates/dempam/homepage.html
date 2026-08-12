@@ -151,8 +151,11 @@
       <a href="{% url 'accounts:lista_feedback' %}" class="btn btn-ghost">
         💬 Feedbacks
       </a>
-      <a href="{% url 'dempam:aviso_criar' %}" class="btn btn-ghost">
-        📌 Novo Aviso
+      <a href="{% url 'dempam:aviso_lista' %}" class="btn btn-ghost">
+        📌 Avisos
+      </a>
+      <a href="{% url 'dempam:painel_tv_config' %}" class="btn btn-ghost">
+        🎬 Vídeo do Painel
       </a>
       <a href="#" class="btn btn-primary">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -237,10 +240,10 @@
       <div class="qa-title">Cadastros</div>
       <div class="qa-sub">Base administrativa</div>
     </a>
-    <a href="#" class="qa-tile">
+    <a href="{% url 'dempam:painel_tv' %}" class="qa-tile" target="_blank">
       <div class="qa-icon">📺</div>
       <div class="qa-title">Televisão</div>
-      <div class="qa-sub">Provisório</div>
+      <div class="qa-sub">Painel de gestão à vista</div>
     </a>
   </div>
 

@@ -1,4 +1,6 @@
 # Importações do Jungle     Welcome to the jungle, we got fun and games - Guns N' Roses
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 from django.db import transaction
@@ -408,4 +410,111 @@ class BensEnviados(models.Model):
     def __str__(self):
         status = 'Recebida' if self.recebida else 'Pendente'
         return f'Remessa {status} — {self.quantidade_enviada} un. — {self.item_enviado}'
+
+
+""" Aditivos de Contrato """
+# Aditivo — acréscimo de quantidade em itens já existentes no contrato e/ou itens novos
+class AditivoContrato(models.Model):
+    contrato = models.ForeignKey(
+        Contrato,
+        on_delete=models.PROTECT,
+        related_name='aditivos',
+        verbose_name='Contrato',
+    )
+
+    numero = models.CharField(
+        max_length=30,
+        unique=True,
+        editable=False,
+        verbose_name='Número do Aditivo',
+    )
+
+    numero_empenho = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='N° Empenho',
+    )
+
+    documento = models.FileField(
+        upload_to=path_documento_aditivo,
+        blank=True,
+        null=True,
+        verbose_name='Documento',
+    )
+
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='aditivos_criados',
+        verbose_name='Criado por',
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+
+    def save(self, *args, **kwargs):
+        if not self.numero:
+            salvar_com_codigo_sequencial(self, 'numero', 'ADT', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    class Meta():
+        verbose_name = 'Aditivo de Contrato'
+        verbose_name_plural = '14 - Aditivos de Contrato'
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f'{self.numero} — {self.contrato}'
+
+    @property
+    def valor_total(self):
+        return sum((item.valor_total for item in self.itens.all()), Decimal('0'))
+
+
+# Item de um aditivo — pode ser acréscimo em item já existente ou item novo no contrato
+class ItemAditivoContrato(models.Model):
+    aditivo = models.ForeignKey(
+        AditivoContrato,
+        on_delete=models.CASCADE,
+        related_name='itens',
+        verbose_name='Aditivo',
+    )
+
+    efisco = models.ForeignKey(
+        BensConsumo,
+        on_delete=models.PROTECT,
+        related_name='itens_aditivo',
+        verbose_name='Efisco',
+    )
+
+    quantidade_acrescida = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        verbose_name='Quantidade Acrescida',
+    )
+
+    preco_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        validators=[MinValueValidator(0.01)],
+        verbose_name='Preço Unitário (R$)',
+    )
+
+    item_novo = models.BooleanField(
+        default=False,
+        verbose_name='Item novo no contrato',
+    )
+
+    class Meta():
+        verbose_name = 'Item de Aditivo'
+        verbose_name_plural = '15 - Itens de Aditivo'
+
+    def __str__(self):
+        return f'{self.efisco} (+{self.quantidade_acrescida})'
+
+    @property
+    def valor_total(self):
+        return self.quantidade_acrescida * self.preco_unitario
    

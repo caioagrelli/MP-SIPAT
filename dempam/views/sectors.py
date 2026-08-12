@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, ProtectedError, Case, When, Value, IntegerField
 from django.views.decorators.http import require_POST
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib.staticfiles import finders
 from django.urls import reverse
 
@@ -217,10 +217,68 @@ def sector_detail(request, pk):
     })
 
 
+''' Busca de itens dentro do setor — usada pela caixa de pesquisa "onde está o item" '''
+@login_required
+def sector_item_search(request, pk):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    query = request.GET.get('q', '').strip()
+
+    if len(query) < 2:
+        return JsonResponse({'resultados': []})
+
+    itens = (
+        Estoque.objects
+        .filter(Q(locate__setor_sala=setor) | Q(outras_localizacoes__setor_sala=setor))
+        .filter(
+            Q(item_shock__efisco__icontains=query) |
+            Q(description_manual__icontains=query) |
+            Q(mark__icontains=query)
+        )
+        .select_related('item_shock', 'locate')
+        .prefetch_related('outras_localizacoes')
+        .distinct()
+        .order_by('description_manual')[:30]
+    )
+
+    def _serializar(item, loc):
+        return {
+            'efisco': item.item_shock.efisco,
+            'descricao': item.description_manual or item.item_shock.descricao_efisco,
+            'marca': item.mark or '',
+            'quantidade': str(item.amount_shock),
+            'localizacao': loc.prateleira_pallet,
+            'corredor': loc.corredor,
+            'estante': loc.estante,
+            'prateleira': loc.prateleira,
+            'locate_url': reverse('dempam:locate_detail', args=[loc.pk]),
+            'corredor_url': (
+                reverse('dempam:corredor_detail', args=[setor.pk, loc.corredor])
+                if loc.corredor else None
+            ),
+        }
+
+    # cada item pode aparecer mais de uma vez: uma linha por localização (principal
+    # ou "outras localizações") que pertença a este setor
+    resultados = []
+    for item in itens:
+        if item.locate_id and item.locate.setor_sala_id == setor.pk:
+            resultados.append(_serializar(item, item.locate))
+        for loc in item.outras_localizacoes.all():
+            if loc.setor_sala_id == setor.pk:
+                resultados.append(_serializar(item, loc))
+
+    return JsonResponse({'resultados': resultados[:30]})
+
+
 @login_required
 def locate_detail(request, pk):
     localizacao = get_object_or_404(LocalizacaoDEMPAM, pk=pk)
-    itens = localizacao.localizacao_consumo.select_related('item_shock').all()
+    itens = (
+        Estoque.objects
+        .filter(Q(locate=localizacao) | Q(outras_localizacoes=localizacao))
+        .select_related('item_shock')
+        .distinct()
+    )
     total_qtd = sum(i.amount_shock for i in itens)
     return render(request, 'dempam/sectors/locate_detail.html', {
         'localizacao': localizacao,
@@ -291,7 +349,7 @@ def _desenhar_cartaz_corredor(c, w, h, setor, corredor, qr_reader):
     c.setFont('Helvetica-Bold', 18)
     c.drawString(48 * mm, h - 21 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
     c.setFont('Helvetica', 12)
-    c.drawString(48 * mm, h - 30 * mm, 'SIPAT — Sistema Integrado Patrimonial de Apoio Técnico')
+    c.drawString(48 * mm, h - 30 * mm, 'SIPAT — Sistema Integrado Patrimonial')
     c.setFont('Helvetica-Bold', 12)
     c.drawString(48 * mm, h - 39 * mm, setor.setor.upper())
 
@@ -358,7 +416,8 @@ def imprimir_corredores(request, pk):
     return resp
 
 
-''' Página (acessada pelo QR code do cartaz) com o conteúdo de todas as prateleiras de um corredor '''
+''' Página (acessada pelo QR code do cartaz) com o conteúdo de todas as prateleiras de um corredor,
+organizada por estante e depois por prateleira '''
 @login_required
 def corredor_detail(request, pk, corredor):
     setor = get_object_or_404(SetorDEMPAM, pk=pk)
@@ -370,22 +429,42 @@ def corredor_detail(request, pk, corredor):
     if not localizacoes.exists():
         raise Http404('Corredor não encontrado.')
 
-    grupos = []
-    prateleiras_vazias = []
+    por_estante = {}
+    todos_itens = []
     total_itens = 0
     for loc in localizacoes:
-        itens = list(loc.localizacao_consumo.select_related('item_shock').all())
+        itens = list(
+            Estoque.objects
+            .filter(Q(locate=loc) | Q(outras_localizacoes=loc))
+            .select_related('item_shock')
+            .distinct()
+        )
         total_itens += len(itens)
-        if itens:
-            grupos.append({'localizacao': loc, 'itens': itens})
-        else:
-            prateleiras_vazias.append(loc)
+        por_estante.setdefault(loc.estante or '—', []).append({'localizacao': loc, 'itens': itens})
+        for item in itens:
+            todos_itens.append({'item': item, 'localizacao': loc})
+
+    estantes_ordenadas = sorted(por_estante.keys(), key=lambda e: (len(e), e))
+    estantes = [
+        {
+            'estante': estante,
+            'prateleiras': por_estante[estante],
+            'total_prateleiras': len(por_estante[estante]),
+            'com_itens': sum(1 for p in por_estante[estante] if p['itens']),
+            'total_itens': sum(len(p['itens']) for p in por_estante[estante]),
+        }
+        for estante in estantes_ordenadas
+    ]
+
+    grupos_com_itens = [p for grupo in estantes for p in grupo['prateleiras'] if p['itens']]
+    todos_itens.sort(key=lambda x: (x['localizacao'].estante or '', x['localizacao'].prateleira or ''))
 
     return render(request, 'dempam/sectors/corredor_detail.html', {
         'setor': setor,
         'corredor': corredor,
-        'grupos': grupos,
-        'prateleiras_vazias': prateleiras_vazias,
+        'estantes': estantes,
+        'grupos_com_itens': grupos_com_itens,
+        'todos_itens': todos_itens,
         'total_itens': total_itens,
         'total_prateleiras': localizacoes.count(),
     })

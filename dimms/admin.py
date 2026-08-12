@@ -19,6 +19,7 @@ class BensConsumoAdmin(admin.ModelAdmin):
         'descricao_efisco',
         'medida',
         'grupo_consumo',
+        'preco_medio',
     )
     
     search_fields=(
@@ -301,6 +302,17 @@ class SaldoAtivoAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+# Aditivos de contrato
+@admin.register(AditivoContrato)
+class AditivoContratoAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'contrato', 'numero_empenho', 'valor_total', 'criado_por', 'criado_em')
+    search_fields = ('numero', 'contrato__contrato', 'numero_empenho')
+
+@admin.register(ItemAditivoContrato)
+class ItemAditivoContratoAdmin(admin.ModelAdmin):
+    list_display = ('aditivo', 'efisco', 'quantidade_acrescida', 'item_novo')
+    search_fields = ('aditivo__numero', 'efisco__efisco')
 
 # Solicitações do saldo ativo
 @admin.register(SolicitacoesSaldoAtivo)
@@ -615,4 +627,19 @@ class SeiUpdateAdmin(admin.ModelAdmin):
     list_filter   = ('date',)
     search_fields = ('sei__sei_number', 'text')
     autocomplete_fields = ('sei',)
+
+
+''' Inventário mensal de estoque '''
+@admin.register(PeriodoInventarioConsumo)
+class PeriodoInventarioConsumoAdmin(admin.ModelAdmin):
+    list_display  = ('__str__', 'aberto', 'total_conferidos', 'total_itens', 'criado_por')
+    list_filter   = ('aberto', 'ano')
+
+
+@admin.register(ConferenciaEstoque)
+class ConferenciaEstoqueAdmin(admin.ModelAdmin):
+    list_display  = ('item', 'periodo', 'quantidade_conferida', 'localizacao_conferida', 'conferido_por', 'conferido_em')
+    list_filter   = ('periodo',)
+    search_fields = ('item__item_shock__efisco', 'item__description_manual')
+    autocomplete_fields = ('item',)
 

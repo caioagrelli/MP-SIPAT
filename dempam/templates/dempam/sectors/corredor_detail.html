@@ -65,12 +65,28 @@
   .main-table tbody tr:hover td{background:#f5f8ff;}
   .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
 
-  /* ── Vazias ── */
-  .vazias-card{background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-  .vazias-label{font-size:.8rem;color:var(--ink-3);font-weight:600;flex-shrink:0;}
-  .vazias-chips{display:flex;flex-wrap:wrap;gap:7px;}
-  .vazia-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-3);text-decoration:none;font-family:var(--mono);font-size:.75rem;font-weight:700;transition:background .12s,color .12s;}
-  .vazia-chip:hover{background:var(--border);color:var(--ink);}
+  /* ── Estantes ── */
+  .estante-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);margin-bottom:14px;overflow:hidden;}
+  .estante-head{padding:13px 20px;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .estante-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.88rem;}
+  .estante-stats{font-size:.74rem;color:var(--ink-3);font-family:var(--mono);}
+  .prateleira-grid{display:flex;flex-wrap:wrap;gap:8px;padding:16px 20px;}
+  .prateleira-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;text-decoration:none;font-family:var(--mono);font-size:.8rem;font-weight:700;transition:background .12s,border-color .12s,transform .12s;}
+  .prateleira-chip:hover{transform:translateY(-1px);}
+  .prateleira-chip.vazia{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-3);}
+  .prateleira-chip.vazia:hover{background:var(--border);color:var(--ink);}
+  .prateleira-chip.com-itens{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);}
+  .prateleira-chip.com-itens:hover{background:var(--blue-mid);}
+  .prateleira-chip .qty{background:rgba(255,255,255,.6);border-radius:999px;padding:1px 6px;font-size:.7rem;}
+
+  /* ── Todos os itens + busca ── */
+  .itens-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);margin-bottom:24px;overflow:hidden;}
+  .itens-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface-2);}
+  .itens-title{font-weight:800;font-size:.95rem;display:flex;align-items:center;gap:8px;}
+  .search-wrap{padding:14px 20px;border-bottom:1px solid var(--border);}
+  .search-input{width:100%;height:40px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;}
+  .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .itens-empty{padding:32px 20px;text-align:center;color:var(--ink-3);font-size:.85rem;}
 
   /* ── Empty state geral ── */
   .empty-state{padding:60px 24px;text-align:center;color:var(--ink-3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);}
@@ -100,85 +116,151 @@
         <div class="hero-sub">{{ total_prateleiras }} prateleira{{ total_prateleiras|pluralize }} cadastrada{{ total_prateleiras|pluralize }}</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="n">{{ grupos|length }}</div>
-          <div class="l">Com itens</div>
-        </div>
-        <div class="hero-stat">
-          <div class="n">{{ total_itens }}</div>
-          <div class="l">Itens</div>
-        </div>
-      </div>
-      <div class="hero-actions">
-        <a href="{% url 'dempam:imprimir_corredores' setor.pk %}?corredor={{ corredor }}" class="hero-btn" target="_blank">
-          🖨️ Imprimir
-        </a>
-      </div>
-    </div>
   </div>
 
-  {% if grupos %}
-    <div class="quicknav">
-      {% for grupo in grupos %}
-        <a href="#loc-{{ grupo.localizacao.pk }}">🗄️ {{ grupo.localizacao.prateleira_pallet }} <span class="qty">· {{ grupo.itens|length }}</span></a>
-      {% endfor %}
+  <div class="itens-card">
+    <div class="itens-head">
+      <div class="itens-title">📦 Todos os itens do corredor {{ corredor }}</div>
+      <span class="total-badge">{{ todos_itens|length }} item{{ todos_itens|length|pluralize }}</span>
     </div>
-  {% endif %}
-
-  {% if not grupos and not prateleiras_vazias %}
-    <div class="empty-state">
-      <span class="empty-state-icon">🗄️</span>
-      <div class="empty-state-title">Nenhuma prateleira encontrada neste corredor</div>
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="busca-itens" placeholder="Pesquisar por E-Fisco, descrição, marca, estante ou prateleira…">
     </div>
-  {% endif %}
-
-  {% for grupo in grupos %}
-    <div class="prateleira-card" id="loc-{{ grupo.localizacao.pk }}">
-      <div class="prateleira-head">
-        <div class="prateleira-title">
-          🗄️ <a href="{% url 'dempam:locate_detail' grupo.localizacao.pk %}">{{ grupo.localizacao.prateleira_pallet }}</a>
-        </div>
-        <span class="total-badge">{{ grupo.itens|length }} item{{ grupo.itens|length|pluralize }}</span>
-      </div>
-      <table class="main-table">
+    {% if todos_itens %}
+      <table class="main-table" id="tabela-itens">
         <thead>
           <tr>
             <th>E-Fisco</th>
             <th>Descrição</th>
             <th>Marca</th>
             <th>Quantidade</th>
+            <th>Localização</th>
           </tr>
         </thead>
         <tbody>
-          {% for item in grupo.itens %}
-            <tr>
-              <td class="mono-cell">{{ item.item_shock.efisco }}</td>
+          {% for reg in todos_itens %}
+            <tr data-busca="{{ reg.item.item_shock.efisco|lower }} {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco|lower }} {{ reg.item.mark|lower }} {{ reg.localizacao.prateleira_pallet|lower }} {{ reg.localizacao.estante }} {{ reg.localizacao.prateleira }}">
+              <td class="mono-cell">{{ reg.item.item_shock.efisco }}</td>
               <td>
-                <a href="{% url 'dimms:overview' item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
-                  {{ item.description_manual|default:item.item_shock.descricao_efisco }}
+                <a href="{% url 'dimms:overview' reg.item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                  {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco }}
                 </a>
               </td>
-              <td>{{ item.mark|default:"—" }}</td>
-              <td class="mono-cell">{{ item.amount_shock }}</td>
+              <td>{{ reg.item.mark|default:"—" }}</td>
+              <td class="mono-cell">{{ reg.item.amount_shock }}</td>
+              <td>
+                <a href="{% url 'dempam:locate_detail' reg.localizacao.pk %}" style="color:var(--ink-2);text-decoration:none;font-family:var(--mono);font-size:.8rem;font-weight:700;">
+                  🗄️ {{ reg.localizacao.prateleira_pallet }}
+                </a>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
-    </div>
-  {% endfor %}
+      <div class="itens-empty" id="busca-vazio" style="display:none;">Nenhum item encontrado para essa busca.</div>
+    {% else %}
+      <div class="itens-empty">Nenhum item cadastrado neste corredor ainda.</div>
+    {% endif %}
+  </div>
 
-  {% if prateleiras_vazias %}
-    <div class="section-label">Prateleiras sem itens</div>
-    <div class="vazias-card">
-      <span class="vazias-label">{{ prateleiras_vazias|length }} prateleira{{ prateleiras_vazias|length|pluralize }} vazia{{ prateleiras_vazias|length|pluralize }}:</span>
-      <div class="vazias-chips">
-        {% for loc in prateleiras_vazias %}
-          <a href="{% url 'dempam:locate_detail' loc.pk %}" class="vazia-chip">{{ loc.prateleira_pallet }}</a>
+  {% if grupos_com_itens %}
+    <div class="quicknav">
+      {% for grupo in grupos_com_itens %}
+        <a href="#loc-{{ grupo.localizacao.pk }}">🗄️ {{ grupo.localizacao.prateleira_pallet }} <span class="qty">· {{ grupo.itens|length }}</span></a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if not estantes %}
+    <div class="empty-state">
+      <span class="empty-state-icon">🗄️</span>
+      <div class="empty-state-title">Nenhuma prateleira encontrada neste corredor</div>
+    </div>
+  {% endif %}
+
+  <div class="section-label">Por estante</div>
+
+  {% for grupo in estantes %}
+    <div class="estante-section">
+      <div class="estante-head">
+        <div class="estante-title">📚 Estante {{ grupo.estante }}</div>
+        <div class="estante-stats">{{ grupo.com_itens }}/{{ grupo.total_prateleiras }} com itens · {{ grupo.total_itens }} item{{ grupo.total_itens|pluralize }}</div>
+      </div>
+      <div class="prateleira-grid">
+        {% for p in grupo.prateleiras %}
+          {% if p.itens %}
+            <a href="#loc-{{ p.localizacao.pk }}" class="prateleira-chip com-itens">
+              🗄️ {{ p.localizacao.prateleira_pallet }} <span class="qty">{{ p.itens|length }}</span>
+            </a>
+          {% else %}
+            <a href="{% url 'dempam:locate_detail' p.localizacao.pk %}" class="prateleira-chip vazia">
+              {{ p.localizacao.prateleira_pallet }}
+            </a>
+          {% endif %}
         {% endfor %}
       </div>
     </div>
+  {% endfor %}
+
+  {% if grupos_com_itens %}
+    <div class="section-label">Conteúdo das prateleiras com itens</div>
+    {% for grupo in grupos_com_itens %}
+      <div class="prateleira-card" id="loc-{{ grupo.localizacao.pk }}">
+        <div class="prateleira-head">
+          <div class="prateleira-title">
+            🗄️ <a href="{% url 'dempam:locate_detail' grupo.localizacao.pk %}">{{ grupo.localizacao.prateleira_pallet }}</a>
+          </div>
+          <span class="total-badge">{{ grupo.itens|length }} item{{ grupo.itens|length|pluralize }}</span>
+        </div>
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th>E-Fisco</th>
+              <th>Descrição</th>
+              <th>Marca</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in grupo.itens %}
+              <tr>
+                <td class="mono-cell">{{ item.item_shock.efisco }}</td>
+                <td>
+                  <a href="{% url 'dimms:overview' item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                    {{ item.description_manual|default:item.item_shock.descricao_efisco }}
+                  </a>
+                </td>
+                <td>{{ item.mark|default:"—" }}</td>
+                <td class="mono-cell">{{ item.amount_shock }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
   {% endif %}
 </div>
+
+<script>
+  (function () {
+    var input = document.getElementById('busca-itens');
+    var tabela = document.getElementById('tabela-itens');
+    if (!input || !tabela) return;
+
+    var linhas = tabela.querySelectorAll('tbody tr');
+    var vazio = document.getElementById('busca-vazio');
+
+    input.addEventListener('input', function () {
+      var termo = input.value.trim().toLowerCase();
+      var visiveis = 0;
+      linhas.forEach(function (linha) {
+        var ok = linha.dataset.busca.indexOf(termo) !== -1;
+        linha.style.display = ok ? '' : 'none';
+        if (ok) visiveis++;
+      });
+      tabela.style.display = visiveis === 0 ? 'none' : '';
+      vazio.style.display = visiveis === 0 ? '' : 'none';
+    });
+  })();
+</script>
 {% endblock %}

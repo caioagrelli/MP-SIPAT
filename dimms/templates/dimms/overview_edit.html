@@ -85,6 +85,48 @@
 
   .help-text{font-size:.75rem;color:var(--ink-3);margin-top:3px;}
 
+  /* ─── LOCALIZAÇÕES ─── */
+  .extra-loc-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 8px 6px 13px;
+    border-radius: 999px; background: var(--blue-soft); border: 1px solid var(--blue-mid);
+    color: var(--blue); font-family: var(--mono); font-size: .8rem; font-weight: 700;
+  }
+  .extra-loc-chip a.loc-link { color: var(--blue); text-decoration: none; }
+  .extra-loc-chip a.loc-link:hover { text-decoration: underline; }
+  .extra-loc-chip.principal { background: var(--green-soft); border-color: var(--green-mid); color: var(--green); }
+  .extra-loc-chip.principal a.loc-link { color: var(--green); }
+  .extra-loc-tag {
+    font-family: var(--font); font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    background: rgba(255,255,255,.6); border-radius: 999px; padding: 2px 8px;
+  }
+  .extra-loc-remove {
+    width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(255,255,255,.6);
+    color: var(--blue); cursor: pointer; display: grid; place-items: center; font-size: 12px; line-height: 1; padding: 0;
+  }
+  .extra-loc-remove:hover { background: #fff; color: var(--red); }
+  .extra-loc-empty { color: var(--ink-3); font-size: .84rem; }
+  .extra-loc-add-wrap { position: relative; margin-top: 14px; }
+  .extra-loc-add-row { display: flex; gap: 8px; }
+  .extra-loc-input {
+    flex: 1; height: 38px; padding: 0 12px; border: 1.5px solid var(--border-strong); border-radius: var(--r-sm);
+    font-family: var(--font); font-size: .85rem; color: var(--ink); background: var(--surface); outline: none;
+  }
+  .extra-loc-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .extra-loc-dropdown {
+    position: absolute; top: 42px; left: 0; right: 92px; background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm); box-shadow: var(--shadow-md); z-index: 20; max-height: 220px; overflow-y: auto; display: none;
+  }
+  .extra-loc-dropdown.open { display: block; }
+  .extra-loc-option {
+    padding: 9px 13px; cursor: pointer; font-size: .84rem; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 10px;
+  }
+  .extra-loc-option:last-child { border-bottom: none; }
+  .extra-loc-option:hover { background: var(--surface-2); }
+  .extra-loc-option .codigo { font-family: var(--mono); font-weight: 700; color: var(--ink); }
+  .extra-loc-option .setor { color: var(--ink-3); font-size: .76rem; }
+  .extra-loc-dropdown-empty { padding: 10px 13px; font-size: .82rem; color: var(--ink-3); }
+
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
   @media(max-width:720px){.form-grid{grid-template-columns:1fr;}.opage{padding:14px 12px 32px;}}
 </style>
@@ -173,8 +215,9 @@
           </div>
 
           <div class="field {% if form.locate.errors %}has-error{% endif %}">
-            <label class="field-label" for="{{ form.locate.id_for_label }}">Localização</label>
+            <label class="field-label" for="{{ form.locate.id_for_label }}">Localização Principal</label>
             {% render_field form.locate %}
+            <div class="help-text">Para adicionar outras localizações além desta, use a seção "Localizações" abaixo.</div>
             {% for e in form.locate.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
           </div>
 
@@ -230,5 +273,111 @@
 
   </form>
 
+  <!-- LOCALIZAÇÕES -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon ci-blue">📍</div>
+      <div class="card-title">Localizações</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex; flex-wrap:wrap; gap:8px;" id="extra-loc-list">
+        {% if item.locate %}
+          <span class="extra-loc-chip principal">
+            <a href="{% url 'dempam:locate_detail' item.locate.pk %}" class="loc-link">
+              🗄️ {{ item.locate }}{% if item.locate.setor_sala %} · {{ item.locate.setor_sala }}{% endif %} · {{ item.locate.get_tipo_localizacao_display|default:"—" }}
+            </a>
+            <span class="extra-loc-tag">Principal</span>
+          </span>
+        {% endif %}
+        {% for loc in item.outras_localizacoes.all %}
+          <span class="extra-loc-chip" data-loc-id="{{ loc.pk }}">
+            <a href="{% url 'dempam:locate_detail' loc.pk %}" class="loc-link">
+              🗄️ {{ loc }}{% if loc.setor_sala %} · {{ loc.setor_sala }}{% endif %} · {{ loc.get_tipo_localizacao_display|default:"—" }}
+            </a>
+            <form method="post" action="{% url 'dimms:remover_localizacao_extra' item.pk loc.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="extra-loc-remove" title="Remover">✕</button>
+            </form>
+          </span>
+        {% empty %}
+          {% if not item.locate %}
+            <span class="extra-loc-empty" id="extra-loc-empty-msg">Este item ainda não está associado a nenhuma localização.</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <form method="post" action="{% url 'dimms:adicionar_localizacao_extra' item.pk %}" class="extra-loc-add-wrap" id="extra-loc-form">
+        {% csrf_token %}
+        <input type="hidden" name="localizacao_id" id="extra-loc-id">
+        <div class="extra-loc-add-row">
+          <input type="text" class="extra-loc-input" id="extra-loc-search" placeholder="Buscar prateleira por código (ex.: A23)…" autocomplete="off">
+          <button type="submit" class="btn btn-ghost" id="extra-loc-submit" disabled>+ Adicionar</button>
+        </div>
+        <div class="extra-loc-dropdown" id="extra-loc-dropdown"></div>
+      </form>
+    </div>
+  </div>
+
 </div>
+
+<script>
+  (function () {
+    var input = document.getElementById('extra-loc-search');
+    var dropdown = document.getElementById('extra-loc-dropdown');
+    var hiddenId = document.getElementById('extra-loc-id');
+    var submitBtn = document.getElementById('extra-loc-submit');
+    if (!input || !dropdown) return;
+
+    var timer = null;
+
+    function fecharDropdown() {
+      dropdown.classList.remove('open');
+      dropdown.innerHTML = '';
+    }
+
+    input.addEventListener('input', function () {
+      hiddenId.value = '';
+      submitBtn.disabled = true;
+      var termo = input.value.trim();
+      clearTimeout(timer);
+
+      if (termo.length < 1) {
+        fecharDropdown();
+        return;
+      }
+
+      timer = setTimeout(function () {
+        fetch('{% url "dimms:localizacao_search_ajax" %}?q=' + encodeURIComponent(termo))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.resultados.length) {
+              dropdown.innerHTML = '<div class="extra-loc-dropdown-empty">Nenhuma prateleira encontrada.</div>';
+              dropdown.classList.add('open');
+              return;
+            }
+            dropdown.innerHTML = data.resultados.map(function (r) {
+              return '<div class="extra-loc-option" data-id="' + r.id + '" data-codigo="' + r.codigo + '">' +
+                       '<span class="codigo">' + r.codigo + '</span>' +
+                       '<span class="setor">' + (r.setor || '') + '</span>' +
+                     '</div>';
+            }).join('');
+            dropdown.classList.add('open');
+          });
+      }, 250);
+    });
+
+    dropdown.addEventListener('click', function (e) {
+      var opt = e.target.closest('.extra-loc-option');
+      if (!opt) return;
+      input.value = opt.dataset.codigo;
+      hiddenId.value = opt.dataset.id;
+      submitBtn.disabled = false;
+      fecharDropdown();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.extra-loc-add-wrap')) fecharDropdown();
+    });
+  })();
+</script>
 {% endblock %}

@@ -145,12 +145,9 @@ class SolicitacaoCatalogoConsumo(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.codigo:
-            ano = timezone.now().year
-            ultimo = SolicitacaoCatalogoConsumo.objects.filter(
-                codigo__startswith=f'SCC-{ano}'
-            ).count() + 1
-            self.codigo = f'SCC-{ano}-{ultimo:04d}'
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'codigo', 'SCC', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     @property
     def total_itens(self):

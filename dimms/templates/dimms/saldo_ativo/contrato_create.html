@@ -111,7 +111,7 @@
       <div class="form-header-sub">Registre um contrato para gerenciar o saldo ativo de bens de consumo</div>
     </div>
 
-    <form method="post" novalidate>
+    <form method="post" novalidate id="formContratoCreate">
       {% csrf_token %}
       <div class="form-body">
 
@@ -275,7 +275,7 @@ input.addEventListener('keydown', e => {
 function highlight(items) { items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx)); }
 
 // ao submeter, se nada selecionado usa o texto digitado
-document.querySelector('form').addEventListener('submit', () => {
+document.getElementById('formContratoCreate').addEventListener('submit', () => {
   if (!hidden.value && input.value.trim()) hidden.value = input.value.trim();
 });
 

@@ -287,7 +287,7 @@
                         <strong>{{ aviso.titulo }}</strong>
                         <span class="mov-data">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}</span>
                     </div>
-                    <div style="color:var(--ink-3); font-size:.82rem;">{{ aviso.mensagem }}</div>
+                    <div style="color:var(--ink-3); font-size:.82rem;">{{ aviso.mensagem|linebreaksbr }}</div>
                     {% if aviso.autor %}
                         <div style="color:var(--ink-3); font-size:.74rem;">— {{ aviso.autor.get_full_name|default:aviso.autor.username }}</div>
                     {% endif %}

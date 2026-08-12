@@ -120,6 +120,22 @@
   .prateleira-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border-strong);color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:.76rem;font-weight:700;transition:background .12s,border-color .12s;}
   .prateleira-chip:hover{background:var(--blue-soft);border-color:var(--blue-mid);}
 
+  /* ── Busca de itens ── */
+  .item-search-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:20px 22px;margin-bottom:24px;}
+  .item-search-title{font-weight:800;font-size:.92rem;margin-bottom:12px;}
+  .item-search-input{width:100%;height:42px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:.88rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;}
+  .item-search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .item-search-results{margin-top:2px;}
+  .item-result{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .item-result:last-child{border-bottom:none;}
+  .item-result-info{min-width:0;}
+  .item-result-desc{font-weight:700;font-size:.85rem;color:var(--ink);}
+  .item-result-meta{font-size:.76rem;color:var(--ink-3);margin-top:2px;}
+  .item-result-loc{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .item-result-loc a{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);text-decoration:none;font-family:var(--mono);font-size:.78rem;font-weight:700;}
+  .item-result-loc a:hover{background:var(--blue-mid);}
+  .item-search-empty,.item-search-hint{padding:14px 4px;color:var(--ink-3);font-size:.82rem;}
+
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
   @media(max-width:640px){.kpi-strip{grid-template-columns:1fr 1fr;}.apage{padding:14px 12px 32px;}}
 </style>
@@ -184,6 +200,13 @@
         <div class="kpi-icon ki-blue">📦</div>
       </div>
     </div>
+  </div>
+
+  <!-- ── Busca de itens ── -->
+  <div class="item-search-card">
+    <div class="item-search-title">🔎 Onde está o item?</div>
+    <input type="text" class="item-search-input" id="busca-item-setor" placeholder="Pesquisar por E-Fisco, descrição ou marca…" autocomplete="off">
+    <div class="item-search-results" id="resultados-busca-item"></div>
   </div>
 
   <!-- ── Navegação por corredor ── -->
@@ -336,5 +359,59 @@
   function toggleBlock(id) {
     document.getElementById(id).classList.toggle('open');
   }
+
+  (function () {
+    var input = document.getElementById('busca-item-setor');
+    var resultados = document.getElementById('resultados-busca-item');
+    if (!input || !resultados) return;
+
+    var timer = null;
+    var urlBase = '{% url "dempam:sector_item_search" setor.pk %}';
+
+    function renderResultados(dados) {
+      if (!dados.length) {
+        resultados.innerHTML = '<div class="item-search-empty">Nenhum item encontrado com esse termo.</div>';
+        return;
+      }
+      resultados.innerHTML = dados.map(function (r) {
+        var local = r.localizacao
+          ? (r.corredor ? 'Corredor ' + r.corredor + ' · Estante ' + r.estante + ' · ' + r.localizacao : r.localizacao)
+          : 'Sem localização definida';
+        var linkLoc = r.locate_url
+          ? '<a href="' + r.locate_url + '">🗄️ ' + r.localizacao + '</a>'
+          : '';
+        return (
+          '<div class="item-result">' +
+            '<div class="item-result-info">' +
+              '<div class="item-result-desc">' + r.descricao + '</div>' +
+              '<div class="item-result-meta">' + r.efisco + (r.marca ? ' · ' + r.marca : '') + ' · Qtd. ' + r.quantidade + '</div>' +
+            '</div>' +
+            '<div class="item-result-loc">' + (linkLoc || '<span class="item-search-hint" style="padding:0;">' + local + '</span>') + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    input.addEventListener('input', function () {
+      var termo = input.value.trim();
+      clearTimeout(timer);
+
+      if (termo.length < 2) {
+        resultados.innerHTML = termo.length
+          ? '<div class="item-search-hint">Digite pelo menos 2 caracteres…</div>'
+          : '';
+        return;
+      }
+
+      timer = setTimeout(function () {
+        fetch(urlBase + '?q=' + encodeURIComponent(termo))
+          .then(function (resp) { return resp.json(); })
+          .then(function (data) { renderResultados(data.resultados); })
+          .catch(function () {
+            resultados.innerHTML = '<div class="item-search-empty">Erro ao buscar. Tente novamente.</div>';
+          });
+      }, 300);
+    });
+  })();
 </script>
 {% endblock %}

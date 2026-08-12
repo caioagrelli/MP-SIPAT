@@ -6,6 +6,8 @@ from datetime import datetime
 # Importações padrões do Django Unchained   'What kind of dentist are you?' - Quentin Tarantino
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -289,13 +291,20 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
         registrado_por = tramitacao.user_update.get_full_name() or tramitacao.user_update.username
     data_str = tramitacao.date_update.strftime('%d/%m/%Y às %H:%M') if tramitacao.date_update else '—'
     etapa_display = tramitacao.get_update_display() if hasattr(tramitacao, 'get_update_display') else tramitacao.update
-    for i, (lbl, val) in enumerate([
+    linhas_etapa = [
         ('ID da Etapa',              f'#{tramitacao.pk}'),
         ('Status / Etapa',           etapa_display or '—'),
         ('Data de Registro',         data_str),
         ('Registrado por',           registrado_por),
         ('Responsável Operacional',  tramitacao.responsible_update or '—'),
-    ]):
+    ]
+    if tramitacao.matricula_recebedor or tramitacao.cpf_recebedor or tramitacao.empresa_orgao_recebedor:
+        linhas_etapa += [
+            ('Matrícula de Quem Recebeu',       tramitacao.matricula_recebedor or '—'),
+            ('CPF de Quem Recebeu',             tramitacao.cpf_recebedor or '—'),
+            ('Empresa/Órgão de Quem Recebeu',   tramitacao.empresa_orgao_recebedor or '—'),
+        ]
+    for i, (lbl, val) in enumerate(linhas_etapa):
         y = row(lbl, val, y, shade=(i % 2 == 1))
 
     y -= 6 * mm
@@ -331,7 +340,7 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
         try:
             photo_path = tramitacao.photo_update.path
             if os.path.exists(photo_path):
-                max_img_h = 90 * mm
+                max_img_h = 150 * mm
                 max_img_w = w - 28 * mm
 
                 if y < max_img_h + 30 * mm:
@@ -361,7 +370,7 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
             pass
 
     # ── Assinatura ────────────────────────────────────────────────────────────
-    if y < 40 * mm:
+    if y < 60 * mm:
         footer()
         c.showPage()
         y = h_page - 30 * mm
@@ -369,6 +378,7 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
     y -= 10 * mm
     sig_w = 80 * mm
     sig_x = (w - sig_w) / 2
+
     c.setStrokeColor(colors.HexColor('#c8cfe0'))
     c.setLineWidth(0.6)
     c.line(sig_x, y, sig_x + sig_w, y)
@@ -824,6 +834,9 @@ def receber_solicitacao(request, pk):
                 update=StatusTramitacao.recebida,
                 responsible_update=form.cleaned_data['nome_recebedor'],
                 photo_update=form.cleaned_data.get('foto_recebedor'),
+                matricula_recebedor=form.cleaned_data.get('matricula_recebedor', ''),
+                cpf_recebedor=form.cleaned_data.get('cpf_recebedor', ''),
+                empresa_orgao_recebedor=form.cleaned_data.get('empresa_orgao_recebedor', ''),
                 user_update=request.user,
             )
             messages.success(request, 'Recebimento registrado com sucesso.')
@@ -834,6 +847,66 @@ def receber_solicitacao(request, pk):
     return render(request, 'dimms/processing/receber_solicitacao.html', {
         'form': form,
         'solicitacao': solicitacao,
+    })
+
+
+# Registrar o recebimento de várias solicitações separadas de uma vez só —
+# um recebedor, uma foto, aplicados a todas as selecionadas
+@login_required
+def receber_lote(request):
+    fila = (
+        Solicitacao.objects
+        .filter(situation=StatusTramitacao.separada)
+        .select_related('ua_order')
+        .order_by('-data_order')
+    )
+
+    if request.method == 'POST':
+        ids_selecionados = request.POST.getlist('solicitacoes')
+        nome_recebedor = request.POST.get('nome_recebedor', '').strip()
+        matricula_recebedor = request.POST.get('matricula_recebedor', '').strip()
+        cpf_recebedor = request.POST.get('cpf_recebedor', '').strip()
+        empresa_orgao_recebedor = request.POST.get('empresa_orgao_recebedor', '').strip()
+        foto = request.FILES.get('foto_recebedor')
+
+        if not ids_selecionados:
+            messages.error(request, 'Selecione ao menos uma solicitação para receber.')
+            return redirect('dimms:receber_lote')
+        if not nome_recebedor:
+            messages.error(request, 'Informe o nome de quem vai receber.')
+            return redirect('dimms:receber_lote')
+
+        solicitacoes = list(
+            Solicitacao.objects.filter(pk__in=ids_selecionados, situation=StatusTramitacao.separada)
+        )
+        if not solicitacoes:
+            messages.error(request, 'As solicitações selecionadas não estão mais disponíveis para recebimento.')
+            return redirect('dimms:receber_lote')
+
+        foto_bytes = None
+        foto_ext = '.jpg'
+        if foto:
+            foto_bytes = foto.read()
+            foto_ext = os.path.splitext(foto.name)[1] or '.jpg'
+
+        with transaction.atomic():
+            for solicitacao in solicitacoes:
+                Tramitacao.objects.create(
+                    request_update=solicitacao,
+                    update=StatusTramitacao.recebida,
+                    responsible_update=nome_recebedor,
+                    photo_update=ContentFile(foto_bytes, name=f'foto{foto_ext}') if foto_bytes else None,
+                    matricula_recebedor=matricula_recebedor,
+                    cpf_recebedor=cpf_recebedor,
+                    empresa_orgao_recebedor=empresa_orgao_recebedor,
+                    user_update=request.user,
+                )
+
+        messages.success(request, f'{len(solicitacoes)} solicitação(ões) recebida(s) com sucesso.')
+        return redirect('dimms:almoxarifado_acesso_rapido')
+
+    return render(request, 'dimms/processing/receber_lote.html', {
+        'fila': fila,
     })
 
 
@@ -1078,6 +1151,53 @@ def update_request(request, pk):
         'historico': historico,
     }
     return render(request, 'dimms/processing/update_request.html', context)
+
+# Separação de itens: marca quais bens já foram fisicamente separados e finaliza a etapa
+@login_required
+def separar_solicitacao(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    itens = (
+        solicitacao.bens_solicitados
+        .select_related(
+            'item_order__item_shock',
+            'item_order__locate__setor_sala',
+        )
+        .prefetch_related('item_order__outras_localizacoes__setor_sala')
+        .all()
+    )
+
+    pode_separar = solicitacao.situation in (StatusTramitacao.atendimento, StatusTramitacao.aguar_separada)
+
+    if request.method == 'POST' and pode_separar:
+        marcados = set(request.POST.getlist('item_separado'))
+
+        for item in itens:
+            item.separado = str(item.pk) in marcados
+            item.save(update_fields=['separado'])
+
+        if request.POST.get('acao') == 'finalizar':
+            Tramitacao.objects.create(
+                request_update=solicitacao,
+                update=StatusTramitacao.separada,
+                responsible_update=request.user.get_full_name() or request.user.username,
+                user_update=request.user,
+            )
+            messages.success(request, 'Solicitação marcada como Separada.')
+            return redirect('dimms:details_processing', pk=solicitacao.pk)
+
+        messages.success(request, 'Progresso da separação salvo.')
+        return redirect('dimms:separar_solicitacao', pk=solicitacao.pk)
+
+    context = {
+        'solicitacao': solicitacao,
+        'itens': itens,
+        'pode_separar': pode_separar,
+        'total_itens': itens.count(),
+        'total_separados': sum(1 for i in itens if i.separado),
+    }
+    return render(request, 'dimms/processing/separar.html', context)
+
 
 # qrcode da página de update geral (sendo a partir de uma solicitação)
 @login_required

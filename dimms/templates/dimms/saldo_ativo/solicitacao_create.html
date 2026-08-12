@@ -95,6 +95,12 @@ select{height:42px;}
 .ci-value{color:var(--ink);font-weight:600;font-size:.82rem;text-align:right;}
 .ci-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
 
+/* busca de itens do contrato */
+.itens-search-wrap{position:relative;padding:14px 16px;border-bottom:1px solid var(--border);}
+.itens-search-wrap .search-icon-abs{position:absolute;left:29px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;}
+.itens-search-wrap input{padding-left:38px;}
+.itens-search-empty{padding:24px;text-align:center;font-size:.83rem;color:var(--ink-3);display:none;}
+
 /* nf upload area */
 .upload-area{
   border:2px dashed var(--border-strong);border-radius:var(--r-sm);
@@ -333,6 +339,11 @@ select{height:42px;}
           Carregando itens...
         </div>
 
+        <div id="itens-search-wrap" class="itens-search-wrap" style="display:none;">
+          <svg class="search-icon-abs" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="itens-search" placeholder="Buscar por E-Fisco ou nome do item…" autocomplete="off">
+        </div>
+
         <div id="itens-table-wrap" style="display:none;overflow-x:auto;">
           <table class="item-table">
             <thead>
@@ -348,6 +359,7 @@ select{height:42px;}
             </thead>
             <tbody id="itens-tbody"></tbody>
           </table>
+          <div id="itens-search-empty" class="itens-search-empty">Nenhum item encontrado para essa busca.</div>
         </div>
 
         <div id="itens-sem-saldo" class="itens-empty" style="display:none;">
@@ -386,6 +398,9 @@ const itensLoading  = document.getElementById('itens-loading');
 const itensTableWrap= document.getElementById('itens-table-wrap');
 const itensSemSaldo = document.getElementById('itens-sem-saldo');
 const itensTbody    = document.getElementById('itens-tbody');
+const itensSearchWrap  = document.getElementById('itens-search-wrap');
+const itensSearchInput = document.getElementById('itens-search');
+const itensSearchEmpty = document.getElementById('itens-search-empty');
 const checkAll      = document.getElementById('check-all');
 const btnSubmit     = document.getElementById('btn-submit');
 const badgeSelec    = document.getElementById('badge-selecionados');
@@ -414,6 +429,7 @@ function buildRows(itens) {
   itensTbody.innerHTML = '';
   itens.forEach(item => {
     const tr = document.createElement('tr');
+    tr.dataset.search = `${item.efisco} ${item.descricao} ${item.marca || ''}`.toLowerCase();
     tr.innerHTML = `
       <td class="item-check">
         <input type="checkbox" data-id="${item.id}" class="item-cb">
@@ -459,12 +475,30 @@ function buildRows(itens) {
   itensTbody.addEventListener('input', function(e) {
     if (e.target.type === 'number') syncResumo();
   });
+
+  filterItens();
 }
+
+function filterItens() {
+  const q = itensSearchInput.value.trim().toLowerCase();
+  const rows = itensTbody.querySelectorAll('tr');
+  let visiveis = 0;
+  rows.forEach(tr => {
+    const match = !q || tr.dataset.search.includes(q);
+    tr.style.display = match ? '' : 'none';
+    if (match) visiveis++;
+  });
+  itensSearchEmpty.style.display = (rows.length > 0 && visiveis === 0) ? 'block' : 'none';
+}
+
+itensSearchInput.addEventListener('input', filterItens);
 
 function loadItens(contratoId) {
   itensEmpty.style.display = 'none';
   itensSemSaldo.style.display = 'none';
   itensTableWrap.style.display = 'none';
+  itensSearchWrap.style.display = 'none';
+  itensSearchInput.value = '';
   itensLoading.style.display = 'block';
   checkAll.checked = false;
   syncResumo();
@@ -480,6 +514,7 @@ function loadItens(contratoId) {
       buildRows(data.itens);
       document.getElementById('ci-qtd-itens').textContent = data.itens.length + ' item(ns)';
       itensTableWrap.style.display = 'block';
+      itensSearchWrap.style.display = 'block';
     })
     .catch(() => {
       itensLoading.style.display = 'none';

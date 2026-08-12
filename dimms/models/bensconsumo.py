@@ -57,6 +57,15 @@ class BensConsumo(models.Model):
         verbose_name='Almoxarifado',
     )
 
+    preco_medio = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        verbose_name='Preço Médio',
+    )
+
     class Meta():
         verbose_name='Bem de Consumo'
         verbose_name_plural='01 - Bens de Consumo'
@@ -92,7 +101,14 @@ class Estoque(models.Model):
         null=True,
         related_name='localizacao_consumo',
         verbose_name='Localização',)
-    
+
+    outras_localizacoes = models.ManyToManyField(
+        LocalizacaoDEMPAM,
+        blank=True,
+        related_name='itens_tambem_aqui',
+        verbose_name='Outras localizações',
+    )
+
     monthly_consumption = models.PositiveIntegerField(blank=True,null=True,verbose_name='Consumo Mensal',)
     
     essential = models.BooleanField(default=False,blank=True, verbose_name='Essencial',)

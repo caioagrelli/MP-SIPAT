@@ -114,6 +114,15 @@ class AvisoAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(ConfiguracaoPainelTV)
+class ConfiguracaoPainelTVAdmin(admin.ModelAdmin):
+    list_display = (
+        'video_url',
+        'atualizado_por',
+        'atualizado_em',
+    )
+
+
 @admin.register(LocalizacaoDEMPAM)
 class LocalizacaoDEMPAMAdmin(admin.ModelAdmin):
     

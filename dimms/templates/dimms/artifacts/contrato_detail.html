@@ -66,6 +66,7 @@
   .ci-blue{background:var(--blue-soft);}
   .ci-green{background:var(--green-soft);}
   .ci-amber{background:var(--amber-soft);}
+  .ci-violet{background:var(--violet-soft);}
   .card-title{font-size:.88rem;font-weight:700;color:var(--ink);}
   .card-body{padding:18px;}
 
@@ -94,12 +95,6 @@
   .fill-ok{background:var(--green);}
   .fill-warn{background:var(--amber);}
   .fill-low{background:var(--red);}
-
-  /* Add saldo form */
-  .add-form-wrap{background:var(--surface-2);border-top:1px solid var(--border);padding:18px;}
-  .add-form-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:14px;}
-  .add-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:560px){.add-form-grid{grid-template-columns:1fr;}}
 
   /* Form edit */
   .form-section{margin-bottom:24px;}
@@ -232,6 +227,11 @@
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
       Solicitações
       <span class="tab-count">{{ solicitacoes.count }}</span>
+    </a>
+    <a href="?tab=aditivo" class="tab-btn {% if active_tab == 'aditivo' %}active{% endif %}">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Aditivo de Contrato
+      <span class="tab-count">{{ aditivos.count }}</span>
     </a>
     <a href="?tab=editar" class="tab-btn {% if active_tab == 'editar' %}active{% endif %}">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -393,51 +393,21 @@
       <div class="empty-state">
         <div class="empty-icon">🏦</div>
         <div style="font-size:.88rem;font-weight:600;margin-bottom:4px;">Nenhum item no saldo ativo</div>
-        <div style="font-size:.8rem;">Adicione itens abaixo.</div>
+        <div style="font-size:.8rem;">Adicione itens pelo botão abaixo.</div>
       </div>
       {% endif %}
 
       <!-- Adicionar item ao saldo -->
       {% if contrato.status == 'CANCELADO' %}
-      <div style="background:var(--red-soft);border:1px solid var(--red-mid);border-radius:var(--r-sm);padding:12px 16px;margin-top:16px;font-size:.85rem;color:var(--red);">
+      <div style="background:var(--red-soft);border:1px solid var(--red-mid);border-radius:var(--r-sm);padding:12px 16px;margin:16px;font-size:.85rem;color:var(--red);">
         🚫 Este contrato está <strong>cancelado</strong> — não é possível adicionar novos itens ao saldo ativo.
       </div>
       {% else %}
-      <div class="add-form-wrap">
-        <div class="add-form-title">Adicionar Item ao Saldo Ativo</div>
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="add_saldo" value="1">
-          <div class="add-form-grid">
-            <div class="form-group">
-              <label class="form-label">{{ form.efisco.label }}</label>
-              {{ form.efisco }}
-              {% if form.efisco.errors %}<div style="color:#b91c1c;font-size:.75rem;">{{ form.efisco.errors|join:", " }}</div>{% endif %}
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ form.quantidade_contrato.label }}</label>
-              {{ form.quantidade_contrato }}
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ form.marca.label }}</label>
-              {{ form.marca }}
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ form.cota.label }}</label>
-              {{ form.cota }}
-            </div>
-            <div class="form-group" style="grid-column:1/-1;">
-              <label class="form-label">{{ form.descricao_manual.label }}</label>
-              {{ form.descricao_manual }}
-            </div>
-          </div>
-          <div style="margin-top:14px;display:flex;justify-content:flex-end;">
-            <button type="submit" class="btn btn-primary btn-sm">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar
-            </button>
-          </div>
-        </form>
+      <div style="padding:16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+        <a href="{% url 'dimms:contrato_saldo_add' contrato.pk %}" class="btn btn-primary btn-sm">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar Item ao Saldo
+        </a>
       </div>
       {% endif %}
     </div>
@@ -476,6 +446,78 @@
         <div style="font-size:.88rem;font-weight:600;margin-bottom:6px;">Nenhuma solicitação neste contrato</div>
         <a href="{% url 'dimms:saldo_ativo_solicitacao_create' %}?contrato={{ contrato.pk }}" class="btn btn-primary btn-sm" style="margin-top:4px;">Criar Solicitação</a>
       </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Painel: Aditivo de Contrato -->
+  <div class="tab-panel {% if active_tab == 'aditivo' %}active{% endif %}" id="panel-aditivo">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon ci-violet">📎</div>
+          <div class="card-title">Aditivos deste Contrato</div>
+        </div>
+        {% if contrato.status != 'CANCELADO' %}
+        <a href="{% url 'dimms:contrato_aditivo_add' contrato.pk %}" class="btn btn-primary btn-sm">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Aditivo
+        </a>
+        {% endif %}
+      </div>
+
+      {% if aditivos %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Empenho</th>
+              <th>Documento</th>
+              <th>Valor Total</th>
+              <th>Itens</th>
+              <th>Criado por</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for aditivo in aditivos %}
+              <tr>
+                <td><span class="mono" style="color:var(--blue);font-weight:700;">{{ aditivo.numero }}</span></td>
+                <td>{{ aditivo.numero_empenho|default:"—" }}</td>
+                <td>
+                  {% if aditivo.documento %}
+                    <a href="{{ aditivo.documento.url }}" target="_blank" class="btn btn-ghost btn-sm">📄 Abrir</a>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="mono">R$ {{ aditivo.valor_total|floatformat:2 }}</td>
+                <td>
+                  <details>
+                    <summary style="cursor:pointer;color:var(--ink-2);">{{ aditivo.itens.count }} item(ns)</summary>
+                    <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+                      {% for item in aditivo.itens.all %}
+                        <div style="font-size:.8rem;">
+                          <span class="mono" style="color:var(--blue);">{{ item.efisco.efisco }}</span>
+                          — {{ item.efisco.descricao_efisco }} · +{{ item.quantidade_acrescida }} × R$ {{ item.preco_unitario|floatformat:2 }} = R$ {{ item.valor_total|floatformat:2 }}
+                          {% if item.item_novo %}<span class="pill pill-ok" style="margin-left:4px;">novo</span>{% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </details>
+                </td>
+                <td>{{ aditivo.criado_por.get_full_name|default:aditivo.criado_por.username|default:"—" }}</td>
+                <td class="mono" style="white-space:nowrap;">{{ aditivo.criado_em|date:"d/m/Y H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📎</div>
+          <div style="font-size:.88rem;font-weight:600;margin-bottom:6px;">Nenhum aditivo registrado neste contrato</div>
+          {% if contrato.status != 'CANCELADO' %}
+            <a href="{% url 'dimms:contrato_aditivo_add' contrato.pk %}" class="btn btn-primary btn-sm" style="margin-top:4px;">Criar Aditivo</a>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
   </div>

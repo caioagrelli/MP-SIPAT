@@ -1,4 +1,6 @@
 # Importações do Django
+from decimal import Decimal
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.http import HttpResponse
@@ -11,9 +13,10 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas as rl_canvas
 
 # Importações do código
-from ..models import Estoque
+from ..models import Estoque, SolicitacaoItens
 from ..utils import GrupoConsumo
 from .saldo_ativo import _pdf_header, _fmt_dt
+from dempam.models import CircunscricaoPredio, InfoUA
 
 # ====================================
 # RELATÓRIOS DO DIMMS (BENS DE CONSUMO)
@@ -179,3 +182,86 @@ def ajuste_inventario_pdf(request):
 
     c.save()
     return resp
+
+
+''' Custo por Região — soma o preço médio × quantidade pedida de todas as UAs de uma circunscrição '''
+@login_required
+def custo_por_regiao(request):
+    circunscricoes = CircunscricaoPredio.objects.all().order_by('local')
+
+    circ_id = request.GET.get('circunscricao', '').strip()
+    data_de = request.GET.get('data_de', '').strip()
+    data_ate = request.GET.get('data_ate', '').strip()
+
+    circunscricao_selecionada = None
+    linhas = []
+    total_geral = Decimal('0')
+    total_qtd_geral = Decimal('0')
+    qtd_solicitacoes_geral = 0
+    itens_sem_preco = 0
+    bens_sem_preco = set()
+
+    if circ_id:
+        circunscricao_selecionada = CircunscricaoPredio.objects.filter(pk=circ_id).first()
+
+    if circunscricao_selecionada:
+        uas = InfoUA.objects.filter(circunscricao_predio=circunscricao_selecionada)
+
+        itens = (
+            SolicitacaoItens.objects
+            .filter(
+                request_defendant__ua_order__in=uas,
+                item_order__isnull=False,
+                amount_order__isnull=False,
+            )
+            .select_related('item_order__item_shock', 'request_defendant__ua_order')
+        )
+
+        if data_de:
+            itens = itens.filter(request_defendant__data_order__date__gte=data_de)
+        if data_ate:
+            itens = itens.filter(request_defendant__data_order__date__lte=data_ate)
+
+        por_ua = {}
+        for it in itens:
+            ua = it.request_defendant.ua_order
+            if ua is None:
+                continue
+
+            linha = por_ua.setdefault(ua.pk, {
+                'ua': ua,
+                'total_qtd': Decimal('0'),
+                'total_custo': Decimal('0'),
+                'solicitacoes': set(),
+            })
+            linha['total_qtd'] += it.amount_order
+            linha['solicitacoes'].add(it.request_defendant_id)
+
+            preco = it.item_order.item_shock.preco_medio
+            if preco is not None:
+                linha['total_custo'] += it.amount_order * preco
+            else:
+                itens_sem_preco += 1
+                bens_sem_preco.add(it.item_order.item_shock_id)
+
+        linhas = sorted(por_ua.values(), key=lambda l: l['total_custo'], reverse=True)
+        for l in linhas:
+            l['qtd_solicitacoes'] = len(l['solicitacoes'])
+
+        total_geral = sum((l['total_custo'] for l in linhas), Decimal('0'))
+        total_qtd_geral = sum((l['total_qtd'] for l in linhas), Decimal('0'))
+        qtd_solicitacoes_geral = len(set().union(*[l['solicitacoes'] for l in linhas])) if linhas else 0
+
+    context = {
+        'circunscricoes': circunscricoes,
+        'circunscricao_selecionada': circunscricao_selecionada,
+        'data_de': data_de,
+        'data_ate': data_ate,
+        'linhas': linhas,
+        'total_geral': total_geral,
+        'total_qtd_geral': total_qtd_geral,
+        'qtd_solicitacoes_geral': qtd_solicitacoes_geral,
+        'itens_sem_preco': itens_sem_preco,
+        'qtd_bens_sem_preco': len(bens_sem_preco),
+    }
+    return render(request, 'dimms/relatorios/custo_por_regiao.html', context)

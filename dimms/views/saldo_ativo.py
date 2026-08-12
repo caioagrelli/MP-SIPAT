@@ -651,7 +651,7 @@ def _pdf_header(c, w, h_page, titulo, subtitulo='', codigo='', data_str=''):
     c.setFont('Helvetica-Bold', 12)
     c.drawString(36*mm, h_page - 16*mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
     c.setFont('Helvetica', 8.5)
-    c.drawString(36*mm, h_page - 23*mm, 'SIPAT — Sistema Integrado Patrimonial de Apoio Técnico')
+    c.drawString(36*mm, h_page - 23*mm, 'SIPAT — Sistema Integrado Patrimonial')
     c.setFont('Helvetica-Bold', 10)
     c.drawString(36*mm, h_page - 31*mm, titulo.upper())
     if subtitulo:

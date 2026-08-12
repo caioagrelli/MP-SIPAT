@@ -1,0 +1,478 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="360">
+  <title>SIPAT — Painel de Gestão à Vista</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1220; --panel: #131c2e; --panel-2: #1a2740;
+      --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.16);
+      --ink: #f4f6fb; --ink-2: #b9c3d9; --ink-3: #7c8aa8;
+      --blue: #3b82f6; --blue-soft: rgba(59,130,246,.14);
+      --green: #22c55e; --green-soft: rgba(34,197,94,.14);
+      --amber: #f59e0b; --amber-soft: rgba(245,158,11,.14);
+      --red: #ef4444; --red-soft: rgba(239,68,68,.14);
+      --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;}
+    body{
+      font-family:var(--font); background:radial-gradient(circle at 15% 0%, #16233c 0%, var(--bg) 55%);
+      color:var(--ink); overflow:hidden; cursor:none;
+    }
+    .tv{display:flex;flex-direction:column;height:100vh;padding:26px 34px 20px;}
+
+    /* ── Header ── */
+    .tv-header{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:22px;flex-shrink:0;}
+    .tv-brand{display:flex;align-items:center;gap:18px;}
+    .tv-brand img{width:58px;height:58px;border-radius:14px;background:rgba(255,255,255,.06);padding:6px;}
+    .tv-brand-name{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;}
+    .tv-brand-sub{font-size:.86rem;color:var(--ink-3);margin-top:2px;font-weight:600;}
+    .tv-clock{text-align:right;}
+    .tv-clock .time{font-family:var(--mono);font-size:2.1rem;font-weight:700;letter-spacing:.02em;}
+    .tv-clock .date{font-size:.82rem;color:var(--ink-3);margin-top:2px;text-transform:capitalize;}
+
+    /* ── Barra de progresso: tempo até trocar de seção ── */
+    .tv-progress-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-shrink:0;}
+    .tv-progress-wrap{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+    .tv-progress-bar{height:100%;width:0%;background:var(--blue);border-radius:2px;transition:width 1s linear;}
+    .tv-progress-label{font-family:var(--mono);font-size:.74rem;color:var(--ink-3);white-space:nowrap;min-width:70px;text-align:right;}
+
+    /* ── Body: modos em loop (vídeo / kpis / avisos) ── */
+    .tv-body{flex:1;display:flex;min-height:0;}
+
+    .mode-panel{display:none;flex:1;flex-direction:column;min-height:0;}
+    .mode-panel.active{display:flex;}
+
+    /* ── Modo vídeo ── */
+    #mode-video{align-items:center;justify-content:center;}
+    #mode-video video{width:100%;height:100%;object-fit:contain;border-radius:20px;background:#000;}
+    #mode-video iframe{width:100%;height:100%;border-radius:20px;background:#000;}
+
+    .slide-dots{display:flex;gap:7px;flex-shrink:0;justify-content:center;margin-bottom:2px;}
+    .slide-dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);transition:background .2s,transform .2s;}
+    .slide-dot.active{background:var(--blue);transform:scale(1.3);}
+
+    /* ── Modo Solicitações ── */
+    .solic-panel{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:22px;min-height:0;}
+    .solic-col{background:var(--panel);border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:20px;padding:26px 30px;display:flex;flex-direction:column;min-height:0;}
+    .solic-col.aguardando{border-top-color:var(--amber);}
+    .solic-col.separadas{border-top-color:var(--green);}
+    .solic-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-shrink:0;}
+    .solic-col-title{font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:10px;}
+    .solic-count{font-family:var(--mono);font-size:.95rem;font-weight:700;background:rgba(255,255,255,.08);border-radius:999px;padding:5px 14px;}
+    .solic-list{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:10px;}
+    .solic-row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--panel-2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;}
+    .solic-row .codigo{font-family:var(--mono);font-weight:800;font-size:1.05rem;}
+    .solic-row .ua{font-size:.86rem;color:var(--ink-2);margin-top:3px;}
+    .solic-row .data{font-family:var(--mono);font-size:.82rem;color:var(--ink-3);white-space:nowrap;}
+    .solic-empty{color:var(--ink-3);font-size:1.05rem;text-align:center;padding:40px 0;flex:1;display:flex;align-items:center;justify-content:center;}
+    .solic-more{color:var(--ink-3);font-size:.84rem;text-align:center;margin-top:12px;flex-shrink:0;}
+    .solic-dots{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-shrink:0;}
+
+    /* ── Avisos (em loop, um por vez) ── */
+    .avisos-panel{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:36px 48px;display:flex;flex-direction:column;min-height:0;}
+    .avisos-title{font-size:1.1rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-shrink:0;}
+    .avisos-title .count{margin-left:auto;color:var(--ink-3);font-weight:600;font-size:.8rem;font-family:var(--mono);}
+    .avisos-stage{flex:1;position:relative;min-height:0;}
+    .aviso-slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--panel-2);border:1px solid var(--border);border-radius:16px;padding:40px 60px;}
+    .aviso-slide.active{display:flex;}
+    .aviso-slide .titulo{font-size:2.1rem;font-weight:800;margin-bottom:20px;line-height:1.25;}
+    .aviso-slide .msg{font-size:1.3rem;color:var(--ink-2);line-height:1.6;overflow-y:auto;max-width:900px;}
+    .aviso-slide .meta{font-size:.85rem;color:var(--ink-3);margin-top:24px;font-family:var(--mono);flex-shrink:0;}
+    .avisos-empty{color:var(--ink-3);font-size:1.1rem;padding:20px 0;text-align:center;display:flex;align-items:center;justify-content:center;height:100%;}
+    .avisos-dots{display:flex;gap:8px;justify-content:center;margin-top:20px;flex-shrink:0;}
+
+    /* ── Footer ── */
+    .tv-footer{flex-shrink:0;margin-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--ink-3);}
+    .tv-footer .dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+    #tv-audio-toggle{
+      position:fixed;bottom:18px;right:18px;z-index:100;width:38px;height:38px;border-radius:50%;
+      background:rgba(255,255,255,.08);border:1px solid var(--border-strong);color:var(--ink-2);
+      font-size:16px;cursor:pointer;display:grid;place-items:center;
+    }
+    #tv-audio-toggle.muted{opacity:.5;}
+  </style>
+</head>
+<body>
+
+<audio id="tv-audio" loop preload="auto">
+  <source src="{% static 'audio/painel-tv.m4a' %}" type="audio/mp4">
+</audio>
+
+<button type="button" id="tv-audio-toggle" title="Som">🔊</button>
+
+<div class="tv">
+
+  <div class="tv-header">
+    <div class="tv-brand">
+      <img src="{% static 'img/brasao-mppe.png' %}" alt="MPPE">
+      <div>
+        <div class="tv-brand-name">SIPAT — Gestão à Vista</div>
+        <div class="tv-brand-sub">Ministério Público de Pernambuco · DEMPAM</div>
+      </div>
+    </div>
+    <div class="tv-clock">
+      <div class="time" id="relogio">--:--</div>
+      <div class="date" id="data-hoje"></div>
+    </div>
+  </div>
+
+  <div class="tv-progress-row" id="tv-progress-row">
+    <div class="tv-progress-wrap"><div class="tv-progress-bar" id="tv-progress-bar"></div></div>
+    <div class="tv-progress-label" id="tv-progress-label">próxima seção em --s</div>
+  </div>
+
+  <div class="tv-body">
+
+    <div class="mode-panel" id="mode-video">
+      {% if video_arquivo_url %}
+        <video id="tv-video" autoplay muted loop playsinline>
+          <source src="{{ video_arquivo_url }}">
+        </video>
+      {% elif youtube_video_id %}
+        <iframe
+          id="tv-youtube"
+          data-src="https://www.youtube.com/embed/{{ youtube_video_id }}?autoplay=1&mute=1&controls=0&playsinline=1"
+          title="Vídeo institucional"
+          frameborder="0"
+          allow="autoplay; encrypted-media"
+          allowfullscreen
+        ></iframe>
+      {% elif video_direto_url %}
+        <video id="tv-video" autoplay muted loop playsinline>
+          <source src="{{ video_direto_url }}">
+        </video>
+      {% else %}
+        <video id="tv-video" autoplay muted loop playsinline>
+          <source src="{% static 'video/painel-tv.mp4' %}" type="video/mp4">
+        </video>
+      {% endif %}
+    </div>
+
+    <div class="mode-panel active" id="mode-solicitacoes">
+      <div class="solic-panel">
+
+        <div class="solic-col aguardando">
+          <div class="solic-col-head">
+            <div class="solic-col-title">⏳ Aguardando Separação</div>
+            <span class="solic-count">{{ total_aguardando }}</span>
+          </div>
+          <div class="solic-list" id="lista-aguardando">
+            {% for s in solicitacoes_aguardando %}
+              <div class="solic-row">
+                <div>
+                  <div class="codigo">{{ s.request_code }}</div>
+                  <div class="ua">{{ s.ua_order|default:"—" }}</div>
+                </div>
+                <div class="data">{{ s.data_order|date:"d/m H:i" }}</div>
+              </div>
+            {% empty %}
+              <div class="solic-empty">Nenhuma solicitação aguardando separação.</div>
+            {% endfor %}
+          </div>
+          <div class="solic-dots" id="dots-aguardando"></div>
+          {% if total_aguardando > solicitacoes_aguardando|length %}
+            <div class="solic-more">+{{ total_aguardando|add:"-60" }} outras solicitações</div>
+          {% endif %}
+        </div>
+
+        <div class="solic-col separadas">
+          <div class="solic-col-head">
+            <div class="solic-col-title">📦 Separadas</div>
+            <span class="solic-count">{{ total_separadas }}</span>
+          </div>
+          <div class="solic-list" id="lista-separadas">
+            {% for s in solicitacoes_separadas %}
+              <div class="solic-row">
+                <div>
+                  <div class="codigo">{{ s.request_code }}</div>
+                  <div class="ua">{{ s.ua_order|default:"—" }}</div>
+                </div>
+                <div class="data">{{ s.data_order|date:"d/m H:i" }}</div>
+              </div>
+            {% empty %}
+              <div class="solic-empty">Nenhuma solicitação separada no momento.</div>
+            {% endfor %}
+          </div>
+          <div class="solic-dots" id="dots-separadas"></div>
+          {% if total_separadas > solicitacoes_separadas|length %}
+            <div class="solic-more">+{{ total_separadas|add:"-60" }} outras solicitações</div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <div class="mode-panel" id="mode-avisos">
+    <div class="avisos-panel">
+      <div class="avisos-title">
+        📌 Mural de Avisos
+        {% if avisos %}<span class="count" id="avisos-meta">{{ avisos|length }}</span>{% endif %}
+      </div>
+      <div class="avisos-stage">
+        {% for aviso in avisos %}
+          <div class="aviso-slide{% if forloop.first %} active{% endif %}">
+            <div class="titulo">{{ aviso.titulo }}</div>
+            <div class="msg">{{ aviso.mensagem|linebreaksbr }}</div>
+            <div class="meta">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}{% if aviso.autor %} · {{ aviso.autor.get_full_name|default:aviso.autor.username }}{% endif %}</div>
+          </div>
+        {% empty %}
+          <div class="avisos-empty">Nenhum aviso publicado no momento.</div>
+        {% endfor %}
+      </div>
+      {% if avisos|length > 1 %}
+        <div class="avisos-dots" id="avisos-dots">
+          {% for aviso in avisos %}
+            <span class="slide-dot{% if forloop.first %} active{% endif %}"></span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    </div>
+
+  </div>
+
+  <div class="tv-footer">
+    <div><span class="dot"></span>Atualizado em {{ agora|date:"d/m/Y H:i" }} · próxima atualização automática em 6 minutos</div>
+    <div>SIPAT — Sistema Integrado Patrimonial</div>
+  </div>
+
+</div>
+
+<script>
+  function atualizarRelogio() {
+    var d = new Date();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    document.getElementById('relogio').textContent = hh + ':' + mm;
+    document.getElementById('data-hoje').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  }
+  atualizarRelogio();
+  setInterval(atualizarRelogio, 15000);
+
+  function iniciarLoop(itensSelector, dotsWrapId, intervaloMs, metaId) {
+    var itens = document.querySelectorAll(itensSelector);
+    var dotsWrap = document.getElementById(dotsWrapId);
+    var dots = dotsWrap ? dotsWrap.querySelectorAll('.slide-dot') : [];
+    var meta = metaId ? document.getElementById(metaId) : null;
+    if (itens.length <= 1) return;
+
+    var atual = 0;
+    var totalSeg = Math.round(intervaloMs / 1000);
+    var restante = totalSeg;
+
+    function atualizarMeta() {
+      if (meta) meta.textContent = itens.length + ' · próximo em ' + restante + 's';
+    }
+    atualizarMeta();
+
+    setInterval(function () {
+      restante -= 1;
+      if (restante <= 0) {
+        itens[atual].classList.remove('active');
+        if (dots[atual]) dots[atual].classList.remove('active');
+        atual = (atual + 1) % itens.length;
+        itens[atual].classList.add('active');
+        if (dots[atual]) dots[atual].classList.add('active');
+        restante = totalSeg;
+      }
+      atualizarMeta();
+    }, 1000);
+  }
+
+  iniciarLoop('.aviso-slide', 'avisos-dots', 15000, 'avisos-meta');
+
+  function itensPorPagina(lista, linhas) {
+    if (!linhas.length) return 1;
+    var estilo = getComputedStyle(lista);
+    var gap = parseFloat(estilo.rowGap || estilo.gap) || 0;
+    // reserva um espaço extra pros pontinhos de página, que ainda vão ser inseridos abaixo da lista
+    var alturaDisponivel = lista.clientHeight - 16;
+    var alturaLinha = linhas[0].getBoundingClientRect().height;
+    if (!alturaLinha || alturaDisponivel <= 0) return linhas.length;
+    var qtd = Math.floor((alturaDisponivel + gap) / (alturaLinha + gap));
+    return Math.max(1, qtd);
+  }
+
+  function iniciarPaginacaoSolic(listId, dotsWrapId, intervaloMs) {
+    var lista = document.getElementById(listId);
+    if (!lista) return 1;
+    var linhas = Array.prototype.slice.call(lista.querySelectorAll('.solic-row'));
+    if (!linhas.length) return 1;
+
+    var pageSize = itensPorPagina(lista, linhas);
+    var paginas = [];
+    for (var i = 0; i < linhas.length; i += pageSize) {
+      paginas.push(linhas.slice(i, i + pageSize));
+    }
+
+    var dotsWrap = document.getElementById(dotsWrapId);
+    if (paginas.length > 1 && dotsWrap) {
+      paginas.forEach(function () {
+        var d = document.createElement('span');
+        d.className = 'slide-dot';
+        dotsWrap.appendChild(d);
+      });
+    }
+    var dots = dotsWrap ? dotsWrap.querySelectorAll('.slide-dot') : [];
+
+    var atual = 0;
+    function mostrarPagina(i) {
+      paginas.forEach(function (pagina, idx) {
+        pagina.forEach(function (row) { row.style.display = idx === i ? 'flex' : 'none'; });
+      });
+      dots.forEach(function (d, idx) { d.classList.toggle('active', idx === i); });
+    }
+    mostrarPagina(0);
+
+    if (paginas.length > 1) {
+      setInterval(function () {
+        atual = (atual + 1) % paginas.length;
+        mostrarPagina(atual);
+      }, intervaloMs);
+    }
+
+    return paginas.length;
+  }
+
+  var PAGINA_SOLIC_INTERVALO = 6000;
+  var paginasAguardando = iniciarPaginacaoSolic('lista-aguardando', 'dots-aguardando', PAGINA_SOLIC_INTERVALO);
+  var paginasSeparadas = iniciarPaginacaoSolic('lista-separadas', 'dots-separadas', PAGINA_SOLIC_INTERVALO);
+
+  var modoSolicitacoes = document.getElementById('mode-solicitacoes');
+  if (modoSolicitacoes) {
+    var maxPaginasSolic = Math.max(paginasAguardando, paginasSeparadas, 1);
+    // fica mais tempo em tela pq tem mais itens/páginas pra passar; mínimo bem acima dos outros modos
+    var duracaoSolic = Math.max(maxPaginasSolic * PAGINA_SOLIC_INTERVALO, 90000);
+    modoSolicitacoes.dataset.duracao = String(duracaoSolic);
+  }
+
+  function iniciarModos() {
+    var modos = Array.prototype.slice.call(document.querySelectorAll('.mode-panel'));
+    var video = document.getElementById('tv-video');
+    var youtube = document.getElementById('tv-youtube');
+    var atual = 0;
+    var modoIntervaloMs = 60000;
+    var modoTotalSeg = Math.round(modoIntervaloMs / 1000);
+    var restante = modoTotalSeg;
+    var progressRow = document.getElementById('tv-progress-row');
+    var progressBar = document.getElementById('tv-progress-bar');
+    var progressLabel = document.getElementById('tv-progress-label');
+
+    function atualizarProgresso() {
+      if (!progressRow) return;
+      if (modos.length <= 1) {
+        progressRow.style.display = 'none';
+        return;
+      }
+      progressRow.style.display = 'flex';
+      var pct = 100 - (restante / modoTotalSeg) * 100;
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressLabel) progressLabel.textContent = 'próxima seção em ' + restante + 's';
+    }
+
+    function mostrar(i) {
+      modos.forEach(function (m) { m.classList.remove('active'); });
+      modos[i].classList.add('active');
+      modoTotalSeg = Math.round((parseInt(modos[i].dataset.duracao, 10) || modoIntervaloMs) / 1000);
+      restante = modoTotalSeg;
+      atualizarProgresso();
+
+      if (video) {
+        if (modos[i].id === 'mode-video') {
+          video.currentTime = 0;
+          video.play().catch(function () {});
+        } else {
+          video.pause();
+        }
+      }
+
+      if (youtube) {
+        if (modos[i].id === 'mode-video') {
+          // só carrega o src (e dispara o autoplay) quando o modo fica visível de fato
+          youtube.src = youtube.dataset.src;
+        } else {
+          youtube.removeAttribute('src');
+        }
+      }
+    }
+
+    function removerModoVideo() {
+      modos = modos.filter(function (m) { return m.id !== 'mode-video'; });
+      var painelVideo = document.getElementById('mode-video');
+      if (painelVideo) painelVideo.remove();
+      atual = 0;
+      mostrar(0);
+    }
+
+    if (video) {
+      video.addEventListener('error', removerModoVideo);
+    } else if (!youtube) {
+      modos = modos.filter(function (m) { return m.id !== 'mode-video'; });
+    }
+
+    if (!modos.length) return;
+    mostrar(0);
+    if (modos.length > 1) {
+      setInterval(function () {
+        restante -= 1;
+        if (restante <= 0) {
+          atual = (atual + 1) % modos.length;
+          mostrar(atual);
+        } else {
+          atualizarProgresso();
+        }
+      }, 1000);
+    }
+  }
+
+  iniciarModos();
+
+  (function () {
+    var audio = document.getElementById('tv-audio');
+    var toggle = document.getElementById('tv-audio-toggle');
+    if (!audio || !toggle) return;
+
+    function atualizarIcone() {
+      toggle.textContent = audio.muted || audio.paused ? '🔇' : '🔊';
+      toggle.classList.toggle('muted', audio.muted || audio.paused);
+    }
+
+    function tentarTocar() {
+      audio.play().then(atualizarIcone).catch(function () {
+        atualizarIcone();
+        // autoplay com som bloqueado pelo navegador — espera a primeira interação
+        var iniciarNoClique = function () {
+          audio.play().then(atualizarIcone).catch(function () {});
+          document.removeEventListener('click', iniciarNoClique);
+          document.removeEventListener('keydown', iniciarNoClique);
+          document.removeEventListener('touchstart', iniciarNoClique);
+        };
+        document.addEventListener('click', iniciarNoClique);
+        document.addEventListener('keydown', iniciarNoClique);
+        document.addEventListener('touchstart', iniciarNoClique);
+      });
+    }
+
+    toggle.addEventListener('click', function () {
+      if (audio.paused) {
+        tentarTocar();
+      } else {
+        audio.muted = !audio.muted;
+        atualizarIcone();
+      }
+    });
+
+    tentarTocar();
+  })();
+</script>
+
+</body>
+</html>

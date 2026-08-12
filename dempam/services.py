@@ -2,6 +2,7 @@
 from decimal import Decimal
 
 # Importações do Django
+from django.db.models import Q
 from django.utils import timezone
 
 # Importações do código
@@ -172,7 +173,14 @@ def obter_ultimas_movimentacoes(user, limite=5):
 
 
 def obter_avisos(limite=5):
-    return Aviso.objects.filter(ativo=True).select_related('autor')[:limite]
+    agora = timezone.now()
+    return (
+        Aviso.objects
+        .filter(ativo=True)
+        .filter(Q(exibir_de__isnull=True) | Q(exibir_de__lte=agora))
+        .filter(Q(exibir_ate__isnull=True) | Q(exibir_ate__gte=agora))
+        .select_related('autor')[:limite]
+    )
 
 
 def montar_dashboard_usuario(user):

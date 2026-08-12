@@ -27,6 +27,7 @@
       font-family: var(--font);
       background: #f0f2f7;
       margin: 0;
+      overflow-x: hidden;
     }
 
     /* ─── SIDEBAR ─── */
@@ -39,6 +40,7 @@
       flex-direction: column;
       z-index: 200;
       border-right: 1px solid var(--sidebar-border);
+      transition: width .18s ease;
     }
 
     /* Logo area */
@@ -46,7 +48,33 @@
       padding: 22px 20px 18px;
       border-bottom: 1px solid var(--sidebar-border);
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
+
+    .sidebar-collapse-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 24px;
+      right: -13px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--sidebar-border);
+      color: rgba(210,220,240,.75);
+      cursor: pointer;
+      flex-shrink: 0;
+      z-index: 5;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+      transition: background .15s, color .15s;
+    }
+    .sidebar-collapse-btn:hover { background: #1a2333; color: #fff; }
+    .sidebar-collapse-btn svg { transition: transform .2s ease; }
 
     .sidebar-brand a {
       text-decoration: none;
@@ -198,9 +226,9 @@
       gap: 5px;
       padding: 6px 11px;
       border-radius: 8px;
-      background: rgba(185,28,28,.15);
-      border: 1px solid rgba(185,28,28,.3);
-      color: #f87171;
+      background: rgba(234,88,12,.15);
+      border: 1px solid rgba(234,88,12,.35);
+      color: #fb923c;
       font-family: var(--font);
       font-size: .78rem;
       font-weight: 600;
@@ -210,13 +238,14 @@
       flex-shrink: 0;
     }
     .btn-logout:hover {
-      background: rgba(185,28,28,.28);
-      color: #fca5a5;
+      background: rgba(234,88,12,.28);
+      color: #fdba74;
     }
 
     /* ─── MAIN CONTENT ─── */
     .main-content {
       margin-left: var(--sidebar-w);
+      transition: margin-left .18s ease;
       padding: 28px 26px;
       min-height: 100vh;
       background: #f0f2f7;
@@ -277,11 +306,75 @@
       * { box-shadow: none !important; }
     }
 
+    /* ─── SIDEBAR RECOLHIDA (tablet) ─── */
+    :root { --sidebar-w-collapsed: 92px; }
+
+    .sidebar.collapsed { width: var(--sidebar-w-collapsed); }
+    .sidebar.collapsed ~ .main-content { margin-left: var(--sidebar-w-collapsed); }
+    .sidebar.collapsed .sidebar-collapse-btn svg { transform: rotate(180deg); }
+
+    .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 22px 6px 18px; }
+    .sidebar.collapsed .sidebar-brand a { flex-direction: column; gap: 4px; }
+    .sidebar.collapsed .brand-text { text-align: center; }
+    .sidebar.collapsed .brand-text-main { font-size: .78rem; }
+    .sidebar.collapsed .brand-text-sub { display: none; }
+
+    .sidebar.collapsed .nav-section-label,
+    .sidebar.collapsed .nav-link-label { display: none; }
+
+    .sidebar.collapsed .sidebar-nav { padding: 14px 8px; }
+    .sidebar.collapsed .nav-item-link { justify-content: center; padding: 10px 6px; }
+    .sidebar.collapsed .nav-item-link.admin-link { padding: 8px 6px; }
+
+    .sidebar.collapsed .sidebar-footer { flex-direction: column; padding: 14px 8px; gap: 10px; }
+    .sidebar.collapsed .footer-username { display: none; }
+    .sidebar.collapsed .btn-logout { padding: 8px; justify-content: center; }
+    .sidebar.collapsed .btn-logout .nav-link-label { display: none; }
+
+    /* mostra o botão de recolher só onde a sidebar cheia é exibida (tablet/desktop) */
+    @media (min-width: 769px) {
+      .sidebar-collapse-btn { display: flex; }
+      .sidebar.collapsed .sidebar-collapse-btn { display: flex; }
+    }
+
     /* ─── RESPONSIVE ─── */
+    .mobile-menu-btn { display: none; }
+    .sidebar-overlay { display: none; }
+
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); transition: transform .2s ease; }
       .sidebar.open { transform: translateX(0); }
-      .main-content { margin-left: 0; padding: 16px 14px; }
+      .main-content { margin-left: 0; padding: 16px 14px 16px; padding-top: 64px; }
+
+      .mobile-menu-btn {
+        display: grid;
+        place-items: center;
+        position: fixed;
+        top: 12px; left: 14px;
+        z-index: 220;
+        width: 42px; height: 42px;
+        border-radius: 10px;
+        background: var(--sidebar-bg, #111827);
+        border: 1px solid var(--sidebar-border, rgba(255,255,255,.07));
+        color: #fff;
+        cursor: pointer;
+      }
+      .mobile-menu-btn:active { transform: scale(.94); }
+
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, .45);
+        z-index: 190;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+      }
+      .sidebar-overlay.open {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+      }
     }
 
     /* ─── BOTÃO FEEDBACK ─── */
@@ -366,17 +459,29 @@
 
 <body>
 
-<div class="sidebar">
+{% if user.is_authenticated %}
+<button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% endif %}
+
+<div class="sidebar" id="sidebar">
 
   <!-- BRAND -->
   <div class="sidebar-brand">
     <a href="{% url 'home' %}">
       <div class="brand-icon"><img src="{% static 'img/brasao-mppe.png' %}" alt="Brasão MPPE" style="width:100%; height:100%; object-fit:contain; border-radius:8px;"></div>
-      <div>
+      <div class="brand-text">
         <div class="brand-text-main">SIPAT</div>
         <div class="brand-text-sub">Sistema Integrado Patrimonial</div>
       </div>
     </a>
+    {% if user.is_authenticated %}
+    <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Recolher barra lateral" title="Recolher barra lateral">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    {% endif %}
   </div>
 
   <!-- NAV -->
@@ -388,12 +493,12 @@
 
       <a class="nav-item-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
          href="{% url 'home' %}">
-        <span class="nav-item-icon">🏠</span> Painel Principal
+        <span class="nav-item-icon">🏠</span><span class="nav-link-label"> Painel Principal</span>
       </a>
 
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name in 'meus_bens,detalhe_bem,atualizar_foto' %}active{% endif %}"
          href="{% url 'dimrcbp:meus_bens' %}">
-        <span class="nav-item-icon">📋</span> Bens da Unidade
+        <span class="nav-item-icon">📋</span><span class="nav-link-label"> Bens da Unidade</span>
       </a>
 
 {% if perms.dimrcbp or perms.dimms %}
@@ -403,14 +508,14 @@
       {% if perms.dimrcbp %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimrcbp' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dimrcbp:homepage' %}">
-        <span class="nav-item-icon">📦</span> Bens Permanentes
+        <span class="nav-item-icon">📦</span><span class="nav-link-label"> Bens Permanentes</span>
       </a>
       {% endif %}
 
       {% if perms.dimms %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dimms' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dimms:homepage' %}">
-        <span class="nav-item-icon">📝</span> Bens de Consumo
+        <span class="nav-item-icon">📝</span><span class="nav-link-label"> Bens de Consumo</span>
       </a>
       {% endif %}
 
@@ -420,14 +525,14 @@
       {% if perms.demands %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'demands' %}active{% endif %}"
          href="{% url 'demands:homepage' %}">
-        <span class="nav-item-icon">🎯</span> Demandas
+        <span class="nav-item-icon">🎯</span><span class="nav-link-label"> Demandas</span>
       </a>
       {% endif %}
 
       {% if perms.dempam %}
       <a class="nav-item-link {% if request.resolver_match.namespace == 'dempam' and request.resolver_match.url_name == 'homepage' %}active{% endif %}"
          href="{% url 'dempam:homepage' %}">
-        <span class="nav-item-icon">🏢</span> Painel Gerencial
+        <span class="nav-item-icon">🏢</span><span class="nav-link-label"> Painel Gerencial</span>
       </a>
       {% endif %}
 
@@ -438,7 +543,7 @@
 
       <a class="nav-item-link {% if request.resolver_match.namespace == 'manutencao' %}active{% endif %}"
          href="{% url 'manutencao:homepage' %}">
-        <span class="nav-item-icon">🛠️</span> Manutenção
+        <span class="nav-item-icon">🛠️</span><span class="nav-link-label"> Manutenção</span>
       </a>
       {% endif %}
 
@@ -450,12 +555,12 @@
 
       <a class="nav-item-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}"
          href="{% url 'accounts:users_list' %}">
-        <span class="nav-item-icon">🔐</span> Controle de Acesso
+        <span class="nav-item-icon">🔐</span><span class="nav-link-label"> Controle de Acesso</span>
       </a>
       {% endif %}
 
       <a class="nav-item-link admin-link" href="{% url 'admin:index' %}" title="Painel Administrativo">
-        <span class="nav-item-icon">⚙</span> Administrativo
+        <span class="nav-item-icon">⚙</span><span class="nav-link-label"> Administrativo</span>
       </a>
 
     {% endif %}
@@ -479,8 +584,8 @@
 
     <form action="{% url 'logout' %}" method="post" class="m-0">
       {% csrf_token %}
-      <button type="submit" class="btn-logout">
-        ↩ Sair
+      <button type="submit" class="btn-logout" title="Sair">
+        <span class="btn-logout-icon">↩</span><span class="nav-link-label">Sair</span>
       </button>
     </form>
   </div>
@@ -682,6 +787,54 @@
 })();
 </script>
 {% endif %}
+
+<script>
+  (function () {
+    var btn = document.getElementById('mobileMenuBtn');
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (!btn || !sidebar || !overlay) return;
+
+    function abrir() {
+      sidebar.classList.add('open');
+      overlay.classList.add('open');
+    }
+    function fechar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+
+    btn.addEventListener('click', function () {
+      sidebar.classList.contains('open') ? fechar() : abrir();
+    });
+    overlay.addEventListener('click', fechar);
+
+    sidebar.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', fechar);
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    var collapseBtn = document.getElementById('sidebarCollapseBtn');
+    var sidebar = document.getElementById('sidebar');
+    if (!collapseBtn || !sidebar) return;
+
+    var STORAGE_KEY = 'sipat_sidebar_collapsed';
+
+    if (localStorage.getItem(STORAGE_KEY) === '1') {
+      sidebar.classList.add('collapsed');
+    }
+
+    collapseBtn.addEventListener('click', function () {
+      var recolhida = sidebar.classList.toggle('collapsed');
+      localStorage.setItem(STORAGE_KEY, recolhida ? '1' : '0');
+      collapseBtn.setAttribute('aria-label', recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral');
+      collapseBtn.setAttribute('title', recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral');
+    });
+  })();
+</script>
 
 </body>
 </html>

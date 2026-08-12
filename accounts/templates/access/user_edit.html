@@ -152,6 +152,18 @@
   .btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-2); }
   .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
+  /* Busca de UAs */
+  .ua-search-wrap { position: relative; margin-bottom: 16px; }
+  .ua-search-wrap .search-icon-abs {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    color: var(--ink-3); pointer-events: none;
+  }
+  .ua-search-wrap input { padding-left: 36px; }
+  .ua-search-empty {
+    padding: 16px; text-align: center; font-size: .82rem; color: var(--ink-3);
+    display: none;
+  }
+
   @media (max-width: 600px) {
     .apage { padding: 14px 12px 32px; }
     .fields-row { grid-template-columns: 1fr; }
@@ -274,13 +286,23 @@
       <div class="form-card-body">
         {% if all_uas %}
 
+          <div class="ua-search-wrap">
+            <svg class="search-icon-abs" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="field-input" id="uaSearch" placeholder="Pesquisar UA para adicionar...">
+          </div>
+          <div style="font-size:.76rem; color:var(--ink-3); margin:-8px 0 14px;">
+            Mostrando apenas as UAs já atribuídas. Pesquise para encontrar e adicionar outras.
+          </div>
+
           <div style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:10px;">
             Membro de
             <span style="font-style:italic; font-weight:500; text-transform:none; letter-spacing:0; color:var(--ink-3);">— pode receber demandas</span>
           </div>
-          <div class="groups-grid" style="margin-bottom:20px;">
+          <div class="groups-grid ua-grid" style="margin-bottom:8px;">
             {% for ua in all_uas %}
-              <label class="group-toggle">
+              <label class="group-toggle ua-toggle" data-search="{{ ua.ua|lower }}">
                 <input type="checkbox" name="uas" value="{{ ua.id }}"
                   {% if ua.id in user_ua_ids %}checked{% endif %}>
                 <div class="group-card">
@@ -290,14 +312,15 @@
               </label>
             {% endfor %}
           </div>
+          <div class="ua-search-empty" id="uaSearchEmptyMembro">Nenhuma UA encontrada.</div>
 
-          <div style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:10px;">
+          <div style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin: 20px 0 10px;">
             Gestor de
             <span style="font-style:italic; font-weight:500; text-transform:none; letter-spacing:0; color:var(--ink-3);">— pode criar demandas e ver tudo da UA</span>
           </div>
-          <div class="groups-grid">
+          <div class="groups-grid ua-grid">
             {% for ua in all_uas %}
-              <label class="group-toggle">
+              <label class="group-toggle ua-toggle" data-search="{{ ua.ua|lower }}">
                 <input type="checkbox" name="managed_uas" value="{{ ua.id }}"
                   {% if ua.id in user_managed_ids %}checked{% endif %}>
                 <div class="group-card" style="border-color: var(--amber-mid);">
@@ -307,6 +330,7 @@
               </label>
             {% endfor %}
           </div>
+          <div class="ua-search-empty" id="uaSearchEmptyGestor">Nenhuma UA encontrada.</div>
 
         {% else %}
           <p style="color:var(--ink-3); font-size:.86rem;">Nenhuma UA cadastrada ainda.</p>
@@ -342,6 +366,33 @@
     </div>
   </form>
 
+  <!-- Redefinir senha -->
+  <div class="form-card" style="border-color: var(--red-mid);">
+    <div class="form-card-head">🔑 Redefinir Senha</div>
+    <div class="form-card-body">
+      <div class="active-toggle-wrap" style="border-color: var(--red-mid); background: var(--red-soft);">
+        <div>
+          <div class="active-toggle-label">Gerar nova senha temporária</div>
+          <div class="active-toggle-sub">
+            Uma senha temporária será gerada e o usuário precisará defini-la novamente no próximo login.
+            {% if edited_user.email %}
+              Ela também será enviada por e-mail para {{ edited_user.email }}.
+            {% else %}
+              Como o usuário não tem e-mail cadastrado, a senha aparecerá na tela para você repassar manualmente.
+            {% endif %}
+          </div>
+        </div>
+        <form method="post" action="{% url 'accounts:user_reset_password' edited_user.pk %}"
+          onsubmit="return confirm('Redefinir a senha de @{{ edited_user.username }}? A senha atual deixará de funcionar imediatamente.');">
+          {% csrf_token %}
+          <button type="submit" class="btn" style="background:#fff; border-color:var(--red-mid); color:var(--red); flex-shrink:0;">
+            Redefinir senha
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -362,6 +413,39 @@
     const preview = document.getElementById('avatarPreview');
     const initials = '{{ edited_user.get_full_name|default:edited_user.username|slice:":2"|upper }}';
     preview.innerHTML = `<span style="font-size:1.6rem;font-weight:800;color:#fff;">${initials}</span>`;
+  }
+
+  // Busca de UAs (filtra as listas "Membro de" e "Gestor de" ao mesmo tempo).
+  // Por padrão só mostra as UAs já marcadas; a lista completa só aparece durante a pesquisa.
+  const uaSearch = document.getElementById('uaSearch');
+  if (uaSearch) {
+    const grids = document.querySelectorAll('.ua-grid');
+
+    function applyUaFilter() {
+      const q = uaSearch.value.trim().toLowerCase();
+      grids.forEach(grid => {
+        let visiveis = 0;
+        grid.querySelectorAll('.ua-toggle').forEach(label => {
+          const checked = label.querySelector('input').checked;
+          const show = q ? label.dataset.search.includes(q) : checked;
+          label.style.display = show ? '' : 'none';
+          if (show) visiveis++;
+        });
+        const emptyEl = grid.nextElementSibling && grid.nextElementSibling.classList.contains('ua-search-empty')
+          ? grid.nextElementSibling
+          : null;
+        if (emptyEl) {
+          emptyEl.textContent = q ? 'Nenhuma UA encontrada.' : 'Nenhuma UA atribuída ainda. Pesquise para adicionar.';
+          emptyEl.style.display = visiveis === 0 ? 'block' : 'none';
+        }
+      });
+    }
+
+    uaSearch.addEventListener('input', applyUaFilter);
+    grids.forEach(grid => {
+      grid.querySelectorAll('.ua-toggle input').forEach(cb => cb.addEventListener('change', applyUaFilter));
+    });
+    applyUaFilter();
   }
 </script>
 

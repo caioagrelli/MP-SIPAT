@@ -241,6 +241,20 @@ class Aviso(models.Model):
         verbose_name='Publicado em',
     )
 
+    exibir_de = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Exibir a partir de',
+        help_text='Deixe em branco para exibir imediatamente.',
+    )
+
+    exibir_ate = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Exibir até',
+        help_text='Deixe em branco para não expirar automaticamente.',
+    )
+
     ativo = models.BooleanField(
         default=True,
         verbose_name='Ativo',
@@ -252,5 +266,57 @@ class Aviso(models.Model):
         ordering = ['-data_publicacao']
 
     def __str__(self):
-        return self.titulo 
+        return self.titulo
+
+    @property
+    def esta_no_periodo(self):
+        agora = timezone.now()
+        if self.exibir_de and agora < self.exibir_de:
+            return False
+        if self.exibir_ate and agora > self.exibir_ate:
+            return False
+        return True
+
+
+# --- Configuração do Painel de TV ---
+class ConfiguracaoPainelTV(models.Model):
+    video_url = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Link do vídeo (YouTube ou link direto)',
+    )
+
+    video_arquivo = models.FileField(
+        upload_to=path_video_painel_tv,
+        blank=True,
+        null=True,
+        verbose_name='Arquivo de vídeo',
+        help_text='Se enviado, tem prioridade sobre o link acima.',
+    )
+
+    atualizado_em = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Atualizado em',
+    )
+
+    atualizado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name='Atualizado por',
+    )
+
+    class Meta:
+        verbose_name = 'Configuração do Painel de TV'
+        verbose_name_plural = '06 - Configuração do Painel de TV'
+
+    def __str__(self):
+        return 'Configuração do Painel de TV'
+
+    @classmethod
+    def get_config(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
 

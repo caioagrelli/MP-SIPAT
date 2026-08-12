@@ -3,7 +3,7 @@ import os
 from decimal import Decimal, InvalidOperation
 
 # Importações do Django
-from django.db import models
+from django.db import models, transaction, IntegrityError
 from django.utils import timezone
 
 # =================================
@@ -46,8 +46,16 @@ def path_solicitation_photo(instance, filename):
     n_update = instance.id
     ext = os.path.splitext(filename)[1]
     nome_aquivo = f'{n_update}{ext}'
-    
+
     return f'documentos/consumo/atualizacao_foto/{nome_aquivo}'
+
+# Assinatura de quem recebeu (capturada na tela, recebimento em lote)
+def path_solicitation_assinatura(instance, filename):
+    n_update = instance.id
+    ext = os.path.splitext(filename)[1]
+    nome_aquivo = f'{n_update}{ext}'
+
+    return f'documentos/consumo/atualizacao_assinatura/{nome_aquivo}'
 
 # Documentação dos Artefatos (base)
 def path_documents_artifacts(instance, filename, tipo):
@@ -98,6 +106,11 @@ def path_termo_recebimento_solicitacao(instance, filename):
     ext = os.path.splitext(filename)[1]
     codigo = (instance.codigo or 'novo').replace('/', '-')
     return f'saldo_ativo/solicitacoes/termo_recebimento/{codigo}{ext}'
+
+def path_documento_aditivo(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    numero = (instance.numero or 'novo').replace('/', '-')
+    return f'saldo_ativo/aditivos/{numero}{ext}'
 
 
 ''' Choices'''
@@ -190,6 +203,12 @@ class StatusAcompanhamentoSei(models.TextChoices):
     concluido = 'CONCLUIDO', 'Concluído'
     arquivado = 'ARQUIVADO', 'Arquivado'
 
+# Decisão sobre uma divergência encontrada na conferência de inventário
+class DecisaoAjusteEstoque(models.TextChoices):
+    pendente = 'PENDENTE', 'Pendente'
+    aprovado = 'APROVADO', 'Aprovado'
+    rejeitado = 'REJEITADO', 'Rejeitado'
+
 
 ''' Funções Úteis (não que o resto não seja né)'''
 # Calcular duração do estoque (quantidade / consumo mensal)
@@ -244,3 +263,40 @@ def formatar_quantidade(valor):
             return str(valor)
     texto = format(valor.normalize(), 'f')
     return texto.replace('.', ',')
+
+
+# Gera o próximo código sequencial do ano (ex.: SBC-2026-0001) pra um campo único de um model.
+# Baseado no MAIOR número já usado no ano — não em count() — pra não colidir quando algum
+# código no meio da sequência foi apagado (deixando "buracos" que fariam count()+1 repetir
+# um número que já existe).
+def gerar_proximo_codigo(model, campo, prefixo, digitos=4):
+    ano = timezone.now().year
+    prefixo_ano = f'{prefixo}-{ano}-'
+    ultimo_codigo = (
+        model.objects
+        .filter(**{f'{campo}__startswith': prefixo_ano})
+        .order_by(f'-{campo}')
+        .values_list(campo, flat=True)
+        .first()
+    )
+    ultimo_numero = int(ultimo_codigo.rsplit('-', 1)[-1]) if ultimo_codigo else 0
+    return f'{prefixo_ano}{ultimo_numero + 1:0{digitos}d}'
+
+
+# Gera o código (via gerar_proximo_codigo) e chama save_callable dentro de uma transação,
+# tentando de novo com o próximo número se colidir por causa de uma corrida entre requisições
+# simultâneas. Só engole o IntegrityError se ele for mesmo sobre esse campo — qualquer outro
+# erro (ex.: FK obrigatória faltando) sobe na hora, sem mascarar a causa real.
+def salvar_com_codigo_sequencial(instance, campo, prefixo, save_callable, *args, digitos=4, tentativas=5, **kwargs):
+    model = type(instance)
+    for _ in range(tentativas):
+        setattr(instance, campo, gerar_proximo_codigo(model, campo, prefixo, digitos))
+        try:
+            with transaction.atomic():
+                save_callable(*args, **kwargs)
+            return
+        except IntegrityError as e:
+            if campo not in str(e):
+                raise
+            setattr(instance, campo, '')
+    raise IntegrityError(f'Não foi possível gerar um código único ({prefixo}) após {tentativas} tentativas.')

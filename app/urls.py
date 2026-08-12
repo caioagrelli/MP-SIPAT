@@ -3,10 +3,10 @@ from django.urls import path, include
 
 handler403 = 'accounts.views.errors.permission_denied'
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from dempam.views import root, home
+from accounts.views import password_reset
 
 # Garante que o admin sempre use o login por formulário,
 # independente do LOGIN_URL definido nas settings (ex: OIDC em produção).
@@ -19,17 +19,14 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     
     #url de login
-    path('login/', LoginView.as_view(template_name="registration/login.html"), name="login"),  # url de login
+    path('login/', LoginView.as_view(
+        template_name="registration/login.html",
+        extra_context={'oidc_enabled': bool(getattr(settings, 'OIDC_OP_AUTHORIZATION_ENDPOINT', ''))},
+    ), name="login"),  # url de login
     path("oidc/", include("mozilla_django_oidc.urls")),
     
-    path("password-reset/", auth_views.PasswordResetView.as_view(
-        template_name="registration/password_reset.html",
-        email_template_name="registration/password_reset_email.html",
-        subject_template_name="registration/password_reset_subject.txt",
-    ), name="password_reset"),
-    path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="registration/password_reset_done.html"), name="password_reset_done"),
-    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), name="password_reset_confirm"),
-    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="registration/password_reset_complete.html"), name="password_reset_complete"),    
+    path("password-reset/", password_reset.password_reset_request, name="password_reset"),
+    path("password-reset/done/", password_reset.password_reset_done, name="password_reset_done"),
     
     # url da homepage
     path('home/', home, name='home'),

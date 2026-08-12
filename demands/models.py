@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from dempam.models import InfoUA
+from .utils import salvar_com_codigo_sequencial
 
 
 # ─── Choices ──────────────────────────────────────────────────────────────────
@@ -109,10 +110,9 @@ class Demand(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.code:
-            ano    = timezone.now().year
-            ultimo = Demand.objects.filter(code__startswith=f'DEM-{ano}').count() + 1
-            self.code = f'DEM-{ano}-{ultimo:04d}'
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'code', 'DEM', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.code} — {self.title}'

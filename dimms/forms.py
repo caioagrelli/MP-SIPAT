@@ -107,6 +107,7 @@ class SolicitacaoForm(forms.ModelForm):
         fields = [
             'ua_order',
             'user_order',
+            'numero_pe_integrado',
             'observation_order',
             'documents_order',
             'situation',
@@ -128,7 +129,6 @@ class SolicitacaoItemForm(forms.ModelForm):
         max_digits=12,
         decimal_places=2,
         min_value=0.01,
-        localize=True,
         required=False,
         widget=forms.NumberInput(attrs={'min': 0.01, 'step': '0.01'}),
     )
@@ -208,7 +208,7 @@ SolicitacaoItemFormSet = inlineformset_factory(
 class SolicitacaoEditForm(forms.ModelForm):
     class Meta:
         model = Solicitacao
-        fields = ['ua_order', 'user_order', 'observation_order']
+        fields = ['ua_order', 'user_order', 'numero_pe_integrado', 'observation_order']
         widgets = {
             'observation_order': forms.Textarea(attrs={'rows': 3}),
         }
@@ -305,6 +305,36 @@ class ReceberSolicitacaoForm(forms.Form):
             'placeholder': 'Nome de quem recebeu',
         }),
         label='Nome de Quem Recebeu',
+    )
+
+    matricula_recebedor = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Matrícula',
+        }),
+        label='Matrícula',
+    )
+
+    cpf_recebedor = forms.CharField(
+        max_length=14,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '000.000.000-00',
+        }),
+        label='CPF',
+    )
+
+    empresa_orgao_recebedor = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Empresa/Órgão',
+        }),
+        label='Empresa/Órgão',
     )
 
     foto_recebedor = forms.ImageField(
@@ -494,13 +524,15 @@ class ContratoForm(forms.ModelForm):
 class SaldoAtivoItemForm(forms.ModelForm):
     class Meta:
         model = SaldoAtivo
-        fields = ['efisco', 'marca', 'descricao_manual', 'quantidade_contrato', 'cota']
+        fields = ['efisco', 'marca', 'descricao_manual', 'quantidade_contrato', 'cota', 'numero_item', 'preco_unitario']
         widgets = {
             'efisco': forms.Select(attrs={'class': 'form-select'}),
             'marca': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Marca X'}),
             'descricao_manual': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição complementar'}),
             'quantidade_contrato': forms.NumberInput(attrs={'class': 'form-control', 'min': 0.01, 'step': '0.01'}),
             'cota': forms.Select(attrs={'class': 'form-select'}),
+            'numero_item': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'step': '1', 'placeholder': 'Ex: 12'}),
+            'preco_unitario': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.0001', 'placeholder': 'Ex: 12.5000'}),
         }
         labels = {
             'efisco': 'E-Fisco (Bem de Consumo)',
@@ -508,13 +540,14 @@ class SaldoAtivoItemForm(forms.ModelForm):
             'descricao_manual': 'Descrição Manual',
             'quantidade_contrato': 'Quantidade do Contrato',
             'cota': 'Tipo de Cota',
+            'numero_item': 'N° do Item na Licitação',
+            'preco_unitario': 'Preço Unitário (R$)',
         }
 
     quantidade_contrato = forms.DecimalField(
         max_digits=12,
         decimal_places=2,
         min_value=0,
-        localize=True,
         label='Quantidade do Contrato',
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0.01, 'step': '0.01'}),
     )
@@ -525,7 +558,7 @@ class SaldoAtivoItemForm(forms.ModelForm):
 class BensConsumoForm(forms.ModelForm):
     class Meta:
         model = BensConsumo
-        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo', 'almoxarifado']
+        fields = ['efisco', 'descricao_efisco', 'medida', 'grupo_consumo', 'almoxarifado', 'preco_medio']
         widgets = {
             'efisco': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -545,6 +578,12 @@ class BensConsumoForm(forms.ModelForm):
             'almoxarifado': forms.Select(attrs={
                 'class': 'form-select'
             }),
+            'preco_medio': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex.: 12.50',
+                'min': 0,
+                'step': '0.01',
+            }),
         }
         labels = {
             'efisco': 'E-Fisco',
@@ -552,6 +591,7 @@ class BensConsumoForm(forms.ModelForm):
             'medida': 'Unidade de Medida',
             'grupo_consumo': 'Grupo',
             'almoxarifado': 'Almoxarifado',
+            'preco_medio': 'Preço Médio (R$)',
         }
 
 

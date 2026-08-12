@@ -5,11 +5,14 @@ from datetime import datetime
 
 # Importações do Dj Ango
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles import finders
 from django.core.paginator import Paginator
+
+# Importações do dempam
+from dempam.models import LocalizacaoDEMPAM
 
 # Bibliotecas externas
 import qrcode
@@ -34,7 +37,12 @@ from .. forms import EstoqueForm
 # Página Principal do bem
 @login_required
 def overview(request, pk):
-    item = get_object_or_404(Estoque.objects.select_related("item_shock", "locate"), pk=pk)
+    item = get_object_or_404(
+        Estoque.objects
+        .select_related("item_shock", "locate", "locate__setor_sala")
+        .prefetch_related("outras_localizacoes__setor_sala"),
+        pk=pk,
+    )
 
     tram_qs = (
         Tramitacao.objects
@@ -89,10 +97,68 @@ def toggle_essential(request, pk):
     return redirect(url)
 
 
+''' Buscar localização (autocomplete) para associar como "outra localização" do item '''
+@login_required
+def localizacao_search_ajax(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'resultados': []})
+
+    locais = (
+        LocalizacaoDEMPAM.objects
+        .filter(prateleira_pallet__icontains=query)
+        .select_related('setor_sala')
+        .order_by('prateleira_pallet')[:15]
+    )
+    resultados = [
+        {
+            'id': loc.pk,
+            'codigo': loc.prateleira_pallet,
+            'setor': loc.setor_sala.setor if loc.setor_sala else '',
+        }
+        for loc in locais
+    ]
+    return JsonResponse({'resultados': resultados})
+
+
+''' Associar uma localização extra ao item (o mesmo item pode estar em mais de uma prateleira) '''
+@login_required
+def adicionar_localizacao_extra(request, pk):
+    item = get_object_or_404(Estoque, pk=pk)
+    if request.method == 'POST':
+        localizacao_id = request.POST.get('localizacao_id')
+        localizacao = LocalizacaoDEMPAM.objects.filter(pk=localizacao_id).first()
+        if not localizacao:
+            messages.error(request, 'Localização não encontrada.')
+        elif item.locate_id and str(item.locate_id) == str(localizacao_id):
+            messages.error(request, 'Essa já é a localização principal do item.')
+        elif item.outras_localizacoes.filter(pk=localizacao_id).exists():
+            messages.error(request, 'Essa localização já está associada ao item.')
+        else:
+            item.outras_localizacoes.add(localizacao)
+            messages.success(request, f'Localização {localizacao} adicionada ao item.')
+    return redirect('dimms:overview_edit', pk=pk)
+
+
+''' Remover uma localização extra do item '''
+@login_required
+def remover_localizacao_extra(request, pk, localizacao_pk):
+    item = get_object_or_404(Estoque, pk=pk)
+    if request.method == 'POST':
+        item.outras_localizacoes.remove(localizacao_pk)
+        messages.success(request, 'Localização removida do item.')
+    return redirect('dimms:overview_edit', pk=pk)
+
+
 ''' Editar dados do bem '''
 @login_required
 def overview_edit(request, pk):
-    item = get_object_or_404(Estoque.objects.select_related('item_shock', 'locate'), pk=pk)
+    item = get_object_or_404(
+        Estoque.objects
+        .select_related('item_shock', 'locate', 'locate__setor_sala')
+        .prefetch_related('outras_localizacoes__setor_sala'),
+        pk=pk,
+    )
     if request.method == 'POST':
         form = EstoqueForm(request.POST, request.FILES, instance=item)
         if form.is_valid():

@@ -343,8 +343,9 @@
 
   .photo-wrap img {
     width: 100%;
-    max-height: 420px;
-    object-fit: cover;
+    max-height: 640px;
+    object-fit: contain;
+    background: #0b1220;
     display: block;
   }
 
@@ -643,6 +644,37 @@
             <div class="empty">
               <span class="empty-icon">🖼️</span>
               Nenhuma foto anexada para esta etapa.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- DADOS DE QUEM RECEBEU -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon card-icon-violet">🪪</div>
+          <div class="card-title">Dados de quem recebeu</div>
+        </div>
+        <div class="card-body">
+          {% if tramitacao.matricula_recebedor or tramitacao.cpf_recebedor or tramitacao.empresa_orgao_recebedor %}
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-item-label">Matrícula</div>
+                <div class="info-item-value mono">{{ tramitacao.matricula_recebedor|default:"—" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-item-label">CPF</div>
+                <div class="info-item-value mono">{{ tramitacao.cpf_recebedor|default:"—" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-item-label">Empresa/Órgão</div>
+                <div class="info-item-value">{{ tramitacao.empresa_orgao_recebedor|default:"—" }}</div>
+              </div>
+            </div>
+          {% else %}
+            <div class="empty">
+              <span class="empty-icon">🪪</span>
+              Nenhum dado de matrícula/CPF/empresa registrado para esta etapa.
             </div>
           {% endif %}
         </div>

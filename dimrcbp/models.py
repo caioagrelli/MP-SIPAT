@@ -2,7 +2,7 @@
 from localflavor.br.models import BRCNPJField
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 
 # Importações do codigo
@@ -636,10 +636,9 @@ class SolicitacaoCatalogo(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.codigo:
-            ano = timezone.now().year
-            n = SolicitacaoCatalogo.objects.filter(codigo__startswith=f'STC-{ano}').count() + 1
-            self.codigo = f'STC-{ano}-{n:04d}'
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'codigo', 'STC', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.codigo
@@ -742,12 +741,9 @@ class SolicitacaoTransferencia(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.codigo:
-            ano = timezone.now().year
-            ultimo = SolicitacaoTransferencia.objects.filter(
-                codigo__startswith=f'STF-{ano}'
-            ).count() + 1
-            self.codigo = f'STF-{ano}-{ultimo:04d}'
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'codigo', 'STF', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.codigo
@@ -810,12 +806,9 @@ class MovimentacaoBem(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.codigo:
-            ano = timezone.now().year
-            ultimo = MovimentacaoBem.objects.filter(
-                codigo__startswith=f'TRF-{ano}'
-            ).count() + 1
-            self.codigo = f'TRF-{ano}-{ultimo:04d}'
-        super().save(*args, **kwargs)
+            salvar_com_codigo_sequencial(self, 'codigo', 'TRF', super().save, *args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
         # Atualiza o histórico de UAs do bem
         try:
