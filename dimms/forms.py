@@ -317,14 +317,14 @@ class ReceberSolicitacaoForm(forms.Form):
         label='Matrícula',
     )
 
-    cpf_recebedor = forms.CharField(
-        max_length=14,
+    cargo_recebedor = forms.CharField(
+        max_length=100,
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '000.000.000-00',
+            'placeholder': 'Cargo/Função',
         }),
-        label='CPF',
+        label='Cargo/Função',
     )
 
     empresa_orgao_recebedor = forms.CharField(

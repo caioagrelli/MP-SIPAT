@@ -974,7 +974,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function selectUa(ua) {
     uaHidden.value = ua.id;
     uaSelected.innerHTML = `
-      <span><strong>${ua.ua}</strong>${ua.responsavel_ua ? ' · ' + ua.responsavel_ua : ''}</span>
+      <span><strong>${ua.ua}</strong>${ua.sigla ? ' (' + ua.sigla + ')' : ''}${ua.responsavel_ua ? ' · ' + ua.responsavel_ua : ''}</span>
       <button type="button" class="efisco-clear" title="Limpar">✕</button>
     `;
     uaSelected.style.display = 'flex';
@@ -1012,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const opt = document.createElement('div');
             opt.className = 'efisco-option';
             opt.innerHTML = `
-              <div class="efisco-code">${ua.ua}</div>
+              <div class="efisco-code">${ua.ua}${ua.sigla ? ' (' + ua.sigla + ')' : ''}</div>
               ${ua.responsavel_ua ? `<div class="efisco-desc">${ua.responsavel_ua}</div>` : ''}
             `;
             opt.addEventListener('mousedown', e => { e.preventDefault(); selectUa(ua); });

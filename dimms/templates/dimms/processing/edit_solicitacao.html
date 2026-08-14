@@ -11,11 +11,12 @@
     --border: #e2e5ef; --border-strong: #c8cfe0;
     --ink: #1a2035; --ink-2: #3d4966; --ink-3: #7380a0;
     --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
-    --green: #15803d;
+    --blue-soft: #eff4ff;
+    --green: #15803d; --green-soft: #f0fdf4; --green-mid: #bbf7d0;
     --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
     --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
     --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
-    --font: 'Sora', sans-serif;
+    --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -57,6 +58,28 @@
 
   .error-box { background: var(--red-soft); border: 1px solid var(--red-mid); border-radius: var(--r-sm); padding: 12px 16px; font-size: .85rem; color: var(--red); font-weight: 600; }
 
+  /* ── Autocomplete da UA ── */
+  .autocomplete-wrap { position: relative; }
+  .efisco-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+    background: var(--surface); border: 1.5px solid var(--border-strong);
+    box-shadow: var(--shadow-md); max-height: 240px; overflow-y: auto;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+  }
+  .efisco-option { padding: 9px 13px; cursor: pointer; font-size: .85rem; border-bottom: 1px solid var(--border); transition: background .1s; }
+  .efisco-option:last-child { border-bottom: none; }
+  .efisco-option:hover, .efisco-option.active { background: var(--blue-soft); }
+  .efisco-option .efisco-code { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: .8rem; }
+  .efisco-option .efisco-desc { color: var(--ink-2); font-size: .8rem; margin-top: 1px; white-space: normal; word-break: break-word; }
+  .efisco-selected {
+    margin-top: 6px; padding: 7px 11px;
+    background: var(--green-soft); border: 1px solid var(--green-mid);
+    border-radius: var(--r-sm); font-size: .8rem; color: var(--green);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .efisco-clear { background: none; border: none; cursor: pointer; color: var(--green); font-size: .75rem; font-weight: 700; padding: 0; opacity: .7; }
+  .efisco-clear:hover { opacity: 1; }
+
   .actions { display: flex; gap: 10px; margin-top: 4px; }
   .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: .85rem; border: none; cursor: pointer; font-family: var(--font); text-decoration: none; transition: .15s; }
   .btn-green { background: var(--green); color: #fff; }
@@ -95,13 +118,22 @@
       <div class="error-box">{{ form.non_field_errors }}</div>
       {% endif %}
 
-      <form method="POST">
+      <form method="POST" id="editSolicitacaoForm">
         {% csrf_token %}
 
         <div style="display:flex;flex-direction:column;gap:18px;">
-          <div class="field-group">
+          <div class="field-group autocomplete-wrap">
             <label class="field-label">UA Solicitante</label>
-            {{ form.ua_order }}
+            <input type="text" id="ua-text" class="field-input" placeholder="Digite o nome ou a sigla da UA…" autocomplete="off"
+              style="{% if solicitacao.ua_order %}display:none;{% endif %}">
+            <input type="hidden" name="ua_order" id="id_ua_order" value="{{ solicitacao.ua_order.pk|default:'' }}">
+            <div class="efisco-dropdown" id="ua-dropdown" style="display:none;"></div>
+            <div class="efisco-selected" id="ua-selected" style="{% if not solicitacao.ua_order %}display:none;{% endif %}">
+              {% if solicitacao.ua_order %}
+                <span><strong>{{ solicitacao.ua_order.ua }}</strong>{% if solicitacao.ua_order.sigla %} ({{ solicitacao.ua_order.sigla }}){% endif %}</span>
+                <button type="button" class="efisco-clear" title="Trocar">✕</button>
+              {% endif %}
+            </div>
             {% if form.ua_order.errors %}<div class="field-error">{{ form.ua_order.errors|join:", " }}</div>{% endif %}
           </div>
 
@@ -129,4 +161,103 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const UA_SEARCH_URL = "{% url 'dempam:ua_search' %}";
+    const uaText     = document.getElementById('ua-text');
+    const uaHidden   = document.getElementById('id_ua_order');
+    const uaDrop     = document.getElementById('ua-dropdown');
+    const uaSelected = document.getElementById('ua-selected');
+    let uaTimer      = null;
+
+    function closeUaDrop() { uaDrop.style.display = 'none'; uaDrop.innerHTML = ''; }
+
+    function positionDropdownEl(inputEl, dropdownEl) {
+      const rect       = inputEl.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const maxH       = Math.min(240, Math.max(spaceBelow, spaceAbove) - 8);
+      dropdownEl.style.maxHeight = maxH + 'px';
+
+      if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
+        dropdownEl.style.top = '100%'; dropdownEl.style.bottom = 'auto';
+        dropdownEl.style.borderTop = 'none'; dropdownEl.style.borderBottom = '';
+        dropdownEl.style.borderRadius = '0 0 var(--r-sm) var(--r-sm)';
+      } else {
+        dropdownEl.style.top = 'auto'; dropdownEl.style.bottom = '100%';
+        dropdownEl.style.borderTop = ''; dropdownEl.style.borderBottom = 'none';
+        dropdownEl.style.borderRadius = 'var(--r-sm) var(--r-sm) 0 0';
+      }
+    }
+
+    function selectUa(ua) {
+      uaHidden.value = ua.id;
+      uaSelected.innerHTML = `
+        <span><strong>${ua.ua}</strong>${ua.sigla ? ' (' + ua.sigla + ')' : ''}</span>
+        <button type="button" class="efisco-clear" title="Trocar">✕</button>
+      `;
+      uaSelected.style.display = 'flex';
+      uaText.style.display = 'none';
+      closeUaDrop();
+    }
+
+    uaSelected.addEventListener('click', e => {
+      if (e.target.classList.contains('efisco-clear')) {
+        uaHidden.value = '';
+        uaText.value = '';
+        uaSelected.innerHTML = '';
+        uaSelected.style.display = 'none';
+        uaText.style.display = '';
+        uaText.focus();
+      }
+    });
+
+    uaText.addEventListener('input', () => {
+      clearTimeout(uaTimer);
+      const q = uaText.value.trim();
+      if (q.length < 2) { closeUaDrop(); return; }
+      uaTimer = setTimeout(() => {
+        fetch(`${UA_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            closeUaDrop();
+            if (!data.length) {
+              uaDrop.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhuma UA encontrada</div>';
+              uaDrop.style.display = 'block';
+              positionDropdownEl(uaText, uaDrop);
+              return;
+            }
+            data.forEach(ua => {
+              const opt = document.createElement('div');
+              opt.className = 'efisco-option';
+              opt.innerHTML = `
+                <div class="efisco-code">${ua.ua}${ua.sigla ? ' (' + ua.sigla + ')' : ''}</div>
+                ${ua.responsavel_ua ? `<div class="efisco-desc">${ua.responsavel_ua}</div>` : ''}
+              `;
+              opt.addEventListener('mousedown', e => { e.preventDefault(); selectUa(ua); });
+              uaDrop.appendChild(opt);
+            });
+            uaDrop.style.display = 'block';
+            positionDropdownEl(uaText, uaDrop);
+          });
+      }, 250);
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.autocomplete-wrap')) closeUaDrop();
+    });
+
+    // Evita salvar sem querer sem nenhuma UA selecionada (ex.: limpou e não escolheu outra)
+    document.getElementById('editSolicitacaoForm').addEventListener('submit', e => {
+      if (!uaHidden.value) {
+        const confirmar = confirm('Nenhuma UA solicitante selecionada. Salvar mesmo assim?');
+        if (!confirmar) {
+          e.preventDefault();
+          uaText.focus();
+        }
+      }
+    });
+  })();
+</script>
 {% endblock %}

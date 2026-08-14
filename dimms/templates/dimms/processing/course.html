@@ -656,15 +656,15 @@
           <div class="card-title">Dados de quem recebeu</div>
         </div>
         <div class="card-body">
-          {% if tramitacao.matricula_recebedor or tramitacao.cpf_recebedor or tramitacao.empresa_orgao_recebedor %}
+          {% if tramitacao.matricula_recebedor or tramitacao.cargo_recebedor or tramitacao.empresa_orgao_recebedor %}
             <div class="info-grid">
               <div class="info-item">
                 <div class="info-item-label">Matrícula</div>
                 <div class="info-item-value mono">{{ tramitacao.matricula_recebedor|default:"—" }}</div>
               </div>
               <div class="info-item">
-                <div class="info-item-label">CPF</div>
-                <div class="info-item-value mono">{{ tramitacao.cpf_recebedor|default:"—" }}</div>
+                <div class="info-item-label">Cargo/Função</div>
+                <div class="info-item-value">{{ tramitacao.cargo_recebedor|default:"—" }}</div>
               </div>
               <div class="info-item">
                 <div class="info-item-label">Empresa/Órgão</div>
@@ -674,7 +674,7 @@
           {% else %}
             <div class="empty">
               <span class="empty-icon">🪪</span>
-              Nenhum dado de matrícula/CPF/empresa registrado para esta etapa.
+              Nenhum dado de matrícula/cargo/empresa registrado para esta etapa.
             </div>
           {% endif %}
         </div>

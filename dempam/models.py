@@ -132,7 +132,7 @@ class InfoUA(models.Model):
 
     def __str__(self):
         if self.sigla:
-            return f'{self.sigla} — {self.ua}'
+            return f'{self.ua} ({self.sigla})'
         return self.ua
 
 

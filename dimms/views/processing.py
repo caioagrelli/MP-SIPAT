@@ -298,10 +298,10 @@ def comprovante_tramitacao(request, solicitacao_pk, tramitacao_pk):
         ('Registrado por',           registrado_por),
         ('Responsável Operacional',  tramitacao.responsible_update or '—'),
     ]
-    if tramitacao.matricula_recebedor or tramitacao.cpf_recebedor or tramitacao.empresa_orgao_recebedor:
+    if tramitacao.matricula_recebedor or tramitacao.cargo_recebedor or tramitacao.empresa_orgao_recebedor:
         linhas_etapa += [
             ('Matrícula de Quem Recebeu',       tramitacao.matricula_recebedor or '—'),
-            ('CPF de Quem Recebeu',             tramitacao.cpf_recebedor or '—'),
+            ('Cargo/Função de Quem Recebeu',    tramitacao.cargo_recebedor or '—'),
             ('Empresa/Órgão de Quem Recebeu',   tramitacao.empresa_orgao_recebedor or '—'),
         ]
     for i, (lbl, val) in enumerate(linhas_etapa):
@@ -835,7 +835,7 @@ def receber_solicitacao(request, pk):
                 responsible_update=form.cleaned_data['nome_recebedor'],
                 photo_update=form.cleaned_data.get('foto_recebedor'),
                 matricula_recebedor=form.cleaned_data.get('matricula_recebedor', ''),
-                cpf_recebedor=form.cleaned_data.get('cpf_recebedor', ''),
+                cargo_recebedor=form.cleaned_data.get('cargo_recebedor', ''),
                 empresa_orgao_recebedor=form.cleaned_data.get('empresa_orgao_recebedor', ''),
                 user_update=request.user,
             )
@@ -865,7 +865,7 @@ def receber_lote(request):
         ids_selecionados = request.POST.getlist('solicitacoes')
         nome_recebedor = request.POST.get('nome_recebedor', '').strip()
         matricula_recebedor = request.POST.get('matricula_recebedor', '').strip()
-        cpf_recebedor = request.POST.get('cpf_recebedor', '').strip()
+        cargo_recebedor = request.POST.get('cargo_recebedor', '').strip()
         empresa_orgao_recebedor = request.POST.get('empresa_orgao_recebedor', '').strip()
         foto = request.FILES.get('foto_recebedor')
 
@@ -897,7 +897,7 @@ def receber_lote(request):
                     responsible_update=nome_recebedor,
                     photo_update=ContentFile(foto_bytes, name=f'foto{foto_ext}') if foto_bytes else None,
                     matricula_recebedor=matricula_recebedor,
-                    cpf_recebedor=cpf_recebedor,
+                    cargo_recebedor=cargo_recebedor,
                     empresa_orgao_recebedor=empresa_orgao_recebedor,
                     user_update=request.user,
                 )

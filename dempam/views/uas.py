@@ -37,6 +37,7 @@ def ua_homepage(request):
     if query:
         uas = uas.filter(
             Q(ua__icontains=query) |
+            Q(sigla__icontains=query) |
             Q(responsavel_ua__icontains=query) |
             Q(email_ua__icontains=query) |
             Q(circunscricao_predio__local__icontains=query)
@@ -192,8 +193,8 @@ def ua_search(request):
         return JsonResponse([], safe=False)
     uas = (
         InfoUA.objects
-        .filter(Q(ua__icontains=q) | Q(responsavel_ua__icontains=q))
-        .values('id', 'ua', 'responsavel_ua')
+        .filter(Q(ua__icontains=q) | Q(sigla__icontains=q) | Q(responsavel_ua__icontains=q))
+        .values('id', 'ua', 'sigla', 'responsavel_ua')
         [:20]
     )
     return JsonResponse(list(uas), safe=False)

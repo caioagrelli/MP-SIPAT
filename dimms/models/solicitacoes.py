@@ -7,9 +7,6 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-# Importações de validação
-from localflavor.br.models import BRCPFField
-
 # Importações do código
 from ..utils import *
 from dempam.models import InfoUA
@@ -231,9 +228,10 @@ class Tramitacao(models.Model):
         verbose_name='Matrícula de Quem Recebeu',
     )
 
-    cpf_recebedor = BRCPFField(
+    cargo_recebedor = models.CharField(
+        max_length=100,
         blank=True,
-        verbose_name='CPF de Quem Recebeu',
+        verbose_name='Cargo/Função de Quem Recebeu',
     )
 
     empresa_orgao_recebedor = models.CharField(
