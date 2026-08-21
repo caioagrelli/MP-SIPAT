@@ -179,6 +179,12 @@
   .empty-icon  { font-size: 2.5rem; margin-bottom: 12px; opacity: .35; }
   .empty-title { font-weight: 700; color: var(--ink-2); margin-bottom: 4px; font-size: .95rem; }
 
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 16px 20px; border-top: 1px solid var(--border); }
+  .page-btn { font-family: var(--font); font-size: .8rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: background .15s; }
+  .page-btn:hover { background: var(--blue-soft); }
+  .page-btn.disabled { color: var(--ink-3); opacity: .5; pointer-events: none; }
+  .page-info { font-size: .78rem; color: var(--ink-3); font-family: var(--mono); }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .fadeup { animation: fadeUp .25s ease both; }
 
@@ -200,7 +206,13 @@
   <div class="topbar">
     <div>
       <div class="topbar-title">📋 Painel de Inventário</div>
-      <div class="topbar-sub">Acompanhamento operacional dos registros por responsável.</div>
+      <div class="topbar-sub">
+        {% if is_admin %}
+          Acompanhamento operacional dos registros por responsável.
+        {% else %}
+          Seu controle de inventário — bens sob sua gestão, com foto/estado/observação registrados ou pendentes.
+        {% endif %}
+      </div>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       {% if perms.dimrcbp.add_periodoinventario %}
@@ -232,11 +244,23 @@
       {% csrf_token %}
       <div class="abrir-row">
         <div class="abrir-field">
-          <label class="abrir-label" for="id_ano">Ano</label>
-          <input class="abrir-input" type="number" id="id_ano" name="ano"
-                 value="{{ form_abrir.ano.value }}" min="2000" max="2099" required>
+          <label class="abrir-label" for="id_descricao">Descrição</label>
+          <input class="abrir-input" style="width:220px;text-align:left;font-family:var(--font);font-weight:600;font-size:.87rem;"
+                 type="text" id="id_descricao" name="descricao"
+                 value="{{ form_abrir.descricao.value|default:'' }}" required>
         </div>
-        <span class="abrir-hint">Um inventário por ano. Cobre de 1/jan a 31/dez.</span>
+        <div class="abrir-field">
+          <label class="abrir-label" for="id_inicio">Início</label>
+          <input class="abrir-input" style="width:160px;font-family:var(--font);font-size:.87rem;"
+                 type="date" id="id_inicio" name="inicio"
+                 value="{{ form_abrir.inicio.value|default:'' }}" required>
+        </div>
+        <div class="abrir-field">
+          <label class="abrir-label" for="id_fim">Fim</label>
+          <input class="abrir-input" style="width:160px;font-family:var(--font);font-size:.87rem;"
+                 type="date" id="id_fim" name="fim"
+                 value="{{ form_abrir.fim.value|default:'' }}" required>
+        </div>
         <button type="submit" class="btn btn-primary" style="height:40px;">
           Confirmar Abertura
         </button>
@@ -258,28 +282,40 @@
   {% else %}
 
   <!-- SELETOR DE PERÍODO -->
-  <form method="get" class="period-bar fadeup">
-    <span class="period-label">Período</span>
-    <select name="periodo" class="period-select" onchange="this.form.submit()">
-      {% for p in periodos %}
-        <option value="{{ p.pk }}" {% if p.pk == periodo.pk %}selected{% endif %}>
-          {{ p.descricao }} ({{ p.inicio|date:"d/m/Y" }} — {{ p.fim|date:"d/m/Y" }})
-        </option>
-      {% endfor %}
-    </select>
-    {% if inventario_ativo and periodo.pk == periodos.first.pk %}
-      <span class="period-active-badge">● Em andamento</span>
-    {% else %}
-      <span class="period-closed-badge">Encerrado</span>
+  <div class="period-bar fadeup">
+    <form method="get" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;margin:0;">
+      <span class="period-label">Período</span>
+      <select name="periodo" class="period-select" onchange="this.form.submit()">
+        {% for p in periodos %}
+          <option value="{{ p.pk }}" {% if p.pk == periodo.pk %}selected{% endif %}>
+            {{ p.descricao }} ({{ p.inicio|date:"d/m/Y" }} — {{ p.fim|date:"d/m/Y" }})
+          </option>
+        {% endfor %}
+      </select>
+      {% if periodo_ativo %}
+        <span class="period-active-badge">● Em andamento</span>
+      {% else %}
+        <span class="period-closed-badge">Encerrado</span>
+      {% endif %}
+    </form>
+    {% if periodo_ativo and perms.dimrcbp.add_periodoinventario %}
+      <form method="post" action="{% url 'dimrcbp:fechar_inventario' periodo.pk %}"
+            onsubmit="return confirm('Encerrar \'{{ periodo.descricao|escapejs }}\' agora? Ninguém mais vai poder registrar bens nesse período depois disso.');"
+            style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost" style="height:36px;color:var(--red);border-color:var(--red-mid);">
+          🔒 Fechar Inventário
+        </button>
+      </form>
     {% endif %}
-  </form>
+  </div>
 
   <!-- SUMMARY -->
   <div class="summary-row fadeup">
     <div class="sum-card sum-blue">
       <div class="sum-label">Total de Bens</div>
       <div class="sum-value">{{ total_bens }}</div>
-      <div class="sum-hint">com atribuição ativa</div>
+      <div class="sum-hint">nas UAs listadas abaixo</div>
     </div>
     <div class="sum-card sum-green">
       <div class="sum-label">Registrados</div>
@@ -292,9 +328,9 @@
       <div class="sum-hint">ainda não registrados</div>
     </div>
     <div class="sum-card sum-ink">
-      <div class="sum-label">Responsáveis</div>
-      <div class="sum-value">{{ usuarios_data|length }}</div>
-      <div class="sum-hint">com bens atribuídos</div>
+      <div class="sum-label">UAs</div>
+      <div class="sum-value">{{ total_uas }}</div>
+      <div class="sum-hint">com bens cadastrados</div>
     </div>
   </div>
 
@@ -309,12 +345,12 @@
     </div>
   </div>
 
-  <!-- ACCORDION POR RESPONSÁVEL -->
+  <!-- LISTA POR UA -->
   <div class="main-card fadeup">
     <div class="main-card-head">
       <div class="main-card-title">
-        👥 Por Responsável
-        <span class="count-badge">{{ usuarios_data|length }}</span>
+        🏢 Por UA
+        <span class="count-badge">{{ total_uas_filtradas }}</span>
       </div>
       <div style="display:flex; gap:10px; font-size:.78rem; font-weight:600; color:var(--ink-3);">
         <span>
@@ -326,75 +362,72 @@
       </div>
     </div>
 
-    {% if usuarios_data %}
-      {% for ud in usuarios_data %}
-      {% with nome=ud.user.get_full_name|default:ud.user.username %}
-      <div class="user-row {% if ud.concluido %}concluido{% endif %}" onclick="toggleUser(this)">
+    <form method="get" style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:10px;">
+      <input type="hidden" name="periodo" value="{{ periodo.pk }}">
+      <input type="text" name="busca" value="{{ busca }}" placeholder="Pesquisar por UA ou gestor…"
+             style="flex:1;height:38px;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:0 14px;font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface-2);outline:none;">
+      <button type="submit" class="btn btn-primary" style="height:38px;">🔍 Pesquisar</button>
+      {% if busca %}<a href="?periodo={{ periodo.pk }}" class="btn btn-ghost" style="height:38px;">Limpar</a>{% endif %}
+    </form>
 
+    {% if uas_data %}
+      {% for ud in uas_data %}
+      <a href="{% url 'dimrcbp:filtros_operacionais' %}?ua={{ ud.ua.pk }}" class="user-row" style="display:block;text-decoration:none;color:inherit;">
         <div class="user-row-head">
           <div>
             <div class="user-name">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if ud.concluido %}var(--green){% else %}var(--amber){% endif %};margin-right:6px;"></span>
-              {{ nome }}
+              {{ ud.ua.ua }}
             </div>
-            <div class="user-sub">{{ ud.user.email|default:"—" }}</div>
+            <div class="user-sub">
+              {% if ud.ua.gestor %}
+                Gestor: {{ ud.ua.gestor.get_full_name|default:ud.ua.gestor.username }}
+              {% else %}
+                <span style="color:var(--red);font-weight:700;">⚠ Sem gestor definido</span>
+              {% endif %}
+            </div>
           </div>
 
           <span class="stat-chip chip-blue">{{ ud.total }} bens</span>
 
           {% if ud.registrados %}
-            <span class="stat-chip chip-green">✓ {{ ud.registrados|length }} registrado{{ ud.registrados|length|pluralize }}</span>
+            <span class="stat-chip chip-green">✓ {{ ud.registrados }} registrado{{ ud.registrados|pluralize }}</span>
           {% else %}
             <span class="stat-chip chip-gray">0 registrados</span>
           {% endif %}
 
           {% if ud.pendentes %}
-            <span class="stat-chip chip-amber">⚠ {{ ud.pendentes|length }} pendente{{ ud.pendentes|length|pluralize }}</span>
+            <span class="stat-chip chip-amber">⚠ {{ ud.pendentes }} pendente{{ ud.pendentes|pluralize }}</span>
           {% else %}
             <span class="stat-chip chip-green">✓ Concluído</span>
           {% endif %}
 
-          <span class="chevron">▾</span>
+          <span class="chevron" style="transform:rotate(-90deg);">▾</span>
         </div>
-
-        <div class="user-bem-list">
-          {% for entry in ud.registrados %}
-          <div class="bem-item">
-            <span class="bem-dot dot-green"></span>
-            <div>
-              <div class="bem-tombo">Tombo {{ entry.bem.tombo }}</div>
-              <div class="bem-desc">{{ entry.bem.description }}</div>
-            </div>
-            <span class="stat-chip chip-green" style="font-size:.7rem;">{{ entry.registro.get_situation_display }}</span>
-            <div class="bem-reg-info">
-              <strong>{{ entry.registro.registrado_por.get_full_name|default:entry.registro.registrado_por.username }}</strong>
-              {{ entry.registro.data_registro|date:"d/m/Y H:i" }}
-            </div>
-          </div>
-          {% endfor %}
-
-          {% for entry in ud.pendentes %}
-          <div class="bem-item">
-            <span class="bem-dot dot-amber"></span>
-            <div>
-              <div class="bem-tombo">Tombo {{ entry.bem.tombo }}</div>
-              <div class="bem-desc">{{ entry.bem.description }}</div>
-            </div>
-            <span class="stat-chip chip-amber" style="font-size:.7rem;">Pendente</span>
-            <div class="bem-reg-info" style="color:var(--amber);">Não registrado</div>
-          </div>
-          {% endfor %}
-        </div>
-
-      </div>
-      {% endwith %}
+      </a>
       {% endfor %}
+
+      {% if uas_data.paginator.num_pages > 1 %}
+        <div class="pagination">
+          {% if uas_data.has_previous %}
+            <a href="?periodo={{ periodo.pk }}&busca={{ busca }}&pagina={{ uas_data.previous_page_number }}" class="page-btn">‹ Anterior</a>
+          {% else %}
+            <span class="page-btn disabled">‹ Anterior</span>
+          {% endif %}
+          <span class="page-info">Página {{ uas_data.number }} de {{ uas_data.paginator.num_pages }}</span>
+          {% if uas_data.has_next %}
+            <a href="?periodo={{ periodo.pk }}&busca={{ busca }}&pagina={{ uas_data.next_page_number }}" class="page-btn">Próxima ›</a>
+          {% else %}
+            <span class="page-btn disabled">Próxima ›</span>
+          {% endif %}
+        </div>
+      {% endif %}
 
     {% else %}
     <div class="empty-state">
-      <div class="empty-icon">👥</div>
-      <div class="empty-title">Nenhum bem atribuído</div>
-      <div>Não há bens com atribuição ativa cadastrada.</div>
+      <div class="empty-icon">🏢</div>
+      <div class="empty-title">Nenhuma UA com bens cadastrada</div>
+      <div>Não há bens permanentes com UA atual definida.</div>
     </div>
     {% endif %}
 
@@ -404,19 +437,10 @@
 </div>
 
 <script>
-  function toggleUser(row) {
-    row.classList.toggle('open');
-  }
-
   function toggleAbrir() {
     const wrap = document.getElementById('abrirWrap');
     if (wrap) wrap.classList.toggle('open');
   }
-
-  // Abre automaticamente responsáveis com pendências
-  document.querySelectorAll('.user-row:not(.concluido)').forEach(row => {
-    row.classList.add('open');
-  });
 
   // Re-abre o form se houver mensagem de erro (não de sucesso)
   const hasError = document.querySelector('.msg-alert[data-level="error"]');

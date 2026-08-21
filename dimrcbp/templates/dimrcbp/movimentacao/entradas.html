@@ -1,0 +1,188 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Entradas de Bens{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);background:var(--bg);}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s ease;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}
+  .btn-primary:hover{background:var(--accent-dark);}
+
+  .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);}
+  .kpi-card:nth-child(2)::before{background:var(--green);}
+  .kpi-card:nth-child(3)::before{background:var(--amber);}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+  .kpi-value{font-size:1.8rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;color:var(--ink);}
+  .kpi-card:nth-child(1) .kpi-value{color:var(--blue);}
+  .kpi-card:nth-child(2) .kpi-value{color:var(--green);}
+  .kpi-card:nth-child(3) .kpi-value{color:var(--amber);font-size:1.5rem;}
+
+  .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:16px 20px;margin-bottom:20px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+  .field-group{display:flex;flex-direction:column;gap:5px;}
+  .field-group label{font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);}
+  .form-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:9px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s;min-width:200px;}
+  .form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  select.form-control{min-width:120px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .card-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.75rem;font-family:var(--mono);font-weight:700;}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:var(--surface-2);}
+  th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:11px 16px;font-size:.85rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  .mono{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);font-weight:700;}
+
+  .empty-state{padding:56px 24px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.4rem;display:block;margin-bottom:12px;opacity:.35;}
+  .empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
+
+  .pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;border-top:1px solid var(--border);}
+  .page-btn{font-family:var(--font);font-size:.8rem;font-weight:700;color:var(--blue);text-decoration:none;padding:6px 12px;border-radius:8px;transition:background .15s;}
+  .page-btn:hover{background:var(--blue-soft);}
+  .page-btn.disabled{color:var(--ink-3);opacity:.5;pointer-events:none;}
+  .page-info{font-size:.78rem;color:var(--ink-3);font-family:var(--mono);}
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📥 Entradas de Bens</div>
+      <div class="topbar-sub">Bens permanentes adicionados ao sistema em {{ ano }}, por data de aquisição.</div>
+    </div>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Bens Permanentes</a>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Bens Cadastrados em {{ ano }}</div>
+      <div class="kpi-value">{{ total }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Valor Total</div>
+      <div class="kpi-value">R$ {{ valor_total|floatformat:2 }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ano</div>
+      <div class="kpi-value">{{ ano }}</div>
+    </div>
+  </div>
+
+  <form method="get" class="filter-card">
+    <div class="field-group">
+      <label for="id_ano">Ano</label>
+      <select id="id_ano" name="ano" class="form-control">
+        {% for a in anos_disponiveis %}
+          <option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="id_busca">Busca (Tombo / Descrição / Marca)</label>
+      <input type="text" id="id_busca" name="busca" class="form-control" value="{{ busca }}" placeholder="Ex: 8745, monitor…">
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+    <a href="{% url 'dimrcbp:entradas' %}" class="btn btn-ghost">Limpar</a>
+  </form>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        Bens
+        <span class="badge">{{ total }}</span>
+      </div>
+    </div>
+
+    {% if itens %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tombo</th>
+            <th>Descrição</th>
+            <th>Marca / Modelo</th>
+            <th>Data de Aquisição</th>
+            <th>Valor</th>
+            <th>Fornecedor</th>
+            <th>UA Atual</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bem in itens %}
+          <tr>
+            <td>
+              <a href="{% url 'dimrcbp:bem_detalhe_admin' bem.tombo %}" class="mono" style="color:var(--blue);text-decoration:none;">
+                {{ bem.tombo }}
+              </a>
+            </td>
+            <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ bem.description }}</td>
+            <td>{{ bem.mark }} — {{ bem.model }}</td>
+            <td class="mono">{{ bem.acquisition_date|date:"d/m/Y" }}</td>
+            <td class="mono">R$ {{ bem.value|floatformat:2 }}</td>
+            <td style="font-size:.82rem;">{{ bem.supllier.name|default:"—" }}</td>
+            <td style="font-size:.82rem;">
+              {% if bem.history_tombo.current_ua %}{{ bem.history_tombo.current_ua.ua }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if itens.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if itens.has_previous %}
+          <a href="?ano={{ ano }}&busca={{ busca }}&pagina={{ itens.previous_page_number }}" class="page-btn">‹ Anterior</a>
+        {% else %}
+          <span class="page-btn disabled">‹ Anterior</span>
+        {% endif %}
+        <span class="page-info">Página {{ itens.number }} de {{ itens.paginator.num_pages }}</span>
+        {% if itens.has_next %}
+          <a href="?ano={{ ano }}&busca={{ busca }}&pagina={{ itens.next_page_number }}" class="page-btn">Próxima ›</a>
+        {% else %}
+          <span class="page-btn disabled">Próxima ›</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-icon">📥</span>
+      <div class="empty-title">Nenhum bem encontrado</div>
+      <div style="font-size:.84rem;">Não há bens com data de aquisição em {{ ano }}{% if busca %} para "{{ busca }}"{% endif %}.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

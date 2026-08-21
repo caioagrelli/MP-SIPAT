@@ -174,11 +174,11 @@
       <span class="badge-wip">Em breve</span>
     </div>
     <div class="flow-card-body">
-      <a href="#" class="flow-btn"><span class="btn-dot"></span>Entradas</a>
+      <a href="{% url 'dimrcbp:entradas' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Entradas</a>
       <a href="{% url 'dimrcbp:lista_solicitacoes' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Solicitações</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Transferências e Devoluções</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Movimentações Internas</a>
-      <a href="#" class="flow-btn"><span class="btn-dot"></span>Acautelamento</a>
+      <a href="{% url 'dimrcbp:lista_acautelamentos' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Acautelamento</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Gestão de Responsáveis</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Manutenção e Baixas</a>
       <a href="#" class="flow-btn"><span class="btn-dot"></span>Doações</a>
@@ -198,7 +198,6 @@
     <div class="flow-card-body">
       <a href="{% url 'dimrcbp:meus_bens' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Meus Bens</a>
       <a href="{% url 'dimrcbp:filtros_operacionais' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Filtros Operacionais</a>
-      <a href="{% url 'dimrcbp:controle_prazos' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Controle de Prazos</a>
       <a href="{% url 'dimrcbp:catalogo_lista' %}" class="flow-btn" style="opacity:1;cursor:pointer;"><span class="btn-dot"></span>Catálogo de Bens</a>
     </div>
   </div>

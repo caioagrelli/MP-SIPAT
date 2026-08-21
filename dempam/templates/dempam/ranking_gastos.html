@@ -1,0 +1,135 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Ranking de Gastos{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font);}
+  .rpage{background:var(--bg);padding:28px 24px 48px;min-height:100vh;color:var(--ink);}
+
+  .page-header{margin-bottom:24px;}
+  .page-back{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--ink-3);text-decoration:none;margin-bottom:14px;transition:color .15s;}
+  .page-back:hover{color:var(--ink);}
+  .page-title{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;}
+  .page-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+
+  .ranking-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:980px){.ranking-grid{grid-template-columns:1fr;}}
+
+  .ranking-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .ranking-card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .ranking-card-head .icon{font-size:1.2rem;}
+  .ranking-card-head .titulo{font-weight:800;font-size:.98rem;}
+  .ranking-card-head .sub{font-size:.76rem;color:var(--ink-3);font-weight:500;margin-left:auto;}
+
+  .ranking-list{list-style:none;}
+  .ranking-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);}
+  .ranking-item:last-child{border-bottom:none;}
+  .ranking-pos{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:var(--surface-2);color:var(--ink-3);font-family:var(--mono);font-size:.74rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .ranking-item:nth-child(1) .ranking-pos{background:var(--amber-soft);color:var(--amber);}
+  .ranking-item:nth-child(2) .ranking-pos{background:var(--surface-2);color:var(--ink-2);}
+  .ranking-item:nth-child(3) .ranking-pos{background:#fdf0e6;color:#9a5b2e;}
+  .ranking-nome{flex:1;min-width:0;font-weight:700;font-size:.87rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ranking-meta{font-size:.72rem;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;}
+  .ranking-gasto{font-family:var(--mono);font-weight:700;font-size:.87rem;color:var(--green);white-space:nowrap;}
+
+  .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
+  .table-empty-icon{font-size:2.2rem;display:block;margin-bottom:10px;opacity:.3;}
+
+  .ranking-pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 20px;border-top:1px solid var(--border);}
+  .page-btn{font-family:var(--font);font-size:.8rem;font-weight:700;color:var(--accent);text-decoration:none;padding:6px 12px;border-radius:8px;transition:background .15s;}
+  .page-btn:hover{background:var(--blue-soft);}
+  .page-btn.disabled{color:var(--ink-3);opacity:.5;pointer-events:none;}
+  .page-info{font-size:.78rem;color:var(--ink-3);font-family:var(--mono);}
+</style>
+
+<div class="rpage">
+  <div class="page-header">
+    <a href="{% url 'dempam:homepage' %}" class="page-back">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar para o Painel Gerencial
+    </a>
+    <div class="page-title">🏆 Ranking de Gastos</div>
+    <div class="page-sub">Municípios e circunscrições ordenados pelo gasto mensal (consumo) — do maior para o menor.</div>
+  </div>
+
+  <div class="ranking-grid">
+    <div class="ranking-card">
+      <div class="ranking-card-head">
+        <span class="icon">🏙️</span>
+        <span class="titulo">Municípios</span>
+        <span class="sub">{{ pagina_municipios.paginator.count }} com UAs cadastradas</span>
+      </div>
+      <ul class="ranking-list">
+        {% for linha in pagina_municipios %}
+          <li class="ranking-item">
+            <span class="ranking-pos">{{ pagina_municipios.start_index|add:forloop.counter0 }}</span>
+            <span class="ranking-nome">{{ linha.nome }}</span>
+            <span class="ranking-meta">{{ linha.total_pedidos }} pedido{{ linha.total_pedidos|pluralize }} · {{ linha.total_bens }} be{{ linha.total_bens|pluralize:"m,ns" }}</span>
+            <span class="ranking-gasto">R$ {{ linha.gasto_mensal|floatformat:2 }}</span>
+          </li>
+        {% empty %}
+          <div class="table-empty">
+            <span class="table-empty-icon">🏙️</span>
+            Nenhum gasto registrado ainda.
+          </div>
+        {% endfor %}
+      </ul>
+      {% if pagina_municipios.paginator.num_pages > 1 %}
+        <div class="ranking-pagination">
+          {% if pagina_municipios.has_previous %}
+            <a href="?pagina={{ pagina_municipios.previous_page_number }}" class="page-btn">‹ Anterior</a>
+          {% else %}
+            <span class="page-btn disabled">‹ Anterior</span>
+          {% endif %}
+          <span class="page-info">Página {{ pagina_municipios.number }} de {{ pagina_municipios.paginator.num_pages }}</span>
+          {% if pagina_municipios.has_next %}
+            <a href="?pagina={{ pagina_municipios.next_page_number }}" class="page-btn">Próxima ›</a>
+          {% else %}
+            <span class="page-btn disabled">Próxima ›</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="ranking-card">
+      <div class="ranking-card-head">
+        <span class="icon">🗺️</span>
+        <span class="titulo">Circunscrições</span>
+        <span class="sub">{{ ranking_circunscricoes|length }} com UAs cadastradas</span>
+      </div>
+      <ul class="ranking-list">
+        {% for linha in ranking_circunscricoes %}
+          <li class="ranking-item">
+            <span class="ranking-pos">{{ forloop.counter }}</span>
+            <span class="ranking-nome">{{ linha.nome }}</span>
+            <span class="ranking-meta">{{ linha.total_pedidos }} pedido{{ linha.total_pedidos|pluralize }} · {{ linha.total_bens }} be{{ linha.total_bens|pluralize:"m,ns" }}</span>
+            <span class="ranking-gasto">R$ {{ linha.gasto_mensal|floatformat:2 }}</span>
+          </li>
+        {% empty %}
+          <div class="table-empty">
+            <span class="table-empty-icon">🗺️</span>
+            Nenhum gasto registrado ainda.
+          </div>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

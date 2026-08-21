@@ -13,6 +13,7 @@
     --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
     --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
     --teal:#0f766e; --teal-soft:#f0fdfa; --teal-mid:#99f6e4;
+    --amber:#b45309; --amber-soft:#fffbeb; --amber-mid:#fde68a;
     --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
     --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
     --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
@@ -77,6 +78,8 @@
   .p-prateleira .pill-dot{background:var(--teal);}
   .p-default{background:var(--surface-2);color:var(--ink-3);border-color:var(--border-strong);}
   .p-default .pill-dot{background:var(--ink-3);}
+  .p-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .p-amber .pill-dot{background:var(--amber);}
 
   /* ── Empty ── */
   .table-empty{padding:48px;text-align:center;color:var(--ink-3);}
@@ -149,7 +152,12 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Voltar para Setores
       </a>
-      <div class="page-title">🏢 {{ setor.setor }}</div>
+      <div class="page-title">
+        🏢 {{ setor.setor }}
+        <span class="pill {% if setor.tipo == 'DIMRCBP' %}p-amber{% else %}p-pallet{% endif %}" style="font-size:.68rem;">
+          <span class="pill-dot"></span>{{ setor.get_tipo_display }}
+        </span>
+      </div>
       <div class="page-sub">Visão geral das localizações internas deste setor.</div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">

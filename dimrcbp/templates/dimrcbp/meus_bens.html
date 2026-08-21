@@ -46,19 +46,34 @@
     margin-bottom: 24px;
   }
 
-  .summary-strip { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; max-width: 480px; }
+  .summary-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
   .sum-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--r-md); box-shadow: var(--shadow-sm);
     padding: 16px 18px; position: relative; overflow: hidden;
   }
-  .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-  .sum-card:nth-child(1)::before { background: var(--blue); }
-  .sum-card:nth-child(2)::before { background: var(--amber); }
+  .sum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--blue); }
+  .sum-card.sc-green::before  { background: var(--green); }
+  .sum-card.sc-amber::before  { background: var(--amber); }
+  .sum-card.sc-ink::before    { background: #1e2d42; }
   .sum-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
-  .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--ink); }
-  .sum-card:nth-child(1) .sum-value { color: var(--blue); }
-  .sum-card:nth-child(2) .sum-value { color: var(--amber); }
+  .sum-value { font-size:2rem; font-weight:800; font-family:var(--mono); line-height:1; letter-spacing:-.04em; color:var(--blue); }
+  .sum-card.sc-green .sum-value { color: var(--green); }
+  .sum-card.sc-amber .sum-value { color: var(--amber); }
+  .sum-card.sc-ink .sum-value   { color: #1e2d42; }
+  .sum-hint { margin-top: 6px; font-size: .72rem; color: var(--ink-3); }
+
+  .status-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .status-filter a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 999px; font-size: .8rem; font-weight: 700;
+    text-decoration: none; border: 1.5px solid var(--border-strong); color: var(--ink-2);
+    background: var(--surface); transition: all .15s;
+  }
+  .status-filter a:hover { background: var(--surface-2); }
+  .status-filter a.active { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+
+  @media (max-width: 900px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
 
   .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
   .main-card-head { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
@@ -122,6 +137,12 @@
   .table-empty-icon { font-size: 2.4rem; display: block; margin-bottom: 10px; opacity: .35; }
   .table-empty-title { font-weight: 700; color: var(--ink-2); font-size: .95rem; margin-bottom: 4px; }
 
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 16px 20px; border-top: 1px solid var(--border); }
+  .page-btn { font-family: var(--font); font-size: .8rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: background .15s; }
+  .page-btn:hover { background: var(--blue-soft); }
+  .page-btn.disabled { color: var(--ink-3); opacity: .5; pointer-events: none; }
+  .page-info { font-size: .78rem; color: var(--ink-3); font-family: var(--mono); }
+
   @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } .bens-grid { grid-template-columns: 1fr; } }
 </style>
 
@@ -139,6 +160,35 @@
   <div class="inventario-banner">
     📋 Inventário ativo: <strong>{{ periodo }}</strong> — registre a situação dos seus bens.
   </div>
+
+  <div class="summary-strip">
+    <div class="sum-card sc-ink">
+      <div class="sum-label">Total de Bens</div>
+      <div class="sum-value">{{ total_geral }}</div>
+      <div class="sum-hint">sob sua gestão</div>
+    </div>
+    <div class="sum-card sc-green">
+      <div class="sum-label">Já Registrados</div>
+      <div class="sum-value">{{ registrados_geral }}</div>
+      <div class="sum-hint">com foto e estado preenchidos</div>
+    </div>
+    <div class="sum-card sc-amber">
+      <div class="sum-label">Ainda Faltam</div>
+      <div class="sum-value">{{ pendentes_geral }}</div>
+      <div class="sum-hint">pendentes de registro</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Dias Restantes</div>
+      <div class="sum-value">{% if dias_restantes >= 0 %}{{ dias_restantes }}{% else %}0{% endif %}</div>
+      <div class="sum-hint">até {{ periodo.fim|date:"d/m/Y" }}</div>
+    </div>
+  </div>
+
+  <div class="status-filter">
+    <a href="?" class="{% if not status_filtro %}active{% endif %}">Todos</a>
+    <a href="?status=pendente" class="{% if status_filtro == 'pendente' %}active{% endif %}">⚠ Pendentes</a>
+    <a href="?status=registrado" class="{% if status_filtro == 'registrado' %}active{% endif %}">✓ Registrados</a>
+  </div>
   {% endif %}
 
   {% if messages %}
@@ -153,17 +203,6 @@
   {% endif %}
 
   {% if atribuicoes %}
-  <div class="summary-strip">
-    <div class="sum-card">
-      <div class="sum-label">Total de bens</div>
-      <div class="sum-value">{{ total }}</div>
-    </div>
-    <div class="sum-card">
-      <div class="sum-label">Inventário</div>
-      <div class="sum-value" style="font-size:1.1rem; padding-top:4px;">{% if inventario_ativo %}Ativo{% else %}Inativo{% endif %}</div>
-    </div>
-  </div>
-
   <div class="main-card">
     <div class="main-card-head">
       <div class="main-card-title">
@@ -211,6 +250,22 @@
       {% endwith %}
       {% endfor %}
     </div>
+
+    {% if atribuicoes.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if atribuicoes.has_previous %}
+          <a href="?status={{ status_filtro }}&pagina={{ atribuicoes.previous_page_number }}" class="page-btn">‹ Anterior</a>
+        {% else %}
+          <span class="page-btn disabled">‹ Anterior</span>
+        {% endif %}
+        <span class="page-info">Página {{ atribuicoes.number }} de {{ atribuicoes.paginator.num_pages }}</span>
+        {% if atribuicoes.has_next %}
+          <a href="?status={{ status_filtro }}&pagina={{ atribuicoes.next_page_number }}" class="page-btn">Próxima ›</a>
+        {% else %}
+          <span class="page-btn disabled">Próxima ›</span>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
   {% endif %}
 
@@ -257,12 +312,36 @@
               {{ bem.get_situacion_display }}
             </span>
           {% endif %}
+
+          {% if inventario_ativo %}
+            {% if bem.tombo in tombos_registrados %}
+              <span class="situacao-pill" style="background:var(--green-soft);color:var(--green);border-color:var(--green-mid);">✓ Inv. registrado</span>
+            {% else %}
+              <span class="situacao-pill" style="background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);">⚠ Inv. pendente</span>
+            {% endif %}
+          {% endif %}
         </div>
 
       </a>
       {% endfor %}
     </div>
     <div class="ua-search-empty" id="ua-empty-{{ forloop.counter }}">Nenhum bem encontrado para esta busca.</div>
+
+    {% if grupo.bens.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if grupo.bens.has_previous %}
+          <a href="?status={{ status_filtro }}&{{ grupo.param }}={{ grupo.bens.previous_page_number }}" class="page-btn">‹ Anterior</a>
+        {% else %}
+          <span class="page-btn disabled">‹ Anterior</span>
+        {% endif %}
+        <span class="page-info">Página {{ grupo.bens.number }} de {{ grupo.bens.paginator.num_pages }}</span>
+        {% if grupo.bens.has_next %}
+          <a href="?status={{ status_filtro }}&{{ grupo.param }}={{ grupo.bens.next_page_number }}" class="page-btn">Próxima ›</a>
+        {% else %}
+          <span class="page-btn disabled">Próxima ›</span>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
   {% endfor %}
 

@@ -38,12 +38,51 @@ class CircunscricaoPredio(models.Model):
     def __str__(self):
         return self.local
 
+
+# --- Municípios de Pernambuco (base geográfica do mapa do Painel Gerencial) ---
+class Municipio(models.Model):
+    nome = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Município',
+    )
+
+    codigo_ibge = models.CharField(
+        max_length=10,
+        unique=True,
+        verbose_name='Código IBGE',
+    )
+
+    circunscricao = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name='Circunscrição',
+    )
+
+    class Meta:
+        verbose_name = 'Município'
+        verbose_name_plural = '01b - Municípios'
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
+
 class InfoUA(models.Model):
     circunscricao_predio = models.ForeignKey(
         CircunscricaoPredio,
         on_delete=models.PROTECT,
         related_name='circunscricoes_predios',
         verbose_name='Circunscricao/Prédio',
+    )
+
+    municipio = models.ForeignKey(
+        Municipio,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uas',
+        verbose_name='Município',
     )
 
     parent = models.ForeignKey(
@@ -142,7 +181,14 @@ class SetorDEMPAM(models.Model):
         max_length=30,
         verbose_name='Setor/Sala'
     )
-    
+
+    tipo = models.CharField(
+        max_length=10,
+        choices=TipoSetor.choices,
+        default=TipoSetor.dimms,
+        verbose_name='Tipo',
+    )
+
     class Meta():
         verbose_name='Setor/Sala DEMPAM'
         verbose_name_plural='03 - Setores/Salas DEMPAM'

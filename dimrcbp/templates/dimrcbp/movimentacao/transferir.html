@@ -3,7 +3,6 @@
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
   :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
   *,*::before,*::after{box-sizing:border-box;}
@@ -48,11 +47,15 @@
 
   @media(max-width:900px){.layout{grid-template-columns:1fr;}}
 
-  .ts-wrapper .ts-control{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:7px 13px;font-family:var(--font);font-size:.87rem;color:var(--ink);background:var(--surface);min-height:42px;box-shadow:none;}
-  .ts-wrapper.focus .ts-control{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.1);}
-  .ts-dropdown{border:1.5px solid var(--border-strong);border-radius:var(--r-sm);box-shadow:var(--shadow-md);font-family:var(--font);font-size:.87rem;}
-  .ts-dropdown .option{padding:9px 14px;color:var(--ink);}
-  .ts-dropdown .option:hover,.ts-dropdown .option.active{background:var(--blue-soft);color:var(--blue);}
+  .efisco-dropdown{position:fixed;z-index:9999;background:var(--surface);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);box-shadow:var(--shadow-md);max-height:240px;overflow-y:auto;}
+  .efisco-option{padding:9px 13px;cursor:pointer;font-size:.85rem;border-bottom:1px solid var(--border);transition:background .1s;}
+  .efisco-option:last-child{border-bottom:none;}
+  .efisco-option:hover,.efisco-option.active{background:var(--blue-soft);}
+  .efisco-option .efisco-code{font-family:var(--mono);font-weight:700;color:var(--blue);font-size:.8rem;}
+  .efisco-option .efisco-desc{color:var(--ink-2);font-size:.8rem;margin-top:1px;white-space:normal;word-break:break-word;}
+  .efisco-selected{margin-top:6px;padding:7px 11px;background:var(--green-soft);border:1px solid var(--green-mid);border-radius:var(--r-sm);font-size:.84rem;color:var(--green);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .efisco-clear{background:none;border:none;cursor:pointer;color:var(--green);font-size:.78rem;font-weight:700;padding:0;opacity:.7;}
+  .efisco-clear:hover{opacity:1;}
 </style>
 
 <div class="apage">
@@ -96,14 +99,12 @@
             {% endif %}
           </div>
 
-          <div class="field-group">
-            <label for="id_ua_destino">UA Destino</label>
-            <select id="id_ua_destino" name="ua_destino" required>
-              <option value="">— Digite para pesquisar a UA —</option>
-              {% for ua in uas %}
-              <option value="{{ ua.pk }}">{{ ua.ua }}</option>
-              {% endfor %}
-            </select>
+          <div class="field-group" style="position:relative;">
+            <label for="ua-text">UA Destino</label>
+            <input type="text" id="ua-text" class="form-control" placeholder="Digite o nome ou sigla da UA…" autocomplete="off">
+            <input type="hidden" name="ua_destino" id="id_ua_destino">
+            <div class="efisco-dropdown" id="ua-dropdown" style="display:none;"></div>
+            <div class="efisco-selected" id="ua-selected" style="display:none;"></div>
           </div>
 
           <div class="field-group">
@@ -138,11 +139,82 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
-new TomSelect('#id_ua_destino', {
-  placeholder: 'Digite para pesquisar a UA…',
-  maxOptions: 300,
-});
+(function () {
+  const UA_SEARCH_URL = "{% url 'dempam:ua_search' %}";
+  const uaText     = document.getElementById('ua-text');
+  const uaHidden   = document.getElementById('id_ua_destino');
+  const uaDrop     = document.getElementById('ua-dropdown');
+  const uaSelected = document.getElementById('ua-selected');
+  let uaTimer      = null;
+
+  function closeUaDrop() { uaDrop.style.display = 'none'; uaDrop.innerHTML = ''; }
+
+  function positionUaDrop() {
+    const rect = uaText.getBoundingClientRect();
+    uaDrop.style.left  = rect.left + 'px';
+    uaDrop.style.top   = rect.bottom + 'px';
+    uaDrop.style.width = rect.width + 'px';
+  }
+
+  function selectUa(ua) {
+    uaHidden.value = ua.id;
+    uaSelected.innerHTML = `
+      <span><strong>${ua.ua}</strong>${ua.sigla ? ' (' + ua.sigla + ')' : ''}${ua.responsavel_ua ? ' · ' + ua.responsavel_ua : ''}</span>
+      <button type="button" class="efisco-clear" title="Limpar">✕</button>
+    `;
+    uaSelected.style.display = 'flex';
+    uaText.style.display = 'none';
+    closeUaDrop();
+  }
+
+  uaSelected.addEventListener('click', e => {
+    if (e.target.classList.contains('efisco-clear')) {
+      uaHidden.value = '';
+      uaText.value = '';
+      uaSelected.innerHTML = '';
+      uaSelected.style.display = 'none';
+      uaText.style.display = '';
+      uaText.focus();
+    }
+  });
+
+  uaText.addEventListener('input', () => {
+    clearTimeout(uaTimer);
+    const q = uaText.value.trim();
+    if (q.length < 2) { closeUaDrop(); return; }
+    uaTimer = setTimeout(() => {
+      fetch(`${UA_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          closeUaDrop();
+          if (!data.length) {
+            uaDrop.innerHTML = '<div class="efisco-option" style="color:var(--ink-3)">Nenhuma UA encontrada</div>';
+            positionUaDrop();
+            uaDrop.style.display = 'block';
+            return;
+          }
+          data.forEach(ua => {
+            const opt = document.createElement('div');
+            opt.className = 'efisco-option';
+            opt.innerHTML = `
+              <div class="efisco-code">${ua.ua}${ua.sigla ? ' (' + ua.sigla + ')' : ''}</div>
+              ${ua.responsavel_ua ? `<div class="efisco-desc">${ua.responsavel_ua}</div>` : ''}
+            `;
+            opt.addEventListener('mousedown', e => { e.preventDefault(); selectUa(ua); });
+            uaDrop.appendChild(opt);
+          });
+          positionUaDrop();
+          uaDrop.style.display = 'block';
+        });
+    }, 250);
+  });
+
+  window.addEventListener('scroll', () => { if (uaDrop.style.display === 'block') positionUaDrop(); }, true);
+  window.addEventListener('resize', () => { if (uaDrop.style.display === 'block') positionUaDrop(); });
+
+  uaText.addEventListener('blur', () => setTimeout(closeUaDrop, 200));
+  uaText.addEventListener('keydown', e => { if (e.key === 'Escape') closeUaDrop(); });
+})();
 </script>
 {% endblock %}

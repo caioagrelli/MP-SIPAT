@@ -23,7 +23,9 @@ from reportlab.pdfgen import canvas as rl_canvas
 # Importações do código
 from ..models import SetorDEMPAM, LocalizacaoDEMPAM
 from ..forms import SetorDEMPAMForm, LocalizacaoDEMPAMForm
+from ..utils import TipoSetor
 from dimms.models import Estoque
+from dimrcbp.models import BensPermanentes
 
 # =========================================
 # VIEWS DAS LOZALIZAÇÕES (SETORES E SALAS)
@@ -226,6 +228,39 @@ def sector_item_search(request, pk):
     if len(query) < 2:
         return JsonResponse({'resultados': []})
 
+    if setor.tipo == TipoSetor.dimrcbp:
+        bens = (
+            BensPermanentes.objects
+            .filter(locate__setor_sala=setor)
+            .filter(
+                Q(tombo__icontains=query) |
+                Q(description__description__icontains=query) |
+                Q(mark__icontains=query) |
+                Q(model__icontains=query)
+            )
+            .select_related('description', 'locate')
+            .order_by('tombo')[:30]
+        )
+        resultados = [
+            {
+                'efisco': bem.tombo,
+                'descricao': str(bem.description),
+                'marca': bem.mark or '',
+                'quantidade': '1',
+                'localizacao': bem.locate.prateleira_pallet,
+                'corredor': bem.locate.corredor,
+                'estante': bem.locate.estante,
+                'prateleira': bem.locate.prateleira,
+                'locate_url': reverse('dempam:locate_detail', args=[bem.locate.pk]),
+                'corredor_url': (
+                    reverse('dempam:corredor_detail', args=[setor.pk, bem.locate.corredor])
+                    if bem.locate.corredor else None
+                ),
+            }
+            for bem in bens
+        ]
+        return JsonResponse({'resultados': resultados[:30]})
+
     itens = (
         Estoque.objects
         .filter(Q(locate__setor_sala=setor) | Q(outras_localizacoes__setor_sala=setor))
@@ -273,6 +308,20 @@ def sector_item_search(request, pk):
 @login_required
 def locate_detail(request, pk):
     localizacao = get_object_or_404(LocalizacaoDEMPAM, pk=pk)
+
+    if localizacao.setor_sala and localizacao.setor_sala.tipo == TipoSetor.dimrcbp:
+        bens = (
+            BensPermanentes.objects
+            .filter(locate=localizacao)
+            .select_related('description', 'supllier')
+            .order_by('tombo')
+        )
+        return render(request, 'dempam/sectors/locate_detail.html', {
+            'localizacao': localizacao,
+            'bens': bens,
+            'is_dimrcbp': True,
+        })
+
     itens = (
         Estoque.objects
         .filter(Q(locate=localizacao) | Q(outras_localizacoes=localizacao))
@@ -284,6 +333,7 @@ def locate_detail(request, pk):
         'localizacao': localizacao,
         'itens': itens,
         'total_qtd': total_qtd,
+        'is_dimrcbp': False,
     })
 
 
@@ -429,16 +479,26 @@ def corredor_detail(request, pk, corredor):
     if not localizacoes.exists():
         raise Http404('Corredor não encontrado.')
 
+    is_dimrcbp = setor.tipo == TipoSetor.dimrcbp
+
     por_estante = {}
     todos_itens = []
     total_itens = 0
     for loc in localizacoes:
-        itens = list(
-            Estoque.objects
-            .filter(Q(locate=loc) | Q(outras_localizacoes=loc))
-            .select_related('item_shock')
-            .distinct()
-        )
+        if is_dimrcbp:
+            itens = list(
+                BensPermanentes.objects
+                .filter(locate=loc)
+                .select_related('description')
+                .order_by('tombo')
+            )
+        else:
+            itens = list(
+                Estoque.objects
+                .filter(Q(locate=loc) | Q(outras_localizacoes=loc))
+                .select_related('item_shock')
+                .distinct()
+            )
         total_itens += len(itens)
         por_estante.setdefault(loc.estante or '—', []).append({'localizacao': loc, 'itens': itens})
         for item in itens:
@@ -467,6 +527,7 @@ def corredor_detail(request, pk, corredor):
         'todos_itens': todos_itens,
         'total_itens': total_itens,
         'total_prateleiras': localizacoes.count(),
+        'is_dimrcbp': is_dimrcbp,
     })
 
 

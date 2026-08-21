@@ -131,7 +131,7 @@ class Estoque(models.Model):
         related_name='stock_updated',
         verbose_name='Última edição por')
 
-    method = models.CharField(max_length=60, blank=True, verbose_name='Método de Entrada' )
+    method = models.TextField(blank=True, verbose_name='Método de Entrada' )
     @property
     def duration(self):
         if self.amount_shock is not None and self.monthly_consumption not in (None, 0):

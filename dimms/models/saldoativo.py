@@ -399,6 +399,12 @@ class BensEnviados(models.Model):
         # Se houver mais de um local, não atualiza automaticamente —
         # o gestor deve distribuir manualmente via estoque.
 
+        # Preço médio do E-Fisco só é atualizado quando o item chega ao
+        # estoque via saldo ativo — usa o preço do saldo se ele tiver um
+        if bem.preco_unitario:
+            bem.efisco.preco_medio = bem.preco_unitario
+            bem.efisco.save(update_fields=['preco_medio'])
+
     @property
     def quantidade_recebida(self):
         return self.quantidade_enviada if self.recebida else 0

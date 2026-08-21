@@ -88,6 +88,7 @@ class SituacaoInventario(models.TextChoices):
     regular = 'REGULAR', 'Regular'
     precario = 'PRECARIO', 'Precário'
     sucata = 'SUCATA', 'Sucata'
+    nao_localizado = 'NAO_LOCALIZADO', 'Não Localizado'
 
 class GruposPermanentes(models.TextChoices):
     condicionador = 'CONDICIONADOR', 'Condicionador de Ar'

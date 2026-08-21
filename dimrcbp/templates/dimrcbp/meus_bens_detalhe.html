@@ -15,6 +15,7 @@
     --amber: #b45309; --amber-soft: #fffbeb; --amber-mid: #fde68a;
     --red: #b91c1c; --red-soft: #fef2f2; --red-mid: #fecaca;
     --accent: #2563eb; --accent-dark: #1d4ed8; --accent-glow: rgba(37,99,235,.12);
+    --navbar-navy: #111827; --navbar-navy-dark: #0a0f1a;
     --shadow-sm: 0 1px 3px rgba(15,23,42,.06); --shadow-md: 0 4px 12px rgba(15,23,42,.08);
     --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
     --font: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
@@ -151,9 +152,62 @@
   .inv-summary-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
   .inv-summary-value { font-size: .86rem; font-weight: 600; color: var(--ink-2); }
 
-  .btn-amber-solid { background: #d97706; border-color: #b45309; color: #fff; box-shadow: 0 2px 8px rgba(217,119,6,.25); }
-  .btn-amber-solid:hover { background: #b45309; color: #fff; }
+  .btn-amber-solid { background: var(--navbar-navy); border-color: var(--navbar-navy-dark); color: #fff; box-shadow: 0 2px 8px rgba(17,24,39,.3); }
+  .btn-amber-solid:hover { background: var(--navbar-navy-dark); color: #fff; }
 
+  .btn-nao-localizado {
+    background: var(--surface); border-color: var(--red-mid); color: var(--red);
+    display: inline-flex; align-items: center; gap: 6px; margin-left: auto;
+  }
+  .btn-nao-localizado:hover { background: var(--red-soft); }
+  .btn-nao-localizado.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* ── Card de Registro de Inventário em destaque ── */
+  .inv-destaque {
+    background: linear-gradient(180deg, #eef1f6, var(--surface) 140px);
+    border: 2px solid var(--navbar-navy); border-radius: var(--r-lg);
+    box-shadow: 0 8px 24px rgba(17,24,39,.2);
+    overflow: hidden; margin-bottom: 24px;
+  }
+  .inv-destaque.inv-done { border-color: var(--green-mid); box-shadow: 0 6px 18px rgba(21,128,61,.12); }
+  .inv-destaque-head {
+    padding: 16px 24px; background: linear-gradient(90deg, var(--navbar-navy-dark), var(--navbar-navy));
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .inv-destaque.inv-done .inv-destaque-head { background: linear-gradient(90deg, #15803d, #22c55e); }
+  .inv-destaque-title { font-size: 1.05rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .inv-destaque-period { font-size: .78rem; font-weight: 600; color: rgba(255,255,255,.85); }
+  .inv-destaque-badge {
+    font-size: .72rem; font-weight: 800; padding: 4px 12px; border-radius: 999px;
+    background: rgba(255,255,255,.22); color: #fff; letter-spacing: .03em;
+  }
+  .inv-destaque-body { padding: 24px; }
+  .inv-destaque-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+
+  .inv-foto-dropzone {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; height: 260px; border-radius: var(--r-md); cursor: pointer;
+    border: 2.5px dashed var(--border-strong); background: var(--surface-2); overflow: hidden;
+    transition: border-color .15s, background .15s;
+  }
+  .inv-foto-dropzone:hover { border-color: var(--navbar-navy); background: #e7e9ee; }
+  .inv-foto-dropzone.tem-foto { border-style: solid; border-color: var(--border-strong); padding: 0; }
+  .inv-foto-dropzone img { width: 100%; height: 100%; object-fit: cover; }
+  .inv-foto-icon { color: var(--navbar-navy); }
+  .inv-foto-icon svg { width: 46px; height: 46px; }
+  .inv-foto-placeholder-txt { font-size: .82rem; font-weight: 700; color: var(--navbar-navy); text-align: center; padding: 0 16px; }
+  .inv-foto-hint { display: block; text-align: center; font-size: .74rem; color: var(--ink-3); margin-top: 8px; }
+  .inv-foto-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+  .inv-nao-localizado-hint {
+    display: none; margin-top: 8px; padding: 10px 12px; border-radius: var(--r-sm);
+    background: var(--red-soft); border: 1px solid var(--red-mid); color: var(--red);
+    font-size: .78rem; font-weight: 600; text-align: center;
+  }
+  .situation-nao-localizado .inv-nao-localizado-hint { display: block; }
+  .situation-nao-localizado .inv-foto-dropzone { opacity: .4; pointer-events: none; }
+
+  @media (max-width: 700px) { .inv-destaque-grid { grid-template-columns: 1fr; } }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
   @media (max-width: 600px) { .apage { padding: 14px 12px 32px; } .meta-grid { grid-template-columns: 1fr; } }
 </style>
@@ -178,17 +232,89 @@
     </div>
   </div>
 
-  {% if inventario_ativo %}
-    {% if registro_inventario %}
-    <div class="inv-registrado-banner">
-      ✅ Bem já registrado no inventário <strong>{{ periodo }}</strong>.
-      Você pode corrigir os dados abaixo se necessário.
+  {% if inventario_ativo and form_inventario %}
+  <div class="inv-destaque {% if registro_inventario %}inv-done{% endif %}" id="invDestaque">
+    <div class="inv-destaque-head">
+      <div class="inv-destaque-title">
+        📋 Registro de Inventário
+        <span class="inv-destaque-badge">{% if registro_inventario %}✓ Registrado{% else %}⚠ Pendente{% endif %}</span>
+      </div>
+      <div class="inv-destaque-period">{{ periodo }}</div>
     </div>
-    {% else %}
-    <div class="inventario-banner">
-      📋 Inventário ativo: <strong>{{ periodo }}</strong> — preencha os dados deste bem abaixo.
+
+    <div class="inv-destaque-body">
+      {% if registro_inventario %}
+      <div class="inv-summary">
+        <div class="inv-summary-row">
+          <span class="inv-summary-label">Registrado por</span>
+          <span class="inv-summary-value">{{ registro_inventario.registrado_por.get_full_name|default:registro_inventario.registrado_por.username }} em {{ registro_inventario.data_registro|date:"d/m/Y H:i" }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'dimrcbp:registrar_inventario' bem.tombo %}" enctype="multipart/form-data"
+            id="formInventario" class="{% if registro_inventario.situation == 'NAO_LOCALIZADO' %}situation-nao-localizado{% endif %}">
+        {% csrf_token %}
+
+        <div class="inv-destaque-grid">
+          <!-- Foto — elemento central e maior do card -->
+          <div>
+            <label class="inv-foto-dropzone {% if registro_inventario.photo %}tem-foto{% endif %}" for="id_photo" id="invFotoDrop">
+              {% if registro_inventario.photo %}
+                <img src="{{ registro_inventario.photo.url }}" alt="Foto do inventário" id="invFotoPreview">
+              {% else %}
+                <img src="" alt="Foto do inventário" id="invFotoPreview" style="display:none;">
+              {% endif %}
+              <div id="invFotoPlaceholder" {% if registro_inventario.photo %}style="display:none;"{% endif %}>
+                <div class="inv-foto-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </div>
+                <div class="inv-foto-placeholder-txt">Toque para tirar ou escolher a foto do bem</div>
+              </div>
+            </label>
+            <input class="inv-foto-input" type="file" id="id_photo" name="photo" accept="image/*" capture="environment">
+            <span class="inv-foto-hint">{% if registro_inventario.photo %}Toque na foto para trocar{% else %}Foto obrigatória, exceto se o bem não for localizado{% endif %}</span>
+            <div class="inv-nao-localizado-hint">⚠ Bem marcado como não localizado — a foto não é necessária.</div>
+          </div>
+
+          <!-- Situação e observação -->
+          <div>
+            <div class="inv-form-group">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;">
+                <label class="field-label" for="id_situation" style="margin-bottom:0;">Situação no Inventário *</label>
+                <button type="button" id="btnNaoLocalizado" class="btn btn-nao-localizado {% if registro_inventario.situation == 'NAO_LOCALIZADO' %}active{% endif %}" style="padding:5px 12px;font-size:.75rem;">
+                  🚫 Bem Não Localizado
+                </button>
+              </div>
+              <select class="select-input" id="id_situation" name="situation" required>
+                <option value="">— Selecione —</option>
+                {% for val, label in form_inventario.fields.situation.choices %}
+                  {% if val and val != 'NAO_LOCALIZADO' %}
+                  <option value="{{ val }}" {% if form_inventario.initial.situation == val or registro_inventario.situation == val %}selected{% endif %}>{{ label }}</option>
+                  {% endif %}
+                {% endfor %}
+                <option value="NAO_LOCALIZADO" style="display:none;" {% if registro_inventario.situation == 'NAO_LOCALIZADO' %}selected{% endif %}>Não Localizado</option>
+              </select>
+            </div>
+
+            <div class="inv-form-group">
+              <label class="field-label" for="id_observation">Observação</label>
+              <textarea class="textarea-input" id="id_observation" name="observation" rows="4" placeholder="Observações sobre o estado do bem…">{{ registro_inventario.observation|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions" style="margin-top:20px;">
+              <button type="submit" class="btn btn-amber-solid">
+                {% if registro_inventario %}Atualizar Registro{% else %}Registrar no Inventário{% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
-    {% endif %}
+  </div>
   {% endif %}
 
   {% if messages %}
@@ -221,21 +347,6 @@
               <span class="bem-foto-placeholder">📦</span>
             {% endif %}
           </div>
-
-          {% if atribuicao %}
-            {% if periodo %}
-            <form class="foto-form" method="post" action="{% url 'dimrcbp:atualizar_foto' bem.tombo %}" enctype="multipart/form-data" style="margin-top:14px;">
-              {% csrf_token %}
-              <label class="field-label" for="id_nova_foto">Nova foto do bem</label>
-              <input class="field-input" type="file" id="id_nova_foto" name="foto" accept="image/*" required>
-              <button type="submit" class="btn btn-ghost" style="align-self:flex-start;">📷 Enviar Foto</button>
-            </form>
-            {% else %}
-            <div style="font-size:.78rem; color:var(--ink-3); margin-top:12px;">
-              A atualização de foto fica disponível durante o período de inventário ativo.
-            </div>
-            {% endif %}
-          {% endif %}
         </div>
       </div>
 
@@ -284,80 +395,6 @@
 
         </div>
       </div>
-
-      <!-- Inventário (só no período ativo) -->
-      {% if inventario_ativo and form_inventario %}
-      <div class="card">
-        <div class="card-head">
-          📋 Registro de Inventário
-          {% if registro_inventario %}
-            <span style="margin-left:auto; font-size:.72rem; font-weight:600; padding:2px 10px; border-radius:999px; background:var(--green-soft); color:var(--green); border:1px solid var(--green-mid);">Registrado</span>
-          {% else %}
-            <span style="margin-left:auto; font-size:.72rem; font-weight:600; padding:2px 10px; border-radius:999px; background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber-mid);">Pendente</span>
-          {% endif %}
-        </div>
-        <div class="card-body">
-
-          {% if registro_inventario %}
-          <div class="inv-summary">
-            <div class="inv-summary-row">
-              <span class="inv-summary-label">Situação registrada</span>
-              <span class="inv-summary-value">{{ registro_inventario.get_situation_display }}</span>
-            </div>
-            {% if registro_inventario.observation %}
-            <div class="inv-summary-row">
-              <span class="inv-summary-label">Observação</span>
-              <span class="inv-summary-value">{{ registro_inventario.observation }}</span>
-            </div>
-            {% endif %}
-            <div class="inv-summary-row">
-              <span class="inv-summary-label">Registrado por</span>
-              <span class="inv-summary-value">{{ registro_inventario.registrado_por.get_full_name|default:registro_inventario.registrado_por.username }} em {{ registro_inventario.data_registro|date:"d/m/Y H:i" }}</span>
-            </div>
-          </div>
-          {% endif %}
-
-          <form method="post" action="{% url 'dimrcbp:registrar_inventario' bem.tombo %}" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="inv-form-group">
-              <label class="field-label" for="id_situation">Situação no Inventário *</label>
-              <select class="select-input" id="id_situation" name="situation" required>
-                <option value="">— Selecione —</option>
-                {% for val, label in form_inventario.fields.situation.choices %}
-                  {% if val %}
-                  <option value="{{ val }}" {% if form_inventario.initial.situation == val or registro_inventario.situation == val %}selected{% endif %}>{{ label }}</option>
-                  {% endif %}
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="inv-form-group">
-              <label class="field-label" for="id_observation">Observação</label>
-              <textarea class="textarea-input" id="id_observation" name="observation" rows="3" placeholder="Observações sobre o estado do bem…">{{ registro_inventario.observation|default:'' }}</textarea>
-            </div>
-
-            <div class="inv-form-group">
-              <label class="field-label" for="id_photo">Foto do bem no inventário{% if not registro_inventario %} *{% endif %}</label>
-              {% if registro_inventario.photo %}
-                <div style="margin-bottom:8px; border-radius:var(--r-sm); overflow:hidden; max-height:180px;">
-                  <img src="{{ registro_inventario.photo.url }}" alt="Foto do inventário" style="width:100%; object-fit:cover; max-height:180px;">
-                </div>
-                <span style="font-size:.78rem; color:var(--ink-3);">Nova foto substituirá a atual.</span>
-              {% endif %}
-              <input class="field-input" style="margin-top:6px;" type="file" id="id_photo" name="photo" accept="image/*" {% if not registro_inventario %}required{% endif %}>
-            </div>
-
-            <div class="form-actions" style="margin-top:20px;">
-              <button type="submit" class="btn btn-amber-solid">
-                {% if registro_inventario %}Atualizar Registro{% else %}Registrar no Inventário{% endif %}
-              </button>
-            </div>
-          </form>
-
-        </div>
-      </div>
-      {% endif %}
 
       <!-- Informações -->
       <div class="card">
@@ -449,6 +486,66 @@
 
   if (close) close.addEventListener('click', () => modal.classList.remove('open'));
   if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+</script>
+
+<script>
+(function () {
+  const form       = document.getElementById('formInventario');
+  if (!form) return;
+
+  const situation  = document.getElementById('id_situation');
+  const photoInput = document.getElementById('id_photo');
+  const preview    = document.getElementById('invFotoPreview');
+  const placeholder = document.getElementById('invFotoPlaceholder');
+  const dropzone   = document.getElementById('invFotoDrop');
+  const temFotoExistente = dropzone.classList.contains('tem-foto');
+  const btnNaoLocalizado = document.getElementById('btnNaoLocalizado');
+  let situationAnterior = '';
+
+  function atualizarObrigatoriedade() {
+    const naoLocalizado = situation.value === 'NAO_LOCALIZADO';
+    form.classList.toggle('situation-nao-localizado', naoLocalizado);
+    photoInput.required = !naoLocalizado && !temFotoExistente;
+    btnNaoLocalizado.classList.toggle('active', naoLocalizado);
+  }
+
+  situation.addEventListener('change', function () {
+    if (situation.value !== 'NAO_LOCALIZADO') situationAnterior = situation.value;
+    atualizarObrigatoriedade();
+  });
+  atualizarObrigatoriedade();
+
+  btnNaoLocalizado.addEventListener('click', function () {
+    if (situation.value === 'NAO_LOCALIZADO') {
+      situation.value = situationAnterior;
+    } else {
+      situationAnterior = situation.value;
+      situation.value = 'NAO_LOCALIZADO';
+    }
+    atualizarObrigatoriedade();
+  });
+
+  photoInput.addEventListener('change', function () {
+    const file = photoInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      preview.style.display = '';
+      if (placeholder) placeholder.style.display = 'none';
+      dropzone.classList.add('tem-foto');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  form.addEventListener('submit', function (e) {
+    if (situation.value === 'NAO_LOCALIZADO') {
+      if (!confirm('Confirmar que este bem NÃO foi localizado? Isso fica registrado no inventário.')) {
+        e.preventDefault();
+      }
+    }
+  });
+})();
 </script>
 
 {% endblock %}

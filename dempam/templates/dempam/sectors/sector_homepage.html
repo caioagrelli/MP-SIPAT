@@ -74,6 +74,9 @@
   .setor-tile-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.09);display:grid;place-items:center;font-size:19px;}
   .setor-tile-name{font-size:.83rem;font-weight:700;color:#f0f4ff;line-height:1.3;}
   .setor-tile-total{font-size:.72rem;color:rgba(160,175,210,.65);}
+  .setor-tile-tipo{font-size:.62rem;font-weight:800;letter-spacing:.05em;padding:2px 8px;border-radius:999px;}
+  .setor-tile-tipo.tipo-dimms{background:rgba(37,99,235,.18);color:#8fb4ff;}
+  .setor-tile-tipo.tipo-dimrcbp{background:rgba(180,83,9,.2);color:#fbbf7a;}
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
@@ -217,6 +220,7 @@
     <a href="{% url 'dempam:sector_detail' setor.pk %}" class="setor-tile" style="text-decoration:none;">
       <div class="setor-tile-icon">🏢</div>
       <div class="setor-tile-name">{{ setor.setor }}</div>
+      <span class="setor-tile-tipo tipo-{{ setor.tipo|lower }}">{{ setor.get_tipo_display }}</span>
       <div class="setor-tile-total">{{ setor.total_localizacoes }} localização(ões)</div>
     </a>
     {% empty %}

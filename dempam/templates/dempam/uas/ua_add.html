@@ -22,10 +22,16 @@
     {% endif %}
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
-      <div style="grid-column:span 2;">
+      <div>
         <label style="display:block; margin-bottom:6px; font-weight:600;">Circunscrição / Prédio</label>
         {{ form.circunscricao_predio }}
         <div style="color:#dc2626; font-size:.85rem;">{{ form.circunscricao_predio.errors }}</div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:600;">Município</label>
+        {{ form.municipio }}
+        <div style="color:#dc2626; font-size:.85rem;">{{ form.municipio.errors }}</div>
       </div>
 
       <div style="grid-column:span 2;">

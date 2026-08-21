@@ -12,6 +12,14 @@ class CircunscricaoPredioAdmin(admin.ModelAdmin):
             'local',
         ) 
 
+@admin.register(Municipio)
+class MunicipioAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'codigo_ibge', 'circunscricao')
+    list_editable = ('circunscricao',)
+    list_filter = ('circunscricao',)
+    search_fields = ('nome', 'codigo_ibge', 'circunscricao')
+
+
 @admin.register(InfoUA)
 class InfoUaAdmin(admin.ModelAdmin):
     list_display = (
@@ -21,6 +29,7 @@ class InfoUaAdmin(admin.ModelAdmin):
         'nivel',
         'parent',
         'circunscricao_predio',
+        'municipio',
         'responsavel_ua',
     )
 
@@ -35,10 +44,12 @@ class InfoUaAdmin(admin.ModelAdmin):
     list_filter = (
         'nivel',
         'circunscricao_predio',
+        'municipio',
     )
 
     autocomplete_fields = (
         'circunscricao_predio',
+        'municipio',
         'parent',
     )
 
@@ -55,6 +66,7 @@ class InfoUaAdmin(admin.ModelAdmin):
         ('Local', {
             'fields': (
                 'circunscricao_predio',
+                'municipio',
             )
         }),
 

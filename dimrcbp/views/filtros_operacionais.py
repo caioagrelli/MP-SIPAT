@@ -1,10 +1,13 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 from dimrcbp.models import BensPermanentes
 from dimrcbp.utils import SituacaoFisica, EstadoConservacao
 from dempam.models import InfoUA
+
+BENS_POR_PAGINA = 30
 
 
 @login_required
@@ -45,13 +48,16 @@ def filtros_operacionais(request):
     if state:
         qs = qs.filter(state=state)
 
-    uas = InfoUA.objects.order_by('ua')
+    ua_selecionada = InfoUA.objects.filter(pk=ua_id).first() if ua_id else None
+
+    total = qs.count() if pesquisou else 0
+    pagina = Paginator(qs, BENS_POR_PAGINA).get_page(request.GET.get('pagina')) if pesquisou else None
 
     return render(request, 'dimrcbp/filtros_operacionais.html', {
-        'bens':        qs if pesquisou else BensPermanentes.objects.none(),
-        'total':       qs.count() if pesquisou else 0,
+        'bens':        pagina if pesquisou else BensPermanentes.objects.none(),
+        'total':       total,
         'pesquisou':   pesquisou,
-        'uas':         uas,
+        'ua_selecionada': ua_selecionada,
         'situacoes':   SituacaoFisica.choices,
         'estados':     EstadoConservacao.choices,
         # valores para repovoar o form

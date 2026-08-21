@@ -45,19 +45,6 @@ def homepage(request):
 
     grupos = BensConsumo._meta.get_field("grupo_consumo").choices
 
-    # itens essenciais
-    item_essential = itens.filter(essential=True)
-    
-    # estoque baixo 
-    estoque_baixo = [item for item in itens if item.low_stock]
-    alerta_vencimento = [item for item in itens if item.alerta_vencimento]
-
-    # ordenar alerta_vencimento pela data mais próxima / vencida no topo 
-    alerta_vencimento = sorted(alerta_vencimento, key=lambda x: x.validity)
-
-    # ordenar estoque_baixo pelos dias restantes, do maior para o menor
-    estoque_baixo = sorted(estoque_baixo, key=lambda x: x.duration, reverse=True)
-
     # Saldo disponível por efisco (para exibir na tabela)
     saldo_por_efisco = dict(
         SaldoAtivo.objects
@@ -72,9 +59,6 @@ def homepage(request):
         'query': query,
         'grupos': grupos,
         'grupo_selected': grupo,
-        'item_essential': item_essential,
-        'estoque_baixo': estoque_baixo,
-        'alerta_vencimento': alerta_vencimento,
         'saldo_por_efisco': saldo_por_efisco,
     }
 

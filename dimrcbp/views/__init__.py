@@ -4,6 +4,8 @@ from .cadastro_bem         import cadastro_bem
 from .importar_bens        import importar_bens
 from .filtros_operacionais import filtros_operacionais
 from .bem_detalhe_admin    import bem_detalhe_admin
+from .acautelamento        import acautelamento, lista_acautelamentos, termo_acautelamento
+from .entradas              import entradas
 from .qrcode_bem           import qrcode_bem
 from .etiqueta_bem         import etiqueta_bem
 from .editar_bem           import editar_bem
@@ -18,8 +20,7 @@ from .catalogo             import (
     painel_solicitacoes_catalogo, aprovar_solicitacao_catalogo,
 )
 from .catalogo_pdf         import catalogo_pdf
-from .controle_prazos      import controle_prazos
-from .painel_inventario    import painel_inventario, abrir_inventario
+from .painel_inventario    import painel_inventario, abrir_inventario, fechar_inventario
 from .movimentacao         import (
     lista_solicitacoes,
     criar_solicitacao,

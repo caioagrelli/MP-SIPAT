@@ -596,7 +596,7 @@
 
             <div class="field span-2">
               <label class="field-label">Motivo do Ajuste</label>
-              <input type="text" name="remessa_motivo" placeholder="Ex: Contagem de inventário, Item danificado, Correção de cadastro…">
+              <textarea name="remessa_motivo" rows="3" placeholder="Ex: Contagem de inventário, Item danificado, Correção de cadastro…">{{ remessa_motivo|default:'' }}</textarea>
             </div>
 
           </div>

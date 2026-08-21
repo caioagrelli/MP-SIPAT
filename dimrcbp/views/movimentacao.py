@@ -219,9 +219,7 @@ def transferir_bem(request, tombo):
             messages.success(request, f'Bem transferido com sucesso. Código: {mov.codigo}')
             return redirect('dimrcbp:termo_transferencia', pk=mov.pk)
 
-    uas = InfoUA.objects.select_related('circunscricao_predio').order_by('ua')
-    context = {'bem': bem, 'uas': uas}
-    return render(request, 'dimrcbp/movimentacao/transferir.html', context)
+    return render(request, 'dimrcbp/movimentacao/transferir.html', {'bem': bem})
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -12,6 +12,9 @@ urlpatterns = [
     path('consultas/bem/<str:tombo>/qrcode/',           qrcode_bem,           name='qrcode_bem'),
     path('consultas/bem/<str:tombo>/etiqueta/',         etiqueta_bem,         name='etiqueta_bem'),
     path('consultas/bem/<str:tombo>/editar/',           editar_bem,              name='editar_bem'),
+    path('consultas/bem/<str:tombo>/acautelamento/',    acautelamento,           name='acautelamento'),
+    path('movimentacao/acautelamento/',                 lista_acautelamentos,    name='lista_acautelamentos'),
+    path('movimentacao/acautelamento/<int:pk>/termo/',  termo_acautelamento,     name='termo_acautelamento'),
     path('consultas/bem/<str:tombo>/foto/',             atualizar_foto_admin,    name='atualizar_foto_admin'),
     path('historico/<int:pk>/relatorio/',               relatorio_mudanca,    name='relatorio_mudanca'),
     path('meus-bens/',                                  meus_bens,            name='meus_bens'),
@@ -20,13 +23,14 @@ urlpatterns = [
     path('meus-bens/<str:tombo>/inventario/',           registrar_inventario, name='registrar_inventario'),
 
     # Controle de Prazos
-    path('controle-prazos/',                            controle_prazos,      name='controle_prazos'),
 
     # Inventário
     path('inventario/painel/',                          painel_inventario,    name='painel_inventario'),
     path('inventario/abrir/',                           abrir_inventario,     name='abrir_inventario'),
+    path('inventario/<int:pk>/fechar/',                 fechar_inventario,    name='fechar_inventario'),
 
     # Movimentação
+    path('movimentacao/entradas/',                      entradas,                name='entradas'),
     path('movimentacao/',                               lista_solicitacoes,      name='lista_solicitacoes'),
     path('movimentacao/nova/',                          criar_solicitacao,       name='criar_solicitacao'),
     path('movimentacao/solicitacao/<int:pk>/',          analisar_solicitacao,    name='analisar_solicitacao'),

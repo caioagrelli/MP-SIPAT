@@ -28,6 +28,7 @@ def stock_add(request):
     remessa_errors = {}
     remessa_item_pk = ''
     remessa_qty = ''
+    remessa_motivo = ''
     remessa_item_data = None
 
     if request.method == 'POST':
@@ -80,6 +81,7 @@ def stock_add(request):
 
             remessa_item_pk = item_pk
             remessa_qty = qty_str
+            remessa_motivo = motivo
 
         else:
             form = EstoqueForm(request.POST, request.FILES)
@@ -120,6 +122,7 @@ def stock_add(request):
         'remessa_errors': remessa_errors,
         'remessa_item_pk': remessa_item_pk,
         'remessa_qty': remessa_qty,
+        'remessa_motivo': remessa_motivo,
         'remessa_item_json': json.dumps(remessa_item_data),
     })
 

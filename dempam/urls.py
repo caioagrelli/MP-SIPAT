@@ -6,6 +6,9 @@ app_name = 'dempam'
 urlpatterns = [
     # Url's da Homepage
     path('', homepage, name='homepage'),
+    path('municipios/<str:codigo_ibge>/resumo/', municipio_resumo, name='municipio_resumo'),
+    path('circunscricoes/<str:circunscricao>/resumo/', circunscricao_resumo, name='circunscricao_resumo'),
+    path('ranking-gastos/', ranking_gastos, name='ranking_gastos'),
 
     # Mural de Avisos
     path('avisos/', aviso_lista, name='aviso_lista'),

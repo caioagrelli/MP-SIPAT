@@ -131,6 +131,69 @@
 
   @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
+  /* MAPA DE MUNICÍPIOS */
+  .map-stage { display:block; }
+  .map-svg-wrap { position:relative; background:var(--surface-2); }
+  .map-svg-wrap svg { display:block; width:100%; height:auto; }
+  .map-svg-wrap svg path { fill:#1e2d42; stroke:var(--surface); stroke-width:.6; cursor:pointer; transition:fill .1s; }
+  .map-svg-wrap svg path:hover, .map-svg-wrap svg path.active { fill:var(--blue-mid); }
+  .map-svg-wrap svg text { font-family:var(--font); fill:var(--ink-3); font-size:3px; text-anchor:middle; pointer-events:none; opacity:0; }
+  .map-tooltip {
+    position:absolute; pointer-events:none; z-index:5; background:var(--ink); color:#fff;
+    font-size:.76rem; font-weight:600; padding:5px 10px; border-radius:7px; white-space:nowrap;
+    transform:translate(-50%, -130%); box-shadow:0 6px 16px rgba(15,23,42,.25); opacity:0; transition:opacity .08s;
+  }
+  .map-tooltip.show { opacity:1; }
+  .map-svg-wrap svg path.matched { fill:var(--amber); }
+
+  .map-below { border-top:1px solid var(--border); }
+  .map-search-wrap { display:flex; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); }
+  .map-search-input-wrap { position:relative; flex:1; }
+  .map-search-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-3); pointer-events:none; }
+  .map-search-input-wrap input {
+    width:100%; height:38px; padding:0 12px 0 34px; border:1.5px solid var(--border-strong); border-radius:8px;
+    font-family:var(--font); font-size:.85rem; color:var(--ink); background:var(--surface); outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .map-search-input-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .map-circunscricao-select {
+    height:38px; padding:0 30px 0 12px; border:1.5px solid var(--border-strong); border-radius:8px;
+    font-family:var(--font); font-size:.85rem; color:var(--ink); background:var(--surface); outline:none;
+    cursor:pointer; max-width:220px; flex-shrink:0;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .map-circunscricao-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .map-ranking-link {
+    height:38px; padding:0 16px; border-radius:8px; flex-shrink:0;
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font); font-size:.85rem; font-weight:700; white-space:nowrap;
+    background:var(--accent); color:#fff; text-decoration:none;
+    transition:background .15s;
+  }
+  .map-ranking-link:hover { background:var(--accent-dark); }
+
+  .map-selected-panel { padding:16px 18px; }
+  .map-selected-empty { font-size:.83rem; color:var(--ink-3); text-align:center; padding:10px 0; }
+  .map-selected-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .map-selected-name { font-size:.95rem; font-weight:800; color:var(--ink); }
+  .map-selected-count {
+    font-family:var(--mono); font-size:.74rem; font-weight:700; color:var(--accent);
+    background:var(--blue-soft); border:1px solid var(--blue-mid); border-radius:999px; padding:3px 10px; white-space:nowrap;
+  }
+  .map-ua-list { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
+  .map-ua-item {
+    font-size:.83rem; color:var(--ink-2); padding:8px 12px; background:var(--surface-2);
+    border:1px solid var(--border); border-radius:8px;
+  }
+
+  .map-mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .map-mini-stat {
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+  }
+  .map-mini-stat-label { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); margin-bottom:4px; }
+  .map-mini-stat-value { font-family:var(--mono); font-size:1.15rem; font-weight:800; color:var(--ink); line-height:1; }
+  .map-selected-loading { font-size:.83rem; color:var(--ink-3); text-align:center; padding:20px 0; }
+
   @media (max-width:1100px) { .kpi-strip { grid-template-columns:repeat(2,1fr); } .qa-grid { grid-template-columns:repeat(3,1fr); } }
   @media (max-width:640px)  { .gpage { padding:14px 12px 32px; } .kpi-strip { grid-template-columns:repeat(2,1fr); } .qa-grid { grid-template-columns:repeat(2,1fr); } }
 </style>
@@ -235,11 +298,6 @@
       <div class="qa-title">Relatórios</div>
       <div class="qa-sub">Gerar indicadores</div>
     </a>
-    <a href="#" class="qa-tile">
-      <div class="qa-icon">🗂️</div>
-      <div class="qa-title">Cadastros</div>
-      <div class="qa-sub">Base administrativa</div>
-    </a>
     <a href="{% url 'dempam:painel_tv' %}" class="qa-tile" target="_blank">
       <div class="qa-icon">📺</div>
       <div class="qa-title">Televisão</div>
@@ -247,5 +305,186 @@
     </a>
   </div>
 
+  <!-- MAPA DE MUNICÍPIOS -->
+  <div class="main-card">
+    <div class="map-stage">
+      <div class="map-svg-wrap">
+        <svg id="peMap" viewBox="0 0 900 325" xmlns="http://www.w3.org/2000/svg">
+          <g id="peMapPaths">{% include 'dempam/includes/pe_municipios_paths.svg' %}</g>
+          <g id="peMapLabels">{% include 'dempam/includes/pe_municipios_labels.svg' %}</g>
+        </svg>
+        <div class="map-tooltip" id="mapTooltip"></div>
+      </div>
+
+      <div class="map-below">
+        <div class="map-search-wrap">
+          <div class="map-search-input-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="mapSearch" placeholder="Buscar município…" autocomplete="off">
+          </div>
+          <select class="map-circunscricao-select" id="mapCircunscricaoFilter">
+            <option value="">Todas as circunscrições</option>
+            {% for c in circunscricoes %}
+              <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+          <a href="{% url 'dempam:ranking_gastos' %}" class="map-ranking-link">🏆 Ranking de gastos</a>
+        </div>
+        <div class="map-selected-panel" id="mapSelectedPanel">
+          <div class="map-selected-empty">Toque em um município no mapa pra ver as UAs de lá.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+{{ circunscricao_por_municipio|json_script:"circunscricaoPorMunicipioData" }}
+
+<script>
+  (function () {
+    const svg               = document.getElementById('peMap');
+    const tooltip            = document.getElementById('mapTooltip');
+    const paths              = Array.from(svg.querySelectorAll('#peMapPaths path'));
+    const search             = document.getElementById('mapSearch');
+    const circunscricaoFiltro = document.getElementById('mapCircunscricaoFilter');
+    const selectedPanel      = document.getElementById('mapSelectedPanel');
+    const RESUMO_URL         = "{% url 'dempam:municipio_resumo' codigo_ibge='__codigo__' %}";
+    const RESUMO_CIRC_URL    = "{% url 'dempam:circunscricao_resumo' circunscricao='__circunscricao__' %}";
+    const circunscricaoPorMunicipio = JSON.parse(document.getElementById('circunscricaoPorMunicipioData').textContent);
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Sem acento e sem diferenciar maiúscula/minúscula, pra busca
+    function normalizar(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    let requestId = 0;
+
+    function renderizarResumo(dados, semUasMsg) {
+      const uas = dados.uas || [];
+
+      if (!uas.length) {
+        selectedPanel.innerHTML = `
+          <div class="map-selected-head">
+            <span class="map-selected-name">${escapeHtml(dados.nome)}</span>
+            <span class="map-selected-count">0 UAs</span>
+          </div>
+          <div class="map-selected-empty">${semUasMsg}</div>
+        `;
+        return;
+      }
+
+      selectedPanel.innerHTML = `
+        <div class="map-selected-head">
+          <span class="map-selected-name">${escapeHtml(dados.nome)}</span>
+          <span class="map-selected-count">${uas.length} UA${uas.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="map-mini-stats">
+          <div class="map-mini-stat">
+            <div class="map-mini-stat-label">Bens permanentes</div>
+            <div class="map-mini-stat-value">${dados.total_bens}</div>
+          </div>
+          <div class="map-mini-stat">
+            <div class="map-mini-stat-label">Pedidos de bens de consumo</div>
+            <div class="map-mini-stat-value">${dados.total_pedidos}</div>
+          </div>
+          <div class="map-mini-stat">
+            <div class="map-mini-stat-label">Gasto mensal (consumo)</div>
+            <div class="map-mini-stat-value" style="font-size:.92rem;">${formatarMoeda(dados.gasto_mensal)}</div>
+          </div>
+        </div>
+        <div class="map-ua-list">
+          ${uas.map(([ua, sigla]) => `<div class="map-ua-item">${escapeHtml(ua)}${sigla ? ' (' + escapeHtml(sigla) + ')' : ''}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    function carregarResumo(url, nomeCarregando, semUasMsg) {
+      const minhaRequest = ++requestId;
+      selectedPanel.innerHTML = `<div class="map-selected-loading">Carregando dados de ${escapeHtml(nomeCarregando)}…</div>`;
+
+      fetch(url)
+        .then(r => r.json())
+        .then(dados => {
+          if (minhaRequest !== requestId) return; // trocou de seleção antes de terminar
+          renderizarResumo(dados, semUasMsg);
+        })
+        .catch(() => {
+          if (minhaRequest !== requestId) return;
+          selectedPanel.innerHTML = `<div class="map-selected-empty">Não foi possível carregar os dados de ${escapeHtml(nomeCarregando)}.</div>`;
+        });
+    }
+
+    function mostrarResumoMunicipio(codigo, nome) {
+      carregarResumo(
+        RESUMO_URL.replace('__codigo__', encodeURIComponent(codigo)),
+        nome,
+        'Nenhuma UA associada a este município ainda.',
+      );
+    }
+
+    function mostrarResumoCircunscricao(circunscricao) {
+      carregarResumo(
+        RESUMO_CIRC_URL.replace('__circunscricao__', encodeURIComponent(circunscricao)),
+        circunscricao,
+        'Nenhuma UA associada a nenhum município desta circunscrição ainda.',
+      );
+    }
+
+    paths.forEach(p => {
+      p.addEventListener('mousemove', e => {
+        const wrapRect = svg.parentElement.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - wrapRect.left) + 'px';
+        tooltip.style.top  = (e.clientY - wrapRect.top) + 'px';
+        tooltip.innerHTML  = p.dataset.nome;
+        tooltip.classList.add('show');
+      });
+      p.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+      p.addEventListener('click', () => {
+        paths.forEach(o => o.classList.remove('active'));
+        p.classList.add('active');
+        mostrarResumoMunicipio(p.dataset.codigo, p.dataset.nome);
+      });
+    });
+
+    if (search) {
+      search.addEventListener('input', () => {
+        if (circunscricaoFiltro) circunscricaoFiltro.value = '';
+        const q = normalizar(search.value.trim());
+        paths.forEach(p => {
+          const hit = q.length >= 2 && normalizar(p.dataset.nome).includes(q);
+          p.classList.toggle('matched', hit);
+        });
+      });
+    }
+
+    if (circunscricaoFiltro) {
+      circunscricaoFiltro.addEventListener('change', () => {
+        if (search) search.value = '';
+        const escolhida = circunscricaoFiltro.value;
+        paths.forEach(o => o.classList.remove('active'));
+        paths.forEach(p => {
+          const hit = !!escolhida && circunscricaoPorMunicipio[p.dataset.codigo] === escolhida;
+          p.classList.toggle('matched', hit);
+        });
+
+        if (escolhida) {
+          mostrarResumoCircunscricao(escolhida);
+        } else {
+          selectedPanel.innerHTML = '<div class="map-selected-empty">Toque em um município no mapa pra ver as UAs de lá.</div>';
+        }
+      });
+    }
+  })();
+</script>
 {% endblock %}

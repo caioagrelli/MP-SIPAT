@@ -1,0 +1,175 @@
+{% extends 'global/base.html' %}
+{% block title %}SIPAT — Bens em Acautelamento{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--surface:#fff;--surface-2:#f7f8fc;--border:#e2e5ef;--border-strong:#c8cfe0;--ink:#1a2035;--ink-2:#3d4966;--ink-3:#7380a0;--blue:#1d4ed8;--blue-soft:#eff4ff;--blue-mid:#c7d7fd;--green:#15803d;--green-soft:#f0fdf4;--green-mid:#bbf7d0;--amber:#b45309;--amber-soft:#fffbeb;--amber-mid:#fde68a;--red:#b91c1c;--red-soft:#fef2f2;--red-mid:#fecaca;--shadow-sm:0 1px 3px rgba(15,23,42,.06);--shadow-md:0 4px 12px rgba(15,23,42,.08);--r-sm:10px;--r-md:16px;--r-lg:22px;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+  *,*::before,*::after{box-sizing:border-box;}
+  .apage{font-family:var(--font);padding:28px 24px 48px;color:var(--ink);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .topbar-title{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;}
+  .topbar-sub{margin-top:5px;font-size:.88rem;color:var(--ink-3);font-weight:500;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r-sm);font-family:var(--font);font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+  .btn-ghost{background:var(--surface);border-color:var(--border-strong);color:var(--ink-2);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
+  .btn-primary{background:var(--amber);color:#fff;border-color:var(--amber);}
+  .btn-primary:hover{background:#92400e;}
+  .btn-sm{padding:5px 11px;font-size:.78rem;}
+
+  .kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px;max-width:480px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--amber);}
+  .kpi-card:nth-child(2)::before{background:var(--red);}
+  .kpi-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:6px;}
+  .kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em;color:var(--amber);}
+  .kpi-card:nth-child(2) .kpi-value{color:var(--red);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .card-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .card-title{font-size:1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .badge{background:var(--amber-soft);border:1px solid var(--amber-mid);color:var(--amber);border-radius:999px;padding:3px 10px;font-size:.75rem;font-family:var(--mono);font-weight:700;}
+
+  .search-wrap{padding:14px 24px;border-bottom:1px solid var(--border);}
+  .search-input{width:100%;max-width:420px;padding:9px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:.85rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;}
+  .search-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(180,83,9,.1);}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:var(--surface-2);}
+  th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:11px 16px;font-size:.85rem;color:var(--ink-2);border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid;white-space:nowrap;}
+  .status-ok{background:var(--green-soft);color:var(--green);border-color:var(--green-mid);}
+  .status-perto{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-mid);}
+  .status-vencido{background:var(--red-soft);color:var(--red);border-color:var(--red-mid);}
+
+  .empty-state{padding:56px 24px;text-align:center;color:var(--ink-3);}
+  .empty-icon{font-size:2.4rem;display:block;margin-bottom:12px;opacity:.35;}
+  .empty-title{font-weight:700;color:var(--ink-2);font-size:.95rem;margin-bottom:4px;}
+
+  .mono{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);font-weight:700;}
+
+  .pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;border-top:1px solid var(--border);}
+  .page-btn{font-family:var(--font);font-size:.8rem;font-weight:700;color:var(--amber);text-decoration:none;padding:6px 12px;border-radius:8px;transition:background .15s;}
+  .page-btn:hover{background:var(--amber-soft);}
+  .page-btn.disabled{color:var(--ink-3);opacity:.5;pointer-events:none;}
+  .page-info{font-size:.78rem;color:var(--ink-3);font-family:var(--mono);}
+</style>
+
+<div class="apage">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔒 Bens em Acautelamento</div>
+      <div class="topbar-sub">Bens permanentes atribuídos a responsáveis de uso externo.</div>
+    </div>
+    <a href="{% url 'dimrcbp:homepage' %}" class="btn btn-ghost">← Bens Permanentes</a>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Bens Acautelados</div>
+      <div class="kpi-value">{{ total }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Renovação Vencida</div>
+      <div class="kpi-value">{{ vencidos }}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        Acautelamentos
+        <span class="badge">{{ total }}</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <form method="get">
+        <input type="text" name="q" class="search-input" value="{{ query }}"
+               placeholder="Pesquisar por tombo, responsável, matrícula ou usuário…">
+      </form>
+    </div>
+
+    {% if acautelamentos %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tombo</th>
+            <th>Descrição</th>
+            <th>Responsável</th>
+            <th>Matrícula</th>
+            <th>Usuário</th>
+            <th>Renovação</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in acautelamentos %}
+          <tr>
+            <td>
+              <a href="{% url 'dimrcbp:bem_detalhe_admin' a.tombo.tombo %}"
+                 style="font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--blue);text-decoration:none;">
+                {{ a.tombo.tombo }}
+              </a>
+            </td>
+            <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              {{ a.tombo.description }}
+            </td>
+            <td style="font-weight:700;color:var(--ink);">{{ a.responsible }}</td>
+            <td><span class="mono">{{ a.registration_responsible|default:"—" }}</span></td>
+            <td style="font-size:.82rem;">{{ a.user|default:"—" }}</td>
+            <td style="font-size:.82rem;white-space:nowrap;">{{ a.date_renovation|date:"d/m/Y" }}</td>
+            <td>
+              {% if a.date_renovation < hoje %}
+                <span class="pill status-vencido">⚠ Vencido</span>
+              {% else %}
+                <span class="pill status-ok">✓ Em dia</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;">
+              <a href="{% url 'dimrcbp:termo_acautelamento' a.pk %}" target="_blank" class="btn btn-ghost btn-sm">📄 Termo</a>
+              <a href="{% url 'dimrcbp:acautelamento' a.tombo.tombo %}" class="btn btn-ghost btn-sm">🔒 Renovar</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if acautelamentos.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if acautelamentos.has_previous %}
+          <a href="?q={{ query }}&pagina={{ acautelamentos.previous_page_number }}" class="page-btn">‹ Anterior</a>
+        {% else %}
+          <span class="page-btn disabled">‹ Anterior</span>
+        {% endif %}
+        <span class="page-info">Página {{ acautelamentos.number }} de {{ acautelamentos.paginator.num_pages }}</span>
+        {% if acautelamentos.has_next %}
+          <a href="?q={{ query }}&pagina={{ acautelamentos.next_page_number }}" class="page-btn">Próxima ›</a>
+        {% else %}
+          <span class="page-btn disabled">Próxima ›</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-icon">🔒</span>
+      <div class="empty-title">Nenhum bem em acautelamento</div>
+      <div style="font-size:.84rem;">
+        {% if query %}Nenhum resultado para "{{ query }}".{% else %}Ainda não há bens atribuídos a responsáveis de uso externo.{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -672,6 +672,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const addBottom = document.getElementById('add-bottom');
 
+  // A animação de entrada (com fill-mode "both") mantém cada .item-row em seu próprio
+  // stacking context indefinidamente, o que prende o dropdown de busca (position:absolute
+  // + z-index alto) atrás das linhas seguintes. Assim que a animação termina, removemos
+  // a propriedade pra linha voltar ao fluxo normal de empilhamento.
+  container.addEventListener('animationend', e => {
+    if (e.target.classList && e.target.classList.contains('item-row')) {
+      e.target.style.animation = 'none';
+    }
+  });
+
   function syncBadge() {
     const n = rows().length;
     badge.textContent  = n;

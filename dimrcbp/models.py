@@ -7,7 +7,7 @@ from django.utils import timezone
 
 # Importações do codigo
 from .utils import *
-from dempam.models import InfoUA
+from dempam.models import InfoUA, LocalizacaoDEMPAM
 
 # Recursos Usados pelo Banco de Dados
 class Complementos(): #Temporário
@@ -262,8 +262,16 @@ class BensPermanentes(models.Model):
         null=True,
         verbose_name='Fornecedor'
          )
-    
-    
+
+    locate = models.ForeignKey(
+        LocalizacaoDEMPAM,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name='bens_permanentes',
+        verbose_name='Localização (Pallet/Prateleira)',
+    )
+
     class Meta:
         verbose_name = 'Bem Permanente'
         verbose_name_plural = '1 - Bens Permanentes'
@@ -368,7 +376,13 @@ class UseExternal(models.Model):
         max_length=50,
         verbose_name='Responsável pelo Uso Externo'
         )
-    
+
+    cpf_responsible = models.CharField(
+        max_length=14,
+        blank=True,
+        verbose_name='CPF do Responsável pelo Uso Externo'
+        )
+
     contact_responsible = models.CharField(
         max_length=16,
         validators=[Complementos.validator_contato],
@@ -418,7 +432,7 @@ class UseExternal(models.Model):
         verbose_name_plural = '6 - Usos Externos'
 
     def __str__(self):
-        return self.description[:60]
+        return f'Tombo {self.tombo_id} — {self.responsible}'
 
 
 '''ATRIBUIÇÃO DE BENS'''
@@ -549,6 +563,8 @@ class Inventario(models.Model):
 
     photo = models.ImageField(
         upload_to=caminho_inventario,
+        blank=True,
+        null=True,
         verbose_name='Foto do Inventário',
     )
 

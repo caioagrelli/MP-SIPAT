@@ -2,7 +2,7 @@
 from django import forms
 
 # Importações do código
-from .models import InfoUA, CircunscricaoPredio, SetorDEMPAM, LocalizacaoDEMPAM, Aviso, ConfiguracaoPainelTV
+from .models import InfoUA, CircunscricaoPredio, Municipio, SetorDEMPAM, LocalizacaoDEMPAM, Aviso, ConfiguracaoPainelTV
 from .utils import TipoLocalizacao
 
 # ================================================================
@@ -18,6 +18,7 @@ class InfoUAForm(forms.ModelForm):
         model = InfoUA
         fields = [
             "circunscricao_predio",
+            "municipio",
             "ua",
             "contato_ua",
             "responsavel_ua",
@@ -28,6 +29,7 @@ class InfoUAForm(forms.ModelForm):
         ]
         widgets = {
             "circunscricao_predio": forms.Select(attrs={"class": "form-control"}),
+            "municipio": forms.Select(attrs={"class": "form-control"}),
             "ua": forms.TextInput(attrs={"class": "form-control"}),
             "contato_ua": forms.TextInput(attrs={"class": "form-control"}),
             "responsavel_ua": forms.TextInput(attrs={"class": "form-control"}),
@@ -128,7 +130,10 @@ class CircunscricaoPredioForm(forms.ModelForm):
 class SetorDEMPAMForm(forms.ModelForm):
     class Meta:
         model = SetorDEMPAM
-        fields = ['setor']
+        fields = ['setor', 'tipo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+        }
 
     # Validação personalizada para evitar setores duplicados
     def clean_setor(self):

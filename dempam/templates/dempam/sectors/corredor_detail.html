@@ -130,30 +130,47 @@
       <table class="main-table" id="tabela-itens">
         <thead>
           <tr>
-            <th>E-Fisco</th>
+            <th>{% if is_dimrcbp %}Tombo{% else %}E-Fisco{% endif %}</th>
             <th>Descrição</th>
             <th>Marca</th>
-            <th>Quantidade</th>
+            {% if not is_dimrcbp %}<th>Quantidade</th>{% endif %}
             <th>Localização</th>
           </tr>
         </thead>
         <tbody>
           {% for reg in todos_itens %}
-            <tr data-busca="{{ reg.item.item_shock.efisco|lower }} {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco|lower }} {{ reg.item.mark|lower }} {{ reg.localizacao.prateleira_pallet|lower }} {{ reg.localizacao.estante }} {{ reg.localizacao.prateleira }}">
-              <td class="mono-cell">{{ reg.item.item_shock.efisco }}</td>
-              <td>
-                <a href="{% url 'dimms:overview' reg.item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
-                  {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco }}
-                </a>
-              </td>
-              <td>{{ reg.item.mark|default:"—" }}</td>
-              <td class="mono-cell">{{ reg.item.amount_shock }}</td>
-              <td>
-                <a href="{% url 'dempam:locate_detail' reg.localizacao.pk %}" style="color:var(--ink-2);text-decoration:none;font-family:var(--mono);font-size:.8rem;font-weight:700;">
-                  🗄️ {{ reg.localizacao.prateleira_pallet }}
-                </a>
-              </td>
-            </tr>
+            {% if is_dimrcbp %}
+              <tr data-busca="{{ reg.item.tombo|lower }} {{ reg.item.description|lower }} {{ reg.item.mark|lower }} {{ reg.localizacao.prateleira_pallet|lower }} {{ reg.localizacao.estante }} {{ reg.localizacao.prateleira }}">
+                <td class="mono-cell">{{ reg.item.tombo }}</td>
+                <td>
+                  <a href="{% url 'dimrcbp:bem_detalhe_admin' reg.item.tombo %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                    {{ reg.item.description }}
+                  </a>
+                </td>
+                <td>{{ reg.item.mark|default:"—" }}</td>
+                <td>
+                  <a href="{% url 'dempam:locate_detail' reg.localizacao.pk %}" style="color:var(--ink-2);text-decoration:none;font-family:var(--mono);font-size:.8rem;font-weight:700;">
+                    🗄️ {{ reg.localizacao.prateleira_pallet }}
+                  </a>
+                </td>
+              </tr>
+            {% else %}
+              <tr data-busca="{{ reg.item.item_shock.efisco|lower }} {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco|lower }} {{ reg.item.mark|lower }} {{ reg.localizacao.prateleira_pallet|lower }} {{ reg.localizacao.estante }} {{ reg.localizacao.prateleira }}">
+                <td class="mono-cell">{{ reg.item.item_shock.efisco }}</td>
+                <td>
+                  <a href="{% url 'dimms:overview' reg.item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                    {{ reg.item.description_manual|default:reg.item.item_shock.descricao_efisco }}
+                  </a>
+                </td>
+                <td>{{ reg.item.mark|default:"—" }}</td>
+                <td class="mono-cell">{{ reg.item.amount_shock }}</td>
+                <td>
+                  <a href="{% url 'dempam:locate_detail' reg.localizacao.pk %}" style="color:var(--ink-2);text-decoration:none;font-family:var(--mono);font-size:.8rem;font-weight:700;">
+                    🗄️ {{ reg.localizacao.prateleira_pallet }}
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
           {% endfor %}
         </tbody>
       </table>
@@ -215,24 +232,36 @@
         <table class="main-table">
           <thead>
             <tr>
-              <th>E-Fisco</th>
+              <th>{% if is_dimrcbp %}Tombo{% else %}E-Fisco{% endif %}</th>
               <th>Descrição</th>
               <th>Marca</th>
-              <th>Quantidade</th>
+              {% if not is_dimrcbp %}<th>Quantidade</th>{% endif %}
             </tr>
           </thead>
           <tbody>
             {% for item in grupo.itens %}
-              <tr>
-                <td class="mono-cell">{{ item.item_shock.efisco }}</td>
-                <td>
-                  <a href="{% url 'dimms:overview' item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
-                    {{ item.description_manual|default:item.item_shock.descricao_efisco }}
-                  </a>
-                </td>
-                <td>{{ item.mark|default:"—" }}</td>
-                <td class="mono-cell">{{ item.amount_shock }}</td>
-              </tr>
+              {% if is_dimrcbp %}
+                <tr>
+                  <td class="mono-cell">{{ item.tombo }}</td>
+                  <td>
+                    <a href="{% url 'dimrcbp:bem_detalhe_admin' item.tombo %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                      {{ item.description }}
+                    </a>
+                  </td>
+                  <td>{{ item.mark|default:"—" }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td class="mono-cell">{{ item.item_shock.efisco }}</td>
+                  <td>
+                    <a href="{% url 'dimms:overview' item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                      {{ item.description_manual|default:item.item_shock.descricao_efisco }}
+                    </a>
+                  </td>
+                  <td>{{ item.mark|default:"—" }}</td>
+                  <td class="mono-cell">{{ item.amount_shock }}</td>
+                </tr>
+              {% endif %}
             {% endfor %}
           </tbody>
         </table>

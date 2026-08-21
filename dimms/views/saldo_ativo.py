@@ -519,6 +519,12 @@ def saldo_ativo_confirmar_envio(request, item_pk):
                             method=f'Contrato {bem.contrato_saldo.contrato}',
                         )
 
+                    # Preço médio do E-Fisco só é atualizado quando o item chega ao
+                    # estoque via saldo ativo — usa o preço do saldo se ele tiver um
+                    if bem.preco_unitario:
+                        efisco.preco_medio = bem.preco_unitario
+                        efisco.save(update_fields=['preco_medio'])
+
                 messages.success(request, f'{qtd} unidade(s) registradas e adicionadas ao estoque.')
                 return redirect('dimms:saldo_ativo_solicitacao_detail', pk=item_solicitado.solicitacao.pk)
             except Exception as e:
@@ -577,6 +583,12 @@ def saldo_ativo_confirmar_recebimento(request, remessa_pk):
                         form_input='Saldo Ativo',
                         method=f'Contrato {bem.contrato_saldo.contrato}',
                     )
+
+                # Preço médio do E-Fisco só é atualizado quando o item chega ao
+                # estoque via saldo ativo — usa o preço do saldo se ele tiver um
+                if bem.preco_unitario:
+                    efisco.preco_medio = bem.preco_unitario
+                    efisco.save(update_fields=['preco_medio'])
 
             messages.success(request, f'{qtd} unidade(s) recebida(s) e registrada(s) no estoque.')
         except Exception as e:
