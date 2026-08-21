@@ -322,7 +322,7 @@ sipat/
 ├── templates/         # Templates globais (base.html e afins)
 ├── static/            # Arquivos estáticos (logo, ícones, CSS/JS globais)
 ├── docs/              # Documentação adicional e diagramas
-│   └── architecture.md   # Diagramas C4 (contexto, containers, componentes, entidades, fluxos)
+│   └── architecture.md   # Diagramas C4 (contexto, containers, componentes, fluxos)
 ├── sipat.drawio       # Diagrama de entidades (draw.io)
 ├── docker-compose.yml
 └── requirements.txt
@@ -332,9 +332,9 @@ sipat/
 
 ## Diagramas
 
-A documentação arquitetural completa (C4 — contexto, containers, componentes, entidade-relacionamento por módulo e fluxos de sequência) está em [`docs/architecture.md`](docs/architecture.md).
+A documentação arquitetural (C4 — contexto, containers, componentes e fluxos de sequência) está em [`docs/architecture.md`](docs/architecture.md).
 
-O arquivo `sipat.drawio` complementa com os diagramas de entidade-relacionamento organizados por páginas:
+O arquivo `sipat.drawio` contém os diagramas de entidade-relacionamento do sistema, organizado por páginas:
 
 - **contract** — Fluxo de contratos e fornecedores
 - **DIMMS** — Estrutura de bens de consumo
