@@ -89,28 +89,60 @@ O sistema foi entregue ao **MPPE/DEMPAM** e está em uso interno. Todo o ciclo d
 
 ## Módulos
 
+Visão detalhada dos 4 módulos de negócio abaixo. Para como eles se relacionam entre si (e com `accounts`), veja os diagramas C4 em [`docs/architecture.md`](docs/architecture.md).
+
+### `accounts` — Gestão de Acesso
+
+Usuários, perfis e permissões — base de autenticação/autorização usada por todos os demais módulos.
+
+| Model | Descrição |
+|---|---|
+| `Profile` | Perfil do usuário (foto, telefone, bio, UAs vinculadas/geridas) |
+| `RegistroAcesso` | Registro de acessos do usuário ao sistema |
+| `Feedback` | Feedback enviado pelos usuários |
+
+---
+
 ### `dempam` — Estrutura Base
 
-Cadastros centrais compartilhados pelos demais módulos.
+Cadastros centrais compartilhados pelos demais módulos: UAs, prédios, circunscrições e localizações físicas.
 
 | Model | Descrição |
 |---|---|
 | `CircunscricaoPredio` | Prédios e circunscrições geográficas |
-| `InfoUA` | Unidades Administrativas (responsável, contato, sede) |
+| `Municipio` | Municípios de Pernambuco e sua circunscrição |
+| `InfoUA` | Unidades Administrativas (responsável, contato, sede, município) |
 | `SetorDEMPAM` | Setores e salas internas do DEMPAM |
 | `LocalizacaoDEMPAM` | Localizações físicas (prateleiras, pallets) |
+| `Aviso` | Mural de avisos exibido na homepage |
+| `ConfiguracaoPainelTV` | Configuração do painel de inventário exibido em TV |
+
+---
+
+### `demands` — Demandas e Tickets
+
+Fluxo interno de abertura, atribuição e acompanhamento de demandas entre setores.
+
+| Model | Descrição |
+|---|---|
+| `DemandType` | Tipos de demanda configuráveis (cor, ícone, grupos permitidos) |
+| `Demand` | Demanda (título, descrição, prioridade, status, prazo) |
+| `DemandAssignment` | Atribuição de usuários a uma demanda |
+| `DemandAttachment` | Anexos da demanda |
+| `DemandUpdate` | Histórico de atualizações/comentários |
 
 ---
 
 ### `dimms` — Bens de Consumo
 
-Controla o ciclo completo dos bens de consumo: do estoque à entrega.
+Controla o ciclo completo dos bens de consumo: do estoque à entrega, incluindo contratos, licitação e catálogo de autoatendimento.
 
 | Model | Descrição |
 |---|---|
 | `BensConsumo` | Catálogo de itens (E-Fisco) |
 | `Supplier` | Fornecedores |
 | `Contrato` | Contratos com fornecedores |
+| `AditivoContrato` | Aditivos de prazo/valor a um contrato |
 | `SaldoAtivo` | Saldo de itens por contrato |
 | `Estoque` | Estoque físico do DEMPAM |
 | `Solicitacao` | Solicitações de materiais pelas UAs (`SBC-YYYY-XXXX`) |
@@ -119,10 +151,16 @@ Controla o ciclo completo dos bens de consumo: do estoque à entrega.
 | `BensEnviados` | Registro dos itens efetivamente enviados |
 | `SolicitacoesSaldoAtivo` | Solicitações via saldo de contrato (`SSA-YYYY-XXXX`) |
 | `ItensSolicitados` | Itens das solicitações de saldo ativo |
+| `CatalogoConsumo` | Catálogo de autoatendimento para as UAs |
+| `SolicitacaoCatalogoConsumo` | Solicitações feitas via catálogo de autoatendimento |
+| `ItemSolicitacaoCatalogoConsumo` | Itens de cada solicitação do catálogo |
+| `PeriodoInventarioConsumo` | Períodos de conferência de estoque de consumo |
+| `ConferenciaEstoque` | Registro de conferência de itens do estoque |
 | `Artifacts` | Artefatos de licitação (TR, ETP, RGPP, DODE, TAPP) |
 | `ItensArtifacts` | Itens vinculados a artefatos |
 | `Proposal` | Propostas de fornecedores |
 | `ItensProposal` | Itens de cada proposta |
+| `Subject` / `Sei` / `SeiUpdate` | Acompanhamentos de processos SEI |
 
 **Fluxo de solicitação:**
 ```
@@ -136,7 +174,7 @@ Em Atendimento → Aguardando Separação → Separada → Em Expedição → Re
 
 ### `dimrcbp` — Bens Permanentes
 
-Controla o patrimônio permanente tombado.
+Controla o patrimônio permanente tombado: cadastro, movimentação entre UAs, uso externo e inventário periódico.
 
 | Model | Descrição |
 |---|---|
@@ -145,9 +183,24 @@ Controla o patrimônio permanente tombado.
 | `Description` | Descrição detalhada (cor, tamanho, BTU/HP) |
 | `Supplier` | Fornecedores de bens permanentes |
 | `BensPermanentes` | Bens tombados (tombo, marca, modelo, valor) |
-| `HistoryUas` | Histórico de UAs por onde o bem passou |
-| `UseExternal` | Registro de uso externo do bem |
-| `MovimentacoesPermanentes` | Movimentações entre UAs (transferência, devolução) |
+| `HistoryUas` | UA atual e histórico de UAs por onde o bem passou |
+| `AtribuicaoBem` | Responsável atual pelo bem dentro da UA |
+| `HistoricoMudanca` | Audit trail de alterações no bem (nunca deletado) |
+| `UseExternal` | Registro de acautelamento (uso externo do bem) |
+| `MovimentacaoBem` | Movimentações entre UAs (transferência, devolução) |
+| `SolicitacaoTransferencia` | Solicitação de transferência de bem entre UAs |
+| `PeriodoInventario` / `Inventario` | Períodos de inventário e conferência dos bens |
+| `Catalogo` / `SolicitacaoCatalogo` / `ItemSolicitacaoCatalogo` | Catálogo de bens permanentes para requisição pelas UAs |
+
+---
+
+### `manutencao` — Estoque de Manutenção
+
+Módulo em expansão. Hoje cobre o estoque de bens de manutenção (entrada por E-Fisco, saída por consumo), reaproveitando a localização física do `dempam`.
+
+| Model | Descrição |
+|---|---|
+| `EstoqueManutencao` | Item de manutenção em estoque (E-Fisco, quantidade, localização) |
 
 ---
 
@@ -236,22 +289,41 @@ Certifique-se de que o `.env` contém as variáveis `DB_NAME`, `DB_USER` e `DB_P
 
 ## Estrutura do Projeto
 
+Cada app de negócio vive na raiz do repositório (convenção padrão do Django) e segue **sempre a mesma estrutura interna**, o que torna qualquer app previsível de navegar assim que se conhece um deles:
+
+```
+<app>/
+├── models/ (ou models.py)  # Entidades do domínio
+├── views/                  # Views divididas por arquivo de contexto
+├── templates/<app>/        # HTML do app
+├── migrations/             # Migrações geradas automaticamente
+├── urls.py                 # Rotas do app, sob namespace próprio
+├── admin.py                # Registro no Django Admin
+├── forms.py                # Formulários (quando houver)
+├── utils.py                # Choices (TextChoices) e upload paths
+└── tests.py (ou tests/)
+```
+
 ```
 sipat/
-├── app/                    # Configuração central (settings, urls, wsgi)
+├── app/               # Configuração central (settings, urls, wsgi)
 │   └── settings/
 │       ├── base.py
-│       ├── development.py
-│       ├── local.py
-│       ├── staging.py
-│       └── production.py
-├── dempam/                 # Estrutura base (UAs, prédios, localizações)
-├── dimms/                  # Bens de consumo e almoxarifado
-├── dimrcbp/                # Bens permanentes
-├── templates/              # Templates HTML
-├── static/                 # Arquivos estáticos (logo, ícones)
-├── docs/                   # Documentação adicional
-├── sipat.drawio            # Diagrama de entidades (draw.io)
+│       ├── development.py   # SQLite · form de login
+│       ├── local.py         # PostgreSQL (Docker) · form de login
+│       ├── staging.py       # PostgreSQL · OIDC
+│       └── production.py    # PostgreSQL · OIDC
+├── accounts/          # /access/     — usuários, perfis, grupos, permissões
+├── dempam/            # /dempam/     — UAs, prédios, setores, localizações
+├── demands/           # /demands/    — demandas e tickets internos
+├── dimms/             # /dimms/      — bens de consumo, estoque, contratos, licitações
+├── dimrcbp/           # /dimrcbp/    — bens permanentes, movimentações, inventário
+├── manutencao/        # /manutencao/ — estoque de bens de manutenção (módulo em expansão)
+├── templates/         # Templates globais (base.html e afins)
+├── static/            # Arquivos estáticos (logo, ícones, CSS/JS globais)
+├── docs/              # Documentação adicional e diagramas
+│   └── architecture.md   # Diagramas C4 (contexto, containers, componentes, entidades, fluxos)
+├── sipat.drawio       # Diagrama de entidades (draw.io)
 ├── docker-compose.yml
 └── requirements.txt
 ```
@@ -260,7 +332,9 @@ sipat/
 
 ## Diagramas
 
-O arquivo `sipat.drawio` contém os diagramas de entidade-relacionamento do sistema, organizado por páginas:
+A documentação arquitetural completa (C4 — contexto, containers, componentes, entidade-relacionamento por módulo e fluxos de sequência) está em [`docs/architecture.md`](docs/architecture.md).
+
+O arquivo `sipat.drawio` complementa com os diagramas de entidade-relacionamento organizados por páginas:
 
 - **contract** — Fluxo de contratos e fornecedores
 - **DIMMS** — Estrutura de bens de consumo

@@ -97,6 +97,8 @@ graph TB
             DIMMS["📦 dimms\n─────────────\nEstoque de consumo\nSolicitações de materiais\nContratos e saldo ativo\nArtefatos de licitação\nCatálogo de consumo"]
 
             DIMRCBP["🏷️ dimrcbp\n─────────────\nBens permanentes\nMovimentações entre UAs\nInventário periódico\nCatálogo de patrimônio\nTermos de transferência"]
+
+            MANUTENCAO["🔧 manutencao\n─────────────\nEstoque de bens de manutenção\nEntrada/saída por E-Fisco\nMódulo em expansão"]
         end
     end
 
@@ -106,11 +108,13 @@ graph TB
     CORE --> DEMANDS
     CORE --> DIMMS
     CORE --> DIMRCBP
+    CORE --> MANUTENCAO
 
     ACCOUNTS -->|"InfoUA (UAs do usuário)"| DEMPAM
     DEMANDS -->|"InfoUA (UA da demanda)"| DEMPAM
     DIMMS -->|"InfoUA (UA solicitante)\nLocalizacaoDEMPAM (estoque)"| DEMPAM
     DIMRCBP -->|"InfoUA (UA do bem)\nMovimentação entre UAs"| DEMPAM
+    MANUTENCAO -->|"LocalizacaoDEMPAM (estoque)"| DEMPAM
 ```
 
 ---
@@ -300,6 +304,28 @@ erDiagram
     Inventario {
         enum situacao
         date data_verificacao
+    }
+```
+
+---
+
+### `manutencao` — Estoque de Manutenção
+
+Módulo em expansão: hoje cobre apenas o estoque de bens de manutenção (entrada por E-Fisco, saída por consumo), com a mesma lógica de localização física usada pelo `dempam`.
+
+```mermaid
+erDiagram
+    LocalizacaoDEMPAM ||--o{ EstoqueManutencao : "localização"
+    User ||--o{ EstoqueManutencao : "última edição"
+
+    EstoqueManutencao {
+        string efisco
+        string descricao
+        enum medida
+        enum grupo
+        string mark
+        int amount_shock
+        date validity
     }
 ```
 
