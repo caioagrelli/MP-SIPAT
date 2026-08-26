@@ -2,10 +2,15 @@
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
@@ -17,6 +22,12 @@ from ..models import Estoque, SolicitacaoItens
 from ..utils import GrupoConsumo
 from .saldo_ativo import _pdf_header, _fmt_dt
 from dempam.models import CircunscricaoPredio, InfoUA
+
+MESES_PT = {
+    1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+    5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+    9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro',
+}
 
 # ====================================
 # RELATÓRIOS DO DIMMS (BENS DE CONSUMO)
@@ -265,3 +276,138 @@ def custo_por_regiao(request):
         'qtd_bens_sem_preco': len(bens_sem_preco),
     }
     return render(request, 'dimms/relatorios/custo_por_regiao.html', context)
+
+
+# Agrega SolicitacaoItens por item (E-Fisco) e mês do pedido — usada tanto pela
+# tela do relatório (paginada) quanto pela exportação XLSX (linha completa, sem paginar)
+def _montar_gastos_por_item(request):
+    data_de = request.GET.get('data_de', '').strip()
+    data_ate = request.GET.get('data_ate', '').strip()
+    grupo_sel = request.GET.get('grupo', '').strip()
+    busca = request.GET.get('busca', '').strip()
+
+    itens = (
+        SolicitacaoItens.objects
+        .filter(item_order__isnull=False, amount_order__isnull=False, request_defendant__isnull=False)
+        .select_related('item_order__item_shock', 'request_defendant')
+    )
+    if data_de:
+        itens = itens.filter(request_defendant__data_order__date__gte=data_de)
+    if data_ate:
+        itens = itens.filter(request_defendant__data_order__date__lte=data_ate)
+    if grupo_sel:
+        itens = itens.filter(item_order__item_shock__grupo_consumo=grupo_sel)
+    if busca:
+        itens = itens.filter(
+            Q(item_order__item_shock__efisco__icontains=busca) |
+            Q(item_order__item_shock__descricao_efisco__icontains=busca)
+        )
+
+    por_item_mes = {}
+    itens_sem_preco = set()
+    for it in itens:
+        efisco_obj = it.item_order.item_shock
+        data_pedido = it.request_defendant.data_order
+        if data_pedido is None:
+            continue
+        ano, mes = data_pedido.year, data_pedido.month
+
+        linha = por_item_mes.setdefault((efisco_obj.pk, ano, mes), {
+            'item': efisco_obj,
+            'ano': ano,
+            'mes': mes,
+            'total_qtd': Decimal('0'),
+            'total_gasto': Decimal('0'),
+        })
+        linha['total_qtd'] += it.amount_order
+
+        preco = efisco_obj.preco_medio
+        if preco is not None:
+            linha['total_gasto'] += it.amount_order * preco
+        else:
+            itens_sem_preco.add(efisco_obj.pk)
+
+    linhas = sorted(por_item_mes.values(), key=lambda l: (l['ano'], l['mes'], l['total_gasto']), reverse=True)
+
+    total_geral = sum((l['total_gasto'] for l in linhas), Decimal('0'))
+    total_qtd_geral = sum((l['total_qtd'] for l in linhas), Decimal('0'))
+
+    return {
+        'linhas': linhas,
+        'data_de': data_de,
+        'data_ate': data_ate,
+        'grupo_sel': grupo_sel,
+        'busca': busca,
+        'total_geral': total_geral,
+        'total_qtd_geral': total_qtd_geral,
+        'qtd_itens_sem_preco': len(itens_sem_preco),
+    }
+
+
+GASTOS_POR_ITEM_POR_PAGINA = 30
+
+
+''' Gastos por Item — quantidade saída × preço médio, agrupado por item e por mês '''
+@login_required
+def gastos_por_item(request):
+    dados = _montar_gastos_por_item(request)
+
+    pagina = Paginator(dados['linhas'], GASTOS_POR_ITEM_POR_PAGINA).get_page(request.GET.get('pagina'))
+
+    return render(request, 'dimms/relatorios/gastos_por_item.html', {
+        **dados,
+        'pagina': pagina,
+        'grupos': GrupoConsumo.choices,
+        'meses_pt': MESES_PT,
+    })
+
+
+''' Gastos por Item — exportação XLSX (linha completa, respeitando os filtros da tela) para uso externo (ex.: Power BI) '''
+@login_required
+def gastos_por_item_export_xlsx(request):
+    dados = _montar_gastos_por_item(request)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Gastos por Item'
+
+    colunas = [
+        ('E-Fisco', 16),
+        ('Descrição', 60),
+        ('Grupo', 22),
+        ('Ano', 8),
+        ('Mês', 14),
+        ('Quantidade', 14),
+        ('Preço Médio', 14),
+        ('Gasto', 14),
+    ]
+
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='1E2D42', end_color='1E2D42', fill_type='solid')
+
+    for col_idx, (titulo, largura) in enumerate(colunas, start=1):
+        cel = ws.cell(row=1, column=col_idx, value=titulo)
+        cel.font = header_font
+        cel.fill = header_fill
+        ws.column_dimensions[get_column_letter(col_idx)].width = largura
+
+    ws.freeze_panes = 'A2'
+
+    labels_grupo = dict(GrupoConsumo.choices)
+    for row_idx, linha in enumerate(dados['linhas'], start=2):
+        item = linha['item']
+        ws.cell(row=row_idx, column=1, value=item.efisco)
+        ws.cell(row=row_idx, column=2, value=item.descricao_efisco)
+        ws.cell(row=row_idx, column=3, value=labels_grupo.get(item.grupo_consumo, item.grupo_consumo))
+        ws.cell(row=row_idx, column=4, value=linha['ano'])
+        ws.cell(row=row_idx, column=5, value=MESES_PT[linha['mes']])
+        ws.cell(row=row_idx, column=6, value=float(linha['total_qtd']))
+        ws.cell(row=row_idx, column=7, value=float(item.preco_medio) if item.preco_medio is not None else None)
+        ws.cell(row=row_idx, column=8, value=float(linha['total_gasto']))
+
+    resp = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    resp['Content-Disposition'] = 'attachment; filename="gastos_por_item_sipat.xlsx"'
+    wb.save(resp)
+    return resp

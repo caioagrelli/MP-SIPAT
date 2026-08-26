@@ -58,6 +58,12 @@
       <div class="report-title">Custo por Região</div>
       <div class="report-sub">Soma o preço médio × quantidade pedida por todas as UAs de uma circunscrição, com detalhamento por unidade.</div>
     </a>
+
+    <a href="{% url 'dimms:gastos_por_item' %}" class="report-card">
+      <div class="report-icon">💰</div>
+      <div class="report-title">Gastos por Item</div>
+      <div class="report-sub">Quantidade saída × preço médio de cada item, agrupado por mês — com exportação em XLSX pra Power BI.</div>
+    </a>
   </div>
 </div>
 {% endblock %}
