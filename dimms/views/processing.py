@@ -1,6 +1,7 @@
 # bibliotecas padrões do Python
 import json
 import os
+import unicodedata
 from datetime import datetime
 
 # Importações padrões do Django Unchained   'What kind of dentist are you?' - Quentin Tarantino
@@ -32,6 +33,15 @@ from ..forms import (
     SolicitacaoEditForm, ReceberSolicitacaoForm, AnexarTermoAssinadoForm,
 )
 from ..utils import StatusTramitacao, parse_quantidade
+from dempam.models import InfoUA
+
+
+def _normalizar_busca(texto):
+    """Maiúsculo e sem acento, pra comparar 'promotoria' com 'PROMOTÓRIA' etc."""
+    if not texto:
+        return ''
+    sem_acento = unicodedata.normalize('NFKD', texto).encode('ascii', 'ignore').decode('ascii')
+    return sem_acento.upper()
 
 # =========================================================
 # CAMPOS DESTINADOS PARA GERENCIAR/VISUALIZAR SOLICITAÇÕES
@@ -57,13 +67,20 @@ def processing(request):
     )
 
     if query:
+        query_normalizado = _normalizar_busca(query)
+        uas_compativeis = [
+            ua.pk for ua in InfoUA.objects.only('pk', 'ua', 'sigla')
+            if query_normalizado in _normalizar_busca(ua.sigla) or query_normalizado in _normalizar_busca(ua.ua)
+        ]
         solicitacoes = solicitacoes.filter(
             Q(request_code__icontains=query)             |
+            Q(numero_pe_integrado__icontains=query)       |
             Q(user_order__icontains=query)               |
             Q(observation_order__icontains=query)        |
             Q(user_responsible__username__icontains=query)   |
             Q(user_responsible__first_name__icontains=query) |
-            Q(user_responsible__last_name__icontains=query)
+            Q(user_responsible__last_name__icontains=query)  |
+            Q(ua_order_id__in=uas_compativeis)
         )
 
     if filtro_status:

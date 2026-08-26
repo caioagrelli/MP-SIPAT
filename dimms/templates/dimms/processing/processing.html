@@ -511,7 +511,7 @@
             name="q"
             class="filter-input"
             value="{{ query|default_if_none:'' }}"
-            placeholder="Código, UA ou solicitante…">
+            placeholder="Código, N° PE Integrado, UA, sigla ou solicitante…">
         </div>
 
         <div class="filter-group" style="min-width:180px;">
@@ -588,6 +588,9 @@
               <a href="{% url 'dimms:details_processing' t.pk %}" class="code-link">
                 {{ t.request_code }}
               </a>
+              {% if t.numero_pe_integrado %}
+                <div style="font-size:.72rem;color:var(--ink-3);margin-top:2px;">PE {{ t.numero_pe_integrado }}</div>
+              {% endif %}
             </td>
 
             <td class="cell-ua">{{ t.ua_order }}</td>
