@@ -1,0 +1,143 @@
+{% extends 'global/base.html' %}
+
+{% block title %}SIPAT — Estante {{ codigo_estante }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:#f0f2f7; --surface:#ffffff; --surface-2:#f7f8fc;
+    --border:#e2e5ef; --border-strong:#c8cfe0;
+    --ink:#1a2035; --ink-2:#3d4966; --ink-3:#7380a0;
+    --blue:#1d4ed8; --blue-soft:#eff4ff; --blue-mid:#c7d7fd;
+    --green:#15803d; --green-soft:#f0fdf4; --green-mid:#bbf7d0;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --accent-glow:rgba(37,99,235,.12);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --r-sm:10px; --r-md:16px; --r-lg:22px;
+    --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .apage{font-family:var(--font);background:var(--bg);padding:28px 24px 48px;color:var(--ink);min-height:100vh;}
+
+  .page-back{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--ink-3);text-decoration:none;margin-bottom:14px;transition:color .15s;}
+  .page-back:hover{color:var(--ink);}
+
+  /* ── Hero ── */
+  .hero{position:relative;background:linear-gradient(135deg,#1e2d42 0%,#2c4468 100%);border-radius:var(--r-lg);padding:30px 32px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px;box-shadow:var(--shadow-md);overflow:hidden;}
+  .hero::before{content:'';position:absolute;top:-40%;right:-8%;width:220px;height:220px;background:radial-gradient(circle,rgba(37,99,235,.35),transparent 70%);}
+  .hero-main{display:flex;align-items:center;gap:20px;position:relative;}
+  .hero-badge{width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:1.5rem;font-weight:800;flex-shrink:0;}
+  .hero-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.65;}
+  .hero-title{font-size:1.35rem;font-weight:800;margin-top:2px;}
+  .hero-sub{font-size:.82rem;opacity:.7;margin-top:3px;}
+  .hero-stats{display:flex;gap:10px;position:relative;flex-wrap:wrap;}
+  .hero-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-md);padding:10px 18px;text-align:center;min-width:84px;}
+  .hero-stat .n{font-family:var(--mono);font-size:1.4rem;font-weight:800;line-height:1;}
+  .hero-stat .l{font-size:.68rem;opacity:.7;margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+
+  /* ── Prateleira card ── */
+  .prateleira-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden;scroll-margin-top:20px;}
+  .prateleira-head{padding:14px 20px;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .prateleira-title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.95rem;}
+  .prateleira-title a{color:var(--ink);text-decoration:none;font-family:var(--mono);}
+  .prateleira-title a:hover{color:var(--accent);}
+  .total-badge{background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:.76rem;font-family:var(--mono);font-weight:700;}
+
+  .main-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .main-table thead th{padding:9px 20px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);background:var(--surface);border-bottom:1px solid var(--border);text-align:left;}
+  .main-table tbody td{padding:11px 20px;color:var(--ink-2);border-bottom:1px solid var(--border);}
+  .main-table tbody tr:last-child td{border-bottom:none;}
+  .main-table tbody tr:hover td{background:#f5f8ff;}
+  .mono-cell{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);}
+  .prateleira-empty{padding:22px 20px;color:var(--ink-3);font-size:.85rem;text-align:center;}
+
+  .section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border-strong);}
+
+  @media(max-width:640px){
+    .apage{padding:14px 12px 32px;}
+    .hero{flex-direction:column;align-items:flex-start;padding:22px;}
+    .hero-stats{width:100%;}
+    .hero-stat{flex:1;}
+  }
+</style>
+
+<div class="apage">
+  <a href="{% url 'dempam:corredor_detail' setor.pk corredor %}" class="page-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Voltar para Corredor {{ corredor }}
+  </a>
+
+  <div class="hero">
+    <div class="hero-main">
+      <div class="hero-badge">{{ codigo_estante }}</div>
+      <div>
+        <div class="hero-label">Estante</div>
+        <div class="hero-title">{{ setor.setor }}</div>
+        <div class="hero-sub">Corredor {{ corredor }} · {{ total_prateleiras }} prateleira{{ total_prateleiras|pluralize }} cadastrada{{ total_prateleiras|pluralize }}</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="n">{{ total_itens }}</div>
+        <div class="l">Item{{ total_itens|pluralize }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">📦 Prateleiras desta estante</div>
+
+  {% for grupo in grupos %}
+    <div class="prateleira-card" id="loc-{{ grupo.localizacao.pk }}">
+      <div class="prateleira-head">
+        <div class="prateleira-title">
+          🗄️ <a href="{% url 'dempam:locate_detail' grupo.localizacao.pk %}">{{ grupo.localizacao.prateleira_pallet }}</a>
+        </div>
+        <span class="total-badge">{{ grupo.itens|length }} item{{ grupo.itens|length|pluralize }}</span>
+      </div>
+      {% if grupo.itens %}
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th>{% if is_dimrcbp %}Tombo{% else %}E-Fisco{% endif %}</th>
+              <th>Descrição</th>
+              <th>Marca</th>
+              {% if not is_dimrcbp %}<th>Quantidade</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in grupo.itens %}
+              {% if is_dimrcbp %}
+                <tr>
+                  <td class="mono-cell">{{ item.tombo }}</td>
+                  <td>
+                    <a href="{% url 'dimrcbp:bem_detalhe_admin' item.tombo %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                      {{ item.description }}
+                    </a>
+                  </td>
+                  <td>{{ item.mark|default:"—" }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td class="mono-cell">{{ item.item_shock.efisco }}</td>
+                  <td>
+                    <a href="{% url 'dimms:overview' item.pk %}" style="color:var(--accent);text-decoration:none;font-weight:600;">
+                      {{ item.description_manual|default:item.item_shock.descricao_efisco }}
+                    </a>
+                  </td>
+                  <td>{{ item.mark|default:"—" }}</td>
+                  <td class="mono-cell">{{ item.amount_shock }}</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="prateleira-empty">Nenhum item nesta prateleira.</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

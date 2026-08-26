@@ -200,7 +200,9 @@
   {% for grupo in estantes %}
     <div class="estante-section">
       <div class="estante-head">
-        <div class="estante-title">📚 Estante {{ grupo.estante }}</div>
+        <div class="estante-title">
+          📚 <a href="{% url 'dempam:estante_detail' setor.pk corredor grupo.estante %}" style="color:inherit;text-decoration:none;">Estante {{ grupo.estante }}</a>
+        </div>
         <div class="estante-stats">{{ grupo.com_itens }}/{{ grupo.total_prateleiras }} com itens · {{ grupo.total_itens }} item{{ grupo.total_itens|pluralize }}</div>
       </div>
       <div class="prateleira-grid">

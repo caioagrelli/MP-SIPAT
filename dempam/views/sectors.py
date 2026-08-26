@@ -432,6 +432,118 @@ def _desenhar_cartaz_corredor(c, w, h, setor, corredor, qr_reader):
     c.drawImage(qr_reader, qr_x, qr_y, width=qr_size, height=qr_size, mask='auto')
 
 
+def _desenhar_etiqueta_estante(c, w, h, setor, codigo_estante, qr_reader):
+    altura_cabecalho = 26 * mm
+
+    # ── faixa superior com identidade do SIPAT ──
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.rect(0, h - altura_cabecalho, w, altura_cabecalho, fill=1, stroke=0)
+
+    logo_path = finders.find('img/brasao-mppe.png')
+    if logo_path and os.path.exists(logo_path):
+        c.drawImage(ImageReader(logo_path), 8 * mm, h - altura_cabecalho + 3 * mm, width=20 * mm, height=20 * mm, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', 12)
+    c.drawString(33 * mm, h - 10 * mm, 'MINISTÉRIO PÚBLICO DE PERNAMBUCO')
+    c.setFont('Helvetica', 8)
+    c.drawString(33 * mm, h - 16 * mm, 'SIPAT — Sistema Integrado Patrimonial')
+    c.setFont('Helvetica-Bold', 8)
+    c.drawString(33 * mm, h - 22 * mm, setor.setor.upper())
+
+    # ── corpo: rótulo "ESTANTE" + código grande à esquerda, QR à direita ──
+    corpo_top = h - altura_cabecalho
+    qr_size = 46 * mm
+    qr_margin = 8 * mm
+
+    c.setFillColor(colors.HexColor('#2563eb'))
+    c.setFont('Helvetica-Bold', 13)
+    rotulo = 'ESTANTE'
+    label_y = corpo_top - 12 * mm
+    c.drawString(14 * mm, label_y, rotulo)
+
+    # código grande, centralizado na área abaixo do rótulo
+    area_top = label_y - 8 * mm
+    area_bottom = 12 * mm
+    largura_disponivel = w - qr_size - qr_margin * 2 - 28 * mm
+    tamanho = _tamanho_max_fonte(c, codigo_estante, largura_disponivel, tamanho_max=100, tamanho_min=60)
+    cap_height = tamanho * 0.72 / 2.834  # aprox. altura de caixa-alta em mm
+    baseline_y = area_bottom + (area_top - area_bottom - cap_height) / 2
+    c.setFillColor(colors.HexColor('#1e2d42'))
+    c.setFont('Helvetica-Bold', tamanho)
+    c.drawString(14 * mm, baseline_y, codigo_estante)
+
+    # ── qrcode no canto inferior direito, com borda própria ──
+    qr_x = w - qr_margin - qr_size
+    qr_y = qr_margin
+    qr_pad = 2.5 * mm
+
+    c.setStrokeColor(colors.HexColor('#2563eb'))
+    c.setLineWidth(1.4)
+    c.rect(qr_x - qr_pad, qr_y - qr_pad, qr_size + 2 * qr_pad, qr_size + 2 * qr_pad, fill=0, stroke=1)
+    c.drawImage(qr_reader, qr_x, qr_y, width=qr_size, height=qr_size, mask='auto')
+
+
+''' Imprimir uma etiqueta em meia folha A4 por estante, com QR code pra página da estante '''
+@login_required
+def imprimir_estantes(request, pk):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    base = (
+        setor.localizacao_interna
+        .exclude(corredor__isnull=True).exclude(corredor='')
+        .exclude(estante__isnull=True).exclude(estante='')
+    )
+
+    pares = sorted(set(base.values_list('corredor', 'estante')), key=lambda ce: (len(ce[0]), ce[0], len(ce[1]), ce[1]))
+
+    corredores_sel = [c for c in request.GET.getlist('corredor') if c]
+    if corredores_sel:
+        pares = [(c, e) for c, e in pares if c in corredores_sel]
+
+    if not pares:
+        messages.error(request, 'Não há estantes cadastradas neste setor para imprimir.')
+        return redirect('dempam:sector_detail', pk=setor.pk)
+
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="estantes_{setor.pk}.pdf"'
+
+    # duas etiquetas por folha A4 (uma em cada metade), pra imprimir e cortar ao meio
+    w, h = A4
+    meia_h = h / 2
+    c = rl_canvas.Canvas(resp, pagesize=A4)
+
+    for i in range(0, len(pares), 2):
+        lote = pares[i:i + 2]
+
+        for posicao, (corredor, estante) in enumerate(lote):
+            codigo_estante = f'{corredor}{estante}'
+            url = request.build_absolute_uri(
+                reverse('dempam:estante_detail', args=[setor.pk, corredor, estante])
+            )
+            qr_reader = _gerar_qrcode_reader(url)
+            c.saveState()
+            if posicao == 0:
+                c.translate(0, meia_h)
+            _desenhar_etiqueta_estante(c, w, meia_h, setor, codigo_estante, qr_reader)
+            c.restoreState()
+
+        # linha tracejada indicando onde cortar
+        c.saveState()
+        c.setDash(4, 3)
+        c.setStrokeColor(colors.HexColor('#9aa5bd'))
+        c.setLineWidth(0.8)
+        c.line(0, meia_h, w, meia_h)
+        c.restoreState()
+        c.setFont('Helvetica', 7)
+        c.setFillColor(colors.HexColor('#9aa5bd'))
+        c.drawCentredString(w / 2, meia_h + 5, '✂ corte aqui')
+
+        c.showPage()
+
+    c.save()
+    return resp
+
+
 ''' Imprimir um cartaz grande por corredor, para afixar fisicamente no setor '''
 @login_required
 def imprimir_corredores(request, pk):
@@ -527,6 +639,53 @@ def corredor_detail(request, pk, corredor):
         'todos_itens': todos_itens,
         'total_itens': total_itens,
         'total_prateleiras': localizacoes.count(),
+        'is_dimrcbp': is_dimrcbp,
+    })
+
+
+''' Página (acessada pelo QR code da etiqueta) com o conteúdo de uma estante específica
+(um corredor + uma estante), organizada por prateleira '''
+@login_required
+def estante_detail(request, pk, corredor, estante):
+    setor = get_object_or_404(SetorDEMPAM, pk=pk)
+    localizacoes = (
+        setor.localizacao_interna
+        .filter(corredor=corredor, estante=estante)
+        .order_by('prateleira')
+    )
+    if not localizacoes.exists():
+        raise Http404('Estante não encontrada.')
+
+    is_dimrcbp = setor.tipo == TipoSetor.dimrcbp
+
+    grupos = []
+    total_itens = 0
+    for loc in localizacoes:
+        if is_dimrcbp:
+            itens = list(
+                BensPermanentes.objects
+                .filter(locate=loc)
+                .select_related('description')
+                .order_by('tombo')
+            )
+        else:
+            itens = list(
+                Estoque.objects
+                .filter(Q(locate=loc) | Q(outras_localizacoes=loc))
+                .select_related('item_shock')
+                .distinct()
+            )
+        total_itens += len(itens)
+        grupos.append({'localizacao': loc, 'itens': itens})
+
+    return render(request, 'dempam/sectors/estante_detail.html', {
+        'setor': setor,
+        'corredor': corredor,
+        'estante': estante,
+        'codigo_estante': f'{corredor}{estante}',
+        'grupos': grupos,
+        'total_prateleiras': localizacoes.count(),
+        'total_itens': total_itens,
         'is_dimrcbp': is_dimrcbp,
     })
 
