@@ -159,23 +159,33 @@
             <span class="scheck">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
-            <div class="srow-main">
-              <div class="srow-desc">{{ item.item_order.description_manual|default:item.item_order.item_shock.descricao_efisco }}</div>
-              <div class="srow-efisco">{{ item.item_order.item_shock.efisco }}</div>
-              <span class="srow-qtd">{{ item.amount_order }} {{ item.item_order.item_shock.get_medida_display|default:"" }}</span>
-            </div>
-            <div class="srow-loc">
-              {% if item.item_order.locate %}
-                <div class="srow-loc-code">{{ item.item_order.locate }}</div>
-                <div class="srow-loc-setor">{{ item.item_order.locate.setor_sala|default:"" }}</div>
-              {% endif %}
-              {% for loc in item.item_order.outras_localizacoes.all %}
-                <div class="srow-loc-extra">+ {{ loc }}</div>
-              {% endfor %}
-              {% if not item.item_order.locate and not item.item_order.outras_localizacoes.all %}
+            {% if item.item_order %}
+              <div class="srow-main">
+                <div class="srow-desc">{% firstof item.item_order.description_manual item.item_order.item_shock.descricao_efisco %}</div>
+                <div class="srow-efisco">{{ item.item_order.item_shock.efisco }}</div>
+                <span class="srow-qtd">{{ item.amount_order }} {{ item.item_order.item_shock.get_medida_display|default:"" }}</span>
+              </div>
+              <div class="srow-loc">
+                {% if item.item_order.locate %}
+                  <div class="srow-loc-code">{{ item.item_order.locate }}</div>
+                  <div class="srow-loc-setor">{{ item.item_order.locate.setor_sala|default:"" }}</div>
+                {% endif %}
+                {% for loc in item.item_order.outras_localizacoes.all %}
+                  <div class="srow-loc-extra">+ {{ loc }}</div>
+                {% endfor %}
+                {% if not item.item_order.locate and not item.item_order.outras_localizacoes.all %}
+                  <div class="srow-loc-none">Sem localização</div>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="srow-main">
+                <div class="srow-desc">Item removido do estoque</div>
+                <span class="srow-qtd">{{ item.amount_order }}</span>
+              </div>
+              <div class="srow-loc">
                 <div class="srow-loc-none">Sem localização</div>
-              {% endif %}
-            </div>
+              </div>
+            {% endif %}
           </label>
         {% empty %}
           <div class="sempty">Nenhum item nesta solicitação.</div>
