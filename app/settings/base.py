@@ -104,6 +104,12 @@ EVOLUTION_API_URL   = config('EVOLUTION_API_URL', default='').rstrip('/')
 EVOLUTION_API_KEY   = config('EVOLUTION_API_KEY', default='')
 EVOLUTION_INSTANCE  = config('EVOLUTION_INSTANCE', default='')
 
+# Google Sheets — envio mensal de gastos (BI externo, ex.: Looker Studio)
+# Se GOOGLE_SHEETS_ID ficar vazio, o comando "enviar_gastos_google_sheets" é
+# simplesmente pulado (com aviso), sem quebrar nada.
+GOOGLE_SHEETS_ID               = config('GOOGLE_SHEETS_ID', default='')
+GOOGLE_SHEETS_CREDENTIALS_PATH = config('GOOGLE_SHEETS_CREDENTIALS_PATH', default=os.path.join(BASE_DIR, 'credentials', 'google_sheets_service_account.json'))
+
 # comportamento comum do OIDC
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_RP_SCOPES = "openid email profile"

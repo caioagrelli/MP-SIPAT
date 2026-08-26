@@ -9,6 +9,9 @@ urlpatterns = [
     path('municipios/<str:codigo_ibge>/resumo/', municipio_resumo, name='municipio_resumo'),
     path('circunscricoes/<str:circunscricao>/resumo/', circunscricao_resumo, name='circunscricao_resumo'),
     path('ranking-gastos/', ranking_gastos, name='ranking_gastos'),
+    path('gastos-por-ua/', gastos_por_ua, name='gastos_por_ua'),
+    path('gastos-por-ua/exportar/', gastos_por_ua_export_xlsx, name='gastos_por_ua_export_xlsx'),
+    path('gastos/exportar-combinado/', gastos_export_combinado_xlsx, name='gastos_export_combinado_xlsx'),
 
     # Mural de Avisos
     path('avisos/', aviso_lista, name='aviso_lista'),

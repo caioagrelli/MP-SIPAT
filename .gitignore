@@ -34,3 +34,6 @@ Thumbs.db
 certs/*.key
 certs/*.crt
 certs/san.cnf
+
+# Credenciais da conta de serviço do Google (Sheets API) — nunca versionar
+credentials/

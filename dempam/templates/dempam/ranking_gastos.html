@@ -66,7 +66,11 @@
       Voltar para o Painel Gerencial
     </a>
     <div class="page-title">🏆 Ranking de Gastos</div>
-    <div class="page-sub">Municípios e circunscrições ordenados pelo gasto mensal (consumo) — do maior para o menor.</div>
+    <div class="page-sub">Municípios e circunscrições ordenados pelo gasto do último mês com solicitação (consumo) — do maior para o menor.</div>
+    <a href="{% url 'dempam:gastos_por_ua' %}" class="btn-ghost" style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:9px 16px;border-radius:10px;background:var(--surface);border:1.5px solid var(--border-strong);color:var(--ink-2);text-decoration:none;font-size:.85rem;font-weight:600;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg>
+      Ver Gastos por UA (com exportação pro Power BI)
+    </a>
   </div>
 
   <div class="ranking-grid">
